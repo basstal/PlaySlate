@@ -1,18 +1,15 @@
 ﻿#pragma once
 #include "ClassViewerFilter.h"
-#include "PlaySlate/ActActionBlueprintFactory.h"
+#include "Assets/ActActionBlueprintFactory.h"
 
 
 /**
-* 提供ActAction选择父类蓝图的对话框
+* 提供ActActionLogic选择父类蓝图的对话框
 */
 class SActActionBlueprintCreateDialog : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SActActionBlueprintCreateDialog)
-		{
-		}
-
+	SLATE_BEGIN_ARGS(SActActionBlueprintCreateDialog){}
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);

@@ -1,11 +1,11 @@
-﻿#include "ActActionBlueprintCreateDialog.h"
+﻿#include "SWidget/ActActionBlueprintCreateDialog.h"
 
 #include "ClassViewerModule.h"
 #include "Editor.h"
 #include "SlateOptMacros.h"
 #include "Widgets/Layout/SUniformGridPanel.h"
 
-#define LOCTEXT_NAMESPACE "SActActionBlueprintCreateDialog"
+#define LOCTEXT_NAMESPACE "ActActionToolkit"
 
 class FClassViewerModule;
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
@@ -13,7 +13,7 @@ BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 void SActActionBlueprintCreateDialog::Construct(const FArguments& InArgs)
 {
 	bOKClicked = false;
-	ParentClass = UActActionBlueprint::StaticClass();
+	ParentClass = UActActionLogic::StaticClass();
 
 	ChildSlot
 	[
@@ -72,7 +72,7 @@ void SActActionBlueprintCreateDialog::MakeParentClassPicker()
 	Options.bIsBlueprintBaseOnly = true;
 
 	TSharedPtr<FActionBlueprintParentFilter> Filter = MakeShareable(new FActionBlueprintParentFilter);
-	Filter->AllowedChildrenOfClasses.Add(UActActionBlueprint::StaticClass());
+	Filter->AllowedChildrenOfClasses.Add(UActActionLogic::StaticClass());
 	Options.ClassFilter = Filter;
 
 	ParentClassContainer->ClearChildren();

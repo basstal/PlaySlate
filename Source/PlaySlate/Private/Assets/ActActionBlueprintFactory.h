@@ -1,9 +1,10 @@
 ﻿#pragma once
 
-#include "ActActionBlueprint.h"
+#include "Assets/ActActionLogic.h"
 #include "Factories/Factory.h"
 
 #include "ActActionBlueprintFactory.generated.h"
+
 
 UCLASS(MinimalAPI)
 class UActActionBlueprintFactory : public UFactory
@@ -16,7 +17,7 @@ public:
 	TEnumAsByte<EBlueprintType> BlueprintType;
 
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<UActActionBlueprint> ParentClass;
+	TSubclassOf<UActActionLogic> ParentClass;
 
 	//~Begin UFactory interface
 	virtual bool ConfigureProperties() override;

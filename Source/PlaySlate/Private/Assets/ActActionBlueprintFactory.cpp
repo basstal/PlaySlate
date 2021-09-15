@@ -1,10 +1,9 @@
 ﻿#include "ActActionBlueprintFactory.h"
 
 #include "ActActionBlueprint.h"
-#include "ActActionBlueprintGraph.h"
-#include "ActActionBlueprintGraphSchema.h"
+#include "Editor/ActActionBlueprintGraph.h"
+#include "Editor/ActActionBlueprintGraphSchema.h"
 #include "BlueprintEditorSettings.h"
-#include "Editor.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Misc/MessageDialog.h"
@@ -12,14 +11,14 @@
 #include "Widgets/Layout/SUniformGridPanel.h"
 
 
-#define LOCTEXT_NAMESPACE "UActActionBlueprintFactory"
+#define LOCTEXT_NAMESPACE "ActActionToolkit"
 
-UActActionBlueprintFactory::UActActionBlueprintFactory() : Super()
+UActActionBlueprintFactory::UActActionBlueprintFactory()
 {
 	bCreateNew = true;
 	bEditAfterNew = true;
 	SupportedClass = UActActionBlueprint::StaticClass();
-	ParentClass = UActActionBlueprint::StaticClass();
+	ParentClass = UActActionLogic::StaticClass();
 	
 }
 
@@ -44,7 +43,7 @@ UObject* UActActionBlueprintFactory::FactoryCreateNew(UClass* InClass, UObject* 
 		ParentClass = UInterface::StaticClass();
 	}
 
-	if (ParentClass == nullptr || !FKismetEditorUtilities::CanCreateBlueprintOfClass(ParentClass) || !ParentClass->IsChildOf(UActActionBlueprint::StaticClass()))
+	if (ParentClass == nullptr || !FKismetEditorUtilities::CanCreateBlueprintOfClass(ParentClass) || !ParentClass->IsChildOf(UActActionLogic::StaticClass()))
 	{
 		FFormatNamedArguments Args;
 		Args.Add(TEXT("ClassName"), ParentClass != nullptr ? FText::FromString(ParentClass->GetName()) : LOCTEXT("Null", "(null)"));

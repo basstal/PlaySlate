@@ -4,10 +4,8 @@
 class FActActionBlueprintEditor : public FBlueprintEditor
 {
 public:
-	FActActionBlueprintEditor();
-	virtual ~FActActionBlueprintEditor() override;
 	/**
-	 * 初始化Action编辑器
+	 * 初始化ActActionLogic编辑器
 	 *
 	 * @param Mode							资源编辑模式
 	 * @param InitToolkitHost				当模式为WorldCentric时，编辑器实例由这个Host初始化
@@ -17,7 +15,7 @@ public:
 	void InitActActionBlueprintEditor(const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost, const TArray<UBlueprint*>& InBlueprints, bool bShouldOpenInDefaultsMode);
 
 	/**
-	* 更新已打开的Action蓝图确保其是最新的
+	* 更新已打开的ActActionLogic的蓝图，确保其是最新的
 	* 
 	* @param	Blueprint	待更新的蓝图
 	*/

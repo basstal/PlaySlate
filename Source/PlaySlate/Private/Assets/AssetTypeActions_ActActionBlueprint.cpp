@@ -1,13 +1,13 @@
-﻿#include "AssetTypeActions_ActActionBlueprint.h"
+﻿#include "Assets/AssetTypeActions_ActActionBlueprint.h"
 
 #include "ActActionBlueprint.h"
-#include "ActActionBlueprintEditor.h"
 #include "ActActionBlueprintFactory.h"
+#include "Editor/ActActionBlueprintEditor.h"
 #include "BlueprintEditorSettings.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "Misc/MessageDialog.h"
 
-#define LOCTEXT_NAMESPACE "AssetTypeActions"
+#define LOCTEXT_NAMESPACE "ActActionToolkit"
 
 FText FAssetTypeActions_ActActionBlueprint::GetName() const
 {
@@ -16,7 +16,7 @@ FText FAssetTypeActions_ActActionBlueprint::GetName() const
 
 FColor FAssetTypeActions_ActActionBlueprint::GetTypeColor() const
 {
-	return FColor(0, 255, 0);
+	return FColor(200, 100, 0);
 }
 
 UClass* FAssetTypeActions_ActActionBlueprint::GetSupportedClass() const
@@ -30,11 +30,11 @@ void FAssetTypeActions_ActActionBlueprint::OpenAssetEditor(const TArray<UObject*
 
 	for (auto ObjIt = InObjects.CreateConstIterator(); ObjIt; ++ObjIt)
 	{
-		UBlueprint* Blueprint = Cast<UBlueprint>(*ObjIt);
-		if (Blueprint)
+		UActActionBlueprint* ActActionBlueprint = Cast<UActActionBlueprint>(*ObjIt);
+		if (ActActionBlueprint)
 		{
 			bool bLetOpen = true;
-			if (!Blueprint->ParentClass)
+			if (!ActActionBlueprint->ParentClass)
 			{
 				bLetOpen = EAppReturnType::Yes == FMessageDialog::Open(EAppMsgType::YesNo, LOCTEXT("FailedToLoadActActionBlueprintWithContinue", "Act Action Blueprint could not be loaded because it derives from an invalid class. Check to make sure the parent class for this blueprint hasn't been removed! Do you want to continue(it can crash the editor)?"));
 			}
@@ -43,9 +43,9 @@ void FAssetTypeActions_ActActionBlueprint::OpenAssetEditor(const TArray<UObject*
 				TSharedRef<FActActionBlueprintEditor> NewEditor(new FActActionBlueprintEditor());
 
 				TArray<UBlueprint*> Blueprints;
-				Blueprints.Add(Blueprint);
+				Blueprints.Add(ActActionBlueprint);
 
-				NewEditor->InitActActionBlueprintEditor(Mode, EditWithinLevelEditor, Blueprints, ShouldUseDataOnlyEditor(Blueprint));
+				NewEditor->InitActActionBlueprintEditor(Mode, EditWithinLevelEditor, Blueprints, ShouldUseDataOnlyEditor(ActActionBlueprint));
 			}
 		}
 		else
@@ -57,13 +57,13 @@ void FAssetTypeActions_ActActionBlueprint::OpenAssetEditor(const TArray<UObject*
 
 uint32 FAssetTypeActions_ActActionBlueprint::GetCategories()
 {
-	return EAssetTypeCategories::Blueprint | EAssetTypeCategories::Gameplay;
+	return EAssetTypeCategories::Gameplay;
 }
 
 UFactory* FAssetTypeActions_ActActionBlueprint::GetFactoryForBlueprintType(UBlueprint* InBlueprint) const
 {
 	UActActionBlueprintFactory* Factory = NewObject<UActActionBlueprintFactory>();
-	Factory->ParentClass = TSubclassOf<UActActionBlueprint>(*InBlueprint->GeneratedClass);
+	Factory->ParentClass = TSubclassOf<UActActionLogic>(*InBlueprint->GeneratedClass);
 	return Factory;
 }
 

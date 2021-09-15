@@ -1,19 +1,10 @@
-﻿#include "ActActionBlueprintEditor.h"
+﻿#include "Editor/ActActionBlueprintEditor.h"
 
-#include "ActActionBlueprint.h"
+#include "Assets/ActActionBlueprint.h"
 #include "ActActionBlueprintGraphSchema.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 
-#define LOCTEXT_NAMESPACE "FActActionBlueprintEditor"
-
-
-FActActionBlueprintEditor::FActActionBlueprintEditor()
-{
-}
-
-FActActionBlueprintEditor::~FActActionBlueprintEditor()
-{
-}
+#define LOCTEXT_NAMESPACE "ActActionToolkit"
 
 
 void FActActionBlueprintEditor::InitActActionBlueprintEditor(const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost, const TArray<UBlueprint*>& InBlueprints, bool bShouldOpenInDefaultsMode)
@@ -49,7 +40,7 @@ FName FActActionBlueprintEditor::GetToolkitFName() const
 
 FText FActActionBlueprintEditor::GetBaseToolkitName() const
 {
-	return LOCTEXT("ActActionEditorAppLabel", "Act Action Editor");
+	return LOCTEXT("AppLabel", "ActAction Blueprint Editor");
 }
 
 FText FActActionBlueprintEditor::GetToolkitName() const
