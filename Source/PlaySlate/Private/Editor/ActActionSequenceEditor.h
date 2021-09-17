@@ -2,11 +2,13 @@
 
 #include "IAnimationEditor.h"
 #include "Assets/ActActionSequence.h"
-#include "SWidget/ActActionSequenceMain.h"
+#include "SWidget/ActActionSequenceWidget.h"
+#include "SWidget/ActActionViewportWidget.h"
 
 class FActActionSequenceEditor : public FAssetEditorToolkit, public FGCObject, public FEditorUndoClient, public FTickableEditorObject
 {
 public:
+	virtual ~FActActionSequenceEditor() override;
 	/**
 	* 初始化ActActionSequence编辑器
 	*
@@ -18,6 +20,7 @@ public:
 
 	//~Begin FGCObject interface
 	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
+	virtual FString GetReferencerName() const override;
 	//~End FGCObject interface
 
 	//~Begin FTickableEditorObject interface
@@ -30,18 +33,29 @@ public:
 	virtual FName GetToolkitFName() const override;
 	virtual FText GetBaseToolkitName() const override;
 	virtual FString GetWorldCentricTabPrefix() const override;
+	virtual void RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
+	virtual void UnregisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
 	//~End FAssetEditorToolkit interfaced
 
+
 protected:
+	/** Callback for spawning tabs. */
+	TSharedRef<SDockTab> HandleTabManagerSpawnSequence(const FSpawnTabArgs& Args);
+	TSharedRef<SDockTab> HandleTabManagerSpawnViewport(const FSpawnTabArgs& Args);
+
 	/**
 	 * TRANS_EN:Level sequence for our edit operation.
 	 * Model模块
 	 */
 	UActActionSequence* ActActionSequence;
 	/**
-	 * View模块
+	 * Sequence View模块
 	 */
-	TSharedPtr<SActActionSequenceMain> SequenceMain;
+	TSharedPtr<SActActionSequenceWidget> SequenceMain;
+	/**
+	 * Viewport View模块
+	 */
+	TSharedPtr<SActActionViewportWidget> Viewport;
 	/**
 	 * Controller模块
 	 */

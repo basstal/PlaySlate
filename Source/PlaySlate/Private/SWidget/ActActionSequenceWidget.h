@@ -1,24 +1,25 @@
 ﻿#pragma once
 
+#include "ActActionSequenceTrackArea.h"
+#include "ActActionSequenceTreeView.h"
 #include "Editor/ActActionSequenceController.h"
 #include "Widgets/SCompoundWidget.h"
 
-class SActActionSequenceTreeView;
 DECLARE_DELEGATE_TwoParams(FActActionOnGetAddMenuContent, FMenuBuilder&, TSharedRef<FActActionSequenceController>);
 
 /**
  * Sequence的主要UI
  */
-class SActActionSequenceMain : public SCompoundWidget
+class SActActionSequenceWidget : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SActActionSequenceMain)
+	SLATE_BEGIN_ARGS(SActActionSequenceWidget)
 		{
 		}
 
 	SLATE_END_ARGS()
 
-	SActActionSequenceMain();
+	SActActionSequenceWidget();
 
 	void Construct(const FArguments& InArgs, TSharedRef<FActActionSequenceController> InSequenceController);
 
@@ -31,6 +32,10 @@ protected:
 	 * 搜素框内文本改变的回调
 	 */
 	void OnOutlinerSearchChanged(const FText& Filter);
+	/** Get the maximum height the pinned track area should be allowed to be */
+	float GetPinnedAreaMaxHeight() const;
+	/** Gets whether or not the pinned track area should be visible. */
+	EVisibility GetPinnedAreaVisibility() const;
 	/**
 	 * 搜素和Track过滤功能
 	 */
@@ -43,8 +48,16 @@ protected:
 	 * 用做左侧显示outliner和track区域的sequence tree view 
 	 */
 	TSharedPtr<SActActionSequenceTreeView> TreeView;
+	/** Section area widget */
+	TSharedPtr<SActActionSequenceTrackArea> TrackArea;
 
-
+	/** Main Sequencer Area*/
+	TSharedPtr<SVerticalBox> MainSequenceArea;
+	/** The sequencer tree view for pinned tracks */
+	TSharedPtr<SActActionSequenceTreeView> PinnedTreeView;
+	/** Section area widget for pinned tracks*/
+	TSharedPtr<SActActionSequenceTrackArea> PinnedTrackArea;
+	
 	/**
 	 * FIX:搜索栏添加按钮？
 	 */

@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogActAction, Log, All)
+
 class IAssetTypeActions;
 
 class FPlaySlateModule : public IModuleInterface

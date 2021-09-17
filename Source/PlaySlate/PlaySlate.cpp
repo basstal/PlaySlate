@@ -3,14 +3,20 @@
 #include "PlaySlate.h"
 
 #include "AssetToolsModule.h"
+#include "EditorModeRegistry.h"
 #include "Assets/AssetTypeActions_ActActionBlueprint.h"
 #include "Assets/AssetTypeActions_ActActionSequence.h"
+#include "Editor/ActActionViewportEditMode.h"
 #include "Modules/ModuleManager.h"
+#include "Utils/ActActionViewportUtil.h"
 
 class IAssetTools;
 class FAssetToolsModule;
+DEFINE_LOG_CATEGORY(LogActAction)
+
 IMPLEMENT_MODULE(FPlaySlateModule, PlaySlate);
 
+#define LOCTEXT_NAMESPACE "PlaySlate"
 
 void FPlaySlateModule::StartupModule()
 {
@@ -24,6 +30,10 @@ void FPlaySlateModule::StartupModule()
 	TSharedRef<IAssetTypeActions> ActActionSequence = MakeShared<FAssetTypeActions_ActActionSequence>();
 	AssetTools.RegisterAssetTypeActions(ActActionSequence);
 	CreatedAssetTypeActions.Add(ActActionSequence);
+
+	// Register the editor modes
+	FEditorModeRegistry::Get().RegisterMode<FActActionViewportEditMode>(ActActionSequence::ActActionViewportEditMode, LOCTEXT("ActActionEditMode", "ActAction Selection"), FSlateIcon(), false);
+
 }
 
 void FPlaySlateModule::ShutdownModule()
@@ -37,3 +47,5 @@ void FPlaySlateModule::ShutdownModule()
 	}
 	CreatedAssetTypeActions.Empty();
 }
+
+#undef LOCTEXT_NAMESPACE

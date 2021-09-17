@@ -13,12 +13,14 @@ public class PlaySlate : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"UnrealEd",
+			"EditorFramework",
 			"BlueprintGraph",
 			"Kismet",
 			"Slate",
 			"SlateCore",
 			"EditorStyle",
-			"AssetTools"
+			"AssetTools",
+			"AdvancedPreviewScene"
 		});
 
 		// Uncomment if you are using Slate UI

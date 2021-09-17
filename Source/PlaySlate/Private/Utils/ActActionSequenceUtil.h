@@ -4,6 +4,9 @@
 
 namespace ActActionSequence
 {
+	const FName ActActionSequenceTabId(TEXT("ActAction_Sequence"));
+	const FName ActActionViewportTabId(TEXT("ActAction_Viewport"));
+
 	/** TRANS_EN:If we are dragging a scrubber or dragging to set the time range */
 	enum class EDragType : uint8
 	{
@@ -56,7 +59,10 @@ namespace ActActionSequence
 	DECLARE_DELEGATE_TwoParams(OnSetMarkedFrameDelegate, int32, FFrameNumber)
 	DECLARE_DELEGATE_OneParam(OnAddMarkedFrameDelegate, FFrameNumber)
 	DECLARE_DELEGATE_OneParam(OnDeleteMarkedFrameDelegate, int32)
+	DECLARE_DELEGATE_OneParam(OnGetContextMenuContentDelegate, FMenuBuilder&);
+	
 
+	
 	/** TRANS_EN:Utility struct for converting between scrub range space and local/absolute screen space */
 	struct FActActionScrubRangeToScreen
 	{
