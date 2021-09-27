@@ -2,6 +2,7 @@
 
 #include "Assets/ActActionBlueprint.h"
 #include "ActActionBlueprintGraphSchema.h"
+#include "ActActionEditorModeManager.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 
 #define LOCTEXT_NAMESPACE "ActActionToolkit"
@@ -69,6 +70,11 @@ FString FActActionBlueprintEditor::GetWorldCentricTabPrefix() const
 FLinearColor FActActionBlueprintEditor::GetWorldCentricTabColorScale() const
 {
 	return FColor::White;
+}
+
+void FActActionBlueprintEditor::CreateEditorModeManager()
+{
+	EditorModeManager = MakeShareable(new FActActionEditorModeManager());
 }
 
 UBlueprint* FActActionBlueprintEditor::GetBlueprintObj() const

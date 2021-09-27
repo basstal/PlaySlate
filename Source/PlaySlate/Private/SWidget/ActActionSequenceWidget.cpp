@@ -15,7 +15,6 @@ SActActionSequenceWidget::SActActionSequenceWidget()
 
 void SActActionSequenceWidget::Construct(const FArguments& InArgs, TSharedRef<FActActionSequenceController> InSequenceController)
 {
-	UE_LOG(LogTemp, Log, TEXT("ChildSlot"));
 	SequenceController = InSequenceController;
 
 	TAttribute<float> FillCoefficient_0, FillCoefficient_1;
@@ -26,14 +25,14 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, TSharedRef<FA
 	TSharedRef<SScrollBar> PinnedAreaScrollBar = SNew(SScrollBar).Thickness(FVector2D(9.0f, 9.0f));
 
 	SAssignNew(TrackArea, SActActionSequenceTrackArea);
-	SAssignNew(TreeView, SActActionSequenceTreeView)
-		// .ExternalScrollbar(ScrollBar)
+	SAssignNew(TreeView, SActActionSequenceTreeView, InSequenceController->GetNodeTree(), TrackArea.ToSharedRef())
+		.ExternalScrollbar(ScrollBar)
 		.Clipping(EWidgetClipping::ClipToBounds)
 		.OnGetContextMenuContent(ActActionSequence::OnGetContextMenuContentDelegate::CreateSP(this, &SActActionSequenceWidget::PopulateAddMenuContext));
 
 	SAssignNew(PinnedTrackArea, SActActionSequenceTrackArea);
-	SAssignNew(PinnedTreeView, SActActionSequenceTreeView)
-		// .ExternalScrollbar(PinnedAreaScrollBar)
+	SAssignNew(PinnedTreeView, SActActionSequenceTreeView, InSequenceController->GetNodeTree(), PinnedTrackArea.ToSharedRef())
+		.ExternalScrollbar(PinnedAreaScrollBar)
 		.Clipping(EWidgetClipping::ClipToBounds)
 		.OnGetContextMenuContent(ActActionSequence::OnGetContextMenuContentDelegate::CreateSP(this, &SActActionSequenceWidget::PopulateAddMenuContext));
 
@@ -80,6 +79,7 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, TSharedRef<FA
 						]
 					]
 
+					
 					// main sequencer area
 					+ SGridPanel::Slot(0, 2, SGridPanel::Layer(10))
 					.ColumnSpan(2)
@@ -235,9 +235,12 @@ EVisibility SActActionSequenceWidget::GetPinnedAreaVisibility() const
 
 TSharedRef<SWidget> SActActionSequenceWidget::MakeAddButton()
 {
-	return SNew(SEditorHeaderButton).OnGetMenuContent(this, &SActActionSequenceWidget::MakeAddMenu).Icon(FAppStyle::Get().GetBrush("Icons.Plus")).Text(LOCTEXT("Track", "Track")).IsEnabled_Lambda([=]()
+	return SNew(SEditorHeaderButton)
+	.OnGetMenuContent(this, &SActActionSequenceWidget::MakeAddMenu)
+	.Icon(FAppStyle::Get().GetBrush("Icons.Plus"))
+	.Text(LOCTEXT("Track", "Track"))
+	.IsEnabled_Lambda([=]()
 	{
-		// return SequencePtr.Pin().IsValid() && !SequencePtr.Pin()->IsReadOnly();
 		return SequenceController.Pin().IsValid();
 	});
 }

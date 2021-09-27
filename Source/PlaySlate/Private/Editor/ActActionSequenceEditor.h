@@ -5,7 +5,9 @@
 #include "SWidget/ActActionSequenceWidget.h"
 #include "SWidget/ActActionViewportWidget.h"
 
-class FActActionSequenceEditor : public FAssetEditorToolkit, public FGCObject, public FEditorUndoClient, public FTickableEditorObject
+class FEditorViewportTabContent;
+
+class FActActionSequenceEditor : public FWorkflowCentricApplication, public FGCObject, public FEditorUndoClient, public FTickableEditorObject
 {
 public:
 	virtual ~FActActionSequenceEditor() override;
@@ -37,6 +39,9 @@ public:
 	virtual void UnregisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
 	//~End FAssetEditorToolkit interfaced
 
+	//~Begin FBaseToolkit interface
+	virtual void CreateEditorModeManager() override;
+	//~End FBaseToolkit interface
 
 protected:
 	/** Callback for spawning tabs. */
@@ -47,7 +52,7 @@ protected:
 	 * TRANS_EN:Level sequence for our edit operation.
 	 * Model模块
 	 */
-	UActActionSequence* ActActionSequence;
+	UActActionSequence* ActActionSequencePtr;
 	/**
 	 * Sequence View模块
 	 */
@@ -60,4 +65,8 @@ protected:
 	 * Controller模块
 	 */
 	TSharedPtr<FActActionSequenceController> ActActionSequenceController;
+
+	TSharedPtr<SDockTab> ViewportParentDockTab;
+	// Tracking the active viewports in this editor.
+	// TSharedPtr<FEditorViewportTabContent> ViewportTabContent;
 };

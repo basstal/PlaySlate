@@ -48,6 +48,13 @@ protected:
 	 * 用做左侧显示outliner和track区域的sequence tree view 
 	 */
 	TSharedPtr<SActActionSequenceTreeView> TreeView;
+public:
+	TSharedPtr<SActActionSequenceTreeView> GetTreeView() const
+	{
+		return TreeView;
+	}
+
+protected:
 	/** Section area widget */
 	TSharedPtr<SActActionSequenceTrackArea> TrackArea;
 

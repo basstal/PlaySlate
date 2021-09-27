@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "ActActionSequenceTrackArea.h"
 #include "SWidget/ActActionSequenceTreeView.h"
 #include "Assets/ActActionSequenceNodeTree.h"
 #include "Editor/ActActionSequenceDisplayNode.h"
@@ -23,12 +24,22 @@ public:
 	virtual TSharedRef<SWidget> GenerateWidgetForColumn(const FName& InColumnName) override;
 	//~End SMultiColumnTableRow interface
 
+	void AddTrackAreaReference(const TSharedRef<SActActionSequenceTrackLane>& Lane);
+
+	TOptional<EItemDropZone> OnCanAcceptDrop(const FDragDropEvent& DragDropEvent, EItemDropZone InItemDropZone, TSharedRef<FActActionSequenceDisplayNode> DisplayNode);
+	FReply OnAcceptDrop(const FDragDropEvent& DragDropEvent, EItemDropZone InItemDropZone, TSharedRef<FActActionSequenceDisplayNode> DisplayNode);
+	/** Gets the padding for this row based on whether it is a root node or not */
+	FMargin GetRowPadding() const;
+
+	
+
 protected:
 	/** The item associated with this row of data */
 	TWeakPtr<FActActionSequenceDisplayNode> Node;
-	
+
 	/** Delegate to call to create a new widget for a particular column. */
 	OnGenerateWidgetForColumnDelegate OnGenerateWidgetForColumn;
+	TWeakPtr<SActActionSequenceTrackLane> TrackLaneReference;
 };
 
 /** Structure used to define a column in the tree view */
@@ -64,8 +75,15 @@ public:
 		SLATE_EVENT(ActActionSequence::OnGetContextMenuContentDelegate, OnGetContextMenuContent)
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs);
+	void Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceNodeTree>& InNodeTree, TSharedRef<SActActionSequenceTrackArea> InTrackArea);
+	void SetupColumns(const FArguments& InArgs);
 
+	//~Begin SWidget interface
+	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
+	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
+	//~End SWidget interface
+
+	void AddRootNodes(TSharedPtr<FActActionSequenceDisplayNode> SequenceDisplayNode);
 
 	/**
 	* 返回节点是否被过滤
@@ -73,6 +91,9 @@ public:
 	* @param Node 检测是否被过滤的节点
 	*/
 	// bool IsNodeFiltered( const FActActionSequenceDisplayNodeRef Node ) const;
+
+	/** Refresh this tree as a result of the underlying tree data changing */
+	void Refresh();
 protected:
 	// /**
 	//  * 树结构Sequence的Track
@@ -90,7 +111,10 @@ protected:
 	 * 从树的数据中复制和缓存的根节点信息
 	 */
 	TArray<FActActionSequenceDisplayNodeRef> RootNodes;
-
+	/** Strong pointer to the track area so we can generate track lanes as we need them */
+	TSharedPtr<SActActionSequenceTrackArea> TrackArea;
+	/** Pointer to the node tree data that is used to populate this tree */
+	TSharedPtr<FActActionSequenceNodeTree> SequenceNodeTree;
 	/**
 	 * 依据特定的数据生成一行TableRow
 	 */

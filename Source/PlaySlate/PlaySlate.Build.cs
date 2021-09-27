@@ -20,7 +20,9 @@ public class PlaySlate : ModuleRules
 			"SlateCore",
 			"EditorStyle",
 			"AssetTools",
-			"AdvancedPreviewScene"
+			"AdvancedPreviewScene",
+			"ContentBrowser",
+			"RHI"
 		});
 
 		// Uncomment if you are using Slate UI

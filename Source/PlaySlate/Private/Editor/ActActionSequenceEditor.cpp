@@ -1,4 +1,9 @@
 ﻿#include "ActActionSequenceEditor.h"
+
+// #include "EditorViewportTabContent.h"
+// #include "SAssetEditorViewport.h"
+#include "Assets/Tracks/ActActionAnimInstanceTrack.h"
+#include "Assets/Tracks/ActActionAnimMontageTrack.h"
 #include "PlaySlate/PlaySlate.h"
 #include "SWidget/ActActionViewportWidget.h"
 
@@ -35,8 +40,17 @@ void FActActionSequenceEditor::InitActActionSequenceEditor(const EToolkitMode::T
 				->AddTab(ActActionSequence::ActActionSequenceTabId, ETabState::OpenedTab))
 		);
 
-	ActActionSequence = InActActionSequence;
-	ActActionSequenceController = MakeShared<FActActionSequenceController>();
+	// ViewportTabContent = MakeShareable(new FEditorViewportTabContent());
+
+	ActActionSequencePtr = InActActionSequence;
+	FPlaySlateModule& PlaySlateModule = FModuleManager::Get().LoadModuleChecked<FPlaySlateModule>(TEXT("PlaySlate"));
+	// ** 将所有TrackEditor注册，以便能够使用AddTrackEditor以及AddTrackMenu
+	PlaySlateModule.RegisterTrackEditor(ActActionSequence::OnCreateTrackEditorDelegate::CreateStatic(&FActActionAnimInstanceTrack::CreateTrackEditor));
+	PlaySlateModule.RegisterTrackEditor(ActActionSequence::OnCreateTrackEditorDelegate::CreateStatic(&FActActionAnimMontageTrack::CreateTrackEditor));
+
+	ActActionSequenceController = MakeShareable(new FActActionSequenceController(ActActionSequencePtr));
+	TSharedPtr<FActActionSequenceNodeTree> ActActionSequenceNodeTree = MakeShareable(new FActActionSequenceNodeTree(ActActionSequenceController.ToSharedRef()));
+	ActActionSequenceController->SetNodeTree(ActActionSequenceNodeTree);
 
 	// Make internal widgets
 	SequenceMain = SNew(SActActionSequenceWidget, ActActionSequenceController->AsShared());
@@ -44,11 +58,19 @@ void FActActionSequenceEditor::InitActActionSequenceEditor(const EToolkitMode::T
 	// Initialize the asset editor
 	const bool bCreateDefaultStandaloneMenu = true;
 	const bool bCreateDefaultToolbar = false;
-	InitAssetEditor(Mode, InitToolkitHost, FName("ActAction_AppIdentifier"), StandaloneDefaultLayout, bCreateDefaultStandaloneMenu, bCreateDefaultToolbar, ActActionSequence);
+	InitAssetEditor(Mode, InitToolkitHost, FName("ActAction_AppIdentifier"), StandaloneDefaultLayout, bCreateDefaultStandaloneMenu, bCreateDefaultToolbar, ActActionSequencePtr);
 
 	TSharedPtr<FActActionPreviewScene> ActActionPreviewScene = MakeShareable(new FActActionPreviewScene(FPreviewScene::ConstructionValues().AllowAudioPlayback(true).ShouldSimulatePhysics(true)));
+	ActActionPreviewScene->InitPreviewScene(nullptr);
 	TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = StaticCastSharedRef<FActActionSequenceEditor>(AsShared());
 	Viewport = SNew(SActActionViewportWidget, ActActionSequenceEditorRef, ActActionPreviewScene.ToSharedRef());
+	ActActionSequenceController->InitController(Viewport.ToSharedRef(), PlaySlateModule.GetTrackEditorDelegates(), SequenceMain.ToSharedRef());
+
+	// ** 将Viewport填充到DockTab中
+	if (ViewportParentDockTab.IsValid())
+	{
+		ViewportParentDockTab.Get()->SetContent(Viewport.ToSharedRef());
+	}
 
 	// When undo occurs, get a notification so we can make sure our view is up to date
 	GEditor->RegisterForUndo(this);
@@ -56,7 +78,7 @@ void FActActionSequenceEditor::InitActActionSequenceEditor(const EToolkitMode::T
 
 void FActActionSequenceEditor::AddReferencedObjects(FReferenceCollector& Collector)
 {
-	Collector.AddReferencedObject(ActActionSequence);
+	Collector.AddReferencedObject(ActActionSequencePtr);
 }
 
 FString FActActionSequenceEditor::GetReferencerName() const
@@ -96,19 +118,22 @@ void FActActionSequenceEditor::RegisterTabSpawners(const TSharedRef<FTabManager>
 	{
 		return;
 	}
+	FAssetEditorToolkit::RegisterTabSpawners(InTabManager);
 
 	WorkspaceMenuCategory = InTabManager->AddLocalWorkspaceMenuCategory(LOCTEXT("WorkspaceMenu_ActActionSequenceAssetEditor", "ActActionSequence"));
 
-	InTabManager->RegisterTabSpawner(ActActionSequence::ActActionSequenceTabId, FOnSpawnTab::CreateSP(this, &FActActionSequenceEditor::HandleTabManagerSpawnSequence))
+	InTabManager->RegisterTabSpawner(
+		            ActActionSequence::ActActionSequenceTabId,
+		            FOnSpawnTab::CreateSP(this, &FActActionSequenceEditor::HandleTabManagerSpawnSequence))
 	            .SetDisplayName(LOCTEXT("SequencerMainTab", "Sequence"))
 	            .SetGroup(WorkspaceMenuCategory.ToSharedRef());
 	// .SetIcon(FSlateIcon(Style->GetStyleSetName(), "LevelSequenceEditor.Tabs.Sequencer"));
 
-	InTabManager->RegisterTabSpawner(ActActionSequence::ActActionViewportTabId, FOnSpawnTab::CreateSP(this, &FActActionSequenceEditor::HandleTabManagerSpawnViewport))
+	InTabManager->RegisterTabSpawner(
+		            ActActionSequence::ActActionViewportTabId,
+		            FOnSpawnTab::CreateSP(this, &FActActionSequenceEditor::HandleTabManagerSpawnViewport))
 	            .SetDisplayName(LOCTEXT("SequencerMainTab", "Viewport"))
 	            .SetGroup(WorkspaceMenuCategory.ToSharedRef());
-
-	FAssetEditorToolkit::RegisterTabSpawners(InTabManager);
 }
 
 void FActActionSequenceEditor::UnregisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
@@ -125,29 +150,20 @@ void FActActionSequenceEditor::UnregisterTabSpawners(const TSharedRef<FTabManage
 	FAssetEditorToolkit::UnregisterTabSpawners(InTabManager);
 }
 
+void FActActionSequenceEditor::CreateEditorModeManager()
+{
+	FWorkflowCentricApplication::CreateEditorModeManager();
+}
+
 TSharedRef<SDockTab> FActActionSequenceEditor::HandleTabManagerSpawnViewport(const FSpawnTabArgs& Args)
 {
-	TSharedPtr<SWidget> TabWidget = SNullWidget::NullWidget;
-
-	if (Viewport)
-	{
-		if (Args.GetTabId() == ActActionSequence::ActActionSequenceTabId)
-		{
-			TabWidget = Viewport.ToSharedRef();
-		}
-	}
-	else
-	{
-		UE_LOG(LogActAction, Error, TEXT("SequenceMain is nullptr when HandleTabManagerSpawnSequence."));
-	}
-
-	return SNew(SDockTab)
+	// ** 先创建一个空的，后面再来填充内容
+	ViewportParentDockTab = SNew(SDockTab)
 		.Label(LOCTEXT("ActActionSequenceMainTitle", "ActActionViewport"))
 		.TabColorScale(GetTabColorScale())
 		.TabRole(ETabRole::PanelTab)
-	[
-		TabWidget.ToSharedRef()
-	];
+		.Icon(FEditorStyle::GetBrush("LevelEditor.Tabs.Viewports"));
+	return ViewportParentDockTab.ToSharedRef();
 }
 
 TSharedRef<SDockTab> FActActionSequenceEditor::HandleTabManagerSpawnSequence(const FSpawnTabArgs& Args)
@@ -177,6 +193,10 @@ TSharedRef<SDockTab> FActActionSequenceEditor::HandleTabManagerSpawnSequence(con
 
 void FActActionSequenceEditor::Tick(float DeltaTime)
 {
+	// if(ActActionSequenceController->InAssetPickerConfig.Filter.ClassNames.Contains("111"))
+	// {
+	// 	UE_LOG(LogActAction, Log, TEXT("ActActionSequenceController : true"));
+	// }
 }
 
 TStatId FActActionSequenceEditor::GetStatId() const

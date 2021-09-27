@@ -2,11 +2,21 @@
 
 #include "CoreMinimal.h"
 
+class FActActionSequenceController;
+class FActActionTrackEditorBase;
+
 namespace ActActionSequence
 {
 	const FName ActActionSequenceTabId(TEXT("ActAction_Sequence"));
 	const FName ActActionViewportTabId(TEXT("ActAction_Viewport"));
 
+	enum class ESequenceNodeType : uint8
+	{
+		Root,
+		Folder,
+		Object,
+		Track,
+	};
 	/** TRANS_EN:If we are dragging a scrubber or dragging to set the time range */
 	enum class EDragType : uint8
 	{
@@ -51,6 +61,8 @@ namespace ActActionSequence
 		MAX
 	};
 
+	/** A delegate which will create an auto-key handler. */
+	DECLARE_DELEGATE_RetVal_OneParam(TSharedRef<FActActionTrackEditorBase>, OnCreateTrackEditorDelegate, TSharedRef<FActActionSequenceController>);
 	DECLARE_DELEGATE_TwoParams(OnScrubPositionChangedDelegate, FFrameTime, bool)
 	DECLARE_DELEGATE_TwoParams(OnViewRangeChangedDelegate, TRange<double>, EActActionViewRangeInterpolation)
 	DECLARE_DELEGATE_OneParam(OnTimeRangeChangedDelegate, TRange<double>)
@@ -60,8 +72,10 @@ namespace ActActionSequence
 	DECLARE_DELEGATE_OneParam(OnAddMarkedFrameDelegate, FFrameNumber)
 	DECLARE_DELEGATE_OneParam(OnDeleteMarkedFrameDelegate, int32)
 	DECLARE_DELEGATE_OneParam(OnGetContextMenuContentDelegate, FMenuBuilder&);
-	
-
+	/** Called when an asset is selected in the asset view */
+    DECLARE_DELEGATE_OneParam(OnAssetSelectedDelegate, const FAssetData& /*AssetData*/);
+	/** Called when enter is pressed on an asset in the asset view */
+	DECLARE_DELEGATE_OneParam(OnAssetEnterPressedDelegate, const TArray<FAssetData>& /*SelectedAssets*/);
 	
 	/** TRANS_EN:Utility struct for converting between scrub range space and local/absolute screen space */
 	struct FActActionScrubRangeToScreen
@@ -286,5 +300,102 @@ namespace ActActionSequence
 		ESequencerScrubberStyle Style;
 		/** The style of the scrubber handle */
 		bool bDrawExtents;
+	};
+
+	struct FActActionAnimatedPropertyKey
+	{
+		/**
+		 * The name of the type of property that can be animated (i.e. FBoolProperty)
+		 */
+		FName PropertyTypeName;
+
+		/**
+		 * The name of the type of object that can be animated inside the property (i.e. the name of the struct or object for FStructProperty or FObjectProperty). NAME_None for any properties.
+		 */
+		FName ObjectTypeName;
+
+		friend uint32 GetTypeHash(FActActionAnimatedPropertyKey InKey)
+		{
+			return GetTypeHash(InKey.PropertyTypeName) ^ GetTypeHash(InKey.ObjectTypeName);
+		}
+
+		friend bool operator==(FActActionAnimatedPropertyKey A, FActActionAnimatedPropertyKey B)
+		{
+			return A.PropertyTypeName == B.PropertyTypeName && A.ObjectTypeName == B.ObjectTypeName;
+		}
+
+		static FActActionAnimatedPropertyKey FromProperty(const FProperty* Property)
+		{
+			FActActionAnimatedPropertyKey Definition;
+			Definition.PropertyTypeName = Property->GetClass()->GetFName();
+
+			if (const FStructProperty* StructProperty = CastField<const FStructProperty>(Property))
+			{
+				Definition.ObjectTypeName = StructProperty->Struct->GetFName();
+			}
+			else if (const FObjectPropertyBase* ObjectProperty = CastField<const FObjectPropertyBase>(Property))
+			{
+				if (ObjectProperty->PropertyClass)
+				{
+					Definition.ObjectTypeName = ObjectProperty->PropertyClass->GetFName();
+				}
+			}
+			else if(const FArrayProperty* ArrayProperty = CastField<const FArrayProperty>(Property))
+			{
+				Definition.PropertyTypeName = ArrayProperty->Inner->GetClass()->GetFName();
+				if (const FStructProperty* InnerStructProperty = CastField<const FStructProperty>(ArrayProperty->Inner))
+				{
+					Definition.ObjectTypeName = InnerStructProperty->Struct->GetFName();
+				}
+			}
+			return Definition;
+		}
+
+		static FActActionAnimatedPropertyKey FromObjectType(const UClass* Class)
+		{
+			FActActionAnimatedPropertyKey Definition;
+			Definition.PropertyTypeName = NAME_ObjectProperty;
+			Definition.ObjectTypeName = Class->GetFName();
+			return Definition;
+		}
+
+		static FActActionAnimatedPropertyKey FromStructType(const UStruct* Struct)
+		{
+			check(Struct);
+			return FromStructType(Struct->GetFName());
+		}
+
+		static FActActionAnimatedPropertyKey FromStructType(FName StructName)
+		{
+			FActActionAnimatedPropertyKey Definition;
+			Definition.PropertyTypeName = NAME_StructProperty;
+			Definition.ObjectTypeName = StructName;
+			return Definition;
+		}
+
+		static FActActionAnimatedPropertyKey FromPropertyTypeName(FName PropertyTypeName)
+		{
+			FActActionAnimatedPropertyKey Definition;
+			Definition.PropertyTypeName = PropertyTypeName;
+			return Definition;
+		}
+
+		static FActActionAnimatedPropertyKey FromPropertyType(TSubclassOf<FProperty> PropertyType)
+		{
+			FActActionAnimatedPropertyKey Definition;
+			Definition.PropertyTypeName = PropertyType->GetFName();
+			return Definition;
+		}
+	protected:
+		FActActionAnimatedPropertyKey()
+			: PropertyTypeName(NAME_None)
+			, ObjectTypeName(NAME_None)
+		{}
+	};
+
+	struct FActActionAnimatedTypeCache
+	{
+		FDelegateHandle FactoryHandle;
+		TArray<FActActionAnimatedPropertyKey, TInlineAllocator<4>> AnimatedTypes;
 	};
 }

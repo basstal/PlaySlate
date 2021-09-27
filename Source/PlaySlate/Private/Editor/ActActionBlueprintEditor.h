@@ -30,7 +30,14 @@ public:
 	virtual FLinearColor GetWorldCentricTabColorScale() const override;
 	//~End IToolkit Interface
 
-	//~Begin FBlueprintEditor interface
+	//~Begin FAssetEditorToolkit interface
+	/**
+	 * 使用自定义的FEditorModeTools，使多个Editor能配套使用
+	 */
+	virtual void CreateEditorModeManager() override;
+	//~End FAssetEditorToolkit interface
+
+	//~Begin FBaseToolkit interface
 	virtual UBlueprint* GetBlueprintObj() const override;
-	//~End FBlueprintEditor interface
+	//~End FBaseToolkit interface
 };
