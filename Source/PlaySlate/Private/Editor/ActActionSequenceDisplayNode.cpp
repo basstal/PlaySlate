@@ -5,10 +5,6 @@
 #include "SWidget/ActActionSequenceCombinedKeysTrack.h"
 #include "SWidget/ActActionSequenceSectionArea.h"
 
-FActActionSequenceDisplayNode::FActActionSequenceDisplayNode()
-{
-}
-
 FActActionSequenceDisplayNode::FActActionSequenceDisplayNode(const TSharedRef<FActActionSequenceNodeTree>& InParentTree, FName InNodeName)
 	: NodeName(InNodeName)
 	  , ParentTree(InParentTree)
@@ -93,7 +89,8 @@ bool FActActionSequenceDisplayNode::IsHidden() const
 
 TSharedRef<SWidget> FActActionSequenceDisplayNode::GenerateContainerWidgetForOutliner(const TSharedRef<SActActionSequenceTreeViewRow>& InRow)
 {
-	TSharedPtr<SWidget> NewWidget = SNew(SActActionOutlinerTreeNode, SharedThis(this));
+	
+	TSharedPtr<SWidget> NewWidget = SNew(SActActionOutlinerTreeNode, SharedThis(this), InRow);
 	// .IconBrush(this, &FActActionSequenceDisplayNode::GetIconBrush)
 	// .IconColor(this, &FActActionSequenceDisplayNode::GetIconColor)
 	// .IconOverlayBrush(this, &FActActionSequenceDisplayNode::GetIconOverlayBrush)
@@ -193,4 +190,40 @@ FFrameRate FActActionSequenceDisplayNode::GetTickResolution() const
 TSharedPtr<FActActionSequenceDisplayNode> FActActionSequenceDisplayNode::GetParentOrRoot() const
 {
 	return ParentNode.Pin();
+}
+
+bool FActActionSequenceDisplayNode::CanRenameNode() const
+{
+	return true;
+}
+
+FSlateFontInfo FActActionSequenceDisplayNode::GetDisplayNameFont() const
+{
+	FSlateFontInfo NodeFont = FEditorStyle::GetFontStyle("Sequencer.AnimationOutliner.RegularFont");
+	return NodeFont;
+}
+
+FSlateColor FActActionSequenceDisplayNode::GetDisplayNameColor() const
+{
+	return FLinearColor(0.6f, 0.6f, 0.6f, 0.6f);
+}
+
+bool FActActionSequenceDisplayNode::ValidateDisplayName(const FText& NewDisplayName, FText& OutErrorMessage) const
+{
+	if (NewDisplayName.IsEmpty())
+	{
+		OutErrorMessage = NSLOCTEXT("Sequencer", "RenameFailed_LeftBlank", "Labels cannot be left blank");
+		return false;
+	}
+	else if (NewDisplayName.ToString().Len() >= NAME_SIZE)
+	{
+		OutErrorMessage = FText::Format(NSLOCTEXT("Sequencer", "RenameFailed_TooLong", "Names must be less than {0} characters long"), NAME_SIZE);
+		return false;
+	}
+	return true;
+}
+
+void FActActionSequenceDisplayNode::SetDisplayName(const FText& NewDisplayName)
+{
+	NodeName = FName(NewDisplayName.ToString());
 }

@@ -31,7 +31,6 @@ public:
 	/** Gets the padding for this row based on whether it is a root node or not */
 	FMargin GetRowPadding() const;
 
-	
 
 protected:
 	/** The item associated with this row of data */
@@ -111,6 +110,13 @@ protected:
 	 * 从树的数据中复制和缓存的根节点信息
 	 */
 	TArray<FActActionSequenceDisplayNodeRef> RootNodes;
+public:
+	const TArray<FActActionSequenceDisplayNodeRef>* GetRootNodes() const
+	{
+		return &RootNodes;
+	}
+
+protected:
 	/** Strong pointer to the track area so we can generate track lanes as we need them */
 	TSharedPtr<SActActionSequenceTrackArea> TrackArea;
 	/** Pointer to the node tree data that is used to populate this tree */

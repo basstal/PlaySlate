@@ -52,8 +52,9 @@ void FActActionSequenceEditor::InitActActionSequenceEditor(const EToolkitMode::T
 	TSharedPtr<FActActionSequenceNodeTree> ActActionSequenceNodeTree = MakeShareable(new FActActionSequenceNodeTree(ActActionSequenceController.ToSharedRef()));
 	ActActionSequenceController->SetNodeTree(ActActionSequenceNodeTree);
 
+	ActActionSequence::FActActionSequenceViewParams ViewParams = ActActionSequence::FActActionSequenceViewParams();
 	// Make internal widgets
-	SequenceMain = SNew(SActActionSequenceWidget, ActActionSequenceController->AsShared());
+	SequenceMain = ActActionSequenceController->MakeSequenceWidget(ViewParams);
 
 	// Initialize the asset editor
 	const bool bCreateDefaultStandaloneMenu = true;

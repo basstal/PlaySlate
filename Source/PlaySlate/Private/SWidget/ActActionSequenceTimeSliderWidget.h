@@ -13,8 +13,7 @@ public:
 		SLATE_ARGUMENT(bool, MirrorLabels)
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, TSharedRef<FActActionTimeSliderController> InTimeSliderController);
-
+	void Construct(const FArguments& InArgs, const TSharedRef<FActActionTimeSliderController>& InTimeSliderController);
 
 protected:
 	//~Begin SWidget interface
@@ -24,7 +23,7 @@ protected:
 	/**
 	 * Sequence Controller
 	 */
-	TSharedRef<FActActionTimeSliderController> TimeSliderController;
+	TSharedPtr<FActActionTimeSliderController> TimeSliderController;
 	/**
 	 * 
 	 */

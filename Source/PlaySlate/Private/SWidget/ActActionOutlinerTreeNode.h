@@ -7,25 +7,33 @@ public:
 	SLATE_BEGIN_ARGS(SActActionOutlinerTreeNode)
 		{
 		}
-		// SLATE_ATTRIBUTE(const FSlateBrush*, IconBrush)
-		// SLATE_ATTRIBUTE(const FSlateBrush*, IconOverlayBrush)
-		// SLATE_ATTRIBUTE(FSlateColor, IconColor)
-		// SLATE_ATTRIBUTE(FText, IconToolTipText)
-		// SLATE_NAMED_SLOT(FArguments, CustomContent)
+
+		SLATE_ATTRIBUTE(const FSlateBrush*, IconBrush)
+		SLATE_ATTRIBUTE(const FSlateBrush*, IconOverlayBrush)
+		SLATE_ATTRIBUTE(FSlateColor, IconColor)
+		SLATE_ATTRIBUTE(FText, IconToolTipText)
+		SLATE_NAMED_SLOT(FArguments, CustomContent)
 
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, TSharedRef<FActActionSequenceDisplayNode> Node);
+	void Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceDisplayNode>& Node, const TSharedRef<SActActionSequenceTreeViewRow>& InTableRow);
 
 	/**
 	* @return The parent of this node. Will return null if this node is part of the FSequencerNodeTree::GetRootNodes array.
 	*/
-	TSharedPtr<FActActionSequenceDisplayNode> GetParent() const
-	{
-		TSharedPtr<FActActionSequenceDisplayNode> Pinned = ParentNode.Pin();
-		return (Pinned && Pinned->GetType() != ActActionSequence::ESequenceNodeType::Root) ? Pinned : nullptr;
-	}
+	TSharedPtr<FActActionSequenceDisplayNode> GetParent() const;
+
+
+	/** Callback for checking whether the node label can be edited. */
+	bool IsNodeLabelReadOnly() const;
+	FSlateFontInfo GetDisplayNameFont() const;
+	FSlateColor GetDisplayNameColor() const;
+	bool VerifyNodeTextChanged(const FText& NewLabel, FText& OutErrorMessage);
+	void HandleNodeLabelTextCommitted(const FText& NewLabel, ETextCommit::Type CommitType);
 protected:
+	/** Holds the editable text label widget. */
+	TSharedPtr<SInlineEditableTextBlock> EditableLabel;
+
 	TSharedPtr<FActActionSequenceDisplayNode> DisplayNode;
 	/** The parent of this node*/
 	TWeakPtr<FActActionSequenceDisplayNode> ParentNode;

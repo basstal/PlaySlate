@@ -18,19 +18,21 @@ protected:
 	 */
 	ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs;
 	/** TRANS_EN:Numeric type interface used for converting parsing and generating strings from numbers */
-	TSharedPtr<INumericTypeInterface<double>> NumericTypeInterface;
+	// TSharedPtr<INumericTypeInterface<double>> NumericTypeInterface;
 	/** TRANS_EN:Scrub style provided on construction */
 	ActActionSequence::ESequencerScrubberStyle ScrubStyle;
 public:
+	FActActionTimeSliderController(const ActActionSequence::FActActionTimeSliderArgs& InArgs, const TSharedRef<FActActionSequenceController>& InSequenceController);
+
 	ActActionSequence::ESequencerScrubberStyle GetScrubStyle() const
 	{
 		return ScrubStyle;
 	}
 
-	TSharedPtr<INumericTypeInterface<double>> GetNumericTypeInterface() const
-	{
-		return NumericTypeInterface;
-	}
+	// TSharedRef<INumericTypeInterface<double>> GetNumericTypeInterface() const
+	// {
+		// return TimeSliderArgs.NumericTypeInterface.ToSharedRef()
+	// }
 
 	ActActionSequence::FActActionTimeSliderArgs GetTimeSliderArgs() const
 	{
@@ -58,4 +60,14 @@ public:
 	 * TODO:Comments
 	 */
 	FFrameTime ComputeFrameTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, ActActionSequence::FActActionScrubRangeToScreen RangeToScreen, bool CheckSnapping = true) const;
+	/**
+	* Draws major tick lines in the section view                                                              
+	*/
+	int32 OnPaintViewArea(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, bool bEnabled, const ActActionSequence::FActActionPaintViewAreaArgs& Args) const;
+	int32 DrawPlaybackRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const;
+	int32 DrawSubSequenceRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const;
+	int32 DrawSelectionRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const;
+	void DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<double>& ViewRange, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, ActActionSequence::FActActionDrawTickArgs& InArgs) const;
+	int32 DrawMarkedFrames(const FGeometry& AllottedGeometry, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ESlateDrawEffect& DrawEffects, bool bDrawLabels) const;
+	int32 DrawVerticalFrames(const FGeometry& AllottedGeometry, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ESlateDrawEffect& DrawEffects) const;
 };

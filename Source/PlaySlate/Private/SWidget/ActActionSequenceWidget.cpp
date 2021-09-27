@@ -1,5 +1,7 @@
 ﻿#include "ActActionSequenceWidget.h"
 
+#include "ActActionSequenceSectionOverlay.h"
+#include "FrameNumberNumericInterface.h"
 #include "Widgets/Input/SSearchBox.h"
 #include "Widgets/Layout/SGridPanel.h"
 #include "Widgets/Layout/SScrollBorder.h"
@@ -13,7 +15,7 @@ SActActionSequenceWidget::SActActionSequenceWidget()
 	ColumnFillCoefficients[1] = 0.6f;
 }
 
-void SActActionSequenceWidget::Construct(const FArguments& InArgs, TSharedRef<FActActionSequenceController> InSequenceController)
+void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceController>& InSequenceController)
 {
 	SequenceController = InSequenceController;
 
@@ -35,6 +37,75 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, TSharedRef<FA
 		.ExternalScrollbar(PinnedAreaScrollBar)
 		.Clipping(EWidgetClipping::ClipToBounds)
 		.OnGetContextMenuContent(ActActionSequence::OnGetContextMenuContentDelegate::CreateSP(this, &SActActionSequenceWidget::PopulateAddMenuContext));
+
+	// Get the desired display format from the user's settings each time.
+	TAttribute<EFrameNumberDisplayFormats> GetDisplayFormatAttr = MakeAttributeLambda([=]
+	{
+		// if (USequencerSettings* Settings = GetSequencerSettings())
+		// {
+		// 	return Settings->GetTimeDisplayFormat();
+		// }
+		return EFrameNumberDisplayFormats::Frames;
+	});
+	// Get the number of zero pad frames from the user's settings as well.
+	TAttribute<uint8> GetZeroPadFramesAttr = MakeAttributeLambda([=]()-> uint8
+	{
+		// if (USequencerSettings* Settings = GetSequencerSettings())
+		// {
+		// 	return Settings->GetZeroPadFrames();
+		// }
+		return 0;
+	});
+	TAttribute<FFrameRate> GetTickResolutionAttr = TAttribute<FFrameRate>(InSequenceController, &FActActionSequenceController::GetFocusedTickResolution);
+	TAttribute<FFrameRate> GetDisplayRateAttr = TAttribute<FFrameRate>(InSequenceController, &FActActionSequenceController::GetFocusedDisplayRate);
+	// Create our numeric type interface so we can pass it to the time slider below.
+	NumericTypeInterface = MakeShareable(new FFrameNumberInterface(GetDisplayFormatAttr, GetZeroPadFramesAttr, GetTickResolutionAttr, GetDisplayRateAttr));
+
+	// ** 初始化TimeSlider
+	ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs;
+	{
+		TimeSliderArgs.ViewRange = InArgs._ViewRange;
+		TimeSliderArgs.ClampRange = InArgs._ClampRange;
+		TimeSliderArgs.PlaybackRange = InArgs._PlaybackRange;
+		TimeSliderArgs.DisplayRate = TAttribute<FFrameRate>(InSequenceController, &FActActionSequenceController::GetFocusedDisplayRate);
+		TimeSliderArgs.TickResolution = TAttribute<FFrameRate>(InSequenceController, &FActActionSequenceController::GetFocusedTickResolution);
+		TimeSliderArgs.SelectionRange = InArgs._SelectionRange;
+		TimeSliderArgs.OnPlaybackRangeChanged = InArgs._OnPlaybackRangeChanged;
+		TimeSliderArgs.OnPlaybackRangeBeginDrag = InArgs._OnPlaybackRangeBeginDrag;
+		TimeSliderArgs.OnPlaybackRangeEndDrag = InArgs._OnPlaybackRangeEndDrag;
+		TimeSliderArgs.OnSelectionRangeChanged = InArgs._OnSelectionRangeChanged;
+		TimeSliderArgs.OnSelectionRangeBeginDrag = InArgs._OnSelectionRangeBeginDrag;
+		TimeSliderArgs.OnSelectionRangeEndDrag = InArgs._OnSelectionRangeEndDrag;
+		TimeSliderArgs.OnMarkBeginDrag = InArgs._OnMarkBeginDrag;
+		TimeSliderArgs.OnMarkEndDrag = InArgs._OnMarkEndDrag;
+		TimeSliderArgs.OnViewRangeChanged = InArgs._OnViewRangeChanged;
+		TimeSliderArgs.OnClampRangeChanged = InArgs._OnClampRangeChanged;
+		TimeSliderArgs.OnGetNearestKey = InArgs._OnGetNearestKey;
+		TimeSliderArgs.IsPlaybackRangeLocked = InArgs._IsPlaybackRangeLocked;
+		TimeSliderArgs.OnTogglePlaybackRangeLocked = InArgs._OnTogglePlaybackRangeLocked;
+		TimeSliderArgs.ScrubPosition = InArgs._ScrubPosition;
+		TimeSliderArgs.ScrubPositionText = InArgs._ScrubPositionText;
+		// TimeSliderArgs.ScrubPositionParent = InArgs._ScrubPositionParent;
+		// TimeSliderArgs.ScrubPositionParentChain = InArgs._ScrubPositionParentChain;
+		// TimeSliderArgs.OnScrubPositionParentChanged = InArgs._OnScrubPositionParentChanged;
+		TimeSliderArgs.OnBeginScrubberMovement = InArgs._OnBeginScrubbing;
+		TimeSliderArgs.OnEndScrubberMovement = InArgs._OnEndScrubbing;
+		TimeSliderArgs.OnScrubPositionChanged = InArgs._OnScrubPositionChanged;
+		TimeSliderArgs.PlaybackStatus = InArgs._PlaybackStatus;
+		TimeSliderArgs.SubSequenceRange = InArgs._SubSequenceRange;
+		TimeSliderArgs.VerticalFrames = InArgs._VerticalFrames;
+		// TimeSliderArgs.MarkedFrames = InArgs._MarkedFrames;
+		// TimeSliderArgs.GlobalMarkedFrames = InArgs._GlobalMarkedFrames;
+		TimeSliderArgs.OnSetMarkedFrame = InArgs._OnSetMarkedFrame;
+		TimeSliderArgs.OnAddMarkedFrame = InArgs._OnAddMarkedFrame;
+		TimeSliderArgs.OnDeleteMarkedFrame = InArgs._OnDeleteMarkedFrame;
+		TimeSliderArgs.OnDeleteAllMarkedFrames = InArgs._OnDeleteAllMarkedFrames;
+		TimeSliderArgs.NumericTypeInterface = NumericTypeInterface;
+	}
+	TimeSliderController = MakeShareable(new FActActionTimeSliderController(TimeSliderArgs, InSequenceController));
+	// Create the top and bottom sliders
+	TopTimeSlider = SNew(SActActionSequenceTimeSliderWidget, TimeSliderController.ToSharedRef())
+		.MirrorLabels(false);
 
 	const FMargin ResizeBarPadding(4.0f, 0, 0, 0);
 
@@ -79,7 +150,7 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, TSharedRef<FA
 						]
 					]
 
-					
+
 					// main sequencer area
 					+ SGridPanel::Slot(0, 2, SGridPanel::Layer(10))
 					.ColumnSpan(2)
@@ -193,6 +264,80 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, TSharedRef<FA
 							]
 						]
 					]
+
+					// Second column
+
+					+ SGridPanel::Slot(1, 1)
+					  .Padding(ResizeBarPadding)
+					  .RowSpan(3)
+					[
+						SNew(SBorder)
+						.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
+						[
+							SNew(SSpacer)
+						]
+					]
+
+					+ SGridPanel::Slot(1, 1, SGridPanel::Layer(10))
+					.Padding(ResizeBarPadding)
+					[
+						SNew(SBorder)
+						.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
+						.BorderBackgroundColor(FLinearColor(.50f, .50f, .50f, 1.0f))
+						.Padding(0)
+						.Clipping(EWidgetClipping::ClipToBounds)
+						[
+							TopTimeSlider.ToSharedRef()
+						]
+					]
+
+					// Overlay that draws the tick lines
+					+ SGridPanel::Slot(1, 2, SGridPanel::Layer(10))
+					.Padding(ResizeBarPadding)
+					[
+						SNew(SActActionSequenceSectionOverlay, TimeSliderController.ToSharedRef())
+						.Visibility(EVisibility::HitTestInvisible)
+						.DisplayScrubPosition(false)
+						.DisplayTickLines(true)
+						.Clipping(EWidgetClipping::ClipToBounds)
+					]
+
+					// Overlay that draws the scrub position
+					+ SGridPanel::Slot(1, 2, SGridPanel::Layer(20))
+					.Padding(ResizeBarPadding)
+					[
+						SNew(SActActionSequenceSectionOverlay, TimeSliderController.ToSharedRef())
+						.Visibility(EVisibility::HitTestInvisible)
+						.DisplayScrubPosition(true)
+						.DisplayTickLines(false)
+						.DisplayMarkedFrames(true)
+						.PaintPlaybackRangeArgs(this, &SActActionSequenceWidget::GetSectionPlaybackRangeArgs)
+						.Clipping(EWidgetClipping::ClipToBounds)
+					]
+
+					// + SGridPanel::Slot(1, 2, SGridPanel::Layer(30))
+					//   .Padding(ResizeBarPadding)
+					//   .HAlign(HAlign_Left)
+					//   .VAlign(VAlign_Top)
+					// [
+					// 	// Transform box
+					// 	SAssignNew(TransformBox, SSequencerTransformBox, SequencerPtr.Pin().ToSharedRef(), *GetSequencerSettings(), NumericTypeInterface.ToSharedRef())
+					// ]
+
+					// + SGridPanel::Slot(1, 2, SGridPanel::Layer(40))
+					// .Padding(ResizeBarPadding)
+					// [
+					// 	SAssignNew(TickResolutionOverlay, SSequencerTimePanel, SequencerPtr)
+					// ]
+
+					// + SGridPanel::Slot(1, 2, SGridPanel::Layer(50))
+					//   .Padding(ResizeBarPadding)
+					//   .HAlign(HAlign_Left)
+					//   .VAlign(VAlign_Top)
+					// [
+					// 	// Stretch box
+					// 	SAssignNew(StretchBox, SSequencerStretchBox, SequencerPtr.Pin().ToSharedRef(), *GetSequencerSettings(), NumericTypeInterface.ToSharedRef())
+					// ]
 				]
 
 			]
@@ -279,5 +424,22 @@ void SActActionSequenceWidget::PopulateAddMenuContext(FMenuBuilder& MenuBuilder)
 	MenuBuilder.EndSection();
 }
 
-
+ActActionSequence::FActActionPaintPlaybackRangeArgs SActActionSequenceWidget::GetSectionPlaybackRangeArgs() const
+{
+	// if (GetBottomTimeSliderVisibility() == EVisibility::Visible)
+	// {
+	static ActActionSequence::FActActionPaintPlaybackRangeArgs Args
+	{
+		FEditorStyle::GetBrush("Sequencer.Timeline.PlayRange_L"),
+		FEditorStyle::GetBrush("Sequencer.Timeline.PlayRange_R"),
+		6.f,
+	};
+	return Args;
+	// }
+	// else
+	// {
+	// 	static FPaintPlaybackRangeArgs Args(FEditorStyle::GetBrush("Sequencer.Timeline.PlayRange_Bottom_L"), FEditorStyle::GetBrush("Sequencer.Timeline.PlayRange_Bottom_R"), 6.f);
+	// 	return Args;
+	// }
+}
 #undef LOCTEXT_NAMESPACE

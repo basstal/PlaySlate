@@ -45,12 +45,17 @@ public:
 	* Get the tick resolution of the currently focused sequence
 	*/
 	FFrameRate GetFocusedTickResolution() const;
+	FFrameRate GetFocusedDisplayRate() const;
 	/** Handles adding a new folder to the outliner tree. */
 	void OnAddFolder();
 
 	void RequestListRefresh();
 
 	void AddRootNodes(TSharedPtr<FActActionSequenceDisplayNode> SequenceDisplayNode);
+	ActActionSequence::FActActionAnimatedRange GetClampRange() const;
+	TRange<FFrameNumber> GetPlaybackRange() const;
+	ActActionSequence::EPlaybackType GetPlaybackStatus() const;
+	TRange<FFrameNumber> GetSelectionRange() const;
 protected:
 	/** List of tools we own */
 	TArray<TSharedPtr<FActActionTrackEditorBase>> TrackEditors;
@@ -64,6 +69,7 @@ protected:
 	FCurveSequence ZoomAnimation;
 	FCurveHandle ZoomCurve;
 	TSharedPtr<SActActionSequenceWidget> SequenceWidget;
+	ActActionSequence::EPlaybackType PlaybackState;
 public:
 	TSharedPtr<SActActionSequenceWidget> GetSequenceWidget() const
 	{
@@ -97,4 +103,10 @@ public:
 	{
 		return NodeTree.ToSharedRef();
 	}
+
+	TSharedPtr<SActActionSequenceWidget> MakeSequenceWidget(ActActionSequence::FActActionSequenceViewParams ViewParams);
+	TSet<FFrameNumber> GetVerticalFrames() const;
+	void SetMarkedFrame(int32 InMarkIndex, FFrameNumber InFrameNumber);
+	void AddMarkedFrame(FFrameNumber FrameNumber);
+	void SetPlaybackRange(TRange<FFrameNumber> Range);
 };

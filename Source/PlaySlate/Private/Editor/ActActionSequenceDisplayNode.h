@@ -11,7 +11,6 @@ class SActActionSequenceTreeViewRow;
 class FActActionSequenceDisplayNode : public TSharedFromThis<FActActionSequenceDisplayNode>
 {
 public:
-	FActActionSequenceDisplayNode();
 	/**
 	* Create and initialize a new instance.
 	* 
@@ -87,4 +86,17 @@ public:
 	* @return The parent of this node, or the symbolic root node if this node is part of the FSequencerNodeTree::GetRootNodes array.
 	*/
 	TSharedPtr<FActActionSequenceDisplayNode> GetParentOrRoot() const;
+	bool CanRenameNode() const;
+	/**
+	*@return The font used to draw the display name.
+	*/
+	FSlateFontInfo GetDisplayNameFont() const;
+	FSlateColor GetDisplayNameColor() const;
+	bool ValidateDisplayName(const FText& NewDisplayName, FText& OutErrorMessage) const;
+	/**
+	* Set the node's display name.
+	*
+	* @param NewDisplayName the display name to set.
+	*/
+	void SetDisplayName(const FText& NewDisplayName);
 };

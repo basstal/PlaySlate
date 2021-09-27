@@ -80,7 +80,8 @@ void FActActionAnimMontageTrack::OnAssetSelected(const FAssetData& InAssetData)
 				UE_LOG(LogActAction, Log, TEXT("AnimMontage : %s"), *AnimMontage->GetName());
 				TSharedPtr<FActActionSequenceController> SequenceControllerPtr = SequenceController.Pin();
 				SequenceControllerPtr->GetActActionSequencePtr()->EditAnimMontage = AnimMontage;
-				SequenceControllerPtr->AddRootNodes(MakeShareable(new FActActionSequenceDisplayNode()));
+				SequenceControllerPtr->AddRootNodes(MakeShareable(new FActActionSequenceDisplayNode(SequenceControllerPtr->GetNodeTree())));
+				
 			}
 			AnimMontageSelectionDialog->RequestDestroyWindow();
 		}

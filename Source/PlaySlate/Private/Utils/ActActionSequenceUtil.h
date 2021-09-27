@@ -17,6 +17,7 @@ namespace ActActionSequence
 		Object,
 		Track,
 	};
+
 	/** TRANS_EN:If we are dragging a scrubber or dragging to set the time range */
 	enum class EDragType : uint8
 	{
@@ -29,7 +30,7 @@ namespace ActActionSequence
 		DRAG_MARK,
 		DRAG_NONE
 	};
-	
+
 	/** TRANS_EN:Enum representing supported scrubber styles */
 	enum class ESequencerScrubberStyle : uint8
 	{
@@ -39,7 +40,7 @@ namespace ActActionSequence
 		/** TRANS_EN:Scrubber thumb occupies a full 'display rate' frame, with a single thin line for the current time. Tailored to frame-accuracy scenarios. */
 		FrameBlock,
 	};
-	
+
 	/** TRANS_EN:Enum specifying how to interpolate to a new view range */
 	enum class EActActionViewRangeInterpolation : uint8
 	{
@@ -62,21 +63,26 @@ namespace ActActionSequence
 	};
 
 	/** A delegate which will create an auto-key handler. */
+	DECLARE_DELEGATE_RetVal_TwoParams(FFrameNumber, OnGetNearestKeyDelegate, FFrameTime, bool)
 	DECLARE_DELEGATE_RetVal_OneParam(TSharedRef<FActActionTrackEditorBase>, OnCreateTrackEditorDelegate, TSharedRef<FActActionSequenceController>);
+
+	/** A delegate that is executed when menu object is clicked. Unlike FExtender delegates we pass in the FGuid which exists even for deleted objects. */
+	DECLARE_DELEGATE_TwoParams(OnBuildCustomContextMenuForGuidDelegate, FMenuBuilder&, FGuid);
 	DECLARE_DELEGATE_TwoParams(OnScrubPositionChangedDelegate, FFrameTime, bool)
 	DECLARE_DELEGATE_TwoParams(OnViewRangeChangedDelegate, TRange<double>, EActActionViewRangeInterpolation)
-	DECLARE_DELEGATE_OneParam(OnTimeRangeChangedDelegate, TRange<double>)
-	DECLARE_DELEGATE_RetVal_TwoParams(FFrameNumber, OnGetNearestKeyDelegate, FFrameTime, bool)
-	DECLARE_DELEGATE_OneParam(OnFrameRangeChangedDelegate, TRange<FFrameNumber>)
+	/** A delegate that is executed when adding menu content. */
+	DECLARE_DELEGATE_TwoParams(OnGetAddMenuContentDelegate, FMenuBuilder& /*MenuBuilder*/, TSharedRef<FActActionSequenceController>);
 	DECLARE_DELEGATE_TwoParams(OnSetMarkedFrameDelegate, int32, FFrameNumber)
+	DECLARE_DELEGATE_OneParam(OnTimeRangeChangedDelegate, TRange<double>)
+	DECLARE_DELEGATE_OneParam(OnFrameRangeChangedDelegate, TRange<FFrameNumber>)
 	DECLARE_DELEGATE_OneParam(OnAddMarkedFrameDelegate, FFrameNumber)
 	DECLARE_DELEGATE_OneParam(OnDeleteMarkedFrameDelegate, int32)
 	DECLARE_DELEGATE_OneParam(OnGetContextMenuContentDelegate, FMenuBuilder&);
 	/** Called when an asset is selected in the asset view */
-    DECLARE_DELEGATE_OneParam(OnAssetSelectedDelegate, const FAssetData& /*AssetData*/);
+	DECLARE_DELEGATE_OneParam(OnAssetSelectedDelegate, const FAssetData& /*AssetData*/);
 	/** Called when enter is pressed on an asset in the asset view */
 	DECLARE_DELEGATE_OneParam(OnAssetEnterPressedDelegate, const TArray<FAssetData>& /*SelectedAssets*/);
-	
+
 	/** TRANS_EN:Utility struct for converting between scrub range space and local/absolute screen space */
 	struct FActActionScrubRangeToScreen
 	{
@@ -107,15 +113,18 @@ namespace ActActionSequence
 	/** TRANS_EN:Structure used to wrap up a range, and an optional animation target */
 	struct FActActionAnimatedRange : public TRange<double>
 	{
-		FActActionAnimatedRange() : TRange()
+		FActActionAnimatedRange()
+			: TRange()
 		{
 		}
 
-		FActActionAnimatedRange(double LowerBound, double UpperBound) : TRange(LowerBound, UpperBound)
+		FActActionAnimatedRange(double LowerBound, double UpperBound)
+			: TRange(LowerBound, UpperBound)
 		{
 		}
 
-		FActActionAnimatedRange(const TRange<double>& InRange) : TRange(InRange)
+		FActActionAnimatedRange(const TRange<double>& InRange)
+			: TRange(InRange)
 		{
 		}
 
@@ -146,10 +155,10 @@ namespace ActActionSequence
 	struct FActActionTimeSliderArgs
 	{
 		FActActionTimeSliderArgs()
-			: ScrubPosition(0)
-			  , ViewRange(FActActionAnimatedRange(0.0f, 5.0f))
-			  , ClampRange(FActActionAnimatedRange(-FLT_MAX / 2.f, FLT_MAX / 2.f))
-			  , AllowZoom(true)
+			: ScrubPosition(0),
+			  ViewRange(FActActionAnimatedRange(0.0f, 5.0f)),
+			  ClampRange(FActActionAnimatedRange(-FLT_MAX / 2.f, FLT_MAX / 2.f)),
+			  AllowZoom(true)
 		{
 		}
 
@@ -340,7 +349,7 @@ namespace ActActionSequence
 					Definition.ObjectTypeName = ObjectProperty->PropertyClass->GetFName();
 				}
 			}
-			else if(const FArrayProperty* ArrayProperty = CastField<const FArrayProperty>(Property))
+			else if (const FArrayProperty* ArrayProperty = CastField<const FArrayProperty>(Property))
 			{
 				Definition.PropertyTypeName = ArrayProperty->Inner->GetClass()->GetFName();
 				if (const FStructProperty* InnerStructProperty = CastField<const FStructProperty>(ArrayProperty->Inner))
@@ -386,16 +395,65 @@ namespace ActActionSequence
 			Definition.PropertyTypeName = PropertyType->GetFName();
 			return Definition;
 		}
+
 	protected:
 		FActActionAnimatedPropertyKey()
-			: PropertyTypeName(NAME_None)
-			, ObjectTypeName(NAME_None)
-		{}
+			: PropertyTypeName(NAME_None),
+			  ObjectTypeName(NAME_None)
+		{
+		}
 	};
 
 	struct FActActionAnimatedTypeCache
 	{
 		FDelegateHandle FactoryHandle;
 		TArray<FActActionAnimatedPropertyKey, TInlineAllocator<4>> AnimatedTypes;
+	};
+
+	struct FActActionPaintViewAreaArgs
+	{
+		/** Whether to display tick lines */
+		bool bDisplayTickLines;
+		/** Whether to display the scrub position */
+		bool bDisplayScrubPosition;
+		/** Whether to display the marked frames */
+		bool bDisplayMarkedFrames;
+		/** Optional Paint args for the playback range*/
+		TOptional<FActActionPaintPlaybackRangeArgs> PlaybackRangeArgs;
+	};
+
+	/**
+	* Sequence view parameters.
+	*/
+	struct FActActionSequenceViewParams
+	{
+		OnGetAddMenuContentDelegate OnGetAddMenuContent;
+
+		OnBuildCustomContextMenuForGuidDelegate OnBuildCustomContextMenuForGuid;
+
+		/** Called when this sequencer has received user focus */
+		FSimpleDelegate OnReceivedFocus;
+
+		/** A menu extender for the add menu */
+		TSharedPtr<FExtender> AddMenuExtender;
+
+		/** A toolbar extender for the main toolbar */
+		TSharedPtr<FExtender> ToolbarExtender;
+
+		/** Unique name for the sequencer. */
+		FString UniqueName;
+
+		/** Whether the sequencer is read-only */
+		bool bReadOnly;
+
+		/** Style of scrubber to use */
+		ESequencerScrubberStyle ScrubberStyle;
+
+		FActActionSequenceViewParams(FString InName = FString())
+			: UniqueName(MoveTemp(InName)),
+			  bReadOnly(false),
+			  ScrubberStyle(ESequencerScrubberStyle::Vanilla)
+		{
+		}
 	};
 }

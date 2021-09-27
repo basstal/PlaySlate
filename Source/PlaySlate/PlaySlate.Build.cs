@@ -22,7 +22,8 @@ public class PlaySlate : ModuleRules
 			"AssetTools",
 			"AdvancedPreviewScene",
 			"ContentBrowser",
-			"RHI"
+			"RHI",
+			"TimeManagement"
 		});
 
 		// Uncomment if you are using Slate UI

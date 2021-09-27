@@ -2,7 +2,7 @@
 
 #include "Fonts/FontMeasure.h"
 
-void SActActionSequenceTimeSliderWidget::Construct(const FArguments& InArgs, TSharedRef<FActActionTimeSliderController> InTimeSliderController)
+void SActActionSequenceTimeSliderWidget::Construct(const FArguments& InArgs, const TSharedRef<FActActionTimeSliderController>& InTimeSliderController)
 {
 	TimeSliderController = InTimeSliderController;
 	bMirrorLabels = InArgs._MirrorLabels;
