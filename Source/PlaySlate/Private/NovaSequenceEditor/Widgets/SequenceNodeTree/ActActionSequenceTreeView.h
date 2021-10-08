@@ -1,0 +1,147 @@
+﻿#pragma once
+
+
+#include "Utils/ActActionSequenceUtil.h"
+
+class SActActionSequenceTrackLane;
+class SActActionSequenceTrackArea;
+class FActActionSequenceNodeTree;
+class FActActionSequenceDisplayNode;
+
+class SActActionSequenceTreeViewRow : public SMultiColumnTableRow<TSharedRef<FActActionSequenceDisplayNode>>
+{
+	DECLARE_DELEGATE_RetVal_ThreeParams(TSharedRef<SWidget>, OnGenerateWidgetForColumnDelegate, const TSharedRef<FActActionSequenceDisplayNode>&, const FName&, const TSharedRef<SActActionSequenceTreeViewRow>&);
+public:
+	SLATE_BEGIN_ARGS(SActActionSequenceTreeViewRow)
+		{
+		}
+
+		/** FIX:Delegate to invoke to create a new column for this row */
+		SLATE_EVENT(OnGenerateWidgetForColumnDelegate, OnGenerateWidgetForColumn)
+	SLATE_END_ARGS()
+
+	void Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& OwnerTableView, const TSharedRef<FActActionSequenceDisplayNode>& InNode);
+	//~Begin SMultiColumnTableRow interface
+	virtual TSharedRef<SWidget> GenerateWidgetForColumn(const FName& InColumnName) override;
+	//~End SMultiColumnTableRow interface
+
+	void AddTrackAreaReference(const TSharedRef<SActActionSequenceTrackLane>& Lane);
+
+	TOptional<EItemDropZone> OnCanAcceptDrop(const FDragDropEvent& DragDropEvent, EItemDropZone InItemDropZone, TSharedRef<FActActionSequenceDisplayNode> DisplayNode);
+	FReply OnAcceptDrop(const FDragDropEvent& DragDropEvent, EItemDropZone InItemDropZone, TSharedRef<FActActionSequenceDisplayNode> DisplayNode);
+	/** Gets the padding for this row based on whether it is a root node or not */
+	FMargin GetRowPadding() const;
+
+
+protected:
+	/** The item associated with this row of data */
+	TWeakPtr<FActActionSequenceDisplayNode> Node;
+
+	/** Delegate to call to create a new widget for a particular column. */
+	OnGenerateWidgetForColumnDelegate OnGenerateWidgetForColumn;
+	TWeakPtr<SActActionSequenceTrackLane> TrackLaneReference;
+};
+
+/** Structure used to define a column in the tree view */
+struct FActActionSequenceTreeViewColumn
+{
+	typedef TFunction<TSharedRef<SWidget>(const TSharedRef<FActActionSequenceDisplayNode>&, const TSharedRef<SActActionSequenceTreeViewRow>&)> FOnGenerate;
+
+	FActActionSequenceTreeViewColumn(const FOnGenerate& InOnGenerate, const TAttribute<float>& InWidth) : Generator(InOnGenerate), Width(InWidth)
+	{
+	}
+
+	FActActionSequenceTreeViewColumn(FOnGenerate&& InOnGenerate, const TAttribute<float>& InWidth) : Generator(MoveTemp(InOnGenerate)), Width(InWidth)
+	{
+	}
+
+	/** Function used to generate a cell for this column */
+	FOnGenerate Generator;
+	/** Attribute specifying the width of this column */
+	TAttribute<float> Width;
+};
+
+
+class SActActionSequenceTreeView : public STreeView<TSharedRef<FActActionSequenceDisplayNode>>
+{
+public:
+	SLATE_BEGIN_ARGS(SActActionSequenceTreeView)
+		{
+		}
+
+		/** Externally supplied scroll bar */
+		SLATE_ARGUMENT(TSharedPtr<SScrollBar>, ExternalScrollbar)
+		/** FIX:Called to populate the context menu. */
+		SLATE_EVENT(ActActionSequence::OnGetContextMenuContentDelegate, OnGetContextMenuContent)
+	SLATE_END_ARGS()
+
+	void Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceNodeTree>& InNodeTree, TSharedRef<SActActionSequenceTrackArea> InTrackArea);
+	void SetupColumns(const FArguments& InArgs);
+
+	//~Begin SWidget interface
+	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
+	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
+	//~End SWidget interface
+
+	void AddRootNodes(TSharedPtr<FActActionSequenceDisplayNode> SequenceDisplayNode);
+
+	/**
+	* 返回节点是否被过滤
+	*
+	* @param Node 检测是否被过滤的节点
+	*/
+	// bool IsNodeFiltered( const TSharedRef<FActActionSequenceDisplayNode> Node ) const;
+
+	/** Refresh this tree as a result of the underlying tree data changing */
+	void Refresh();
+protected:
+	// /**
+	//  * 树结构Sequence的Track
+	//  */
+	// TSharedPtr<FActActionSequenceNodeTree> ActActionSequenceNodeTree;
+	// /**
+	//  * Track显示使用的Widget
+	//  */
+	// TSharedPtr<SActActionSequenceTrackArea> ActActionTrackAreaWidget;
+	/**
+	 * FIX:?
+	 */
+	ActActionSequence::OnGetContextMenuContentDelegate OnGetContextMenuContent;
+	/**
+	 * 从树的数据中复制和缓存的根节点信息
+	 */
+	TArray<TSharedRef<FActActionSequenceDisplayNode>> RootNodes;
+public:
+	const TArray<TSharedRef<FActActionSequenceDisplayNode>>* GetRootNodes() const
+	{
+		return &RootNodes;
+	}
+
+protected:
+	/** Strong pointer to the track area so we can generate track lanes as we need them */
+	TSharedPtr<SActActionSequenceTrackArea> TrackArea;
+	/** Pointer to the node tree data that is used to populate this tree */
+	TSharedPtr<FActActionSequenceNodeTree> SequenceNodeTree;
+	/**
+	 * 依据特定的数据生成一行TableRow
+	 */
+	TSharedRef<ITableRow> OnGenerateRow(TSharedRef<FActActionSequenceDisplayNode> InDisplayNode, const TSharedRef<STableViewBase>& OwnerTable);
+
+	/**
+	 * 为特定节点和列生成Widget
+	 */
+	TSharedRef<SWidget> GenerateWidgetFromColumn(const TSharedRef<FActActionSequenceDisplayNode>& InNode, const FName& ColumnId, const TSharedRef<SActActionSequenceTreeViewRow>& Row) const;
+	/**
+	 * 列定义，对应tree view中的列数据 
+	 */
+	TMap<FName, FActActionSequenceTreeViewColumn> Columns;
+
+	/**
+	 * 从InParent节点中获取所有的孩子节点
+	 */
+	void OnGetChildren(TSharedRef<FActActionSequenceDisplayNode> InParent, TArray<TSharedRef<FActActionSequenceDisplayNode>>& OutChildren) const;
+	/**
+	 * 所有被过滤的节点集合
+	 */
+	TSet<TSharedRef<FActActionSequenceDisplayNode>> FilteredNodes;
+};

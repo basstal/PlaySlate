@@ -1,7 +1,5 @@
 ﻿#pragma once
 
-#include "CoreMinimal.h"
-
 class FActActionSequenceController;
 class FActActionTrackEditorBase;
 
@@ -18,7 +16,7 @@ namespace ActActionSequence
 		Track,
 	};
 
-	/** TRANS_EN:If we are dragging a scrubber or dragging to set the time range */
+	/** If we are dragging a scrubber or dragging to set the time range */
 	enum class EDragType : uint8
 	{
 		DRAG_SCRUBBING_TIME,
@@ -31,22 +29,22 @@ namespace ActActionSequence
 		DRAG_NONE
 	};
 
-	/** TRANS_EN:Enum representing supported scrubber styles */
+	/** Enum representing supported scrubber styles */
 	enum class ESequencerScrubberStyle : uint8
 	{
-		/** TRANS_EN:Scrubber is represented as a single thin line for the current time, with a constant-sized thumb. */
+		/** Scrubber is represented as a single thin line for the current time, with a constant-sized thumb. */
 		Vanilla,
 
-		/** TRANS_EN:Scrubber thumb occupies a full 'display rate' frame, with a single thin line for the current time. Tailored to frame-accuracy scenarios. */
+		/** Scrubber thumb occupies a full 'display rate' frame, with a single thin line for the current time. Tailored to frame-accuracy scenarios. */
 		FrameBlock,
 	};
 
-	/** TRANS_EN:Enum specifying how to interpolate to a new view range */
+	/** Enum specifying how to interpolate to a new view range */
 	enum class EActActionViewRangeInterpolation : uint8
 	{
-		/** TRANS_EN:Use an externally defined animated interpolation */
+		/** Use an externally defined animated interpolation */
 		Animated,
-		/** TRANS_EN:Set the view range immediately */
+		/** Set the view range immediately */
 		Immediate,
 	};
 
@@ -83,7 +81,7 @@ namespace ActActionSequence
 	/** Called when enter is pressed on an asset in the asset view */
 	DECLARE_DELEGATE_OneParam(OnAssetEnterPressedDelegate, const TArray<FAssetData>& /*SelectedAssets*/);
 
-	/** TRANS_EN:Utility struct for converting between scrub range space and local/absolute screen space */
+	/** Utility struct for converting between scrub range space and local/absolute screen space */
 	struct FActActionScrubRangeToScreen
 	{
 		double ViewStart;
@@ -97,20 +95,20 @@ namespace ActActionSequence
 			PixelsPerInput = ViewInputRange > 0 ? (InWidgetSize.X / ViewInputRange) : 0;
 		}
 
-		/** TRANS_EN:Local Widget Space -> Curve Input domain. */
+		/** Local Widget Space -> Curve Input domain. */
 		double LocalXToInput(float ScreenX) const
 		{
 			return PixelsPerInput > 0 ? (ScreenX / PixelsPerInput) + ViewStart : ViewStart;
 		}
 
-		/** TRANS_EN:Curve Input domain -> local Widget Space */
+		/** Curve Input domain -> local Widget Space */
 		float InputToLocalX(double Input) const
 		{
 			return (Input - ViewStart) * PixelsPerInput;
 		}
 	};
 
-	/** TRANS_EN:Structure used to wrap up a range, and an optional animation target */
+	/** Structure used to wrap up a range, and an optional animation target */
 	struct FActActionAnimatedRange : public TRange<double>
 	{
 		FActActionAnimatedRange()
@@ -128,27 +126,25 @@ namespace ActActionSequence
 		{
 		}
 
-		/** TRANS_EN:Helper function to wrap an attribute to an animated range with a non-animated one */
+		/** Helper function to wrap an attribute to an animated range with a non-animated one */
 		static TAttribute<TRange<double>> WrapAttribute(const TAttribute<FActActionAnimatedRange>& InAttribute)
 		{
-			typedef TAttribute<TRange<double>> Attr;
-			return Attr::Create(Attr::FGetter::CreateLambda([=]() { return InAttribute.Get(); }));
+			return TAttribute<TRange<double>>::Create(TAttribute<TRange<double>>::FGetter::CreateLambda([=]() { return InAttribute.Get(); }));
 		}
 
-		/** TRANS_EN:Helper function to wrap an attribute to a non-animated range with an animated one */
+		/** Helper function to wrap an attribute to a non-animated range with an animated one */
 		static TAttribute<FActActionAnimatedRange> WrapAttribute(const TAttribute<TRange<double>>& InAttribute)
 		{
-			typedef TAttribute<FActActionAnimatedRange> Attr;
-			return Attr::Create(Attr::FGetter::CreateLambda([=]() { return InAttribute.Get(); }));
+			return TAttribute<FActActionAnimatedRange>::Create(TAttribute<FActActionAnimatedRange>::FGetter::CreateLambda([=]() { return InAttribute.Get(); }));
 		}
 
-		/** TRANS_EN:Get the current animation target, or the whole view range when not animating */
+		/** Get the current animation target, or the whole view range when not animating */
 		const TRange<double>& GetAnimationTarget() const
 		{
 			return AnimationTarget.IsSet() ? AnimationTarget.GetValue() : *this;
 		}
 
-		/** TRANS_EN:The animation target, if animating */
+		/** The animation target, if animating */
 		TOptional<TRange<double>> AnimationTarget;
 	};
 
@@ -162,140 +158,143 @@ namespace ActActionSequence
 		{
 		}
 
-		/** TRANS_EN:The scrub position */
+		/** The scrub position */
 		TAttribute<FFrameTime> ScrubPosition;
 
-		/** TRANS_EN:The scrub position text */
+		/** The scrub position text */
 		TAttribute<FString> ScrubPositionText;
 
-		/** TRANS_EN:View time range */
+		/** View time range */
 		TAttribute<FActActionAnimatedRange> ViewRange;
 
-		/** TRANS_EN:Clamp time range */
+		/** Clamp time range */
 		TAttribute<FActActionAnimatedRange> ClampRange;
 
-		/** TRANS_EN:Called when the scrub position changes */
+		/** Called when the scrub position changes */
 		OnScrubPositionChangedDelegate OnScrubPositionChanged;
 
-		/** TRANS_EN:Called right before the scrubber begins to move */
+		/** Called right before the scrubber begins to move */
 		FSimpleDelegate OnBeginScrubberMovement;
 
-		/** TRANS_EN:Called right after the scrubber handle is released by the user */
+		/** Called right after the scrubber handle is released by the user */
 		FSimpleDelegate OnEndScrubberMovement;
 
-		/** TRANS_EN:Called when the view range changes */
+		/** Called when the view range changes */
 		OnViewRangeChangedDelegate OnViewRangeChanged;
 
-		/** TRANS_EN:Called when the clamp range changes */
+		/** Called when the clamp range changes */
 		OnTimeRangeChangedDelegate OnClampRangeChanged;
 
-		/** TRANS_EN:Delegate that is called when getting the nearest key */
+		/** Delegate that is called when getting the nearest key */
 		OnGetNearestKeyDelegate OnGetNearestKey;
 
-		/** TRANS_EN:Attribute defining the active sub-sequence range for this controller */
+		/** Attribute defining the active sub-sequence range for this controller */
 		TAttribute<TOptional<TRange<FFrameNumber>>> SubSequenceRange;
 
-		/** TRANS_EN:Attribute defining the playback range for this controller */
+		/** Attribute defining the playback range for this controller */
 		TAttribute<TRange<FFrameNumber>> PlaybackRange;
 
-		/** TRANS_EN:Attribute for the current sequence's display rate */
+		/** Attribute for the current sequence's display rate */
 		TAttribute<FFrameRate> DisplayRate;
 
-		/** TRANS_EN:Attribute for the current sequence's tick resolution */
+		/** Attribute for the current sequence's tick resolution */
 		TAttribute<FFrameRate> TickResolution;
 
-		/** TRANS_EN:Delegate that is called when the playback range wants to change */
+		/**
+		 * 动画播放区间改变的回调，将数据写入到Model中保存
+		 * Delegate that is called when the playback range wants to change
+		 */
 		OnFrameRangeChangedDelegate OnPlaybackRangeChanged;
 
-		/** TRANS_EN:Called right before the playback range starts to be dragged */
+		/** Called right before the playback range starts to be dragged */
 		FSimpleDelegate OnPlaybackRangeBeginDrag;
 
-		/** TRANS_EN:Called right after the playback range has finished being dragged */
+		/** Called right after the playback range has finished being dragged */
 		FSimpleDelegate OnPlaybackRangeEndDrag;
 
-		/** TRANS_EN:Attribute defining the selection range for this controller */
+		/** Attribute defining the selection range for this controller */
 		TAttribute<TRange<FFrameNumber>> SelectionRange;
 
-		/** TRANS_EN:Delegate that is called when the selection range wants to change */
+		/** Delegate that is called when the selection range wants to change */
 		OnFrameRangeChangedDelegate OnSelectionRangeChanged;
 
-		/** TRANS_EN:Called right before the selection range starts to be dragged */
+		/** Called right before the selection range starts to be dragged */
 		FSimpleDelegate OnSelectionRangeBeginDrag;
 
-		/** TRANS_EN:Called right after the selection range has finished being dragged */
+		/** Called right after the selection range has finished being dragged */
 		FSimpleDelegate OnSelectionRangeEndDrag;
 
-		/** TRANS_EN:Called right before a mark starts to be dragged */
+		/** Called right before a mark starts to be dragged */
 		FSimpleDelegate OnMarkBeginDrag;
 
-		/** TRANS_EN:Called right after a mark has finished being dragged */
+		/** Called right after a mark has finished being dragged */
 		FSimpleDelegate OnMarkEndDrag;
 
-		/** TRANS_EN:Attribute for the current sequence's vertical frames */
+		/** Attribute for the current sequence's vertical frames */
 		TAttribute<TSet<FFrameNumber>> VerticalFrames;
 
-		/** TRANS_EN:Called when the marked frame needs to be set */
+		/** Called when the marked frame needs to be set */
 		OnSetMarkedFrameDelegate OnSetMarkedFrame;
 
-		/** TRANS_EN:Called when a marked frame is added */
+		/** Called when a marked frame is added */
 		OnAddMarkedFrameDelegate OnAddMarkedFrame;
 
-		/** TRANS_EN:Called when a marked frame is deleted */
+		/** Called when a marked frame is deleted */
 		OnDeleteMarkedFrameDelegate OnDeleteMarkedFrame;
 
-		/** TRANS_EN:Called when all marked frames should be deleted */
+		/** Called when all marked frames should be deleted */
 		FSimpleDelegate OnDeleteAllMarkedFrames;
 
-		/** TRANS_EN:Round the scrub position to an integer during playback */
+		/** Round the scrub position to an integer during playback */
 		TAttribute<EPlaybackType> PlaybackStatus;
 
-		/** TRANS_EN:Attribute defining whether the playback range is locked */
+		/** Attribute defining whether the playback range is locked */
 		TAttribute<bool> IsPlaybackRangeLocked;
 
-		/** TRANS_EN:Attribute defining the time snap interval */
+		/** Attribute defining the time snap interval */
 		TAttribute<float> TimeSnapInterval;
 
-		/** TRANS_EN:Called when toggling the playback range lock */
+		/** Called when toggling the playback range lock */
 		FSimpleDelegate OnTogglePlaybackRangeLocked;
 
-		/** TRANS_EN:If we are allowed to zoom */
+		/** If we are allowed to zoom */
 		bool AllowZoom;
 
-		/** TRANS_EN:Numeric Type interface for converting between frame numbers and display formats. */
+		/** Numeric Type interface for converting between frame numbers and display formats. */
 		TSharedPtr<INumericTypeInterface<double>> NumericTypeInterface;
 	};
 
 	struct FActActionDrawTickArgs
 	{
-		/** TRANS_EN:Geometry of the area */
+		/** Geometry of the area */
 		FGeometry AllottedGeometry;
-		/** TRANS_EN:Culling rect of the area */
+		/** Culling rect of the area */
 		FSlateRect CullingRect;
-		/** TRANS_EN:Color of each tick */
+		/** Color of each tick */
 		FLinearColor TickColor;
-		/** TRANS_EN:Offset in Y where to start the tick */
+		/** Offset in Y where to start the tick */
 		float TickOffset;
-		/** TRANS_EN:Height in of major ticks */
+		/** Height in of major ticks */
 		float MajorTickHeight;
-		/** TRANS_EN:Start layer for elements */
+		/** Start layer for elements */
 		int32 StartLayer;
-		/** TRANS_EN:Draw effects to apply */
+		/** Draw effects to apply */
 		ESlateDrawEffect DrawEffects;
-		/** TRANS_EN:Whether or not to only draw major ticks */
+		/** Whether or not to only draw major ticks */
 		bool bOnlyDrawMajorTicks;
-		/** TRANS_EN:Whether or not to mirror labels */
+		/** Whether or not to mirror labels */
 		bool bMirrorLabels;
 	};
 
 	struct FActActionPaintPlaybackRangeArgs
 	{
-		/** TRANS_EN:Brush to use for the start bound */
+		/** Brush to use for the start bound */
 		const FSlateBrush* StartBrush;
-		/** TRANS_EN:Brush to use for the end bound */
+		/** Brush to use for the end bound */
 		const FSlateBrush* EndBrush;
-		/** TRANS_EN:The width of the above brushes, in slate units */
+		/** The width of the above brushes, in slate units */
 		float BrushWidth;
-		/** TRANS_EN:level of opacity for the fill color between the range markers */
+		/** level of opacity for the fill color between the range markers */
 		float SolidFillOpacity;
 	};
 
