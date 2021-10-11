@@ -1,10 +1,10 @@
 ﻿#pragma once
+
 #include "AssetTypeActions_Base.h"
 
 class FAssetTypeActions_ActActionSequence : public FAssetTypeActions_Base
 {
 public:
-	
 	//~Begin IAssetTypeActions interface
 	virtual FText GetName() const override;
 	virtual FColor GetTypeColor() const override;
@@ -13,6 +13,4 @@ public:
 	virtual uint32 GetCategories() override;
 	virtual bool HasActions(const TArray<UObject*>& InObjects) const override;
 	//~End IAssetTypeActions interface
-
-protected:
 };

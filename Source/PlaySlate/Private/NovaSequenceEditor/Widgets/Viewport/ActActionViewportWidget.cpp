@@ -1,12 +1,12 @@
 ﻿#include "ActActionViewportWidget.h"
 
+#include "PlaySlate.h"
 #include "NovaSequenceEditor/Controllers/Viewport/ActActionViewportClient.h"
 #include "NovaSequenceEditor/ActActionSequenceEditor.h"
 
-void SActActionViewportWidget::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceEditor>& InSequenceEditor, const TSharedRef<FActActionPreviewScene>& InPreviewScene)
+void SActActionViewportWidget::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor)
 {
-	PreviewScenePtr = InPreviewScene;
-	SequenceEditor = InSequenceEditor;
+	ActActionSequenceEditor = InActActionSequenceEditor;
 
 	SEditorViewport::Construct(
 		SEditorViewport::FArguments()
@@ -20,38 +20,40 @@ void SActActionViewportWidget::Construct(const FArguments& InArgs, const TShared
 		SAssignNew(ViewportContainer, SVerticalBox)
 
 		// Build our toolbar level toolbar
-		+SVerticalBox::Slot()
+		+ SVerticalBox::Slot()
 		.FillHeight(1)
 		[
 			SNew(SOverlay)
 
 			// The viewport
-			+SOverlay::Slot()
+			+ SOverlay::Slot()
 			[
 				ViewportWidget.ToSharedRef()
 			]
 
 			// The 'dirty/in-error' indicator text in the bottom-right corner
-			+SOverlay::Slot()
-			.Padding(8)
-			.VAlign(VAlign_Bottom)
-			.HAlign(HAlign_Right)
+			+ SOverlay::Slot()
+			  .Padding(8)
+			  .VAlign(VAlign_Bottom)
+			  .HAlign(HAlign_Right)
 			[
 				SAssignNew(ViewportNotificationsContainer, SVerticalBox)
 			]
 		]
-		
+
 	];
 }
 
 SActActionViewportWidget::~SActActionViewportWidget()
 {
+	UE_LOG(LogActAction, Log, TEXT("SActActionViewportWidget::~SActActionViewportWidget"));
+	// Client.Get();
 	// The preview scene that we are viewing
-	PreviewScenePtr.Reset();
-	
-	ViewportClient.Reset();
+	// PreviewScenePtr.Reset();
+
+	// ViewportClient.Reset();
 	/** Box that contains notifications */
-	ViewportNotificationsContainer.Reset();
+	// ViewportNotificationsContainer.Reset();
 }
 
 int32 SActActionViewportWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
@@ -62,6 +64,14 @@ int32 SActActionViewportWidget::OnPaint(const FPaintArgs& Args, const FGeometry&
 TSharedRef<FEditorViewportClient> SActActionViewportWidget::MakeEditorViewportClient()
 {
 	// Create an ActAction viewport client
-	ViewportClient = MakeShareable(new FActActionViewportClient(GetPreviewScenePtr().ToSharedRef(), SharedThis(this), SequenceEditor.Pin().ToSharedRef()));
-	return ViewportClient.ToSharedRef();
+	return GetPreviewScenePtr()->MakeViewportClient(SharedThis(this)).ToSharedRef();
+}
+
+TSharedPtr<FActActionPreviewSceneController> SActActionViewportWidget::GetPreviewScenePtr() const
+{
+	if (ActActionSequenceEditor.IsValid())
+	{
+		return ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController();
+	}
+	return nullptr;
 }

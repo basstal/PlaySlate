@@ -4,6 +4,8 @@
 #include "Utils/ActActionSequenceUtil.h"
 
 #include "IContentBrowserSingleton.h"
+
+class FActActionSequenceEditor;
 class FActActionTimeSliderController;
 class SActActionSequenceWidget;
 class ASkeletalMeshActor;
@@ -18,18 +20,18 @@ class FActActionSequenceNodeTree;
 class FActActionSequenceController : public TSharedFromThis<FActActionSequenceController>, FTickableEditorObject
 {
 public:
-	FActActionSequenceController(UActActionSequence* InActActionSequence);
+	FActActionSequenceController(const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor);
 	virtual ~FActActionSequenceController() override;
-	
+
 	//~Begin FTickableEditorObject interface
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 	//~End FTickableEditorObject interface
 
 	void UpdateAnimInstance(float DeltaTime);
-	void InitController(const TSharedRef<SWidget>& ViewWidget, const TArray<ActActionSequence::OnCreateTrackEditorDelegate>& TrackEditorDelegates, const TSharedRef<SActActionSequenceWidget>& InSequenceWidget);
+	void InitController(const TSharedRef<SWidget>& ViewWidget);
 
-	
+
 	void UpdateTimeBases();
 	AActor* SpawnActorInViewport(UClass* ActorType);
 	/**
@@ -64,17 +66,40 @@ public:
 	TRange<FFrameNumber> GetPlaybackRange() const;
 	ActActionSequence::EPlaybackType GetPlaybackStatus() const;
 	TRange<FFrameNumber> GetSelectionRange() const;
-	
+
 	void AddAnimMontageTrack(UAnimMontage* AnimMontage);
 	void SetPlaybackStatus(ActActionSequence::EPlaybackType InPlaybackStatus);
 	void EvaluateInternal(ActActionSequence::FActActionEvaluationRange InRange, bool bHasJumped = false);
 	void Pause();
 	/** Stop the sequencer from auto-scrolling */
 	void StopAutoscroll();
+
+	void MakeSequenceWidget(ActActionSequence::FActActionSequenceViewParams ViewParams);
+	TSet<FFrameNumber> GetVerticalFrames() const;
+	void SetMarkedFrame(int32 InMarkIndex, FFrameNumber InFrameNumber);
+	void AddMarkedFrame(FFrameNumber FrameNumber);
+	void SetPlaybackRange(TRange<FFrameNumber> Range);
+	void InitAnimBlueprint(UAnimBlueprint* AnimBlueprint);
+	/** Get the unqualified local time */
+	FFrameTime GetLocalFrameTime() const;
+	FQualifiedFrameTime GetLocalTime() const;
+	FString GetFrameTimeText() const;
+	uint32 GetLocalLoopIndex() const;
+	void OnBeginScrubbing();
+	void OnEndScrubbing();
+	void SetGlobalTime(FFrameTime NewTime);
+	void SetLocalTimeDirectly(FFrameTime NewTime);
+	void OnScrubPositionChanged(FFrameTime NewScrubPosition, bool bScrubbing);
+	UActActionSequence* GetActActionSequence() const;
 protected:
+	/**
+	 * 对Editor的弱引用，调用编辑器资源和相关工具方法
+	 */
+	TWeakPtr<FActActionSequenceEditor> ActActionSequenceEditor;
+
 	/** List of tools we own */
 	TArray<TSharedPtr<FActActionTrackEditorBase>> TrackEditors;
-	UActActionSequence* ActActionSequencePtr;
+	// UActActionSequence* ActActionSequencePtr;
 	/** The time range target to be viewed */
 	TRange<double> TargetViewRange;
 
@@ -83,7 +108,6 @@ protected:
 	/** Zoom smoothing curves */
 	FCurveSequence ZoomAnimation;
 	// FCurveHandle ZoomCurve;
-	TSharedPtr<SActActionSequenceWidget> SequenceWidget;
 	ActActionSequence::EPlaybackType PlaybackState;
 	ActActionSequence::FActActionPlaybackPosition PlayPosition;
 	/** If set, pause playback on this frame */
@@ -105,18 +129,7 @@ protected:
 	/** Time slider controller for this sequencer */
 	TSharedPtr<FActActionTimeSliderController> TimeSliderController;
 	double PreviewScrubTime;
-public:
-	TSharedPtr<SActActionSequenceWidget> GetSequenceWidget() const
-	{
-		return SequenceWidget;
-	}
 
-	UActActionSequence* GetActActionSequencePtr() const
-	{
-		return ActActionSequencePtr;
-	}
-
-protected:
 	TSharedPtr<SActActionViewportWidget> ActActionViewportWidget;
 
 	ASkeletalMeshActor* PreviewActor;
@@ -125,9 +138,18 @@ protected:
 	 * 左侧Track的所有可见节点都储存在NodeTree中
 	 */
 	TSharedPtr<FActActionSequenceNodeTree> NodeTree;
-
+	/**
+	 * UMG Sequence main
+	 */
+	TSharedPtr<SActActionSequenceWidget> SequenceWidget;
 public:
-	// FAssetPickerConfig InAssetPickerConfig;
+	TSharedPtr<SActActionSequenceWidget> GetSequenceWidget() const
+	{
+		return SequenceWidget;
+	}
+
+	
+	
 
 	void SetNodeTree(const TSharedPtr<FActActionSequenceNodeTree>& InNodeTree)
 	{
@@ -138,21 +160,4 @@ public:
 	{
 		return NodeTree.ToSharedRef();
 	}
-
-	TSharedPtr<SActActionSequenceWidget> MakeSequenceWidget(ActActionSequence::FActActionSequenceViewParams ViewParams);
-	TSet<FFrameNumber> GetVerticalFrames() const;
-	void SetMarkedFrame(int32 InMarkIndex, FFrameNumber InFrameNumber);
-	void AddMarkedFrame(FFrameNumber FrameNumber);
-	void SetPlaybackRange(TRange<FFrameNumber> Range);
-	void InitAnimBlueprint(UAnimBlueprint* AnimBlueprint);
-	/** Get the unqualified local time */
-	FFrameTime GetLocalFrameTime() const;
-	FQualifiedFrameTime GetLocalTime() const;
-	FString GetFrameTimeText() const;
-	uint32 GetLocalLoopIndex() const;
-	void OnBeginScrubbing();
-	void OnEndScrubbing();
-	void SetGlobalTime(FFrameTime NewTime);
-	void SetLocalTimeDirectly(FFrameTime NewTime);
-	void OnScrubPositionChanged(FFrameTime NewScrubPosition, bool bScrubbing);
 };

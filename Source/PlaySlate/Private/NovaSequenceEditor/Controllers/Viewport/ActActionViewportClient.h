@@ -1,13 +1,17 @@
 ﻿#pragma once
 
 
+class FActActionSequenceEditor;
+
 class FActActionViewportClient : public FEditorViewportClient
 {
 public:
-	FActActionViewportClient(const TSharedRef<class FActActionPreviewScene>& InPreviewScene, const TSharedRef<class SActActionViewportWidget>& InViewport, const TSharedRef<class FAssetEditorToolkit>& InAssetEditorToolkit);
+	FActActionViewportClient(const TSharedRef<class FActActionPreviewSceneController>& InPreviewScene, const TSharedRef<class SActActionViewportWidget>& InViewport, const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor);
 	virtual ~FActActionViewportClient() override;
 
 protected:
-	TSharedPtr<FActActionPreviewScene> PreviewScenePtr;
-	FAssetEditorToolkit* AssetEditorToolkitPtr;
+	TWeakPtr<FActActionPreviewSceneController> PreviewScenePtr;
+	// FAssetEditorToolkit* AssetEditorToolkitPtr;
+	// TSharedPtr<SActActionViewportWidget> ViewportWidget;
+
 };

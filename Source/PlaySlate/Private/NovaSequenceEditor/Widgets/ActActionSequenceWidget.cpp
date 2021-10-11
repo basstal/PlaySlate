@@ -1,5 +1,6 @@
 ﻿#include "ActActionSequenceWidget.h"
 
+#include "PlaySlate.h"
 #include "NovaSequenceEditor/Controllers/ActActionSequenceController.h"
 #include "NovaSequenceEditor/Controllers/TimeSlider/ActActionTimeSliderController.h"
 #include "NovaSequenceEditor/Widgets/Viewport/ActActionViewportWidget.h"
@@ -24,7 +25,9 @@ SActActionSequenceWidget::SActActionSequenceWidget()
 
 SActActionSequenceWidget::~SActActionSequenceWidget()
 {
-	SequenceController.Reset();
+	UE_LOG(LogActAction, Log, TEXT("SActActionSequenceWidget::~SActActionSequenceWidget"));
+
+	// SequenceController.Reset();
 }
 
 void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceController>& InSequenceController)

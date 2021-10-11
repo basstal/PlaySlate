@@ -22,26 +22,35 @@ UClass* FAssetTypeActions_ActActionSequence::GetSupportedClass() const
 
 void FAssetTypeActions_ActActionSequence::OpenAssetEditor(const TArray<UObject*>& InObjects, TSharedPtr<IToolkitHost> EditWithinLevelEditor)
 {
-	EToolkitMode::Type Mode = EditWithinLevelEditor.IsValid() ? EToolkitMode::WorldCentric : EToolkitMode::Standalone;
 	for (auto ObjIt = InObjects.CreateConstIterator(); ObjIt; ++ObjIt)
 	{
 		UActActionSequence* ActActionSequence = Cast<UActActionSequence>(*ObjIt);
 
 		if (ActActionSequence)
 		{
-			TSharedRef<FActActionSequenceEditor> SequenceEditor(new FActActionSequenceEditor());
-			SequenceEditor->InitActActionSequenceEditor(Mode, EditWithinLevelEditor, ActActionSequence);
+			/**
+			 * TODO:这里是否允许多开？目前不允许
+			 */
+			TSharedRef<FActActionSequenceEditor> SequenceEditor(new FActActionSequenceEditor(ActActionSequence));
+			SequenceEditor->InitActActionSequenceEditor(EditWithinLevelEditor);
+			return;
 		}
 	}
 }
 
 uint32 FAssetTypeActions_ActActionSequence::GetCategories()
 {
+	/**
+	 * 资源分类，隶属于哪个资源类型
+	 */
 	return EAssetTypeCategories::Gameplay;
 }
 
 bool FAssetTypeActions_ActActionSequence::HasActions(const TArray<UObject*>& InObjects) const
 {
+	/**
+	 * 是否在AssetActions中有自定义的Action
+	 */
 	return false;
 }
 

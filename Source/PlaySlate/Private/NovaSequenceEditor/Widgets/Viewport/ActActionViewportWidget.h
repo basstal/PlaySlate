@@ -4,7 +4,7 @@
 
 class FActActionSequenceEditor;
 class FActActionViewportClient;
-class FActActionPreviewScene;
+class FActActionPreviewSceneController;
 
 class SActActionViewportWidget : public SEditorViewport, public FEditorUndoClient
 {
@@ -15,16 +15,12 @@ public:
 
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceEditor>& InSequenceEditor, const TSharedRef<FActActionPreviewScene>& InPreviewScene);
+	void Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor);
 	virtual ~SActActionViewportWidget() override;
 	//~Begin SWidget interface
 	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 	//~End SWidget interface
-public:
-	TSharedPtr<FActActionPreviewScene> GetPreviewScenePtr() const
-	{
-		return PreviewScenePtr;
-	}
+	TSharedPtr<FActActionPreviewSceneController> GetPreviewScenePtr() const;
 
 protected:
 	//~Begin SEditorViewport interface
@@ -32,13 +28,16 @@ protected:
 	//~End SEditorViewport interface
 
 	// The preview scene that we are viewing
-	TSharedPtr<FActActionPreviewScene> PreviewScenePtr;
+	TWeakPtr<FActActionSequenceEditor> ActActionSequenceEditor;
 	
-	TSharedPtr<FActActionViewportClient> ViewportClient;
+	// TSharedPtr<FActActionViewportClient> ActActionViewportClient;
 	/** Box that contains notifications */
 	TSharedPtr<SVerticalBox> ViewportNotificationsContainer;
-	/**
-	 * 入口Editor
-	 */
-	TWeakPtr<FActActionSequenceEditor> SequenceEditor;
+	// /**
+	//  * 入口Editor
+	//  */
+	// TWeakPtr<FActActionSequenceEditor> SequenceEditor;
+	
 };
+
+

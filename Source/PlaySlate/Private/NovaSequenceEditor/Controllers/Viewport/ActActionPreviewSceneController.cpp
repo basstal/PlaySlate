@@ -1,23 +1,28 @@
-﻿#include "ActActionPreviewScene.h"
+﻿#include "ActActionPreviewSceneController.h"
 
+#include "ActActionViewportClient.h"
 #include "PlaySlate.h"
+#include "NovaSequenceEditor/Widgets/Viewport/ActActionViewportWidget.h"
 
 #include "Animation/DebugSkelMeshComponent.h"
+#include "NovaSequenceEditor/ActActionSequenceEditor.h"
 
-FActActionPreviewScene::FActActionPreviewScene(const ConstructionValues& CVS)
+FActActionPreviewSceneController::FActActionPreviewSceneController(const ConstructionValues& CVS, const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor)
 	: FAdvancedPreviewScene(CVS),
 	  ActActionActor(nullptr),
 	  ActActionSkeletalMesh(nullptr),
-	  LastCachedLODForPreviewComponent(0)
+	  LastCachedLODForPreviewComponent(0),
+	  ActActionSequenceEditor(InActActionSequenceEditor)
 {
 }
 
-FActActionPreviewScene::~FActActionPreviewScene()
+FActActionPreviewSceneController::~FActActionPreviewSceneController()
 {
-	
+	UE_LOG(LogActAction, Log, TEXT("FActActionPreviewSceneController::~FActActionPreviewSceneController"));
+	ActActionViewportWidget.Reset();
 }
 
-void FActActionPreviewScene::InitPreviewScene(AActor* InActor)
+void FActActionPreviewSceneController::InitPreviewScene(AActor* InActor)
 {
 	// setup default scene
 	if (InActor)
@@ -46,18 +51,19 @@ void FActActionPreviewScene::InitPreviewScene(AActor* InActor)
 	ActActionActor->SetRootComponent(SkeletalMeshComponent);
 }
 
-void FActActionPreviewScene::SetPreviewMeshComponent(UDebugSkelMeshComponent* InSkeletalMeshComponent)
+
+void FActActionPreviewSceneController::SetPreviewMeshComponent(UDebugSkelMeshComponent* InSkeletalMeshComponent)
 {
 	ActActionSkeletalMesh = InSkeletalMeshComponent;
 
 	if (ActActionSkeletalMesh)
 	{
-		ActActionSkeletalMesh->SelectionOverrideDelegate = UPrimitiveComponent::FSelectionOverride::CreateRaw(this, &FActActionPreviewScene::PreviewComponentSelectionOverride);
+		ActActionSkeletalMesh->SelectionOverrideDelegate = UPrimitiveComponent::FSelectionOverride::CreateRaw(this, &FActActionPreviewSceneController::PreviewComponentSelectionOverride);
 		ActActionSkeletalMesh->PushSelectionToProxy();
 	}
 }
 
-void FActActionPreviewScene::AddComponent(UActorComponent* Component, const FTransform& LocalToWorld, bool bAttachToRoot)
+void FActActionPreviewSceneController::AddComponent(UActorComponent* Component, const FTransform& LocalToWorld, bool bAttachToRoot)
 {
 	if (bAttachToRoot)
 	{
@@ -71,7 +77,7 @@ void FActActionPreviewScene::AddComponent(UActorComponent* Component, const FTra
 	FAdvancedPreviewScene::AddComponent(Component, LocalToWorld, bAttachToRoot);
 }
 
-void FActActionPreviewScene::Tick(float DeltaTime)
+void FActActionPreviewSceneController::Tick(float DeltaTime)
 {
 	// OnPreTickDelegate.Broadcast();
 
@@ -93,7 +99,20 @@ void FActActionPreviewScene::Tick(float DeltaTime)
 	// OnPostTickDelegate.Broadcast();
 }
 
-bool FActActionPreviewScene::PreviewComponentSelectionOverride(const UPrimitiveComponent* InComponent) const
+TSharedPtr<FActActionViewportClient> FActActionPreviewSceneController::MakeViewportClient(const TSharedRef<SActActionViewportWidget>& InViewportWidget)
+{
+	return MakeShareable(new FActActionViewportClient(
+		this->AsShared(),
+		InViewportWidget,
+		ActActionSequenceEditor.Pin().ToSharedRef()));
+}
+
+void FActActionPreviewSceneController::MakeViewportWidget()
+{
+	SAssignNew(ActActionViewportWidget, SActActionViewportWidget, ActActionSequenceEditor.Pin().ToSharedRef());
+}
+
+bool FActActionPreviewSceneController::PreviewComponentSelectionOverride(const UPrimitiveComponent* InComponent) const
 {
 	if (InComponent == GetActActionSkeletalMesh())
 	{

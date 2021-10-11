@@ -3,11 +3,15 @@
 
 #include "AdvancedPreviewScene.h"
 
-class FActActionPreviewScene : public FAdvancedPreviewScene
+class FActActionViewportClient;
+class SActActionViewportWidget;
+class FActActionSequenceEditor;
+
+class FActActionPreviewSceneController : public TSharedFromThis<FActActionPreviewSceneController>, public FAdvancedPreviewScene
 {
 public:
-	FActActionPreviewScene(const ConstructionValues& CVS);
-	virtual ~FActActionPreviewScene() override;
+	FActActionPreviewSceneController(const ConstructionValues& CVS, const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor);
+	virtual ~FActActionPreviewSceneController() override;
 	/**
 	 * 构造角色和相关组件
 	 */
@@ -25,6 +29,10 @@ public:
 	//~Begin FTickableObjectBase interface
 	virtual void Tick(float DeltaTime) override;
 	//~End FTickableObjectBase interface
+
+	TSharedPtr<FActActionViewportClient> MakeViewportClient(const TSharedRef<SActActionViewportWidget>& InViewportWidget);
+
+	void MakeViewportWidget();
 protected:
 	/** The one and only actor we have */
 	AActor* ActActionActor;
@@ -40,7 +48,17 @@ protected:
 
 	/** LOD changed delegate */
 	FSimpleMulticastDelegate OnLODChanged;
+	TSharedPtr<SActActionViewportWidget> ActActionViewportWidget;
+	// TSharedPtr<FActActionViewportClient> ViewportClient;
+	/**
+	* 对Editor的引用，调用编辑器资源和相关工具方法
+	*/
+	TWeakPtr<FActActionSequenceEditor> ActActionSequenceEditor;
 public:
+	TSharedPtr<SActActionViewportWidget> GetActActionViewportWidget() const
+	{
+		return ActActionViewportWidget;
+	}
 	UDebugSkelMeshComponent* GetActActionSkeletalMesh() const
 	{
 		return ActActionSkeletalMesh;

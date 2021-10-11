@@ -1,22 +1,25 @@
 ﻿#include "ActActionViewportClient.h"
 
+#include "PlaySlate.h"
 #include "NovaSequenceEditor/Widgets/Viewport/ActActionViewportWidget.h"
-#include "ActActionPreviewScene.h"
+#include "ActActionPreviewSceneController.h"
 
 #include "AssetEditorModeManager.h"
 #include "EditorModeManager.h"
 #include "UnrealWidget.h"
+#include "NovaSequenceEditor/ActActionSequenceEditor.h"
 
-FActActionViewportClient::FActActionViewportClient(const TSharedRef<FActActionPreviewScene>& InPreviewScene, const TSharedRef<SActActionViewportWidget>& InViewport, const TSharedRef<FAssetEditorToolkit>& InAssetEditorToolkit)
-	: FEditorViewportClient(&InAssetEditorToolkit->GetEditorModeManager(), &InPreviewScene.Get(), StaticCastSharedRef<SEditorViewport>(InViewport)),
-	  PreviewScenePtr(InPreviewScene),
-	  AssetEditorToolkitPtr(&InAssetEditorToolkit.Get())
+FActActionViewportClient::FActActionViewportClient(const TSharedRef<FActActionPreviewSceneController>& InPreviewScene, const TSharedRef<SActActionViewportWidget>& InViewport, const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor)
+	: FEditorViewportClient(&InActActionSequenceEditor->GetEditorModeManager(), StaticCast<FPreviewScene*>(&InPreviewScene.Get()), StaticCastSharedRef<SEditorViewport>(InViewport)),
+	  PreviewScenePtr(InPreviewScene)
+	  // AssetEditorToolkitPtr(InActActionSequenceEditor),
+	  // ViewportWidget(InPreviewScene->GetActActionViewportWidget())
 {
 	Widget->SetUsesEditorModeTools(ModeTools.Get());
 	FAssetEditorModeManager* ModeManager = (FAssetEditorModeManager*)ModeTools.Get();
 	if (ModeManager)
 	{
-		ModeManager->SetPreviewScene(&InPreviewScene.Get());
+		ModeManager->SetPreviewScene(StaticCast<FPreviewScene*>(&InPreviewScene.Get()));
 	}
 	// ModeTools->SetDefaultMode(ActActionSequence::ActActionViewportEditMode);
 	// Default to local space
@@ -37,6 +40,8 @@ FActActionViewportClient::FActActionViewportClient(const TSharedRef<FActActionPr
 
 FActActionViewportClient::~FActActionViewportClient()
 {
-	PreviewScenePtr.Reset();
+	UE_LOG(LogActAction, Log, TEXT("FActActionViewportClient::~FActActionViewportClient"));
+	// ViewportWidget.Reset();
+	// PreviewScenePtr.Reset();
 	// FEditorViewportClient::~FEditorViewportClient();
 }

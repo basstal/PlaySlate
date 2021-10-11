@@ -4,92 +4,84 @@
 #include "NovaSequenceEditor/Assets/ActActionSequence.h"
 #include "NovaSequenceEditor/Controllers/ActActionSequenceController.h"
 #include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceNodeTree.h"
-#include "NovaSequenceEditor/Controllers/Viewport/ActActionPreviewScene.h"
+#include "NovaSequenceEditor/Controllers/Viewport/ActActionPreviewSceneController.h"
 #include "NovaSequenceEditor/Widgets/Viewport/ActActionViewportWidget.h"
+// ReSharper disable once CppUnusedIncludeDirective
 #include "NovaSequenceEditor/Widgets/ActActionSequenceWidget.h"
 
 #define LOCTEXT_NAMESPACE "ActActionToolkit"
 
-FActActionSequenceEditor::~FActActionSequenceEditor()
+FActActionSequenceEditor::FActActionSequenceEditor(UActActionSequence* InActActionSequence)
+	: ActActionSequence(InActActionSequence)
 {
-	// ** Reset all widgets
-	SequenceMain.Reset();
-	Viewport.Reset();
-	ActActionSequenceController.Reset();
-
-	// FAssetEditorToolkit::~FAssetEditorToolkit();
-	// FTickableEditorObject::~FTickableEditorObject();
-	// FEditorUndoClient::~FEditorUndoClient();
-	// FGCObject::~FGCObject();
+	check(InActActionSequence);
 }
 
-void FActActionSequenceEditor::InitActActionSequenceEditor(const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost, UActActionSequence* InActActionSequence)
+FActActionSequenceEditor::~FActActionSequenceEditor()
 {
-	// ** Editor内的每个窗口由一个个tab组成，这里载入这些tab和对应的layout信息，注意：AddTab必须是已经注册过的TabId，注册的过程
-	// ** 这个默认的Layout只在恢复默认Layout时有效，其他时候都是读取Layout的ini缓存信息
-	const TSharedRef<FTabManager::FLayout> StandaloneDefaultLayout = FTabManager::NewLayout("Standalone_ActActionSequenceEditor")
-		->AddArea(
-			FTabManager::NewPrimaryArea()
-			->SetOrientation(Orient_Vertical)
-			->Split(
-				FTabManager::NewStack()
-				->SetHideTabWell(true)
-				->AddTab(ActActionSequence::ActActionViewportTabId, ETabState::OpenedTab))
-			->Split(
-				FTabManager::NewStack()
-				->SetHideTabWell(true)
-				->AddTab(ActActionSequence::ActActionSequenceTabId, ETabState::OpenedTab))
-		);
+	UE_LOG(LogActAction, Log, TEXT("FActActionSequenceEditor::~FActActionSequenceEditor"));
+	ActActionPreviewSceneController.Reset();
+	ActActionSequenceController.Reset();
+}
 
-	// ViewportTabContent = MakeShareable(new FEditorViewportTabContent());
+void FActActionSequenceEditor::InitActActionSequenceEditor(const TSharedPtr<IToolkitHost>& InitToolkitHost)
+{
+	/**
+	 * Editor（大页签）内的每个窗口由一个个Tab组成，这里载入这些Tab和对应的Layout信息，
+	 * 注意：AddTab必须是已经注册过的TabId，注册的过程是通过重载RegisterTabSpawners
+	 * 这个默认的Layout只在恢复默认Layout时有效，其他时候都是读取Layout在ini中的缓存信息，即加载之前保存的Layout
+	 */
+	const TSharedRef<FTabManager::FLayout> StandaloneDefaultLayout = FTabManager::NewLayout("Standalone_ActActionSequenceEditor");
+	StandaloneDefaultLayout->AddArea(
+		FTabManager::NewPrimaryArea()
+		->SetOrientation(Orient_Vertical)
+		->Split(
+			FTabManager::NewStack()
+			->AddTab(ActActionSequence::ActActionViewportTabId, ETabState::OpenedTab)
+			->SetHideTabWell(true))
+		->Split(
+			FTabManager::NewStack()
+			->AddTab(ActActionSequence::ActActionSequenceTabId, ETabState::OpenedTab)
+			->SetHideTabWell(true))
+	);
+	// Initialize the asset editor
+	InitAssetEditor(EToolkitMode::Standalone, InitToolkitHost, FName("ActAction_AppIdentifier"), StandaloneDefaultLayout, true, false, ActActionSequence);
 
-	ActActionSequencePtr = InActActionSequence;
-
-	ActActionSequenceController = MakeShareable(new FActActionSequenceController(ActActionSequencePtr));
+	// ** 通过对应Widget的Controller，填充Tab的实际内容Widget，并保留对Controller的引用
+	// ** SequenceController
+	ActActionSequenceController = MakeShareable(new FActActionSequenceController(SharedThis(this)));
+	// ** TODO:NodeTree必须先设置好才能MakeWidget，这里结构需要优化
 	TSharedPtr<FActActionSequenceNodeTree> ActActionSequenceNodeTree = MakeShareable(new FActActionSequenceNodeTree(ActActionSequenceController.ToSharedRef()));
 	ActActionSequenceController->SetNodeTree(ActActionSequenceNodeTree);
-
 	ActActionSequence::FActActionSequenceViewParams ViewParams = ActActionSequence::FActActionSequenceViewParams();
-	// Make internal widgets
-	SequenceMain = ActActionSequenceController->MakeSequenceWidget(ViewParams);
+	ActActionSequenceController->MakeSequenceWidget(ViewParams);
+	ActActionSequenceWidgetParent->SetContent(ActActionSequenceController->GetSequenceWidget().ToSharedRef());
+	
+	// ** PreviewScene(Viewport)Controller
+	FPreviewScene::ConstructionValues ConstructionValues = FPreviewScene::ConstructionValues()
+	                                                       .AllowAudioPlayback(true)
+	                                                       .ShouldSimulatePhysics(true);
+	ActActionPreviewSceneController = MakeShareable(new FActActionPreviewSceneController(ConstructionValues, SharedThis(this)));
+	ActActionPreviewSceneController->MakeViewportWidget();
+	ActActionViewportWidgetParent->SetContent(ActActionPreviewSceneController->GetActActionViewportWidget().ToSharedRef());
 
-	// Initialize the asset editor
-	const bool bCreateDefaultStandaloneMenu = true;
-	const bool bCreateDefaultToolbar = false;
-	InitAssetEditor(Mode, InitToolkitHost, FName("ActAction_AppIdentifier"), StandaloneDefaultLayout, bCreateDefaultStandaloneMenu, bCreateDefaultToolbar, ActActionSequencePtr);
+	// ** Init by resource
+	ActActionSequenceController->InitController(ActActionPreviewSceneController->GetActActionViewportWidget().ToSharedRef());
+	ActActionSequenceController->InitAnimBlueprint(ActActionSequence->EditAnimBlueprint);
+	ActActionSequenceController->AddAnimMontageTrack(ActActionSequence->EditAnimMontage);
 
-	TSharedPtr<FActActionPreviewScene> ActActionPreviewScene = MakeShareable(new FActActionPreviewScene(FPreviewScene::ConstructionValues().AllowAudioPlayback(true).ShouldSimulatePhysics(true)));
-	ActActionPreviewScene->InitPreviewScene(nullptr);
-	TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = StaticCastSharedRef<FActActionSequenceEditor>(AsShared());
-	Viewport = SNew(SActActionViewportWidget, ActActionSequenceEditorRef, ActActionPreviewScene.ToSharedRef());
-	FPlaySlateModule& PlaySlateModule = FModuleManager::Get().LoadModuleChecked<FPlaySlateModule>(TEXT("PlaySlate"));
-	ActActionSequenceController->InitController(Viewport.ToSharedRef(), PlaySlateModule.GetTrackEditorDelegates(), SequenceMain.ToSharedRef());
-
-	// ** 将Viewport填充到DockTab中
-	if (ViewportParentDockTab.IsValid())
-	{
-		ViewportParentDockTab.Get()->SetContent(Viewport.ToSharedRef());
-	}
-
-	ActActionSequenceController->InitAnimBlueprint(ActActionSequencePtr->EditAnimBlueprint);
-	ActActionSequenceController->AddAnimMontageTrack(ActActionSequencePtr->EditAnimMontage);
 	// When undo occurs, get a notification so we can make sure our view is up to date
 	GEditor->RegisterForUndo(this);
 }
 
 void FActActionSequenceEditor::AddReferencedObjects(FReferenceCollector& Collector)
 {
-	Collector.AddReferencedObject(ActActionSequencePtr);
+	Collector.AddReferencedObject(ActActionSequence);
 }
 
 FString FActActionSequenceEditor::GetReferencerName() const
 {
 	return "ActActionSequenceEditor";
-}
-
-FLinearColor FActActionSequenceEditor::GetWorldCentricTabColorScale() const
-{
-	return FLinearColor(0.7f, 0.0f, 0.0f, 0.5f);
 }
 
 FName FActActionSequenceEditor::GetToolkitFName() const
@@ -102,94 +94,53 @@ FText FActActionSequenceEditor::GetBaseToolkitName() const
 	return LOCTEXT("AppLabel", "ActAction Sequence Editor");
 }
 
-FString FActActionSequenceEditor::GetWorldCentricTabPrefix() const
-{
-	return LOCTEXT("WorldCentricTabPrefix", "Sequencer ").ToString();
-}
-
 void FActActionSequenceEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
 {
-	/**
-	* For World Centric Asset Editors this isn't called until way too late in the initialization flow
-	* (ie: when you actually start to edit an asset), so the tab will be unrecognized upon restore.
-	* Because of this, the Sequencer Tab Spawner is actually registered in SLevelEditor.cpp manually
-	* which is early enough that you can restore the tab after an editor restart.
-	*/
-	if (IsWorldCentricAssetEditor())
-	{
-		return;
-	}
 	FAssetEditorToolkit::RegisterTabSpawners(InTabManager);
 
-	WorkspaceMenuCategory = InTabManager->AddLocalWorkspaceMenuCategory(LOCTEXT("WorkspaceMenu_ActActionSequenceAssetEditor", "ActActionSequence"));
+	FTabSpawnerEntry& TabSpawnerEntryViewport = InTabManager->RegisterTabSpawner(
+		ActActionSequence::ActActionViewportTabId,
+		FOnSpawnTab::CreateLambda([this](const FSpawnTabArgs& Args)-> TSharedRef<SDockTab>
+		{
+			ActActionViewportWidgetParent = SNew(SDockTab)
+				.Label(LOCTEXT("ActActionSequenceMainTitle", "ActActionViewport"))
+				.TabColorScale(GetTabColorScale())
+				.TabRole(ETabRole::PanelTab)
+				.Icon(FEditorStyle::GetBrush("LevelEditor.Tabs.Viewports"));
+			return ActActionViewportWidgetParent.ToSharedRef();
+		}));
+	TabSpawnerEntryViewport.SetDisplayName(LOCTEXT("SequencerMainTab", "Viewport"));
 
-	InTabManager->RegisterTabSpawner(
-		            ActActionSequence::ActActionSequenceTabId,
-		            FOnSpawnTab::CreateSP(this, &FActActionSequenceEditor::HandleTabManagerSpawnSequence))
-	            .SetDisplayName(LOCTEXT("SequencerMainTab", "Sequence"))
-	            .SetGroup(WorkspaceMenuCategory.ToSharedRef());
-	// .SetIcon(FSlateIcon(Style->GetStyleSetName(), "LevelSequenceEditor.Tabs.Sequencer"));
-
-	InTabManager->RegisterTabSpawner(
-		            ActActionSequence::ActActionViewportTabId,
-		            FOnSpawnTab::CreateSP(this, &FActActionSequenceEditor::HandleTabManagerSpawnViewport))
-	            .SetDisplayName(LOCTEXT("SequencerMainTab", "Viewport"))
-	            .SetGroup(WorkspaceMenuCategory.ToSharedRef());
+	FTabSpawnerEntry& TabSpawnerEntrySequence = InTabManager->RegisterTabSpawner(
+		ActActionSequence::ActActionSequenceTabId,
+		FOnSpawnTab::CreateLambda([this](const FSpawnTabArgs& Args)-> TSharedRef<SDockTab>
+		{
+			ActActionSequenceWidgetParent = SNew(SDockTab)
+				.Label(LOCTEXT("ActActionSequenceMainTitle", "ActActionSequence"))
+				.TabColorScale(GetTabColorScale())
+				.TabRole(ETabRole::PanelTab)
+				.Icon(FEditorStyle::GetBrush("LevelEditor.Tabs.Viewports"));
+			return ActActionSequenceWidgetParent.ToSharedRef();
+		}));
+	TabSpawnerEntrySequence.SetDisplayName(LOCTEXT("SequencerMainTab", "Sequence"));
 }
 
 void FActActionSequenceEditor::UnregisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
 {
-	if (!IsWorldCentricAssetEditor())
-	{
-		InTabManager->UnregisterTabSpawner(ActActionSequence::ActActionSequenceTabId);
-		InTabManager->UnregisterTabSpawner(ActActionSequence::ActActionViewportTabId);
-	}
+	InTabManager->UnregisterTabSpawner(ActActionSequence::ActActionSequenceTabId);
+	InTabManager->UnregisterTabSpawner(ActActionSequence::ActActionViewportTabId);
 
-	// ** TODO: remove when world-centric mode is added
-	// FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
-	// LevelEditorModule.AttachSequencer(SNullWidget::NullWidget, nullptr);
 	FAssetEditorToolkit::UnregisterTabSpawners(InTabManager);
 }
 
-// void FActActionSequenceEditor::CreateEditorModeManager()
-// {
-// 	FWorkflowCentricApplication::CreateEditorModeManager();
-// }
-
-TSharedRef<SDockTab> FActActionSequenceEditor::HandleTabManagerSpawnViewport(const FSpawnTabArgs& Args)
+FLinearColor FActActionSequenceEditor::GetWorldCentricTabColorScale() const
 {
-	// ** 先创建一个空的，后面再来填充内容
-	ViewportParentDockTab = SNew(SDockTab)
-		.Label(LOCTEXT("ActActionSequenceMainTitle", "ActActionViewport"))
-		.TabColorScale(GetTabColorScale())
-		.TabRole(ETabRole::PanelTab)
-		.Icon(FEditorStyle::GetBrush("LevelEditor.Tabs.Viewports"));
-	return ViewportParentDockTab.ToSharedRef();
+	return FLinearColor(0.7f, 0.0f, 0.0f, 0.5f);
 }
 
-TSharedRef<SDockTab> FActActionSequenceEditor::HandleTabManagerSpawnSequence(const FSpawnTabArgs& Args)
+FString FActActionSequenceEditor::GetWorldCentricTabPrefix() const
 {
-	TSharedPtr<SWidget> TabWidget = SNullWidget::NullWidget;
-
-	if (SequenceMain)
-	{
-		if (Args.GetTabId() == ActActionSequence::ActActionSequenceTabId)
-		{
-			TabWidget = StaticCastSharedPtr<SActActionSequenceWidget>(SequenceMain);
-		}
-	}
-	else
-	{
-		UE_LOG(LogActAction, Error, TEXT("SequenceMain is nullptr when HandleTabManagerSpawnSequence."));
-	}
-
-	return SNew(SDockTab)
-		.Label(LOCTEXT("ActActionSequenceMainTitle", "ActActionSequence"))
-		.TabColorScale(GetTabColorScale())
-		.TabRole(ETabRole::PanelTab)
-	[
-		TabWidget.ToSharedRef()
-	];
+	return LOCTEXT("WorldCentricTabPrefix", "Sequencer ").ToString();
 }
 
 #undef LOCTEXT_NAMESPACE
