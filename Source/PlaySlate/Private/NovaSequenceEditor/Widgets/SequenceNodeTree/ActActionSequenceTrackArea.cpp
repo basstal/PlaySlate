@@ -34,12 +34,12 @@ FChildren* SActActionSequenceTrackArea::GetChildren()
 	return &Children;
 }
 
-TSharedPtr<SActActionSequenceTrackLane> SActActionSequenceTrackArea::FindTrackSlot(const TSharedRef<FActActionSequenceDisplayNode>& InNode)
+TSharedPtr<SActActionSequenceTrackLane> SActActionSequenceTrackArea::FindTrackSlot(const TSharedRef<FActActionSequenceTreeViewNode>& InNode)
 {
 	return TrackSlots.FindRef(InNode).Pin();
 }
 
-void SActActionSequenceTrackArea::AddTrackSlot(const TSharedRef<FActActionSequenceDisplayNode>& InNode, const TSharedRef<SActActionSequenceTrackLane>& InSlot)
+void SActActionSequenceTrackArea::AddTrackSlot(const TSharedRef<FActActionSequenceTreeViewNode>& InNode, const TSharedRef<SActActionSequenceTrackLane>& InSlot)
 {
 	TrackSlots.Add(InNode, InSlot);
 	Children.Add(new FActActionTrackAreaSlot(InSlot));

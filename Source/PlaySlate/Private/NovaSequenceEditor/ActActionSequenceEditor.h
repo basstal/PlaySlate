@@ -1,8 +1,8 @@
 ﻿#pragma once
 
 #include "IAnimationEditor.h"
-#include "Controllers/Viewport/ActActionPreviewSceneController.h"
 
+class FActActionPreviewSceneController;
 class UActActionSequence;
 class FActActionViewportClient;
 class FActActionSequenceController;
@@ -38,27 +38,59 @@ public:
 	virtual FString GetWorldCentricTabPrefix() const override;
 	//~End FAssetEditorToolkit interfaced
 
+	/**
+	 * 根据AnimBlueprint初始化Viewport显示内容
+	 *
+	 * @param AnimBlueprint 被初始化的AnimBlueprint资源
+	 */
+	void InitAnimBlueprint(UAnimBlueprint* AnimBlueprint);
+	/**
+	 * @return 
+	 */
+	TRange<FFrameNumber> GetPlaybackRange() const;
+	/**
+	 * TODO:
+	 *
+	 * @param  InRange
+	 */
+	void SetPlaybackRange(TRange<FFrameNumber> InRange);
+	/**
+	 * @return 获得当前资源使用的Tick帧率
+	 */
+	FFrameRate GetTickResolution() const;
+	/**
+	 * @return 获得当前资源使用的显示帧率
+	 */
+	FFrameRate GetDisplayRate() const;
+	/**
+	 * @return TODO:
+	 */
+	TRange<FFrameNumber> GetSelectionRange() const;
 protected:
 	/**
 	 * 当前编辑的资源实例
 	 */
 	UActActionSequence* ActActionSequence;
 	/**
-	 * Viewport Controller
+	 * Viewport Controller，Editor没有销毁的情况下不会为空
 	 */
 	TSharedPtr<FActActionPreviewSceneController> ActActionPreviewSceneController;
 
 	/**
-	 * Sequence Controller
+	 * Sequence Controller，Editor没有销毁的情况下不会为空
 	 */
 	TSharedPtr<FActActionSequenceController> ActActionSequenceController;
-
+	
 	TSharedPtr<SDockTab> ActActionSequenceWidgetParent;
 	TSharedPtr<SDockTab> ActActionViewportWidgetParent;
 public:
-	TSharedPtr<FActActionPreviewSceneController> GetActActionPreviewSceneController() const
+	TSharedRef<FActActionSequenceController> GetActActionSequenceController() const
 	{
-		return ActActionPreviewSceneController;
+		return ActActionSequenceController.ToSharedRef();
+	}
+	TSharedRef<FActActionPreviewSceneController> GetActActionPreviewSceneController() const
+	{
+		return ActActionPreviewSceneController.ToSharedRef();
 	}
 	UActActionSequence* GetActActionSequence() const
 	{

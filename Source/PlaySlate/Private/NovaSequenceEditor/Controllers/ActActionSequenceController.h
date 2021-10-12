@@ -10,9 +10,8 @@ class FActActionTimeSliderController;
 class SActActionSequenceWidget;
 class ASkeletalMeshActor;
 class UActActionSequence;
-class FActActionSequenceDisplayNode;
+class FActActionSequenceTreeViewNode;
 class SActActionViewportWidget;
-class FActActionSequenceNodeTree;
 /**
  * 整个Sequence的主要控制器
  * 对应的View模块为SActActionSequenceMain
@@ -28,45 +27,26 @@ public:
 	virtual TStatId GetStatId() const override;
 	//~End FTickableEditorObject interface
 
-	void UpdateAnimInstance(float DeltaTime);
-	void InitController(const TSharedRef<SWidget>& ViewWidget);
-
-
-	void UpdateTimeBases();
-	AActor* SpawnActorInViewport(UClass* ActorType);
 	/**
-	 * ** FIX:Builds up the object bindings in sequencer's "Add Track" menu.
-	 * 
-	 * @param MenuBuilder 被添加内容的菜单
+	 * 调用已注册的TrackEditor的Create代理，并收集创建的TrackEditor实例
 	 */
-	void BuildAddObjectBindingsMenu(FMenuBuilder& MenuBuilder);
+	void ExecuteTrackEditorCreateDelegate();
 	/**
-	 * ** FIX:Builds up the sequencer's "Add Track" menu.
+	 * TODO:
+	 */
+	void UpdateTimeBases();
+	/**
+	 * 构建AddTrack菜单的内容
 	 *
-	 * @param MenuBuilder 被添加内容的菜单
+	 * @param MenuBuilder 被修改的菜单构建者
 	 */
 	void BuildAddTrackMenu(FMenuBuilder& MenuBuilder);
-
-	/** @return The current view range */
-	ActActionSequence::FActActionAnimatedRange GetViewRange() const;
-
-	bool IsReadOnly() const;
 	/**
-	* Get the tick resolution of the currently focused sequence
-	*/
-	FFrameRate GetFocusedTickResolution() const;
-	FFrameRate GetFocusedDisplayRate() const;
-	/** Handles adding a new folder to the outliner tree. */
-	void OnAddFolder();
-
-	void RequestListRefresh();
-
-	void AddRootNodes(TSharedPtr<FActActionSequenceDisplayNode> SequenceDisplayNode);
-	ActActionSequence::FActActionAnimatedRange GetClampRange() const;
-	TRange<FFrameNumber> GetPlaybackRange() const;
-	ActActionSequence::EPlaybackType GetPlaybackStatus() const;
-	TRange<FFrameNumber> GetSelectionRange() const;
-
+	 * @return 当前时间轴的显示范围
+	 */
+	ActActionSequence::FActActionAnimatedRange GetViewRange() const;
+	
+	
 	void AddAnimMontageTrack(UAnimMontage* AnimMontage);
 	void SetPlaybackStatus(ActActionSequence::EPlaybackType InPlaybackStatus);
 	void EvaluateInternal(ActActionSequence::FActActionEvaluationRange InRange, bool bHasJumped = false);
@@ -78,8 +58,7 @@ public:
 	TSet<FFrameNumber> GetVerticalFrames() const;
 	void SetMarkedFrame(int32 InMarkIndex, FFrameNumber InFrameNumber);
 	void AddMarkedFrame(FFrameNumber FrameNumber);
-	void SetPlaybackRange(TRange<FFrameNumber> Range);
-	void InitAnimBlueprint(UAnimBlueprint* AnimBlueprint);
+	
 	/** Get the unqualified local time */
 	FFrameTime GetLocalFrameTime() const;
 	FQualifiedFrameTime GetLocalTime() const;
@@ -91,16 +70,22 @@ public:
 	void SetLocalTimeDirectly(FFrameTime NewTime);
 	void OnScrubPositionChanged(FFrameTime NewScrubPosition, bool bScrubbing);
 	UActActionSequence* GetActActionSequence() const;
+	TSharedRef<FActActionSequenceEditor> GetActActionSequenceEditor() const;
 protected:
 	/**
 	 * 对Editor的弱引用，调用编辑器资源和相关工具方法
 	 */
 	TWeakPtr<FActActionSequenceEditor> ActActionSequenceEditor;
-
+	/**
+	 * 所有已注册的CreateTrackEditor代理方法，在FActActionTrackEditorBase的子类中实现
+	 */
+	TArray<ActActionSequence::OnCreateTrackEditorDelegate> TrackEditorDelegates;
 	/** List of tools we own */
 	TArray<TSharedPtr<FActActionTrackEditorBase>> TrackEditors;
 	// UActActionSequence* ActActionSequencePtr;
-	/** The time range target to be viewed */
+	/**
+	 * 当前Sequence时间轴的显示的范围，这里的单位是秒
+	 */
 	TRange<double> TargetViewRange;
 
 	/** The last time range that was viewed */
@@ -108,7 +93,13 @@ protected:
 	/** Zoom smoothing curves */
 	FCurveSequence ZoomAnimation;
 	// FCurveHandle ZoomCurve;
+	/**
+	 * 当前的播放状态
+	 */
 	ActActionSequence::EPlaybackType PlaybackState;
+	/**
+	 * 当前的播放位置相关的数据结构
+	 */
 	ActActionSequence::FActActionPlaybackPosition PlayPosition;
 	/** If set, pause playback on this frame */
 	TOptional<FFrameTime> PauseOnFrame;
@@ -128,36 +119,30 @@ protected:
 
 	/** Time slider controller for this sequencer */
 	TSharedPtr<FActActionTimeSliderController> TimeSliderController;
-	double PreviewScrubTime;
-
-	TSharedPtr<SActActionViewportWidget> ActActionViewportWidget;
-
-	ASkeletalMeshActor* PreviewActor;
-
+	
 	/**
-	 * 左侧Track的所有可见节点都储存在NodeTree中
+	 * 所有可见节点DisplayedRootNodes的父节点，
+	 * Sequence中所有可见根节点都储存在NodeTree中作为子节点
 	 */
-	TSharedPtr<FActActionSequenceNodeTree> NodeTree;
+	TSharedPtr<FActActionSequenceTreeViewNode> TreeViewRoot;
 	/**
 	 * UMG Sequence main
 	 */
 	TSharedPtr<SActActionSequenceWidget> SequenceWidget;
+
 public:
-	TSharedPtr<SActActionSequenceWidget> GetSequenceWidget() const
+	ActActionSequence::EPlaybackType GetPlaybackStatus() const
 	{
-		return SequenceWidget;
+		return PlaybackState;
+	}
+	
+	TSharedRef<SActActionSequenceWidget> GetSequenceWidget() const
+	{
+		return SequenceWidget.ToSharedRef();
 	}
 
-	
-	
-
-	void SetNodeTree(const TSharedPtr<FActActionSequenceNodeTree>& InNodeTree)
+	TSharedRef<FActActionSequenceTreeViewNode> GetTreeViewRoot() const
 	{
-		this->NodeTree = InNodeTree;
-	}
-
-	TSharedRef<FActActionSequenceNodeTree> GetNodeTree() const
-	{
-		return NodeTree.ToSharedRef();
+		return TreeViewRoot.ToSharedRef();
 	}
 };

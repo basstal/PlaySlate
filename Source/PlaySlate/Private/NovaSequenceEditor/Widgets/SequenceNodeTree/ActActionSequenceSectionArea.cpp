@@ -1,11 +1,13 @@
 ﻿#include "ActActionSequenceSectionArea.h"
 
-#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceDisplayNode.h"
+#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
 #include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceSectionBase.h"
 #include "Subs/ActActionSequenceSection.h"
+
+
 #include "PlaySlate.h"
 
-void SActActionSequenceSectionArea::Construct(const FArguments& InArgs, TSharedRef<FActActionSequenceDisplayNode> InNode)
+void SActActionSequenceSectionArea::Construct(const FArguments& InArgs, TSharedRef<FActActionSequenceTreeViewNode> InNode)
 {
 	ViewRange = InArgs._ViewRange;
 

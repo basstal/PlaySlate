@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 class SActActionSequenceTreeViewRow;
-class FActActionSequenceDisplayNode;
+class FActActionSequenceTreeViewNode;
 
 class SActActionOutlinerTreeNode : public SCompoundWidget
 {
@@ -18,12 +18,12 @@ public:
 
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceDisplayNode>& Node, const TSharedRef<SActActionSequenceTreeViewRow>& InTableRow);
+	void Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceTreeViewNode>& Node, const TSharedRef<SActActionSequenceTreeViewRow>& InTableRow);
 
 	/**
 	* @return The parent of this node. Will return null if this node is part of the FSequencerNodeTree::GetRootNodes array.
 	*/
-	TSharedPtr<FActActionSequenceDisplayNode> GetParent() const;
+	TSharedPtr<FActActionSequenceTreeViewNode> GetParent() const;
 
 
 	/** Callback for checking whether the node label can be edited. */
@@ -36,9 +36,9 @@ protected:
 	/** Holds the editable text label widget. */
 	TSharedPtr<SInlineEditableTextBlock> EditableLabel;
 
-	TSharedPtr<FActActionSequenceDisplayNode> DisplayNode;
+	TSharedPtr<FActActionSequenceTreeViewNode> DisplayNode;
 	/** The parent of this node*/
-	TWeakPtr<FActActionSequenceDisplayNode> ParentNode;
+	TWeakPtr<FActActionSequenceTreeViewNode> ParentNode;
 	/** True if this node is a top level node, at the root of the tree, false otherwise */
 	bool bIsOuterTopLevelNode;
 

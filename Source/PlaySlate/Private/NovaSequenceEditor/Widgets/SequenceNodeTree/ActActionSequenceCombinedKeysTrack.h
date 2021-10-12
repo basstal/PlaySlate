@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-class FActActionSequenceDisplayNode;
+class FActActionSequenceTreeViewNode;
 
 class SActActionSequenceCombinedKeysTrack : public SLeafWidget
 {
@@ -15,14 +15,14 @@ public:
 		SLATE_ATTRIBUTE(FFrameRate, TickResolution)
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, TSharedRef<FActActionSequenceDisplayNode> InRootNode);
+	void Construct(const FArguments& InArgs, TSharedRef<FActActionSequenceTreeViewNode> InRootNode);
 protected:
 	//~Begin SWidget interface
 	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 	virtual FVector2D ComputeDesiredSize(float) const override;
 	//~End SWidget interface
 protected:
-	TSharedPtr<FActActionSequenceDisplayNode> RootNode;
+	TSharedPtr<FActActionSequenceTreeViewNode> RootNode;
 	TAttribute<TRange<double>> ViewRange;
 	TAttribute<FFrameRate> TickResolution;
 	/** Cached pixel positions for all keys in the current view range */

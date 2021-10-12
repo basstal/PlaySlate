@@ -2,26 +2,22 @@
 
 #include "PlaySlate.h"
 #include "NovaSequenceEditor/ActActionSequenceEditor.h"
-#include "NovaSequenceEditor/Assets/Tracks/ActActionTrackEditorBase.h"
 #include "NovaSequenceEditor/Assets/ActActionSequence.h"
+#include "NovaSequenceEditor/Assets/Tracks/ActActionTrackEditorBase.h"
+#include "NovaSequenceEditor/Assets/Tracks/ActActionAnimInstanceTrack.h"
+#include "NovaSequenceEditor/Assets/Tracks/ActActionAnimMontageTrack.h"
 #include "NovaSequenceEditor/Controllers/TimeSlider/ActActionTimeSliderController.h"
 #include "NovaSequenceEditor/Controllers/Viewport/ActActionPreviewSceneController.h"
-#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceDisplayNode.h"
+#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
 #include "NovaSequenceEditor/Widgets/ActActionSequenceWidget.h"
-#include "NovaSequenceEditor/Widgets/Viewport/ActActionViewportWidget.h"
 #include "NovaSequenceEditor/Widgets/SequenceNodeTree/ActActionSequenceTreeView.h"
-#include "NovaSequenceEditor/Widgets/Viewport/ActActionViewportWidget.h"
-#include "NovaSequenceEditor/Controllers/Viewport/ActActionPreviewSceneController.h"
 
-#include "Utils/ActActionStaticUtil.h"
 #include "Utils/ActActionPlaybackUtil.h"
 
 #include "IContentBrowserSingleton.h"
 #include "LevelEditorViewport.h"
-#include "Animation/AnimBlueprint.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/DebugSkelMeshComponent.h"
-#include "Animation/SkeletalMeshActor.h"
 #include "AnimPreviewInstance.h"
 
 #define LOCTEXT_NAMESPACE "ActAction"
@@ -30,78 +26,29 @@ FActActionSequenceController::FActActionSequenceController(const TSharedRef<FAct
 	: ActActionSequenceEditor(InActActionSequenceEditor),
 	  TargetViewRange(0.f, 5.f),
 	  LastViewRange(0.f, 5.f),
-	  PlaybackState(),
+	  PlaybackState(ActActionSequence::EPlaybackType::Stopped),
 	  bNeedsEvaluate(false),
 	  LocalLoopIndexOnBeginScrubbing(0),
-	  LocalLoopIndexOffsetDuringScrubbing(0),
-	  PreviewScrubTime(0),
-	  PreviewActor(nullptr),
-	  NodeTree(nullptr)
+	  LocalLoopIndexOffsetDuringScrubbing(0)
 {
+	PlayPosition.Reset(InActActionSequenceEditor->GetPlaybackRange().GetLowerBoundValue());
+	// ** 将Sequence能编辑的所有TrackEditor注册，以便能够使用AddTrackEditor以及AddTrackMenu
+	TrackEditorDelegates.Add(ActActionSequence::OnCreateTrackEditorDelegate::CreateStatic(&FActActionAnimInstanceTrack::CreateTrackEditor));
+	TrackEditorDelegates.Add(ActActionSequence::OnCreateTrackEditorDelegate::CreateStatic(&FActActionAnimMontageTrack::CreateTrackEditor));
 }
 
 FActActionSequenceController::~FActActionSequenceController()
 {
 	UE_LOG(LogActAction, Log, TEXT("FActActionSequenceController::~FActActionSequenceController"));
 	SequenceWidget.Reset();
-	ActActionViewportWidget.Reset();
 	TimeSliderController.Reset();
+	TreeViewRoot.Reset();
 }
 
 void FActActionSequenceController::Tick(float DeltaTime)
 {
 	// Ensure the time bases for our playback position are kept up to date with the root sequence
 	UpdateTimeBases();
-
-	UpdateAnimInstance(DeltaTime);
-
-	if (PreviewActor)
-	{
-		FActorTickFunction TickFunction;
-		// PreviewActor->TickActor(DeltaTime, ELevelTick::LEVELTICK_ViewportsOnly, TickFunction);
-	}
-}
-
-void FActActionSequenceController::UpdateAnimInstance(float DeltaTime)
-{
-	if (PreviewActor)
-	{
-		// UDebugSkelMeshComponent* MeshComponent = ActActionViewportWidget->GetPreviewScenePtr()->GetActActionSkeletalMesh();
-		// UAnimInstance* AnimInstance = MeshComponent->PreviewInstance;
-		// UAnimMontage* PlayingMontage = ActActionSequencePtr->EditAnimMontage;
-		// FAnimMontageInstance* MontageInstanceToUpdate = (AnimInstance && PlayingMontage) ? AnimInstance->GetActiveInstanceForMontage(PlayingMontage) : nullptr;
-		// // Now force the animation system to update, if we have a montage instance
-		// if (MontageInstanceToUpdate)
-		// {
-		// 	MontageInstanceToUpdate->Pause();
-		// 	AnimInstance->UpdateAnimation(DeltaTime, true, UAnimInstance::EUpdateAnimationFlag::ForceParallelUpdate);
-		//
-		// 	// since we don't advance montage in the tick, we manually have to handle notifies
-		// 	// MontageInstanceToUpdate->HandleEvents(PreviousPosition, InPosition, NULL);
-		//
-		// 	// if (!bFireNotifies)
-		// 	// {
-		// 	// 	AnimInstance->NotifyQueue.Reset(MeshComponent);
-		// 	// }
-		//
-		// 	// Allow the proxy to update (this also filters unfiltered notifies)
-		// 	if (AnimInstance->NeedsUpdate())
-		// 	{
-		// 		AnimInstance->ParallelUpdateAnimation();
-		// 	}
-		//
-		// 	// Explicitly call post update (also triggers notifies)
-		// 	AnimInstance->PostUpdateAnimation();
-		// }
-		//
-		// // Update space bases so new animation position has an effect.
-		// MeshComponent->RefreshBoneTransforms();
-		// MeshComponent->RefreshSlaveComponents();
-		// MeshComponent->UpdateComponentToWorld();
-		// MeshComponent->FinalizeBoneTransform();
-		// MeshComponent->MarkRenderTransformDirty();
-		// MeshComponent->MarkRenderDynamicDataDirty();
-	}
 }
 
 TStatId FActActionSequenceController::GetStatId() const
@@ -110,44 +57,22 @@ TStatId FActActionSequenceController::GetStatId() const
 	RETURN_QUICK_DECLARE_CYCLE_STAT(FActActionSequenceController, STATGROUP_Tickables);
 }
 
-AActor* FActActionSequenceController::SpawnActorInViewport(UClass* ActorType)
+void FActActionSequenceController::ExecuteTrackEditorCreateDelegate()
 {
-	if (ActActionViewportWidget->GetPreviewScenePtr().IsValid())
-	{
-		return ActActionViewportWidget->GetPreviewScenePtr()->GetWorld()->SpawnActor(ActorType);
-	}
-	return nullptr;
-}
-
-void FActActionSequenceController::InitController(const TSharedRef<SWidget>& ViewWidget)
-{
-	// SequenceWidget = InSequenceWidget;
-	ActActionViewportWidget = StaticCastSharedRef<SActActionViewportWidget>(ViewWidget);
-
-	FPlaySlateModule& PlaySlateModule = FModuleManager::Get().LoadModuleChecked<FPlaySlateModule>(TEXT("PlaySlate"));
-	const TArray<ActActionSequence::OnCreateTrackEditorDelegate>& TrackEditorDelegates = PlaySlateModule.GetTrackEditorDelegates();
 	// Create tools and bind them to this sequence
 	for (int32 DelegateIndex = 0; DelegateIndex < TrackEditorDelegates.Num(); ++DelegateIndex)
 	{
 		check(TrackEditorDelegates[DelegateIndex].IsBound());
 		// Tools may exist in other modules, call a delegate that will create one for us 
 		TSharedRef<FActActionTrackEditorBase> TrackEditor = TrackEditorDelegates[DelegateIndex].Execute(SharedThis(this));
-
-		// if (TrackEditor->SupportsSequence(InActActionSequence))
-		// {
 		TrackEditors.Add(TrackEditor);
-		// }
 	}
-
-	UpdateTimeBases();
-	PlayPosition.Reset(GetPlaybackRange().GetLowerBoundValue());
 }
 
 void FActActionSequenceController::UpdateTimeBases()
 {
 	if (UActActionSequence* ActActionSequence = GetActActionSequence())
 	{
-		// EMovieSceneEvaluationType EvaluationType  = RootMovieScene->GetEvaluationType();
 		FFrameRate TickResolution = ActActionSequence->TickResolution;
 		FFrameRate DisplayRate = ActActionSequence->DisplayRate;
 
@@ -162,31 +87,16 @@ void FActActionSequenceController::UpdateTimeBases()
 	}
 }
 
-void FActActionSequenceController::BuildAddObjectBindingsMenu(FMenuBuilder& MenuBuilder)
-{
-}
-
 void FActActionSequenceController::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 {
-	MenuBuilder.AddMenuEntry(
-		LOCTEXT("AddFolder", "Add Folder"),
-		LOCTEXT("AddFolderToolTip", "Adds a new folder"),
-		FSlateIcon(FEditorStyle::GetStyleSetName(), "ContentBrowser.AssetTreeFolderOpen"),
-		FUIAction(FExecuteAction::CreateRaw(this, &FActActionSequenceController::OnAddFolder))
-	);
 	for (int32 i = 0; i < TrackEditors.Num(); ++i)
 	{
-		// if (TrackEditors[i]->SupportsSequence(ActActionSequencePtr))
-		// {
 		TrackEditors[i]->BuildAddTrackMenu(MenuBuilder);
-		// }
 	}
 }
 
 ActActionSequence::FActActionAnimatedRange FActActionSequenceController::GetViewRange() const
 {
-	// float LowerRange = FMath::Lerp(LastViewRange.GetLowerBoundValue(), TargetViewRange.GetLowerBoundValue(), ZoomCurve.GetLerp());
-	// float HigherRange = FMath::Lerp(LastViewRange.GetUpperBoundValue(), TargetViewRange.GetUpperBoundValue(), ZoomCurve.GetLerp());
 	ActActionSequence::FActActionAnimatedRange AnimatedRange(TargetViewRange.GetLowerBoundValue(), TargetViewRange.GetUpperBoundValue());
 	if (ZoomAnimation.IsPlaying())
 	{
@@ -196,90 +106,7 @@ ActActionSequence::FActActionAnimatedRange FActActionSequenceController::GetView
 	return AnimatedRange;
 }
 
-bool FActActionSequenceController::IsReadOnly() const
-{
-	return false;
-}
-
-FFrameRate FActActionSequenceController::GetFocusedTickResolution() const
-{
-	UActActionSequence* FocusedSequence = GetActActionSequence();
-	if (FocusedSequence)
-	{
-		return FocusedSequence->TickResolution;
-	}
-
-	ensureMsgf(false, TEXT("No valid sequence found."));
-	return FFrameRate();
-}
-
-FFrameRate FActActionSequenceController::GetFocusedDisplayRate() const
-{
-	UActActionSequence* FocusedSequence = GetActActionSequence();
-	if (FocusedSequence)
-	{
-		return FocusedSequence->DisplayRate;
-	}
-
-	ensureMsgf(false, TEXT("No valid sequence found."));
-	return FFrameRate();
-}
-
-void FActActionSequenceController::OnAddFolder()
-{
-	// FAssetPickerConfig AssetPickerConfig;
-	// AssetPickerConfig.Filter.ClassNames.Add(FName("111"));
-	// InAssetPickerConfig = AssetPickerConfig;
-	UE_LOG(LogActAction, Log, TEXT("Nothing happened"));
-}
-
-void FActActionSequenceController::RequestListRefresh()
-{
-	if (SequenceWidget.IsValid())
-	{
-		SequenceWidget->GetTreeView()->RequestListRefresh();
-	}
-}
-
-void FActActionSequenceController::AddRootNodes(TSharedPtr<FActActionSequenceDisplayNode> SequenceDisplayNode)
-{
-	if (SequenceWidget.IsValid())
-	{
-		TSharedPtr<SActActionSequenceTreeView> SequenceTreeView = SequenceWidget->GetTreeView();
-		SequenceTreeView->AddRootNodes(SequenceDisplayNode);
-		SequenceTreeView->SetTreeItemsSource(SequenceTreeView->GetRootNodes());
-	}
-}
-
-ActActionSequence::FActActionAnimatedRange FActActionSequenceController::GetClampRange() const
-{
-	// return GetFocusedMovieSceneSequence()->GetMovieScene()->GetEditorData().GetWorkingRange();
-	return ActActionSequence::FActActionAnimatedRange();
-}
-
-TRange<FFrameNumber> FActActionSequenceController::GetPlaybackRange() const
-{
-	if (UActActionSequence* ActActionSequence = GetActActionSequence())
-	{
-		return ActActionSequence->PlaybackRange;
-	}
-	return TRange<FFrameNumber>();
-}
-
-ActActionSequence::EPlaybackType FActActionSequenceController::GetPlaybackStatus() const
-{
-	return PlaybackState;
-}
-
-TRange<FFrameNumber> FActActionSequenceController::GetSelectionRange() const
-{
-	if (UActActionSequence* ActActionSequence = GetActActionSequence())
-	{
-		return ActActionSequence->SelectionRange;
-	}
-	return TRange<FFrameNumber>();
-}
-
+// TODO:这个接口改到Editor中，资源调用Editor接口再调用Controller
 void FActActionSequenceController::AddAnimMontageTrack(UAnimMontage* AnimMontage)
 {
 	if (!AnimMontage)
@@ -292,7 +119,11 @@ void FActActionSequenceController::AddAnimMontageTrack(UAnimMontage* AnimMontage
 		UE_LOG(LogActAction, Log, TEXT("AnimMontage : %s"), *AnimMontage->GetName());
 		ActActionSequence->EditAnimMontage = AnimMontage;
 		// ** 添加左侧Track
-		AddRootNodes(MakeShareable(new FActActionSequenceDisplayNode(GetNodeTree())));
+		if (SequenceWidget.IsValid())
+		{
+			TSharedPtr<SActActionSequenceTreeView> SequenceTreeView = SequenceWidget->GetTreeView();
+			SequenceTreeView->AddDisplayNode(MakeShareable(new FActActionSequenceTreeViewNode(SharedThis(this), TreeViewRoot)));
+		}
 		if (TimeSliderController.IsValid())
 		{
 			// ** 添加右侧TimeSlider
@@ -304,41 +135,10 @@ void FActActionSequenceController::AddAnimMontageTrack(UAnimMontage* AnimMontage
 			TimeSliderController->SetPlaybackRangeEnd(EndFrame);
 		}
 
-
-		UAnimSequenceBase* AnimSequence = Cast<UAnimSequenceBase>(AnimMontage);
-		USkeleton* Skeleton = nullptr;
-		if (AnimSequence)
+		if (ActActionSequenceEditor.IsValid())
 		{
-			Skeleton = AnimSequence->GetSkeleton();
+			ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController()->InitAnimationByAnimMontage(AnimMontage);
 		}
-
-		UDebugSkelMeshComponent* PreviewComponent = ActActionViewportWidget->GetPreviewScenePtr()->GetActActionSkeletalMesh();
-		if (PreviewComponent && Skeleton)
-		{
-			USkeletalMesh* PreviewMesh = Skeleton->GetAssetPreviewMesh(AnimSequence);
-			if (PreviewMesh)
-			{
-				UAnimSingleNodeInstance* PreviewInstance = Cast<UAnimSingleNodeInstance>(PreviewComponent->PreviewInstance);
-				if (!PreviewInstance || PreviewInstance->GetCurrentAsset() != AnimSequence || PreviewComponent->SkeletalMesh != PreviewMesh)
-				{
-					// PreviewInstance->CurrentAsset = AnimSequence;
-					// PreviewInstance->CurrentSkeleton = PreviewMesh->GetSkeleton();
-					// PreviewInstance->Montage_Play(AnimMontage);
-					PreviewComponent->SetSkeletalMeshWithoutResettingAnimation(PreviewMesh);
-					PreviewComponent->EnablePreview(true, AnimSequence);
-					PreviewComponent->PreviewInstance->SetLooping(true);
-					PreviewComponent->SetPlayRate(60);
-
-					//Place the camera at a good viewer position
-					TSharedPtr<FEditorViewportClient> ViewportClient = ActActionViewportWidget->GetViewportClient();
-					FVector NewPosition = ViewportClient->GetViewLocation();
-					NewPosition.Normalize();
-					ViewportClient->SetViewLocation(NewPosition * (PreviewMesh->GetImportedBounds().SphereRadius * 1.5f));
-				}
-			}
-		}
-
-		// TargetSkeleton = Skeleton;
 	}
 }
 
@@ -405,69 +205,7 @@ void FActActionSequenceController::SetPlaybackStatus(ActActionSequence::EPlaybac
 
 void FActActionSequenceController::EvaluateInternal(ActActionSequence::FActActionEvaluationRange InRange, bool bHasJumped)
 {
-	// if (Settings->ShouldCompileDirectorOnEvaluate())
-	// {
-	// 	RecompileDirtyDirectors();
-	// }
-
 	bNeedsEvaluate = false;
-	//
-	// UpdateCachedPlaybackContextAndClient();
-	//
-	// if (EventContextsAttribute.IsBound())
-	// {
-	// 	CachedEventContexts.Reset();
-	// 	for (UObject* Object : EventContextsAttribute.Get())
-	// 	{
-	// 		CachedEventContexts.Add(Object);
-	// 	}
-	// }
-	//
-	// FMovieSceneContext Context = FMovieSceneContext(InRange, PlaybackState).SetIsSilent(SilentModeCount != 0);
-	// Context.SetHasJumped(bHasJumped);
-	//
-	// FMovieSceneSequenceID RootOverride = MovieSceneSequenceID::Root;
-	// if (Settings->ShouldEvaluateSubSequencesInIsolation())
-	// {
-	// 	RootOverride = ActiveTemplateIDs.Top();
-	// }
-	//
-	// RootTemplateInstance.Evaluate(Context, *this);
-	// SuppressAutoEvalSignature.Reset();
-	//
-	// if (RootTemplateInstance.GetEntitySystemRunner().IsAttachedToLinker())
-	// {
-	// 	RootTemplateInstance.GetEntitySystemRunner().Flush();
-	// }
-	//
-	// if (Settings->ShouldRerunConstructionScripts())
-	// {
-	// 	RerunConstructionScripts();
-	// }
-	//
-	// if (!IsInSilentMode())
-	// {
-	// 	OnGlobalTimeChangedDelegate.Broadcast();
-	// }
-	if (ActActionViewportWidget.IsValid())
-	{
-		FFrameTime CurrentPosition = InRange.GetTime();
-		TSharedPtr<FActActionPreviewSceneController> PreviewScene = ActActionViewportWidget->GetPreviewScenePtr();
-		if (PreviewScene.IsValid())
-		{
-			UDebugSkelMeshComponent* PreviewMeshComponent = PreviewScene->GetActActionSkeletalMesh();
-			if (PreviewMeshComponent && PreviewMeshComponent->IsPreviewOn())
-			{
-				if (PreviewMeshComponent->PreviewInstance->IsPlaying())
-				{
-					PreviewMeshComponent->PreviewInstance->SetPlaying(false);
-				}
-				PreviewScrubTime = CurrentPosition.AsDecimal() / 60;
-				PreviewMeshComponent->PreviewInstance->SetPosition(PreviewScrubTime);
-				PreviewMeshComponent->PreviewInstance->UpdateAnimation(PreviewScrubTime, false);
-			}
-		}
-	}
 }
 
 void FActActionSequenceController::Pause()
@@ -478,7 +216,7 @@ void FActActionSequenceController::Pause()
 	// if (Settings->GetIsSnapEnabled())
 	// {
 	// 	FQualifiedFrameTime LocalTime          = GetLocalTime();
-	// 	FFrameRate          FocusedDisplayRate = GetFocusedDisplayRate();
+	// 	FFrameRate          FocusedDisplayRate = GetDisplayRate();
 	//
 	// 	// Snap to the focused play rate
 	// 	FFrameTime RootPosition  = FFrameRate::Snap(LocalTime.Time, LocalTime.Rate, FocusedDisplayRate) * RootToLocalTransform.InverseFromWarp(RootToLocalLoopCounter);
@@ -585,75 +323,6 @@ void FActActionSequenceController::AddMarkedFrame(FFrameNumber FrameNumber)
 }
 
 
-void FActActionSequenceController::SetPlaybackRange(TRange<FFrameNumber> Range)
-{
-	if (ensure(Range.HasLowerBound() && Range.HasUpperBound()))
-	{
-		// if (!IsPlaybackRangeLocked())
-		// {
-		// UMovieScene* FocusedMovieScene = GetFocusedMovieSceneSequence()->GetMovieScene();
-		if (UActActionSequence* ActActionSequence = GetActActionSequence())
-		{
-			const FScopedTransaction Transaction(LOCTEXT("SetPlaybackRange_Transaction", "Set Playback Range"));
-			ActActionSequence->PlaybackRange = Range;
-
-			// bNeedsEvaluate = true;
-			// NotifyMovieSceneDataChanged(EMovieSceneDataChangeType::TrackValueChanged);
-		}
-		// }
-	}
-}
-
-void FActActionSequenceController::InitAnimBlueprint(UAnimBlueprint* AnimBlueprint)
-{
-	if (!AnimBlueprint || !AnimBlueprint->TargetSkeleton)
-	{
-		UE_LOG(LogActAction, Error, TEXT("FActActionSequenceController::InitAnimBlueprint with nullptr AnimBlueprint or AnimBlueprint->TargetSkeleton is nullptr"));
-		return;
-	}
-
-	if (UActActionSequence* ActActionSequence = GetActActionSequence())
-	{
-		if (ActActionSequence->EditAnimBlueprint != AnimBlueprint)
-		{
-			UE_LOG(LogActAction, Log, TEXT("AssignAsEditAnim PreviewActor : %s"), *AnimBlueprint->GetName());
-			ActActionSequence->EditAnimBlueprint = AnimBlueprint;
-		}
-		ASkeletalMeshActor* InPreviewActor = Cast<ASkeletalMeshActor>(SpawnActorInViewport(ASkeletalMeshActor::StaticClass()));
-		if (InPreviewActor)
-		{
-			PreviewActor = InPreviewActor;
-			if (ActActionViewportWidget.IsValid() && ActActionViewportWidget->GetPreviewScenePtr().IsValid())
-			{
-				ActActionViewportWidget->GetPreviewScenePtr()->InitPreviewScene(PreviewActor);
-			}
-			USkeletalMeshComponent* MeshComponent = ActActionViewportWidget->GetPreviewScenePtr()->GetActActionSkeletalMesh();
-			MeshComponent->OverrideMaterials.Empty();
-
-			USkeletalMesh* PreviewSkeletalMesh = AnimBlueprint->TargetSkeleton->GetPreviewMesh(true);
-			MeshComponent->SetSkeletalMesh(PreviewSkeletalMesh);
-
-			UAnimInstance* PreviousAnimInstance = MeshComponent->GetAnimInstance();
-			MeshComponent->SetAnimInstanceClass(AnimBlueprint->GeneratedClass);
-			MeshComponent->InitializeAnimScriptInstance();
-
-			if (PreviousAnimInstance && PreviousAnimInstance != MeshComponent->GetAnimInstance())
-			{
-				//Mark this as gone!
-				PreviousAnimInstance->MarkPendingKill();
-			}
-
-			PreviewActor->SetActorLocation(FVector(0, 0, 0), false);
-			MeshComponent->UpdateBounds();
-
-			// Center the mesh at the world origin then offset to put it on top of the plane
-			const float BoundsZOffset = ActActionSequence::ActActionStaticUtil::GetBoundsZOffset(MeshComponent->Bounds);
-			PreviewActor->SetActorLocation(-MeshComponent->Bounds.Origin + FVector(0, 0, BoundsZOffset), false);
-			MeshComponent->RecreateRenderState_Concurrent();
-		}
-	}
-}
-
 FFrameTime FActActionSequenceController::GetLocalFrameTime() const
 {
 	return GetLocalTime().Time;
@@ -661,7 +330,7 @@ FFrameTime FActActionSequenceController::GetLocalFrameTime() const
 
 FQualifiedFrameTime FActActionSequenceController::GetLocalTime() const
 {
-	const FFrameRate FocusedResolution = GetFocusedTickResolution();
+	const FFrameRate FocusedResolution = GetActActionSequenceEditor()->GetTickResolution();
 	const FFrameTime CurrentPosition = PlayPosition.GetCurrentPosition();
 
 	const FFrameTime RootTime = ConvertFrameTime(CurrentPosition, PlayPosition.GetInputRate(), PlayPosition.GetOutputRate());
@@ -777,7 +446,7 @@ void FActActionSequenceController::OnScrubPositionChanged(FFrameTime NewScrubPos
 		}
 		// else if (IsAutoScrollEnabled())
 		// {
-		// 	UpdateAutoScroll(NewScrubPosition / GetFocusedTickResolution());
+		// 	UpdateAutoScroll(NewScrubPosition / GetTickResolution());
 		// 	
 		// 	// When scrubbing, we animate auto-scrolled scrub position in Tick()
 		// 	if (AutoScrubOffset.IsSet())
@@ -806,15 +475,24 @@ UActActionSequence* FActActionSequenceController::GetActActionSequence() const
 	return nullptr;
 }
 
+TSharedRef<FActActionSequenceEditor> FActActionSequenceController::GetActActionSequenceEditor() const
+{
+	return ActActionSequenceEditor.Pin().ToSharedRef();
+}
+
 
 void FActActionSequenceController::MakeSequenceWidget(ActActionSequence::FActActionSequenceViewParams ViewParams)
 {
-	TSharedPtr<SActActionSequenceWidget> ActActionSequenceWidget = SNew(SActActionSequenceWidget, SharedThis(this))
+	TSharedRef<FActActionSequenceController> ActionSequenceController = SharedThis(this);
+	// ** 构造所有显示节点的根节点
+	TreeViewRoot = MakeShareable(new FActActionSequenceTreeViewNode(ActionSequenceController));
+	
+	TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
+	TSharedPtr<SActActionSequenceWidget> ActActionSequenceWidget = SNew(SActActionSequenceWidget, ActionSequenceController)
 		.ViewRange(this, &FActActionSequenceController::GetViewRange)
-		.ClampRange(this, &FActActionSequenceController::GetClampRange)
-		.PlaybackRange(this, &FActActionSequenceController::GetPlaybackRange)
+		.PlaybackRange(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetPlaybackRange)
 		.PlaybackStatus(this, &FActActionSequenceController::GetPlaybackStatus)
-		.SelectionRange(this, &FActActionSequenceController::GetSelectionRange)
+		.SelectionRange(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetSelectionRange)
 		.VerticalFrames(this, &FActActionSequenceController::GetVerticalFrames)
 		// .MarkedFrames(this, &FActActionSequenceController::GetMarkedFrames)
 		// .GlobalMarkedFrames(this, &FActActionSequenceController::GetGlobalMarkedFrames)
@@ -823,7 +501,7 @@ void FActActionSequenceController::MakeSequenceWidget(ActActionSequence::FActAct
 		// .OnDeleteMarkedFrame(this, &FActActionSequenceController::DeleteMarkedFrame)
 		// .OnDeleteAllMarkedFrames(this, &FActActionSequenceController::DeleteAllMarkedFrames)
 		// .SubSequenceRange(this, &FActActionSequenceController::GetSubSequenceRange)
-		.OnPlaybackRangeChanged(this, &FActActionSequenceController::SetPlaybackRange)
+		.OnPlaybackRangeChanged(ActActionSequenceEditorRef, &FActActionSequenceEditor::SetPlaybackRange)
 		// .OnPlaybackRangeBeginDrag(this, &FActActionSequenceController::OnPlaybackRangeBeginDrag)
 		// .OnPlaybackRangeEndDrag(this, &FActActionSequenceController::OnPlaybackRangeEndDrag)
 		// .OnSelectionRangeChanged(this, &FActActionSequenceController::SetSelectionRange)

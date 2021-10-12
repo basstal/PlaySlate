@@ -14,6 +14,7 @@
 #include "Widgets/Layout/SGridPanel.h"
 #include "Widgets/Layout/SScrollBorder.h"
 #include "SEditorHeaderButton.h"
+#include "NovaSequenceEditor/ActActionSequenceEditor.h"
 
 #define LOCTEXT_NAMESPACE "ActActionToolkit"
 
@@ -42,13 +43,13 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 	TSharedRef<SScrollBar> PinnedAreaScrollBar = SNew(SScrollBar).Thickness(FVector2D(9.0f, 9.0f));
 
 	SAssignNew(TrackArea, SActActionSequenceTrackArea);
-	SAssignNew(TreeView, SActActionSequenceTreeView, InSequenceController->GetNodeTree(), TrackArea.ToSharedRef())
+	SAssignNew(TreeView, SActActionSequenceTreeView, InSequenceController->GetTreeViewRoot(), TrackArea.ToSharedRef())
 		.ExternalScrollbar(ScrollBar)
 		.Clipping(EWidgetClipping::ClipToBounds)
 		.OnGetContextMenuContent(ActActionSequence::OnGetContextMenuContentDelegate::CreateSP(this, &SActActionSequenceWidget::PopulateAddMenuContext));
 
 	SAssignNew(PinnedTrackArea, SActActionSequenceTrackArea);
-	SAssignNew(PinnedTreeView, SActActionSequenceTreeView, InSequenceController->GetNodeTree(), PinnedTrackArea.ToSharedRef())
+	SAssignNew(PinnedTreeView, SActActionSequenceTreeView, InSequenceController->GetTreeViewRoot(), PinnedTrackArea.ToSharedRef())
 		.ExternalScrollbar(PinnedAreaScrollBar)
 		.Clipping(EWidgetClipping::ClipToBounds)
 		.OnGetContextMenuContent(ActActionSequence::OnGetContextMenuContentDelegate::CreateSP(this, &SActActionSequenceWidget::PopulateAddMenuContext));
@@ -71,18 +72,18 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 		// }
 		return 0;
 	});
-	TAttribute<FFrameRate> GetTickResolutionAttr = TAttribute<FFrameRate>(InSequenceController, &FActActionSequenceController::GetFocusedTickResolution);
-	TAttribute<FFrameRate> GetDisplayRateAttr = TAttribute<FFrameRate>(InSequenceController, &FActActionSequenceController::GetFocusedDisplayRate);
+	TSharedRef<FActActionSequenceEditor> ActActionSequenceEditor = InSequenceController->GetActActionSequenceEditor();
+	TAttribute<FFrameRate> GetTickResolutionAttr = TAttribute<FFrameRate>(ActActionSequenceEditor, &FActActionSequenceEditor::GetTickResolution);
+	TAttribute<FFrameRate> GetDisplayRateAttr = TAttribute<FFrameRate>(ActActionSequenceEditor, &FActActionSequenceEditor::GetDisplayRate);
 	// Create our numeric type interface so we can pass it to the time slider below.
 	NumericTypeInterface = MakeShareable(new FFrameNumberInterface(GetDisplayFormatAttr, GetZeroPadFramesAttr, GetTickResolutionAttr, GetDisplayRateAttr));
 
 	// ** 初始化TimeSlider
 	ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs;
 	TimeSliderArgs.ViewRange = InArgs._ViewRange;
-	TimeSliderArgs.ClampRange = InArgs._ClampRange;
 	TimeSliderArgs.PlaybackRange = InArgs._PlaybackRange;
-	TimeSliderArgs.DisplayRate = TAttribute<FFrameRate>(InSequenceController, &FActActionSequenceController::GetFocusedDisplayRate);
-	TimeSliderArgs.TickResolution = TAttribute<FFrameRate>(InSequenceController, &FActActionSequenceController::GetFocusedTickResolution);
+	TimeSliderArgs.DisplayRate = TAttribute<FFrameRate>(ActActionSequenceEditor, &FActActionSequenceEditor::GetDisplayRate);
+	TimeSliderArgs.TickResolution = TAttribute<FFrameRate>(ActActionSequenceEditor, &FActActionSequenceEditor::GetTickResolution);
 	TimeSliderArgs.SelectionRange = InArgs._SelectionRange;
 	TimeSliderArgs.OnPlaybackRangeChanged = InArgs._OnPlaybackRangeChanged;
 	TimeSliderArgs.OnPlaybackRangeBeginDrag = InArgs._OnPlaybackRangeBeginDrag;
@@ -93,7 +94,7 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 	TimeSliderArgs.OnMarkBeginDrag = InArgs._OnMarkBeginDrag;
 	TimeSliderArgs.OnMarkEndDrag = InArgs._OnMarkEndDrag;
 	TimeSliderArgs.OnViewRangeChanged = InArgs._OnViewRangeChanged;
-	TimeSliderArgs.OnClampRangeChanged = InArgs._OnClampRangeChanged;
+	// TimeSliderArgs.OnClampRangeChanged = InArgs._OnClampRangeChanged;
 	TimeSliderArgs.OnGetNearestKey = InArgs._OnGetNearestKey;
 	TimeSliderArgs.IsPlaybackRangeLocked = InArgs._IsPlaybackRangeLocked;
 	TimeSliderArgs.OnTogglePlaybackRangeLocked = InArgs._OnTogglePlaybackRangeLocked;
@@ -115,7 +116,7 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 	TimeSliderArgs.OnDeleteMarkedFrame = InArgs._OnDeleteMarkedFrame;
 	TimeSliderArgs.OnDeleteAllMarkedFrames = InArgs._OnDeleteAllMarkedFrames;
 	TimeSliderArgs.NumericTypeInterface = NumericTypeInterface;
-	
+
 	TimeSliderController = MakeShareable(new FActActionTimeSliderController(TimeSliderArgs, InSequenceController));
 	// Create the top and bottom sliders
 	TopTimeSlider = SNew(SActActionSequenceTimeSliderWidget, TimeSliderController.ToSharedRef())
@@ -420,13 +421,6 @@ void SActActionSequenceWidget::PopulateAddMenuContext(FMenuBuilder& MenuBuilder)
 	if (Sequence.IsValid())
 	{
 		OnGetAddMenuContent.ExecuteIfBound(MenuBuilder, Sequence.ToSharedRef());
-	}
-	MenuBuilder.EndSection();
-
-	MenuBuilder.BeginSection("ObjectBindings");
-	if (Sequence.IsValid())
-	{
-		Sequence->BuildAddObjectBindingsMenu(MenuBuilder);
 	}
 	MenuBuilder.EndSection();
 

@@ -1,7 +1,7 @@
 ﻿#include "ActActionSequenceTrackLane.h"
 
 
-void SActActionSequenceTrackLane::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceDisplayNode>& InDisplayNode, const TSharedRef<SActActionSequenceTreeView>& InTreeView)
+void SActActionSequenceTrackLane::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceTreeViewNode>& InDisplayNode, const TSharedRef<SActActionSequenceTreeView>& InTreeView)
 {
 	DisplayNode = InDisplayNode;
 	TreeView = InTreeView;

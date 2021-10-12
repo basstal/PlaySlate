@@ -153,7 +153,6 @@ namespace ActActionSequence
 		FActActionTimeSliderArgs()
 			: ScrubPosition(0),
 			  ViewRange(FActActionAnimatedRange(0.0f, 5.0f)),
-			  ClampRange(FActActionAnimatedRange(-FLT_MAX / 2.f, FLT_MAX / 2.f)),
 			  AllowZoom(true)
 		{
 		}
@@ -167,9 +166,6 @@ namespace ActActionSequence
 		/** View time range */
 		TAttribute<FActActionAnimatedRange> ViewRange;
 
-		/** Clamp time range */
-		TAttribute<FActActionAnimatedRange> ClampRange;
-
 		/** Called when the scrub position changes */
 		OnScrubPositionChangedDelegate OnScrubPositionChanged;
 
@@ -182,8 +178,8 @@ namespace ActActionSequence
 		/** Called when the view range changes */
 		OnViewRangeChangedDelegate OnViewRangeChanged;
 
-		/** Called when the clamp range changes */
-		OnTimeRangeChangedDelegate OnClampRangeChanged;
+		// /** Called when the clamp range changes */
+		// OnTimeRangeChangedDelegate OnClampRangeChanged;
 
 		/** Delegate that is called when getting the nearest key */
 		OnGetNearestKeyDelegate OnGetNearestKey;

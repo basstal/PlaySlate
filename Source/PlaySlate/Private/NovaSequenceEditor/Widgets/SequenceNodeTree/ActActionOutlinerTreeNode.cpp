@@ -1,12 +1,12 @@
 ﻿#include "ActActionOutlinerTreeNode.h"
 
 #include "ActActionSequenceTreeView.h"
-#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceDisplayNode.h"
+#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
 #include "NovaSequenceEditor/Controllers/ActActionSequenceController.h"
 
 #include "Widgets/Text/SInlineEditableTextBlock.h"
 
-void SActActionOutlinerTreeNode::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceDisplayNode>& Node, const TSharedRef<SActActionSequenceTreeViewRow>& InTableRow)
+void SActActionOutlinerTreeNode::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceTreeViewNode>& Node, const TSharedRef<SActActionSequenceTreeViewRow>& InTableRow)
 {
 	DisplayNode = Node;
 	bIsOuterTopLevelNode = !Node->GetParent().IsValid();
@@ -169,7 +169,6 @@ void SActActionOutlinerTreeNode::Construct(const FArguments& InArgs, const TShar
 				.ContentPadding(0)
 				.VAlign(VAlign_Fill)
 				.IsFocusable(false) // Intentionally false so that it's easier to tab to the next numeric input
-				.IsEnabled(!DisplayNode->GetSequence()->IsReadOnly())
 				.ButtonStyle(FEditorStyle::Get(), "Sequencer.AnimationOutliner.ColorStrip")
 				// .OnClicked(this, &SActActionOutlinerTreeNode::OnSetTrackColor)
 				.Content()
@@ -191,15 +190,15 @@ void SActActionOutlinerTreeNode::Construct(const FArguments& InArgs, const TShar
 	];
 }
 
-TSharedPtr<FActActionSequenceDisplayNode> SActActionOutlinerTreeNode::GetParent() const
+TSharedPtr<FActActionSequenceTreeViewNode> SActActionOutlinerTreeNode::GetParent() const
 {
-	TSharedPtr<FActActionSequenceDisplayNode> Pinned = ParentNode.Pin();
+	TSharedPtr<FActActionSequenceTreeViewNode> Pinned = ParentNode.Pin();
 	return (Pinned && Pinned->GetType() != ActActionSequence::ESequenceNodeType::Root) ? Pinned : nullptr;
 }
 
 bool SActActionOutlinerTreeNode::IsNodeLabelReadOnly() const
 {
-	return DisplayNode->GetSequence()->IsReadOnly() || !DisplayNode->CanRenameNode();
+	return !DisplayNode->CanRenameNode();
 }
 
 FSlateFontInfo SActActionOutlinerTreeNode::GetDisplayNameFont() const

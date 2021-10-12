@@ -1,8 +1,9 @@
 ﻿#include "ActActionTimeSliderController.h"
 
+#include "Utils/ActActionStaticUtil.h"
+#include "NovaSequenceEditor/ActActionSequenceEditor.h"
 #include "NovaSequenceEditor/Controllers/ActActionSequenceController.h"
 
-#include "Utils/ActActionStaticUtil.h"
 
 #include "Fonts/FontMeasure.h"
 
@@ -635,17 +636,10 @@ void FActActionTimeSliderController::CommitScrubPosition(FFrameTime NewValue, bo
 	{
 		ActActionSequence::FActActionAnimatedRange ViewRange = TimeSliderArgs.ViewRange.Get();
 
-		// FFrameRate DisplayRate = Sequence->GetFocusedDisplayRate();
-		FFrameRate TickResolution = Sequence.Pin()->GetFocusedTickResolution();
+		FFrameRate TickResolution = Sequence.Pin()->GetActActionSequenceEditor()->GetTickResolution();
 
 		FFrameTime LowerBound = (ViewRange.GetLowerBoundValue() * TickResolution).CeilToFrame();
 		FFrameTime UpperBound = (ViewRange.GetUpperBoundValue() * TickResolution).FloorToFrame();
-
-		// if (Sequencer->GetSequencerSettings()->GetIsSnapEnabled() && Sequencer->GetSequencerSettings()->GetSnapPlayTimeToInterval())
-		// {
-		// 	LowerBound = FFrameRate::Snap(LowerBound, TickResolution, DisplayRate);
-		// 	UpperBound = FFrameRate::Snap(UpperBound, TickResolution, DisplayRate);
-		// }
 
 		NewValue = FMath::Clamp(NewValue, LowerBound, UpperBound);
 	}
@@ -659,48 +653,49 @@ void FActActionTimeSliderController::CommitScrubPosition(FFrameTime NewValue, bo
 	TimeSliderArgs.OnScrubPositionChanged.ExecuteIfBound(NewValue, bIsScrubbing);
 }
 
-void FActActionTimeSliderController::ClampViewRange(double& NewRangeMin, double& NewRangeMax)
-{
-	bool bNeedsClampSet = false;
-	double NewClampRangeMin = TimeSliderArgs.ClampRange.Get().GetLowerBoundValue();
-	if (NewRangeMin < TimeSliderArgs.ClampRange.Get().GetLowerBoundValue())
-	{
-		NewClampRangeMin = NewRangeMin;
-		bNeedsClampSet = true;
-	}
-
-	double NewClampRangeMax = TimeSliderArgs.ClampRange.Get().GetUpperBoundValue();
-	if (NewRangeMax > TimeSliderArgs.ClampRange.Get().GetUpperBoundValue())
-	{
-		NewClampRangeMax = NewRangeMax;
-		bNeedsClampSet = true;
-	}
-
-	if (bNeedsClampSet)
-	{
-		SetClampRange(NewClampRangeMin, NewClampRangeMax);
-	}
-}
-
-void FActActionTimeSliderController::SetClampRange(double NewRangeMin, double NewRangeMax)
-{
-	const TRange<double> NewRange(NewRangeMin, NewRangeMax);
-
-	TimeSliderArgs.OnClampRangeChanged.ExecuteIfBound(NewRange);
-
-	if (!TimeSliderArgs.ClampRange.IsBound())
-	{
-		// The  output is not bound to a delegate so we'll manage the value ourselves (no animation)
-		TimeSliderArgs.ClampRange.Set(NewRange);
-	}
-}
+//
+// void FActActionTimeSliderController::ClampViewRange(double& NewRangeMin, double& NewRangeMax)
+// {
+// 	bool bNeedsClampSet = false;
+// 	double NewClampRangeMin = TimeSliderArgs.ClampRange.Get().GetLowerBoundValue();
+// 	if (NewRangeMin < TimeSliderArgs.ClampRange.Get().GetLowerBoundValue())
+// 	{
+// 		NewClampRangeMin = NewRangeMin;
+// 		bNeedsClampSet = true;
+// 	}
+//
+// 	double NewClampRangeMax = TimeSliderArgs.ClampRange.Get().GetUpperBoundValue();
+// 	if (NewRangeMax > TimeSliderArgs.ClampRange.Get().GetUpperBoundValue())
+// 	{
+// 		NewClampRangeMax = NewRangeMax;
+// 		bNeedsClampSet = true;
+// 	}
+//
+// 	if (bNeedsClampSet)
+// 	{
+// 		SetClampRange(NewClampRangeMin, NewClampRangeMax);
+// 	}
+// }
+//
+// void FActActionTimeSliderController::SetClampRange(double NewRangeMin, double NewRangeMax)
+// {
+// 	const TRange<double> NewRange(NewRangeMin, NewRangeMax);
+//
+// 	TimeSliderArgs.OnClampRangeChanged.ExecuteIfBound(NewRange);
+//
+// 	if (!TimeSliderArgs.ClampRange.IsBound())
+// 	{
+// 		// The  output is not bound to a delegate so we'll manage the value ourselves (no animation)
+// 		TimeSliderArgs.ClampRange.Set(NewRange);
+// 	}
+// }
 
 void FActActionTimeSliderController::SetViewRange(double NewRangeMin, double NewRangeMax, ActActionSequence::EActActionViewRangeInterpolation Interpolation)
 {
 	// Clamp to a minimum size to avoid zero-sized or negative visible ranges
 	double MinVisibleTimeRange = FFrameNumber(1) / TimeSliderArgs.TickResolution.Get();
 	TRange<double> ExistingViewRange = TimeSliderArgs.ViewRange.Get();
-	TRange<double> ExistingClampRange = TimeSliderArgs.ClampRange.Get();
+	// TRange<double> ExistingClampRange = TimeSliderArgs.ClampRange.Get();
 
 	if (NewRangeMax == ExistingViewRange.GetUpperBoundValue())
 	{
@@ -715,7 +710,7 @@ void FActActionTimeSliderController::SetViewRange(double NewRangeMin, double New
 	}
 
 	// Clamp to the clamp range
-	const TRange<double> NewRange = TRange<double>::Intersection(TRange<double>(NewRangeMin, NewRangeMax), ExistingClampRange);
+	const TRange<double> NewRange = TRange<double>(NewRangeMin, NewRangeMax);
 
 	TimeSliderArgs.OnViewRangeChanged.ExecuteIfBound(NewRange, Interpolation);
 	if (!TimeSliderArgs.ViewRange.IsBound())
@@ -801,7 +796,7 @@ bool FActActionTimeSliderController::ZoomByDelta(float InDelta, float ZoomBias)
 
 	if (NewViewOutputMin < NewViewOutputMax)
 	{
-		ClampViewRange(NewViewOutputMin, NewViewOutputMax);
+		// ClampViewRange(NewViewOutputMin, NewViewOutputMax);
 		SetViewRange(NewViewOutputMin, NewViewOutputMax, ActActionSequence::EActActionViewRangeInterpolation::Animated);
 		return true;
 	}
@@ -822,7 +817,7 @@ void FActActionTimeSliderController::PanByDelta(float InDelta)
 	double NewViewOutputMin = CurrentMin + InDelta;
 	double NewViewOutputMax = CurrentMax + InDelta;
 
-	ClampViewRange(NewViewOutputMin, NewViewOutputMax);
+	// ClampViewRange(NewViewOutputMin, NewViewOutputMax);
 	SetViewRange(NewViewOutputMin, NewViewOutputMax, ActActionSequence::EActActionViewRangeInterpolation::Animated);
 }
 
@@ -1002,7 +997,7 @@ FReply FActActionTimeSliderController::OnMouseMove(SWidget& OwnerWidget, const F
 			double NewViewOutputMin = LocalViewRangeMin - InputDelta.X;
 			double NewViewOutputMax = LocalViewRangeMax - InputDelta.X;
 
-			ClampViewRange(NewViewOutputMin, NewViewOutputMax);
+			// ClampViewRange(NewViewOutputMin, NewViewOutputMax);
 			SetViewRange(NewViewOutputMin, NewViewOutputMax, ActActionSequence::EActActionViewRangeInterpolation::Immediate);
 		}
 	}

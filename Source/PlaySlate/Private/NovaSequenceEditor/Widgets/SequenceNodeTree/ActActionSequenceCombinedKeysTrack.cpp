@@ -1,8 +1,8 @@
 ﻿#include "ActActionSequenceCombinedKeysTrack.h"
 
-#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceDisplayNode.h"
+#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
 
-void SActActionSequenceCombinedKeysTrack::Construct(const FArguments& InArgs, TSharedRef<FActActionSequenceDisplayNode> InRootNode)
+void SActActionSequenceCombinedKeysTrack::Construct(const FArguments& InArgs, TSharedRef<FActActionSequenceTreeViewNode> InRootNode)
 {
 	RootNode = InRootNode;
 

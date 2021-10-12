@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 class SActActionSequenceTrackLane;
-class FActActionSequenceDisplayNode;
+class FActActionSequenceTreeViewNode;
 /**
 * Structure representing a slot in the track area.
 */
@@ -40,13 +40,13 @@ public:
 	virtual FChildren* GetChildren() override;
 	//~End SPanel interface
 
-	TSharedPtr<SActActionSequenceTrackLane> FindTrackSlot(const TSharedRef<FActActionSequenceDisplayNode>& InNode);
+	TSharedPtr<SActActionSequenceTrackLane> FindTrackSlot(const TSharedRef<FActActionSequenceTreeViewNode>& InNode);
 
 	/** Add a new track slot to this area for the given node. The slot will be automatically cleaned up when all external references to the supplied slot are removed. */
-	void AddTrackSlot(const TSharedRef<FActActionSequenceDisplayNode>& InNode, const TSharedRef<SActActionSequenceTrackLane>& InSlot);
+	void AddTrackSlot(const TSharedRef<FActActionSequenceTreeViewNode>& InNode, const TSharedRef<SActActionSequenceTrackLane>& InSlot);
 protected:
 	/** The track area's children. */
 	TPanelChildren<FActActionTrackAreaSlot> Children;
 	/** A map of child slot content that exist in our view. */
-	TMap<TSharedPtr<FActActionSequenceDisplayNode>, TWeakPtr<SActActionSequenceTrackLane>> TrackSlots;
+	TMap<TSharedPtr<FActActionSequenceTreeViewNode>, TWeakPtr<SActActionSequenceTrackLane>> TrackSlots;
 };

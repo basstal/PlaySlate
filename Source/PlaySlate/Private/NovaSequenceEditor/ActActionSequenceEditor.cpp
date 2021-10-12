@@ -3,11 +3,13 @@
 #include "PlaySlate.h"
 #include "NovaSequenceEditor/Assets/ActActionSequence.h"
 #include "NovaSequenceEditor/Controllers/ActActionSequenceController.h"
-#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceNodeTree.h"
 #include "NovaSequenceEditor/Controllers/Viewport/ActActionPreviewSceneController.h"
 #include "NovaSequenceEditor/Widgets/Viewport/ActActionViewportWidget.h"
 // ReSharper disable once CppUnusedIncludeDirective
 #include "NovaSequenceEditor/Widgets/ActActionSequenceWidget.h"
+
+#include "Animation/AnimBlueprint.h"
+#include "Animation/SkeletalMeshActor.h"
 
 #define LOCTEXT_NAMESPACE "ActActionToolkit"
 
@@ -50,12 +52,10 @@ void FActActionSequenceEditor::InitActActionSequenceEditor(const TSharedPtr<IToo
 	// ** 通过对应Widget的Controller，填充Tab的实际内容Widget，并保留对Controller的引用
 	// ** SequenceController
 	ActActionSequenceController = MakeShareable(new FActActionSequenceController(SharedThis(this)));
-	// ** TODO:NodeTree必须先设置好才能MakeWidget，这里结构需要优化
-	TSharedPtr<FActActionSequenceNodeTree> ActActionSequenceNodeTree = MakeShareable(new FActActionSequenceNodeTree(ActActionSequenceController.ToSharedRef()));
-	ActActionSequenceController->SetNodeTree(ActActionSequenceNodeTree);
+	ActActionSequenceController->ExecuteTrackEditorCreateDelegate();
 	ActActionSequence::FActActionSequenceViewParams ViewParams = ActActionSequence::FActActionSequenceViewParams();
 	ActActionSequenceController->MakeSequenceWidget(ViewParams);
-	ActActionSequenceWidgetParent->SetContent(ActActionSequenceController->GetSequenceWidget().ToSharedRef());
+	ActActionSequenceWidgetParent->SetContent(ActActionSequenceController->GetSequenceWidget());
 	
 	// ** PreviewScene(Viewport)Controller
 	FPreviewScene::ConstructionValues ConstructionValues = FPreviewScene::ConstructionValues()
@@ -63,11 +63,10 @@ void FActActionSequenceEditor::InitActActionSequenceEditor(const TSharedPtr<IToo
 	                                                       .ShouldSimulatePhysics(true);
 	ActActionPreviewSceneController = MakeShareable(new FActActionPreviewSceneController(ConstructionValues, SharedThis(this)));
 	ActActionPreviewSceneController->MakeViewportWidget();
-	ActActionViewportWidgetParent->SetContent(ActActionPreviewSceneController->GetActActionViewportWidget().ToSharedRef());
+	ActActionViewportWidgetParent->SetContent(ActActionPreviewSceneController->GetActActionViewportWidget());
 
 	// ** Init by resource
-	ActActionSequenceController->InitController(ActActionPreviewSceneController->GetActActionViewportWidget().ToSharedRef());
-	ActActionSequenceController->InitAnimBlueprint(ActActionSequence->EditAnimBlueprint);
+	InitAnimBlueprint(ActActionSequence->EditAnimBlueprint);
 	ActActionSequenceController->AddAnimMontageTrack(ActActionSequence->EditAnimMontage);
 
 	// When undo occurs, get a notification so we can make sure our view is up to date
@@ -141,6 +140,53 @@ FLinearColor FActActionSequenceEditor::GetWorldCentricTabColorScale() const
 FString FActActionSequenceEditor::GetWorldCentricTabPrefix() const
 {
 	return LOCTEXT("WorldCentricTabPrefix", "Sequencer ").ToString();
+}
+
+void FActActionSequenceEditor::InitAnimBlueprint(UAnimBlueprint* AnimBlueprint)
+{
+	if (!AnimBlueprint || !AnimBlueprint->TargetSkeleton)
+	{
+		UE_LOG(LogActAction, Error, TEXT("FActActionSequenceController::InitAnimBlueprint with nullptr AnimBlueprint or AnimBlueprint->TargetSkeleton is nullptr"));
+		return;
+	}
+
+	if (ActActionSequence)
+	{
+		if (ActActionSequence->EditAnimBlueprint != AnimBlueprint)
+		{
+			UE_LOG(LogActAction, Log, TEXT("AssignAsEditAnim PreviewActor : %s"), *AnimBlueprint->GetName());
+			ActActionSequence->EditAnimBlueprint = AnimBlueprint;
+		}
+		ActActionPreviewSceneController->SpawnActorInViewport(ASkeletalMeshActor::StaticClass(), AnimBlueprint);
+	}
+}
+
+TRange<FFrameNumber> FActActionSequenceEditor::GetPlaybackRange() const
+{
+	return ActActionSequence->PlaybackRange;
+}
+
+void FActActionSequenceEditor::SetPlaybackRange(TRange<FFrameNumber> InRange)
+{
+	if (ensure(InRange.HasLowerBound() && InRange.HasUpperBound()))
+	{
+		ActActionSequence->PlaybackRange = InRange;
+	}
+}
+
+FFrameRate FActActionSequenceEditor::GetTickResolution() const
+{
+	return ActActionSequence->TickResolution;
+}
+
+FFrameRate FActActionSequenceEditor::GetDisplayRate() const
+{
+	return ActActionSequence->DisplayRate;
+}
+
+TRange<FFrameNumber> FActActionSequenceEditor::GetSelectionRange() const
+{
+	return ActActionSequence->SelectionRange;
 }
 
 #undef LOCTEXT_NAMESPACE

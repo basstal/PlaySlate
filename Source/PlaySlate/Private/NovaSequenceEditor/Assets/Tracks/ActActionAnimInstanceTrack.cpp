@@ -8,6 +8,7 @@
 #include "IContentBrowserSingleton.h"
 #include "GameFramework/Character.h"
 #include "Animation/AnimBlueprint.h"
+#include "NovaSequenceEditor/ActActionSequenceEditor.h"
 
 
 #define LOCTEXT_NAMESPACE "ActAction"
@@ -79,7 +80,7 @@ void FActActionAnimInstanceTrack::OnAssetSelected(const FAssetData& InAssetData)
 	{
 		UE_LOG(LogActAction, Log, TEXT("InAssetData : %s"), *InAssetData.GetFullName());
 		UAnimBlueprint* AnimBlueprint = Cast<UAnimBlueprint>(InAssetData.GetAsset());
-		SequenceController.Pin()->InitAnimBlueprint(AnimBlueprint);
+		SequenceController.Pin()->GetActActionSequenceEditor()->InitAnimBlueprint(AnimBlueprint);
 		AnimInstanceSelectionDialog->RequestDestroyWindow();
 	}
 }

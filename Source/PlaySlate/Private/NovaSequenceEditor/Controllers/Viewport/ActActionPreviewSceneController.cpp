@@ -1,18 +1,25 @@
 ﻿#include "ActActionPreviewSceneController.h"
 
-#include "ActActionViewportClient.h"
+#include "Utils/ActActionStaticUtil.h"
+#include "Utils/ActActionPlaybackUtil.h"
 #include "PlaySlate.h"
+#include "ActActionViewportClient.h"
 #include "NovaSequenceEditor/Widgets/Viewport/ActActionViewportWidget.h"
+#include "NovaSequenceEditor/ActActionSequenceEditor.h"
 
 #include "Animation/DebugSkelMeshComponent.h"
-#include "NovaSequenceEditor/ActActionSequenceEditor.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimBlueprint.h"
+#include "Animation/AnimSingleNodeInstance.h"
+#include "AnimPreviewInstance.h"
 
 FActActionPreviewSceneController::FActActionPreviewSceneController(const ConstructionValues& CVS, const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor)
 	: FAdvancedPreviewScene(CVS),
 	  ActActionActor(nullptr),
 	  ActActionSkeletalMesh(nullptr),
 	  LastCachedLODForPreviewComponent(0),
-	  ActActionSequenceEditor(InActActionSequenceEditor)
+	  ActActionSequenceEditor(InActActionSequenceEditor),
+	  PreviewScrubTime(0)
 {
 }
 
@@ -20,47 +27,6 @@ FActActionPreviewSceneController::~FActActionPreviewSceneController()
 {
 	UE_LOG(LogActAction, Log, TEXT("FActActionPreviewSceneController::~FActActionPreviewSceneController"));
 	ActActionViewportWidget.Reset();
-}
-
-void FActActionPreviewSceneController::InitPreviewScene(AActor* InActor)
-{
-	// setup default scene
-	if (InActor)
-	{
-		UE_LOG(LogActAction, Log, TEXT("InitPreviewScene InActor : %s"), *InActor->GetName());
-		check(!InActor || !InActor->IsRooted());
-		ActActionActor = InActor;
-	}
-	else
-	{
-		InActor = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity);
-		check(!InActor || !InActor->IsRooted());
-		ActActionActor = InActor;
-	}
-
-	// Create the preview component
-	UDebugSkelMeshComponent* SkeletalMeshComponent = NewObject<UDebugSkelMeshComponent>(ActActionActor);
-	if (GEditor->PreviewPlatform.GetEffectivePreviewFeatureLevel() <= ERHIFeatureLevel::ES3_1)
-	{
-		SkeletalMeshComponent->SetMobility(EComponentMobility::Static);
-	}
-	AddComponent(SkeletalMeshComponent, FTransform::Identity, false);
-	SetPreviewMeshComponent(SkeletalMeshComponent);
-
-	// set root component, so we can attach to it. 
-	ActActionActor->SetRootComponent(SkeletalMeshComponent);
-}
-
-
-void FActActionPreviewSceneController::SetPreviewMeshComponent(UDebugSkelMeshComponent* InSkeletalMeshComponent)
-{
-	ActActionSkeletalMesh = InSkeletalMeshComponent;
-
-	if (ActActionSkeletalMesh)
-	{
-		ActActionSkeletalMesh->SelectionOverrideDelegate = UPrimitiveComponent::FSelectionOverride::CreateRaw(this, &FActActionPreviewSceneController::PreviewComponentSelectionOverride);
-		ActActionSkeletalMesh->PushSelectionToProxy();
-	}
 }
 
 void FActActionPreviewSceneController::AddComponent(UActorComponent* Component, const FTransform& LocalToWorld, bool bAttachToRoot)
@@ -121,4 +87,90 @@ bool FActActionPreviewSceneController::PreviewComponentSelectionOverride(const U
 	}
 
 	return false;
+}
+
+void FActActionPreviewSceneController::SpawnActorInViewport(UClass* ActorType, UAnimBlueprint* AnimBlueprint)
+{
+	AActor* SpawnedActor = GetWorld()->SpawnActor(ActorType);
+	check(SpawnedActor)
+	ActActionActor = SpawnedActor;
+	UE_LOG(LogActAction, Log, TEXT("SpawnActorInViewport ActActionActor : %s"), *ActActionActor->GetName());
+
+	// Create the preview component
+	UDebugSkelMeshComponent* SkeletalMeshComponent = NewObject<UDebugSkelMeshComponent>(ActActionActor);
+	ActActionSkeletalMesh = SkeletalMeshComponent;
+	if (GEditor->PreviewPlatform.GetEffectivePreviewFeatureLevel() <= ERHIFeatureLevel::ES3_1)
+	{
+		ActActionSkeletalMesh->SetMobility(EComponentMobility::Static);
+	}
+	AddComponent(ActActionSkeletalMesh, FTransform::Identity, false);
+	// set root component, so we can attach to it. 
+	ActActionActor->SetRootComponent(ActActionSkeletalMesh);
+
+	ActActionSkeletalMesh->SelectionOverrideDelegate = UPrimitiveComponent::FSelectionOverride::CreateRaw(this, &FActActionPreviewSceneController::PreviewComponentSelectionOverride);
+	ActActionSkeletalMesh->PushSelectionToProxy();
+	ActActionSkeletalMesh->OverrideMaterials.Empty();
+
+	USkeletalMesh* PreviewSkeletalMesh = AnimBlueprint->TargetSkeleton->GetPreviewMesh(true);
+	ActActionSkeletalMesh->SetSkeletalMesh(PreviewSkeletalMesh);
+	ActActionSkeletalMesh->SetAnimInstanceClass(AnimBlueprint->GeneratedClass);
+	ActActionSkeletalMesh->InitializeAnimScriptInstance();
+	ActActionSkeletalMesh->UpdateBounds();
+
+	// Center the mesh at the world origin then offset to put it on top of the plane
+	const float BoundsZOffset = ActActionSequence::ActActionStaticUtil::GetBoundsZOffset(ActActionSkeletalMesh->Bounds);
+	ActActionActor->SetActorLocation(-ActActionSkeletalMesh->Bounds.Origin + FVector(0, 0, BoundsZOffset), false);
+	ActActionSkeletalMesh->RecreateRenderState_Concurrent();
+}
+
+void FActActionPreviewSceneController::InitAnimationByAnimMontage(UAnimMontage* AnimMontage)
+{
+	UAnimSequenceBase* AnimSequence = Cast<UAnimSequenceBase>(AnimMontage);
+	USkeleton* Skeleton = nullptr;
+	if (AnimSequence)
+	{
+		Skeleton = AnimSequence->GetSkeleton();
+	}
+
+	UDebugSkelMeshComponent* PreviewComponent = GetActActionSkeletalMesh();
+	if (PreviewComponent && Skeleton)
+	{
+		USkeletalMesh* PreviewMesh = Skeleton->GetAssetPreviewMesh(AnimSequence);
+		if (PreviewMesh)
+		{
+			UAnimSingleNodeInstance* PreviewInstance = Cast<UAnimSingleNodeInstance>(PreviewComponent->PreviewInstance);
+			if (!PreviewInstance || PreviewInstance->GetCurrentAsset() != AnimSequence || PreviewComponent->SkeletalMesh != PreviewMesh)
+			{
+				// PreviewInstance->CurrentAsset = AnimSequence;
+				// PreviewInstance->CurrentSkeleton = PreviewMesh->GetSkeleton();
+				// PreviewInstance->Montage_Play(AnimMontage);
+				PreviewComponent->SetSkeletalMeshWithoutResettingAnimation(PreviewMesh);
+				PreviewComponent->EnablePreview(true, AnimSequence);
+				PreviewComponent->PreviewInstance->SetLooping(true);
+				PreviewComponent->SetPlayRate(60);
+
+				//Place the camera at a good viewer position
+				TSharedPtr<FEditorViewportClient> ViewportClient = ActActionViewportWidget->GetViewportClient();
+				FVector NewPosition = ViewportClient->GetViewLocation();
+				NewPosition.Normalize();
+				ViewportClient->SetViewLocation(NewPosition * (PreviewMesh->GetImportedBounds().SphereRadius * 1.5f));
+			}
+		}
+	}
+}
+
+void FActActionPreviewSceneController::EvaluateInternal(ActActionSequence::FActActionEvaluationRange InRange)
+{
+	UDebugSkelMeshComponent* PreviewMeshComponent = GetActActionSkeletalMesh();
+	if (PreviewMeshComponent && PreviewMeshComponent->IsPreviewOn())
+	{
+		if (PreviewMeshComponent->PreviewInstance->IsPlaying())
+		{
+			PreviewMeshComponent->PreviewInstance->SetPlaying(false);
+		}
+		FFrameTime CurrentPosition = InRange.GetTime();
+		PreviewScrubTime = CurrentPosition.AsDecimal() / 60;
+		PreviewMeshComponent->PreviewInstance->SetPosition(PreviewScrubTime);
+		PreviewMeshComponent->PreviewInstance->UpdateAnimation(PreviewScrubTime, false);
+	}
 }

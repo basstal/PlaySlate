@@ -26,9 +26,6 @@ public:
 		/** The current view range (seconds) */
 		SLATE_ATTRIBUTE(ActActionSequence::FActActionAnimatedRange, ViewRange)
 
-		/** The current clamp range (seconds) */
-		SLATE_ATTRIBUTE(ActActionSequence::FActActionAnimatedRange, ClampRange)
-
 		/**
 		 * 动画播放的帧区间
 		 * The playback range
@@ -114,7 +111,7 @@ public:
 		SLATE_EVENT(FSimpleDelegate, OnDeleteAllMarkedFrames)
 
 		/** Called when the user changes the clamp range */
-		SLATE_EVENT(ActActionSequence::OnTimeRangeChangedDelegate, OnClampRangeChanged)
+		// SLATE_EVENT(ActActionSequence::OnTimeRangeChangedDelegate, OnClampRangeChanged)
 
 		/** Called to get the nearest key */
 		SLATE_EVENT(ActActionSequence::OnGetNearestKeyDelegate, OnGetNearestKey)

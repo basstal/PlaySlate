@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-class FActActionSequenceDisplayNode;
+class FActActionSequenceTreeViewNode;
 class FActActionSequenceSectionBase;
 class SActActionSequenceSection;
 
@@ -19,7 +19,7 @@ public:
 	{
 	}
 
-	void Construct(const FArguments& InArgs, TSharedRef<FActActionSequenceDisplayNode> Node);
+	void Construct(const FArguments& InArgs, TSharedRef<FActActionSequenceTreeViewNode> Node);
 	EVisibility GetSectionVisibility(UObject* SectionObject) const;
 	bool GetSectionEnabled(TSharedRef<FActActionSequenceSectionBase> InSequenceSection) const;
 	FText GetSectionToolTip(TSharedRef<FActActionSequenceSectionBase> InSequenceSection) const;
@@ -32,9 +32,9 @@ public:
 
 protected:
 	/** The node containing the sections we are viewing/manipulating */
-	TSharedPtr<FActActionSequenceDisplayNode> SectionAreaNode;
+	TSharedPtr<FActActionSequenceTreeViewNode> SectionAreaNode;
 	/** The current view range */
 	TAttribute<TRange<double>> ViewRange;
 	/** All the widgets in the panel */
-	TSlotlessChildren<SActActionSequenceSection> Children;
+	TSlotlessChildren<SWidget> Children;
 };

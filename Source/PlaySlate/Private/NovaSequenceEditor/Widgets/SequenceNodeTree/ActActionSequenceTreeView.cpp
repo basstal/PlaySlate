@@ -2,12 +2,12 @@
 
 #include "Subs/ActActionSequenceTrackLane.h"
 #include "NovaSequenceEditor/Widgets/SequenceNodeTree/ActActionSequenceTrackArea.h"
-#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceDisplayNode.h"
+#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
 #include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceNodeTree.h"
 #include "NovaSequenceEditor/Controllers/ActActionSequenceController.h"
 
 
-void SActActionSequenceTreeViewRow::Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& OwnerTableView, const TSharedRef<FActActionSequenceDisplayNode>& InNode)
+void SActActionSequenceTreeViewRow::Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& OwnerTableView, const TSharedRef<FActActionSequenceTreeViewNode>& InNode)
 {
 	Node = InNode;
 	OnGenerateWidgetForColumn = InArgs._OnGenerateWidgetForColumn;
@@ -23,22 +23,23 @@ void SActActionSequenceTreeViewRow::Construct(const FArguments& InArgs, const TS
 		OwnerTableView);
 }
 
-TOptional<EItemDropZone> SActActionSequenceTreeViewRow::OnCanAcceptDrop(const FDragDropEvent& DragDropEvent, EItemDropZone InItemDropZone, TSharedRef<FActActionSequenceDisplayNode> DisplayNode)
+TOptional<EItemDropZone> SActActionSequenceTreeViewRow::OnCanAcceptDrop(const FDragDropEvent& DragDropEvent, EItemDropZone InItemDropZone, TSharedRef<FActActionSequenceTreeViewNode> DisplayNode)
 {
 	return TOptional<EItemDropZone>();
 }
 
-FReply SActActionSequenceTreeViewRow::OnAcceptDrop(const FDragDropEvent& DragDropEvent, EItemDropZone InItemDropZone, TSharedRef<FActActionSequenceDisplayNode> DisplayNode)
+FReply SActActionSequenceTreeViewRow::OnAcceptDrop(const FDragDropEvent& DragDropEvent, EItemDropZone InItemDropZone, TSharedRef<FActActionSequenceTreeViewNode> DisplayNode)
 {
 	return FReply::Unhandled();
 }
 
 FMargin SActActionSequenceTreeViewRow::GetRowPadding() const
 {
-	TSharedPtr<FActActionSequenceDisplayNode> PinnedNode = Node.Pin();
-	TSharedPtr<FActActionSequenceDisplayNode> ParentNode = PinnedNode ? PinnedNode->GetParentOrRoot() : nullptr;
+	TSharedPtr<FActActionSequenceTreeViewNode> PinnedNode = Node.Pin();
+	TSharedPtr<FActActionSequenceTreeViewNode> ParentNode = PinnedNode ? PinnedNode->GetParentOrRoot() : nullptr;
 
-	if (ParentNode.IsValid() && ParentNode->GetType() == ActActionSequence::ESequenceNodeType::Root && ParentNode->GetChildNodes()[0] != PinnedNode)
+	const TArray<TSharedRef<FActActionSequenceTreeViewNode>>& ChildNodes = ParentNode->GetChildNodes();
+	if (ParentNode.IsValid() && ParentNode->GetType() == ActActionSequence::ESequenceNodeType::Root && ChildNodes.Num() > 0 && ChildNodes[0] != PinnedNode)
 	{
 		return FMargin(0.f, 1.f, 0.f, 0.f);
 	}
@@ -47,7 +48,7 @@ FMargin SActActionSequenceTreeViewRow::GetRowPadding() const
 
 TSharedRef<SWidget> SActActionSequenceTreeViewRow::GenerateWidgetForColumn(const FName& InColumnName)
 {
-	TSharedPtr<FActActionSequenceDisplayNode> PinnedNode = Node.Pin();
+	TSharedPtr<FActActionSequenceTreeViewNode> PinnedNode = Node.Pin();
 	if (PinnedNode.IsValid())
 	{
 		return OnGenerateWidgetForColumn.Execute(PinnedNode.ToSharedRef(), InColumnName, SharedThis(this));
@@ -61,7 +62,7 @@ void SActActionSequenceTreeViewRow::AddTrackAreaReference(const TSharedRef<SActA
 	TrackLaneReference = Lane;
 }
 
-void SActActionSequenceTreeView::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceNodeTree>& InNodeTree, TSharedRef<SActActionSequenceTrackArea> InTrackArea)
+void SActActionSequenceTreeView::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceTreeViewNode>& InNodeTree, TSharedRef<SActActionSequenceTrackArea> InTrackArea)
 {
 	SequenceNodeTree = InNodeTree;
 	TrackArea = InTrackArea;
@@ -73,7 +74,7 @@ void SActActionSequenceTreeView::Construct(const FArguments& InArgs, const TShar
 
 	STreeView::Construct(
 		STreeView::FArguments()
-		.TreeItemsSource(&RootNodes)
+		.TreeItemsSource(&DisplayedRootNodes)
 		.SelectionMode(ESelectionMode::Multi)
 		.OnGenerateRow(this, &SActActionSequenceTreeView::OnGenerateRow)
 		.OnGetChildren(this, &SActActionSequenceTreeView::OnGetChildren)
@@ -86,7 +87,7 @@ void SActActionSequenceTreeView::Construct(const FArguments& InArgs, const TShar
 
 void SActActionSequenceTreeView::SetupColumns(const FArguments& InArgs)
 {
-	auto GenerateOutlinerLambda = [](const TSharedRef<FActActionSequenceDisplayNode>& InDisplayNode, const TSharedRef<SActActionSequenceTreeViewRow>& InTreeViewRow)
+	auto GenerateOutlinerLambda = [](const TSharedRef<FActActionSequenceTreeViewNode>& InDisplayNode, const TSharedRef<SActActionSequenceTreeViewRow>& InTreeViewRow)
 	{
 		return InDisplayNode->GenerateContainerWidgetForOutliner(InTreeViewRow);
 	};
@@ -107,12 +108,12 @@ void SActActionSequenceTreeView::SetupColumns(const FArguments& InArgs)
 
 void SActActionSequenceTreeView::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
 {
-	STreeView<TSharedRef<FActActionSequenceDisplayNode, ESPMode::Fast>>::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
+	STreeView<TSharedRef<FActActionSequenceTreeViewNode, ESPMode::Fast>>::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
 }
 
 int32 SActActionSequenceTreeView::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
-	LayerId = STreeView<TSharedRef<FActActionSequenceDisplayNode, ESPMode::Fast>>::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
+	LayerId = STreeView<TSharedRef<FActActionSequenceTreeViewNode, ESPMode::Fast>>::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
 	// These are updated in both tick and paint since both calls can cause changes to the cached rows and the data needs
 	// to be kept synchronized so that external measuring calls get correct and reliable results.
 	// if (bPhysicalNodesNeedUpdate)
@@ -150,12 +151,12 @@ int32 SActActionSequenceTreeView::OnPaint(const FPaintArgs& Args, const FGeometr
 	return LayerId + 1;
 }
 
-TSharedRef<ITableRow> SActActionSequenceTreeView::OnGenerateRow(TSharedRef<FActActionSequenceDisplayNode> InDisplayNode, const TSharedRef<STableViewBase>& OwnerTable)
+TSharedRef<ITableRow> SActActionSequenceTreeView::OnGenerateRow(TSharedRef<FActActionSequenceTreeViewNode> InDisplayNode, const TSharedRef<STableViewBase>& OwnerTable)
 {
 	TSharedRef<SActActionSequenceTreeViewRow> Row = SNew(SActActionSequenceTreeViewRow, OwnerTable, InDisplayNode).OnGenerateWidgetForColumn(this, &SActActionSequenceTreeView::GenerateWidgetFromColumn);
 
 	// Ensure the track area is kept up to date with the virtualized scroll of the tree view
-	TSharedPtr<FActActionSequenceDisplayNode> SectionAuthority = InDisplayNode->GetSectionAreaAuthority();
+	TSharedPtr<FActActionSequenceTreeViewNode> SectionAuthority = InDisplayNode->GetSectionAreaAuthority();
 	if (SectionAuthority.IsValid())
 	{
 		TSharedPtr<SActActionSequenceTrackLane> TrackLane = TrackArea->FindTrackSlot(SectionAuthority.ToSharedRef());
@@ -182,7 +183,7 @@ TSharedRef<ITableRow> SActActionSequenceTreeView::OnGenerateRow(TSharedRef<FActA
 	return Row;
 }
 
-TSharedRef<SWidget> SActActionSequenceTreeView::GenerateWidgetFromColumn(const TSharedRef<FActActionSequenceDisplayNode>& InNode, const FName& ColumnId, const TSharedRef<SActActionSequenceTreeViewRow>& Row) const
+TSharedRef<SWidget> SActActionSequenceTreeView::GenerateWidgetFromColumn(const TSharedRef<FActActionSequenceTreeViewNode>& InNode, const FName& ColumnId, const TSharedRef<SActActionSequenceTreeViewRow>& Row) const
 {
 	const FActActionSequenceTreeViewColumn* TreeViewColumn = Columns.Find(ColumnId);
 	if (TreeViewColumn)
@@ -192,7 +193,7 @@ TSharedRef<SWidget> SActActionSequenceTreeView::GenerateWidgetFromColumn(const T
 	return SNullWidget::NullWidget;
 }
 
-void SActActionSequenceTreeView::OnGetChildren(TSharedRef<FActActionSequenceDisplayNode> InParent, TArray<TSharedRef<FActActionSequenceDisplayNode>>& OutChildren) const
+void SActActionSequenceTreeView::OnGetChildren(TSharedRef<FActActionSequenceTreeViewNode> InParent, TArray<TSharedRef<FActActionSequenceTreeViewNode>>& OutChildren) const
 {
 	for (const auto& Node : InParent->GetChildNodes())
 	{
@@ -203,26 +204,27 @@ void SActActionSequenceTreeView::OnGetChildren(TSharedRef<FActActionSequenceDisp
 	}
 }
 
-// bool SActActionSequenceTreeView::IsNodeFiltered(const TSharedRef<FActActionSequenceDisplayNode> Node) const
+// bool SActActionSequenceTreeView::IsNodeFiltered(const TSharedRef<FActActionSequenceTreeViewNode> Node) const
 // {
 // 	return FilteredNodes.Contains(Node);
 // }
 
 
-void SActActionSequenceTreeView::AddRootNodes(TSharedPtr<FActActionSequenceDisplayNode> SequenceDisplayNode)
+void SActActionSequenceTreeView::AddDisplayNode(TSharedPtr<FActActionSequenceTreeViewNode> SequenceDisplayNode)
 {
-	RootNodes.Add(SequenceDisplayNode.ToSharedRef());
+	DisplayedRootNodes.Add(SequenceDisplayNode.ToSharedRef());
+	SetTreeItemsSource(GetDisplayedRootNodes());
 }
 
 void SActActionSequenceTreeView::Refresh()
 {
-	RootNodes.Reset();
+	DisplayedRootNodes.Reset();
 
-	for (auto& Item : SequenceNodeTree->GetRootNodes())
+	for (auto& Item : SequenceNodeTree->GetChildNodes())
 	{
 		if (Item->IsVisible() /*&& Item->IsPinned() == bShowPinnedNodes*/)
 		{
-			RootNodes.Add(Item);
+			DisplayedRootNodes.Add(Item);
 		}
 	}
 }
