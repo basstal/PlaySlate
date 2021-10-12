@@ -19,17 +19,14 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/DebugSkelMeshComponent.h"
 #include "AnimPreviewInstance.h"
+#include "FrameNumberNumericInterface.h"
 
 #define LOCTEXT_NAMESPACE "ActAction"
 
 FActActionSequenceController::FActActionSequenceController(const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor)
 	: ActActionSequenceEditor(InActActionSequenceEditor),
-	  TargetViewRange(0.f, 5.f),
-	  LastViewRange(0.f, 5.f),
-	  PlaybackState(ActActionSequence::EPlaybackType::Stopped),
-	  bNeedsEvaluate(false),
-	  LocalLoopIndexOnBeginScrubbing(0),
-	  LocalLoopIndexOffsetDuringScrubbing(0)
+	  PlaybackState(ActActionSequence::EPlaybackType::Stopped)
+
 {
 	PlayPosition.Reset(InActActionSequenceEditor->GetPlaybackRange().GetLowerBoundValue());
 	// ** 将Sequence能编辑的所有TrackEditor注册，以便能够使用AddTrackEditor以及AddTrackMenu
@@ -43,6 +40,7 @@ FActActionSequenceController::~FActActionSequenceController()
 	SequenceWidget.Reset();
 	TimeSliderController.Reset();
 	TreeViewRoot.Reset();
+	TrackEditors.Empty();
 }
 
 void FActActionSequenceController::Tick(float DeltaTime)
@@ -75,12 +73,6 @@ void FActActionSequenceController::UpdateTimeBases()
 	{
 		FFrameRate TickResolution = ActActionSequence->TickResolution;
 		FFrameRate DisplayRate = ActActionSequence->DisplayRate;
-
-		if (DisplayRate != PlayPosition.GetInputRate())
-		{
-			bNeedsEvaluate = true;
-		}
-
 		// We set the play position in terms of the display rate,
 		// but want evaluation ranges in the sequence's tick resolution
 		PlayPosition.SetTimeBase(DisplayRate, TickResolution);
@@ -93,17 +85,6 @@ void FActActionSequenceController::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 	{
 		TrackEditors[i]->BuildAddTrackMenu(MenuBuilder);
 	}
-}
-
-ActActionSequence::FActActionAnimatedRange FActActionSequenceController::GetViewRange() const
-{
-	ActActionSequence::FActActionAnimatedRange AnimatedRange(TargetViewRange.GetLowerBoundValue(), TargetViewRange.GetUpperBoundValue());
-	if (ZoomAnimation.IsPlaying())
-	{
-		AnimatedRange.AnimationTarget = TargetViewRange;
-	}
-
-	return AnimatedRange;
 }
 
 // TODO:这个接口改到Editor中，资源调用Editor接口再调用Controller
@@ -126,13 +107,9 @@ void FActActionSequenceController::AddAnimMontageTrack(UAnimMontage* AnimMontage
 		}
 		if (TimeSliderController.IsValid())
 		{
-			// ** 添加右侧TimeSlider
 			float CalculateSequenceLength = AnimMontage->CalculateSequenceLength();
-			UE_LOG(LogActAction, Log, TEXT("CalculateSequenceLength : %f"), CalculateSequenceLength);
-			// ** 限制显示的最大长度为当前的Sequence总时长
-			TargetViewRange = TRange<double>(0, CalculateSequenceLength);
-			FFrameNumber EndFrame = FFrameNumber((int32)(CalculateSequenceLength * TimeSliderController->GetTimeSliderArgs().TickResolution.Get().Numerator));
-			TimeSliderController->SetPlaybackRangeEnd(EndFrame);
+			TimeSliderController->SetTimeSliderPlaybackTotalLength(CalculateSequenceLength);
+			
 		}
 
 		if (ActActionSequenceEditor.IsValid())
@@ -145,8 +122,6 @@ void FActActionSequenceController::AddAnimMontageTrack(UAnimMontage* AnimMontage
 void FActActionSequenceController::SetPlaybackStatus(ActActionSequence::EPlaybackType InPlaybackStatus)
 {
 	PlaybackState = InPlaybackStatus;
-	PauseOnFrame.Reset();
-
 	// Inform the renderer when Sequencer is in a 'paused' state for the sake of inter-frame effects
 	ESequencerState SequencerState = ESS_None;
 	if (InPlaybackStatus == ActActionSequence::EPlaybackType::Playing || InPlaybackStatus == ActActionSequence::EPlaybackType::Recording)
@@ -157,7 +132,6 @@ void FActActionSequenceController::SetPlaybackStatus(ActActionSequence::EPlaybac
 	{
 		SequencerState = ESS_Paused;
 	}
-
 	for (FLevelEditorViewportClient* LevelVC : GEditor->GetLevelViewportClients())
 	{
 		if (LevelVC && LevelVC->AllowsCinematicControl())
@@ -165,202 +139,72 @@ void FActActionSequenceController::SetPlaybackStatus(ActActionSequence::EPlaybac
 			LevelVC->ViewState.GetReference()->SetSequencerState(SequencerState);
 		}
 	}
-
-	// if (InPlaybackStatus == ActActionSequence::EPlaybackType::Playing)
-	// {
-	// 	// if (Settings->GetCleanPlaybackMode())
-	// 	// {
-	// 	// 	CachedViewState.StoreViewState();
-	// 	// }
-	//
-	// 	// override max frame rate
-	// 	// if (PlayPosition.GetEvaluationType() == EMovieSceneEvaluationType::FrameLocked)
-	// 	// {
-	// 	// 	if (!OldMaxTickRate.IsSet())
-	// 	// 	{
-	// 	// 		OldMaxTickRate = GEngine->GetMaxFPS();
-	// 	// 	}
-	// 	//
-	// 	// 	GEngine->SetMaxFPS(1.f / PlayPosition.GetInputRate().AsInterval());
-	// 	// }
-	// }
-	// else
-	// {
-	// 	// CachedViewState.RestoreViewState();
-	// 	//
-	// 	// StopAutoscroll();
-	// 	//
-	// 	// if (OldMaxTickRate.IsSet())
-	// 	// {
-	// 	// 	GEngine->SetMaxFPS(OldMaxTickRate.GetValue());
-	// 	// 	OldMaxTickRate.Reset();
-	// 	// }
-	// 	//
-	// 	// ShuttleMultiplier = 0;
-	// }
-
-	// TimeController->PlayerStatusChanged(PlaybackState, GetGlobalTime());
 }
 
-
-void FActActionSequenceController::EvaluateInternal(ActActionSequence::FActActionEvaluationRange InRange, bool bHasJumped)
+void FActActionSequenceController::EvaluateInternal(ActActionSequence::FActActionEvaluationRange InRange)
 {
-	bNeedsEvaluate = false;
+	TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
+	ActActionSequenceEditorRef->GetActActionPreviewSceneController()->EvaluateInternal(InRange);
 }
 
 void FActActionSequenceController::Pause()
 {
 	SetPlaybackStatus(ActActionSequence::EPlaybackType::Stopped);
-
-	// When stopping a sequence, we always evaluate a non-empty range if possible. This ensures accurate paused motion blur effects.
-	// if (Settings->GetIsSnapEnabled())
-	// {
-	// 	FQualifiedFrameTime LocalTime          = GetLocalTime();
-	// 	FFrameRate          FocusedDisplayRate = GetDisplayRate();
-	//
-	// 	// Snap to the focused play rate
-	// 	FFrameTime RootPosition  = FFrameRate::Snap(LocalTime.Time, LocalTime.Rate, FocusedDisplayRate) * RootToLocalTransform.InverseFromWarp(RootToLocalLoopCounter);
-	//
-	// 	// Convert the root position from tick resolution time base (the output rate), to the play position input rate
-	// 	FFrameTime InputPosition = ConvertFrameTime(RootPosition, PlayPosition.GetOutputRate(), PlayPosition.GetInputRate());
-	// 	EvaluateInternal(PlayPosition.PlayTo(InputPosition));
-	// }
-	// else
-	// {
-	// Update on stop (cleans up things like sounds that are playing)
 	ActActionSequence::FActActionEvaluationRange Range = PlayPosition.GetLastRange().Get(PlayPosition.GetCurrentPositionAsRange());
 	EvaluateInternal(Range);
-	// }
-
-	// OnStopDelegate.Broadcast();
 }
 
-void FActActionSequenceController::StopAutoscroll()
+void FActActionSequenceController::MakeSequenceWidget(ActActionSequence::FActActionSequenceViewParams ViewParams)
 {
-	AutoscrollOffset.Reset();
-	AutoScrubOffset.Reset();
-}
-
-
-TSet<FFrameNumber> FActActionSequenceController::GetVerticalFrames() const
-{
-	TSet<FFrameNumber> VerticalFrames;
-
-	// auto AddVerticalFrames = [](auto &InVerticalFrames, auto InTrack) 
-	// {
-	// 	for (UMovieSceneSection* Section : InTrack->GetAllSections())
-	// 	{
-	// 		if (Section->GetRange().HasLowerBound())
-	// 		{
-	// 			InVerticalFrames.Add(Section->GetRange().GetLowerBoundValue());
-	// 		}
-	//
-	// 		if (Section->GetRange().HasUpperBound())
-	// 		{
-	// 			InVerticalFrames.Add(Section->GetRange().GetUpperBoundValue());
-	// 		}
-	// 	}
-	// };
-
-	// UMovieSceneSequence* FocusedMovieSequence = GetFocusedMovieSceneSequence();
-	// if (FocusedMovieSequence != nullptr)
-	// {
-	// 	UMovieScene* FocusedMovieScene = FocusedMovieSequence->GetMovieScene();
-	// 	if (FocusedMovieScene != nullptr)
-	// 	{
-	// 		for (UMovieSceneTrack* MasterTrack : FocusedMovieScene->GetMasterTracks())
-	// 		{
-	// 			if (MasterTrack && MasterTrack->DisplayOptions.bShowVerticalFrames)
-	// 			{
-	// 				AddVerticalFrames(VerticalFrames, MasterTrack);
-	// 			}
-	// 		}
-	//
-	// 		if (UMovieSceneTrack* CameraCutTrack = FocusedMovieScene->GetCameraCutTrack())
-	// 		{
-	// 			if (CameraCutTrack->DisplayOptions.bShowVerticalFrames)
-	// 			{
-	// 				AddVerticalFrames(VerticalFrames, CameraCutTrack);
-	// 			}
-	// 		}
-	// 	}
-	// }
-
-	return VerticalFrames;
-}
-
-
-void FActActionSequenceController::SetMarkedFrame(int32 InMarkIndex, FFrameNumber InFrameNumber)
-{
-	// UMovieSceneSequence* FocusedMovieSequence = GetFocusedMovieSceneSequence();
-	if (UActActionSequence* ActActionSequence = GetActActionSequence())
+	TSharedRef<FActActionSequenceController> ActionSequenceController = SharedThis(this);
+	// ** 构造所有显示节点的根节点
+	TreeViewRoot = MakeShareable(new FActActionSequenceTreeViewNode(ActionSequenceController));
+	
+	// Get the desired display format from the user's settings each time.
+	TAttribute<EFrameNumberDisplayFormats> GetDisplayFormatAttr = MakeAttributeLambda([=]
 	{
-		// UMovieScene* FocusedMovieScene = FocusedMovieSequence->GetMovieScene();
-		// if (FocusedMovieScene != nullptr)
-		// {
-		ActActionSequence->Modify();
-		// ** TODO:
-		// ActActionSequencePtr->SetMarkedFrame(InMarkIndex, InFrameNumber);
-		// }
-	}
+		return EFrameNumberDisplayFormats::Frames;
+	});
+	TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = GetActActionSequenceEditor();
+	TAttribute<FFrameRate> GetTickResolutionAttr = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetTickResolution);
+	TAttribute<FFrameRate> GetDisplayRateAttr = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetDisplayRate);
+	// Create our numeric type interface so we can pass it to the time slider below.
+	NumericTypeInterface = MakeShareable(new FFrameNumberInterface(GetDisplayFormatAttr, 0, GetTickResolutionAttr, GetDisplayRateAttr));
+	
+	TSharedPtr<SActActionSequenceWidget> ActActionSequenceWidget = SNew(SActActionSequenceWidget, ActionSequenceController)
+		.PlaybackRange(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetPlaybackRange)
+		.PlaybackStatus(this, &FActActionSequenceController::GetPlaybackStatus)
+		.SelectionRange(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetSelectionRange)
+		.OnPlaybackRangeChanged(ActActionSequenceEditorRef, &FActActionSequenceEditor::SetPlaybackRange)
+		.ScrubPosition(this, &FActActionSequenceController::GetLocalFrameTime)
+		.ScrubPositionText(this, &FActActionSequenceController::GetFrameTimeText)
+		.OnBeginScrubbing(this, &FActActionSequenceController::OnBeginScrubbing)
+		.OnEndScrubbing(this, &FActActionSequenceController::OnEndScrubbing)
+		.OnScrubPositionChanged(this, &FActActionSequenceController::OnScrubPositionChanged)
+		.OnGetAddMenuContent(ViewParams.OnGetAddMenuContent)
+		.OnReceivedFocus(ViewParams.OnReceivedFocus)
+		.AddMenuExtender(ViewParams.AddMenuExtender)
+		.ToolbarExtender(ViewParams.ToolbarExtender);
+
+	// ** 将内部Widget的Controller同步到这个的Controller中
+	TimeSliderController = ActActionSequenceWidget->GetTimeSliderController();
+	SequenceWidget = ActActionSequenceWidget;
 }
-
-void FActActionSequenceController::AddMarkedFrame(FFrameNumber FrameNumber)
-{
-	// UMovieSceneSequence* FocusedMovieSequence = GetFocusedMovieSceneSequence();
-	// if (FocusedMovieSequence != nullptr)
-	// {
-	// 	UMovieScene* FocusedMovieScene = FocusedMovieSequence->GetMovieScene();
-	if (UActActionSequence* ActActionSequence = GetActActionSequence())
-	{
-		FScopedTransaction AddMarkedFrameTransaction(LOCTEXT("AddMarkedFrame_Transaction", "Add Marked Frame"));
-
-		ActActionSequence->Modify();
-		// ** TODO:
-		// ActActionSequencePtr->AddMarkedFrame(FMovieSceneMarkedFrame(FrameNumber));
-	}
-	// }
-}
-
 
 FFrameTime FActActionSequenceController::GetLocalFrameTime() const
 {
-	return GetLocalTime().Time;
-}
-
-FQualifiedFrameTime FActActionSequenceController::GetLocalTime() const
-{
-	const FFrameRate FocusedResolution = GetActActionSequenceEditor()->GetTickResolution();
+	const FFrameRate TickResolution = GetActActionSequenceEditor()->GetTickResolution();
 	const FFrameTime CurrentPosition = PlayPosition.GetCurrentPosition();
-
 	const FFrameTime RootTime = ConvertFrameTime(CurrentPosition, PlayPosition.GetInputRate(), PlayPosition.GetOutputRate());
-	return FQualifiedFrameTime(RootTime, FocusedResolution);
+	return FQualifiedFrameTime(RootTime, TickResolution).Time;
 }
 
 
 FString FActActionSequenceController::GetFrameTimeText() const
 {
 	const FFrameTime CurrentPosition = PlayPosition.GetCurrentPosition();
-
 	const FFrameTime RootTime = ConvertFrameTime(CurrentPosition, PlayPosition.GetInputRate(), PlayPosition.GetOutputRate());
-
-	const FFrameTime LocalTime = RootTime;
-
-	return SequenceWidget->GetNumericType()->ToString(LocalTime.GetFrame().Value);
-}
-
-uint32 FActActionSequenceController::GetLocalLoopIndex() const
-{
-	// if (RootToLocalLoopCounter.WarpCounts.Num() == 0)
-	// {
-	// 	return FMovieSceneTimeWarping::InvalidWarpCount;
-	// }
-	// else
-	// {
-	// const bool bIsScrubbing = GetPlaybackStatus() == ActActionSequence::EPlaybackType::Scrubbing;
-	// return RootToLocalLoopCounter.WarpCounts.Last() + (bIsScrubbing ? LocalLoopIndexOffsetDuringScrubbing : 0);
-	// }
-	return 0;
+	return GetNumericType()->ToString(RootTime.GetFrame().Value);
 }
 
 void FActActionSequenceController::OnBeginScrubbing()
@@ -369,67 +213,40 @@ void FActActionSequenceController::OnBeginScrubbing()
 	Pause();
 
 	SetPlaybackStatus(ActActionSequence::EPlaybackType::Scrubbing);
-	// SequenceWidget->RegisterActiveTimerForPlayback();
-
-	LocalLoopIndexOnBeginScrubbing = GetLocalLoopIndex();
-	LocalLoopIndexOffsetDuringScrubbing = 0;
-
-	// OnBeginScrubbingDelegate.Broadcast();
 }
 
 
 void FActActionSequenceController::OnEndScrubbing()
 {
 	SetPlaybackStatus(ActActionSequence::EPlaybackType::Stopped);
-	StopAutoscroll();
-
-	LocalLoopIndexOnBeginScrubbing = -1;
-	LocalLoopIndexOffsetDuringScrubbing = 0;
-
-	// OnEndScrubbingDelegate.Broadcast();
 }
 
 
-void FActActionSequenceController::SetGlobalTime(FFrameTime NewTime)
+void FActActionSequenceController::SetGlobalTime(FFrameTime InFrameTime)
 {
-	if (!GetActActionSequence())
+	if (UActActionSequence* ActActionSequence = GetActActionSequence())
 	{
-		return;
-	}
-	NewTime = ConvertFrameTime(NewTime, GetActActionSequence()->TickResolution, PlayPosition.GetInputRate());
-	// if (PlayPosition.GetEvaluationType() == EMovieSceneEvaluationType::FrameLocked)
-	// {
-	// 	NewTime = NewTime.FloorToFrame();
-	// }
-
-	// Don't update the sequence if the time hasn't changed as this will cause duplicate events and the like to fire.
-	// If we need to reevaluate the sequence at the same time for whatever reason, we should call ForceEvaluate()
-	TOptional<FFrameTime> CurrentPosition = PlayPosition.GetCurrentPosition();
-	if (PlayPosition.GetCurrentPosition() != NewTime)
-	{
-		EvaluateInternal(PlayPosition.JumpTo(NewTime));
-	}
-
-	if (AutoScrubTarget.IsSet())
-	{
-		SetPlaybackStatus(ActActionSequence::EPlaybackType::Stopped);
-		AutoScrubTarget.Reset();
+		InFrameTime = ConvertFrameTime(InFrameTime, ActActionSequence->TickResolution, PlayPosition.GetInputRate());
+		// Don't update the sequence if the time hasn't changed as this will cause duplicate events and the like to fire.
+		// If we need to reevaluate the sequence at the same time for whatever reason, we should call ForceEvaluate()
+		TOptional<FFrameTime> CurrentPosition = PlayPosition.GetCurrentPosition();
+		if (CurrentPosition != InFrameTime)
+		{
+			EvaluateInternal(PlayPosition.JumpTo(InFrameTime));
+		}
 	}
 }
 
-void FActActionSequenceController::SetLocalTimeDirectly(FFrameTime NewTime)
+void FActActionSequenceController::SetLocalTimeDirectly(FFrameTime InFrameTime)
 {
 	TWeakPtr<SWidget> PreviousFocusedWidget = FSlateApplication::Get().GetKeyboardFocusedWidget();
-
 	// Clear focus before setting time in case there's a key editor value selected that gets committed to a newly selected key on UserMovedFocus
 	if (GetPlaybackStatus() == ActActionSequence::EPlaybackType::Stopped)
 	{
 		FSlateApplication::Get().ClearKeyboardFocus(EFocusCause::Cleared);
 	}
-
 	// Transform the time to the root time-space
-	SetGlobalTime(NewTime);
-
+	SetGlobalTime(InFrameTime);
 	if (PreviousFocusedWidget.IsValid())
 	{
 		FSlateApplication::Get().SetKeyboardFocus(PreviousFocusedWidget.Pin());
@@ -444,92 +261,19 @@ void FActActionSequenceController::OnScrubPositionChanged(FFrameTime NewScrubPos
 		{
 			OnEndScrubbing();
 		}
-		// else if (IsAutoScrollEnabled())
-		// {
-		// 	UpdateAutoScroll(NewScrubPosition / GetTickResolution());
-		// 	
-		// 	// When scrubbing, we animate auto-scrolled scrub position in Tick()
-		// 	if (AutoScrubOffset.IsSet())
-		// 	{
-		// 		return;
-		// 	}
-		// }
 	}
-
-	if (!bScrubbing && FSlateApplication::Get().GetModifierKeys().IsShiftDown())
-	{
-		AutoScrubTarget = ActActionSequence::FActActionAutoScrubTarget(NewScrubPosition, GetLocalTime().Time, FPlatformTime::Seconds());
-	}
-	else
-	{
-		SetLocalTimeDirectly(NewScrubPosition);
-	}
+	SetLocalTimeDirectly(NewScrubPosition);
 }
 
 UActActionSequence* FActActionSequenceController::GetActActionSequence() const
 {
-	if (ActActionSequenceEditor.IsValid())
-	{
-		return ActActionSequenceEditor.Pin()->GetActActionSequence();
-	}
-	return nullptr;
+	TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
+	return ActActionSequenceEditorRef->GetActActionSequence();
 }
 
 TSharedRef<FActActionSequenceEditor> FActActionSequenceController::GetActActionSequenceEditor() const
 {
 	return ActActionSequenceEditor.Pin().ToSharedRef();
-}
-
-
-void FActActionSequenceController::MakeSequenceWidget(ActActionSequence::FActActionSequenceViewParams ViewParams)
-{
-	TSharedRef<FActActionSequenceController> ActionSequenceController = SharedThis(this);
-	// ** 构造所有显示节点的根节点
-	TreeViewRoot = MakeShareable(new FActActionSequenceTreeViewNode(ActionSequenceController));
-	
-	TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
-	TSharedPtr<SActActionSequenceWidget> ActActionSequenceWidget = SNew(SActActionSequenceWidget, ActionSequenceController)
-		.ViewRange(this, &FActActionSequenceController::GetViewRange)
-		.PlaybackRange(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetPlaybackRange)
-		.PlaybackStatus(this, &FActActionSequenceController::GetPlaybackStatus)
-		.SelectionRange(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetSelectionRange)
-		.VerticalFrames(this, &FActActionSequenceController::GetVerticalFrames)
-		// .MarkedFrames(this, &FActActionSequenceController::GetMarkedFrames)
-		// .GlobalMarkedFrames(this, &FActActionSequenceController::GetGlobalMarkedFrames)
-		.OnSetMarkedFrame(this, &FActActionSequenceController::SetMarkedFrame)
-		.OnAddMarkedFrame(this, &FActActionSequenceController::AddMarkedFrame)
-		// .OnDeleteMarkedFrame(this, &FActActionSequenceController::DeleteMarkedFrame)
-		// .OnDeleteAllMarkedFrames(this, &FActActionSequenceController::DeleteAllMarkedFrames)
-		// .SubSequenceRange(this, &FActActionSequenceController::GetSubSequenceRange)
-		.OnPlaybackRangeChanged(ActActionSequenceEditorRef, &FActActionSequenceEditor::SetPlaybackRange)
-		// .OnPlaybackRangeBeginDrag(this, &FActActionSequenceController::OnPlaybackRangeBeginDrag)
-		// .OnPlaybackRangeEndDrag(this, &FActActionSequenceController::OnPlaybackRangeEndDrag)
-		// .OnSelectionRangeChanged(this, &FActActionSequenceController::SetSelectionRange)
-		// .OnSelectionRangeBeginDrag(this, &FActActionSequenceController::OnSelectionRangeBeginDrag)
-		// .OnSelectionRangeEndDrag(this, &FActActionSequenceController::OnSelectionRangeEndDrag)
-		// .OnMarkBeginDrag(this, &FActActionSequenceController::OnMarkBeginDrag)
-		// .OnMarkEndDrag(this, &FActActionSequenceController::OnMarkEndDrag)
-		// .IsPlaybackRangeLocked(this, &FActActionSequenceController::IsPlaybackRangeLocked)
-		// .OnTogglePlaybackRangeLocked(this, &FActActionSequenceController::TogglePlaybackRangeLocked)
-		.ScrubPosition(this, &FActActionSequenceController::GetLocalFrameTime)
-		.ScrubPositionText(this, &FActActionSequenceController::GetFrameTimeText)
-		// .ScrubPositionParent(this, &FActActionSequenceController::GetScrubPositionParent)
-		// .ScrubPositionParentChain(this, &FActActionSequenceController::GetScrubPositionParentChain)
-		// .OnScrubPositionParentChanged(this, &FActActionSequenceController::OnScrubPositionParentChanged)
-		.OnBeginScrubbing(this, &FActActionSequenceController::OnBeginScrubbing)
-		.OnEndScrubbing(this, &FActActionSequenceController::OnEndScrubbing)
-		.OnScrubPositionChanged(this, &FActActionSequenceController::OnScrubPositionChanged)
-		// .OnViewRangeChanged(this, &FActActionSequenceController::SetViewRange)
-		// .OnClampRangeChanged(this, &FActActionSequenceController::OnClampRangeChanged)
-		// .OnGetNearestKey(this, &FActActionSequenceController::OnGetNearestKey)
-		.OnGetAddMenuContent(ViewParams.OnGetAddMenuContent)
-		// .OnBuildCustomContextMenuForGuid(ViewParams.OnBuildCustomContextMenuForGuid)
-		.OnReceivedFocus(ViewParams.OnReceivedFocus)
-		.AddMenuExtender(ViewParams.AddMenuExtender)
-		.ToolbarExtender(ViewParams.ToolbarExtender);
-	// ** 将内部Widget的Controller同步到最外层的Controller中
-	TimeSliderController = ActActionSequenceWidget->TimeSliderController;
-	SequenceWidget = ActActionSequenceWidget;
 }
 
 

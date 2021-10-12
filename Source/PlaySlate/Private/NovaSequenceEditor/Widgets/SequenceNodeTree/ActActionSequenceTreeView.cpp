@@ -3,8 +3,8 @@
 #include "Subs/ActActionSequenceTrackLane.h"
 #include "NovaSequenceEditor/Widgets/SequenceNodeTree/ActActionSequenceTrackArea.h"
 #include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
-#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceNodeTree.h"
 #include "NovaSequenceEditor/Controllers/ActActionSequenceController.h"
+#include "NovaSequenceEditor/Controllers/TimeSlider/ActActionTimeSliderController.h"
 
 
 void SActActionSequenceTreeViewRow::Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& OwnerTableView, const TSharedRef<FActActionSequenceTreeViewNode>& InNode)
@@ -164,7 +164,9 @@ TSharedRef<ITableRow> SActActionSequenceTreeView::OnGenerateRow(TSharedRef<FActA
 		if (!TrackLane.IsValid())
 		{
 			// Add a track slot for the row
-			TAttribute<TRange<double>> ViewRange = ActActionSequence::FActActionAnimatedRange::WrapAttribute(TAttribute<ActActionSequence::FActActionAnimatedRange>::Create(TAttribute<ActActionSequence::FActActionAnimatedRange>::FGetter::CreateSP(SequenceNodeTree->GetSequence(), &FActActionSequenceController::GetViewRange)));
+			TSharedRef<FActActionTimeSliderController> TimeSliderController = SequenceNodeTree->GetSequenceController()->GetTimeSliderController();
+			auto DelegateSP = TAttribute<ActActionSequence::FActActionAnimatedRange>::FGetter::CreateSP(TimeSliderController, &FActActionTimeSliderController::GetViewRange);
+			TAttribute<TRange<double>> ViewRange = ActActionSequence::FActActionAnimatedRange::WrapAttribute(TAttribute<ActActionSequence::FActActionAnimatedRange>::Create(DelegateSP));
 
 			TrackLane = SNew(SActActionSequenceTrackLane, SectionAuthority.ToSharedRef(), SharedThis(this))
 				//.IsEnabled(!InDisplayNode->GetSequencer().IsReadOnly())

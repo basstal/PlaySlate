@@ -13,8 +13,8 @@ class UActActionSequence;
 class FActActionSequenceTreeViewNode;
 class SActActionViewportWidget;
 /**
- * 整个Sequence的主要控制器
- * 对应的View模块为SActActionSequenceMain
+ * Sequence Tab的主要控制器
+ * 对应的View模块为SActActionSequenceWidget
  */
 class FActActionSequenceController : public TSharedFromThis<FActActionSequenceController>, FTickableEditorObject
 {
@@ -42,34 +42,73 @@ public:
 	 */
 	void BuildAddTrackMenu(FMenuBuilder& MenuBuilder);
 	/**
-	 * @return 当前时间轴的显示范围
+	 * 添加AnimMontage的Track
+	 *
+	 * @param AnimMontage 被添加的AnimMontage实例
 	 */
-	ActActionSequence::FActActionAnimatedRange GetViewRange() const;
-	
-	
 	void AddAnimMontageTrack(UAnimMontage* AnimMontage);
+	/**
+	 * 设置当前的播放状态
+	 *
+	 * @param InPlaybackStatus 设置为该播放状态
+	 */
 	void SetPlaybackStatus(ActActionSequence::EPlaybackType InPlaybackStatus);
-	void EvaluateInternal(ActActionSequence::FActActionEvaluationRange InRange, bool bHasJumped = false);
+	/**
+	 * 根据EvaluationRange结构来获得当前动画的预览位置
+	 *
+	 * @param InRange 传入的Range
+	 */
+	void EvaluateInternal(ActActionSequence::FActActionEvaluationRange InRange);
+	/**
+	 * 将当前播放状态设置为Stopped
+	 */
 	void Pause();
-	/** Stop the sequencer from auto-scrolling */
-	void StopAutoscroll();
-
+	/**
+	 * 构造Sequence的Widget为SActActionSequenceWidget，同时初始化TreeView相关内容
+	 *
+	 * @param ViewParams 构造Widget使用的相关参数
+	 */
 	void MakeSequenceWidget(ActActionSequence::FActActionSequenceViewParams ViewParams);
-	TSet<FFrameNumber> GetVerticalFrames() const;
-	void SetMarkedFrame(int32 InMarkIndex, FFrameNumber InFrameNumber);
-	void AddMarkedFrame(FFrameNumber FrameNumber);
-	
-	/** Get the unqualified local time */
+
+	/**
+	 * @return 返回当前的帧时间
+	 */
 	FFrameTime GetLocalFrameTime() const;
-	FQualifiedFrameTime GetLocalTime() const;
+	/**
+	 * @return 获得当前时间帧的显示文本
+	 */
 	FString GetFrameTimeText() const;
-	uint32 GetLocalLoopIndex() const;
+	/**
+	 * 时间轴拖拽器开始拖拽的回调
+	 */
 	void OnBeginScrubbing();
+	/**
+	* 时间轴拖拽器结束拖拽的回调
+	*/
 	void OnEndScrubbing();
-	void SetGlobalTime(FFrameTime NewTime);
-	void SetLocalTimeDirectly(FFrameTime NewTime);
+	/**
+	 * 设置全局时间点到指定时间
+	 *
+	 * @param InFrameTime 设置的时间点
+	 */
+	void SetGlobalTime(FFrameTime InFrameTime);
+	/**
+	 * 设置局部时间点到指定时间
+	 * 
+	 * @param InFrameTime 设置的时间点
+	 */
+	void SetLocalTimeDirectly(FFrameTime InFrameTime);
+	/**
+	 * 时间轴拖拽器位置改变的回调
+	 */
 	void OnScrubPositionChanged(FFrameTime NewScrubPosition, bool bScrubbing);
+	/**
+	 * 获得编辑器编辑的对象实例
+	 */
 	UActActionSequence* GetActActionSequence() const;
+	/**
+	 * 获得SequenceEditor，以便协同调用其他Controller
+	 */
 	TSharedRef<FActActionSequenceEditor> GetActActionSequenceEditor() const;
 protected:
 	/**
@@ -82,17 +121,6 @@ protected:
 	TArray<ActActionSequence::OnCreateTrackEditorDelegate> TrackEditorDelegates;
 	/** List of tools we own */
 	TArray<TSharedPtr<FActActionTrackEditorBase>> TrackEditors;
-	// UActActionSequence* ActActionSequencePtr;
-	/**
-	 * 当前Sequence时间轴的显示的范围，这里的单位是秒
-	 */
-	TRange<double> TargetViewRange;
-
-	/** The last time range that was viewed */
-	TRange<double> LastViewRange;
-	/** Zoom smoothing curves */
-	FCurveSequence ZoomAnimation;
-	// FCurveHandle ZoomCurve;
 	/**
 	 * 当前的播放状态
 	 */
@@ -101,25 +129,10 @@ protected:
 	 * 当前的播放位置相关的数据结构
 	 */
 	ActActionSequence::FActActionPlaybackPosition PlayPosition;
-	/** If set, pause playback on this frame */
-	TOptional<FFrameTime> PauseOnFrame;
-	/** When true, sequence will be forcefully evaluated on the next tick */
-	bool bNeedsEvaluate;
-	/** Local loop index at the time we began scrubbing */
-	uint32 LocalLoopIndexOnBeginScrubbing;
-
-	/** Local loop index to add for the purposes of displaying it in the UI */
-	uint32 LocalLoopIndexOffsetDuringScrubbing;
-	/** The amount of autoscroll pan offset that is currently being applied */
-	TOptional<float> AutoscrollOffset;
-
-	/** The amount of auto Scrub offset that is currently being applied */
-	TOptional<float> AutoScrubOffset;
-	TOptional<ActActionSequence::FActActionAutoScrubTarget> AutoScrubTarget;
-
-	/** Time slider controller for this sequencer */
+	/**
+	 * TimeSlider的Controller
+	 */
 	TSharedPtr<FActActionTimeSliderController> TimeSliderController;
-	
 	/**
 	 * 所有可见节点DisplayedRootNodes的父节点，
 	 * Sequence中所有可见根节点都储存在NodeTree中作为子节点
@@ -129,13 +142,14 @@ protected:
 	 * UMG Sequence main
 	 */
 	TSharedPtr<SActActionSequenceWidget> SequenceWidget;
-
+	/** Numeric type interface used for converting parsing and generating strings from numbers */
+	TSharedPtr<INumericTypeInterface<double>> NumericTypeInterface;
 public:
 	ActActionSequence::EPlaybackType GetPlaybackStatus() const
 	{
 		return PlaybackState;
 	}
-	
+
 	TSharedRef<SActActionSequenceWidget> GetSequenceWidget() const
 	{
 		return SequenceWidget.ToSharedRef();
@@ -144,5 +158,13 @@ public:
 	TSharedRef<FActActionSequenceTreeViewNode> GetTreeViewRoot() const
 	{
 		return TreeViewRoot.ToSharedRef();
+	}
+	TSharedRef<FActActionTimeSliderController> GetTimeSliderController() const
+	{
+		return TimeSliderController.ToSharedRef();
+	}
+	TSharedRef<INumericTypeInterface<double>> GetNumericType() const
+	{
+		return NumericTypeInterface.ToSharedRef();
 	}
 };

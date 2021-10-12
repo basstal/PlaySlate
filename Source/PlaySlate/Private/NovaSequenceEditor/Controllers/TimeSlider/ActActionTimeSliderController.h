@@ -2,73 +2,18 @@
 
 #include "Utils/ActActionSequenceUtil.h"
 
+class SActActionSequenceTimeSliderWidget;
 /**
  * Sequence的时间滑块控制器，管理Sequence的时间轴相关数据
  * 对应的View模块为SActActionSequenceTimeSliderWidget
  */
 class FActActionTimeSliderController : public TSharedFromThis<FActActionTimeSliderController>
 {
-protected:
-	/**
-	 * 控制的Sequence对象
-	 */
-	TWeakPtr<FActActionSequenceController> Sequence;
-	/**
-	 * 控制器相关参数
-	 */
-	ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs;
-	/** TRANS_EN:Numeric type interface used for converting parsing and generating strings from numbers */
-	// TSharedPtr<INumericTypeInterface<double>> NumericTypeInterface;
-	/** TRANS_EN:Scrub style provided on construction */
-	ActActionSequence::ESequencerScrubberStyle ScrubStyle;
 
-	/** Total mouse delta during dragging **/
-	float DistanceDragged;
-
-	ActActionSequence::EDragType MouseDragType;
-
-	/** Mouse down position range */
-	FVector2D MouseDownPosition[2];
-
-	/** Geometry on mouse down */
-	FGeometry MouseDownGeometry;
-
-	/** If mouse down was in time scrubbing region, only allow setting time when mouse is pressed down in the region */
-	bool bMouseDownInRegion;
-
-	/** Index of mark being edited */
-	int32 DragMarkIndex;
-	/** If we are currently panning the panel */
-	bool bPanning;
-	//
-	// /** When > 0, we should not show context menus */
-	// int32 ContextMenuSuppression;
-	/** Range stack */
-	TArray<TRange<double>> ViewRangeStack;
 public:
 	FActActionTimeSliderController(const ActActionSequence::FActActionTimeSliderArgs& InArgs, const TSharedRef<FActActionSequenceController>& InSequenceController);
 	~FActActionTimeSliderController();
 	
-	ActActionSequence::ESequencerScrubberStyle GetScrubStyle() const
-	{
-		return ScrubStyle;
-	}
-
-	// TSharedRef<INumericTypeInterface<double>> GetNumericTypeInterface() const
-	// {
-	// return TimeSliderArgs.NumericTypeInterface.ToSharedRef()
-	// }
-
-	ActActionSequence::FActActionTimeSliderArgs GetTimeSliderArgs() const
-	{
-		return TimeSliderArgs;
-	}
-
-	TWeakPtr<FActActionSequenceController> GetSequence() const
-	{
-		return Sequence;
-	}
-
 	/**
 	* TRANS_EN:Compute a major grid interval and number of minor divisions to display
 	*/
@@ -94,7 +39,7 @@ public:
 	int32 DrawSelectionRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const;
 	void DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<double>& ViewRange, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, ActActionSequence::FActActionDrawTickArgs& InArgs) const;
 	int32 DrawMarkedFrames(const FGeometry& AllottedGeometry, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ESlateDrawEffect& DrawEffects, bool bDrawLabels) const;
-	int32 DrawVerticalFrames(const FGeometry& AllottedGeometry, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ESlateDrawEffect& DrawEffects) const;
+	// int32 DrawVerticalFrames(const FGeometry& AllottedGeometry, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ESlateDrawEffect& DrawEffects) const;
 
 	FFrameTime ComputeScrubTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, ActActionSequence::FActActionScrubRangeToScreen RangeToScreen) const;
 	/**
@@ -104,20 +49,20 @@ public:
 	* @param bIsScrubbing			True if done via scrubbing, false if just releasing scrubbing
 	*/
 	void CommitScrubPosition(FFrameTime NewValue, bool bIsScrubbing);
-	/**
-	* Clamp the given range to the clamp range 
-	*
-	* @param NewRangeMin		The new lower bound of the range
-	* @param NewRangeMax		The new upper bound of the range
-	*/
-	void ClampViewRange(double& NewRangeMin, double& NewRangeMax);
-	/**
-	* Set a new clamp range based on a min, max
-	* 
-	* @param NewRangeMin		The new lower bound of the clamp range
-	* @param NewRangeMax		The new upper bound of the clamp range
-	*/
-	void SetClampRange(double NewRangeMin, double NewRangeMax);
+	// /**
+	// * Clamp the given range to the clamp range 
+	// *
+	// * @param NewRangeMin		The new lower bound of the range
+	// * @param NewRangeMax		The new upper bound of the range
+	// */
+	// void ClampViewRange(double& NewRangeMin, double& NewRangeMax);
+	// /**
+	// * Set a new clamp range based on a min, max
+	// * 
+	// * @param NewRangeMin		The new lower bound of the clamp range
+	// * @param NewRangeMax		The new upper bound of the clamp range
+	// */
+	// void SetClampRange(double NewRangeMin, double NewRangeMax);
 	/**
 	* Set a new range based on a min, max and an interpolation mode
 	* 
@@ -158,4 +103,85 @@ public:
 	FReply OnMouseButtonUp(SWidget& OwnerWidget, const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
 	FReply OnMouseMove(SWidget& OwnerWidget, const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
 	FReply OnMouseWheel(SWidget& OwnerWidget, const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
+
+	/**
+	 * 设置TimeSlider显示区域总时长
+	 *
+	 * @param InTotalLength 总时间长度，单位秒
+	 */
+	void SetTimeSliderPlaybackTotalLength(float InTotalLength);
+	/**
+	 * @return 当前时间轴的显示范围
+	 */
+	ActActionSequence::FActActionAnimatedRange GetViewRange() const;
+	/**
+	 * 构造TimeSlider的Widget
+	 */
+	void MakeTimeSliderWidget();
+protected:
+	/**
+	* 隶属的Controller
+	*/
+	TWeakPtr<FActActionSequenceController> SequenceController;
+	/**
+	 * 对应控制的Widget
+	 */
+	TSharedPtr<SActActionSequenceTimeSliderWidget> SequenceTimeSliderWidget;
+	/**
+	* 控制器相关参数
+	*/
+	ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs;
+	/** TRANS_EN:Numeric type interface used for converting parsing and generating strings from numbers */
+	// TSharedPtr<INumericTypeInterface<double>> NumericTypeInterface;
+	/** TRANS_EN:Scrub style provided on construction */
+	ActActionSequence::ESequencerScrubberStyle ScrubStyle;
+
+	/** Total mouse delta during dragging **/
+	float DistanceDragged;
+
+	ActActionSequence::EDragType MouseDragType;
+
+	/** Mouse down position range */
+	FVector2D MouseDownPosition[2];
+
+	/** Geometry on mouse down */
+	FGeometry MouseDownGeometry;
+
+	/** If mouse down was in time scrubbing region, only allow setting time when mouse is pressed down in the region */
+	bool bMouseDownInRegion;
+
+	/** Index of mark being edited */
+	int32 DragMarkIndex;
+	/** If we are currently panning the panel */
+	bool bPanning;
+	//
+	// /** When > 0, we should not show context menus */
+	// int32 ContextMenuSuppression;
+	/** Range stack */
+	TArray<TRange<double>> ViewRangeStack;
+
+	/**
+	* 当前Sequence时间轴的显示的范围，这里的单位是秒
+	*/
+	TRange<double> TargetViewRange;
+public:
+	ActActionSequence::ESequencerScrubberStyle GetScrubStyle() const
+	{
+		return ScrubStyle;
+	}
+
+	ActActionSequence::FActActionTimeSliderArgs GetTimeSliderArgs() const
+	{
+		return TimeSliderArgs;
+	}
+
+	TSharedRef<FActActionSequenceController> GetSequenceController() const
+	{
+		return SequenceController.Pin().ToSharedRef();
+	}
+
+	TSharedRef<SActActionSequenceTimeSliderWidget> GetSequenceTimeSliderWidget() const
+	{
+		return SequenceTimeSliderWidget.ToSharedRef();
+	}
 };

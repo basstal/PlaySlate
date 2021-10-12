@@ -69,7 +69,7 @@ public:
 	TArray<TSharedRef<FActActionSequenceSectionBase>>& GetSections();
 	float GetNodeHeight() const;
 
-	TSharedRef<FActActionSequenceController> GetSequence() const;
+	TSharedRef<FActActionSequenceController> GetSequenceController() const;
 	/**
 	 * 获得当前资源使用的Tick帧率
 	 */

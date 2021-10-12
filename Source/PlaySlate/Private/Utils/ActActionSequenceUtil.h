@@ -226,14 +226,14 @@ namespace ActActionSequence
 		/** Called right after a mark has finished being dragged */
 		FSimpleDelegate OnMarkEndDrag;
 
-		/** Attribute for the current sequence's vertical frames */
-		TAttribute<TSet<FFrameNumber>> VerticalFrames;
+		// /** Attribute for the current sequence's vertical frames */
+		// TAttribute<TSet<FFrameNumber>> VerticalFrames;
 
 		/** Called when the marked frame needs to be set */
-		OnSetMarkedFrameDelegate OnSetMarkedFrame;
+		// OnSetMarkedFrameDelegate OnSetMarkedFrame;
 
 		/** Called when a marked frame is added */
-		OnAddMarkedFrameDelegate OnAddMarkedFrame;
+		// OnAddMarkedFrameDelegate OnAddMarkedFrame;
 
 		/** Called when a marked frame is deleted */
 		OnDeleteMarkedFrameDelegate OnDeleteMarkedFrame;

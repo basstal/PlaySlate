@@ -66,7 +66,7 @@ void FActActionSequenceTreeViewNode::SetParent(TSharedPtr<FActActionSequenceTree
 
 		ParentNode = InParent;
 
-		// ParentNode->GetSequence().OnNodePathChanged(OldPath, GetPathName());
+		// ParentNode->GetSequenceController().OnNodePathChanged(OldPath, GetPathName());
 	}
 }
 
@@ -184,14 +184,14 @@ float FActActionSequenceTreeViewNode::GetNodeHeight() const
 	return PaddedSectionHeight;
 }
 
-TSharedRef<FActActionSequenceController> FActActionSequenceTreeViewNode::GetSequence() const
+TSharedRef<FActActionSequenceController> FActActionSequenceTreeViewNode::GetSequenceController() const
 {
 	return ActActionSequenceController.Pin().ToSharedRef();
 }
 
 FFrameRate FActActionSequenceTreeViewNode::GetTickResolution() const
 {
-	return GetSequence()->GetActActionSequenceEditor()->GetTickResolution();
+	return GetSequenceController()->GetActActionSequenceEditor()->GetTickResolution();
 }
 
 TSharedPtr<FActActionSequenceTreeViewNode> FActActionSequenceTreeViewNode::GetParentOrRoot() const

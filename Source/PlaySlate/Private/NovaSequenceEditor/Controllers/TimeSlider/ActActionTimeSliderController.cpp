@@ -1,28 +1,31 @@
 ﻿#include "ActActionTimeSliderController.h"
 
+#include "PlaySlate.h"
 #include "Utils/ActActionStaticUtil.h"
 #include "NovaSequenceEditor/ActActionSequenceEditor.h"
 #include "NovaSequenceEditor/Controllers/ActActionSequenceController.h"
+#include "NovaSequenceEditor/Widgets/TimeSlider/ActActionSequenceTimeSliderWidget.h"
 
 
 #include "Fonts/FontMeasure.h"
 
 
 FActActionTimeSliderController::FActActionTimeSliderController(const ActActionSequence::FActActionTimeSliderArgs& InArgs, const TSharedRef<FActActionSequenceController>& InSequenceController)
-	: Sequence(InSequenceController),
+	: SequenceController(InSequenceController),
 	  TimeSliderArgs(InArgs),
 	  ScrubStyle(),
 	  DistanceDragged(0),
 	  MouseDragType(),
 	  bMouseDownInRegion(false),
 	  DragMarkIndex(0),
-	  bPanning(false)
+	  bPanning(false),
+	  TargetViewRange(0.0f, 0.0f)
 {
 }
 
 FActActionTimeSliderController::~FActActionTimeSliderController()
 {
-	Sequence.Reset();
+	UE_LOG(LogActAction, Log, TEXT("FActActionTimeSliderController::~FActActionTimeSliderController"));
 }
 
 bool FActActionTimeSliderController::GetGridMetrics(const float PhysicalWidth, const double InViewStart, const double InViewEnd, double& OutMajorInterval, int32& OutMinorDivisions) const
@@ -113,10 +116,10 @@ FFrameTime FActActionTimeSliderController::ComputeFrameTimeFromMouse(const FGeom
 
 int32 FActActionTimeSliderController::OnPaintViewArea(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, bool bEnabled, const ActActionSequence::FActActionPaintViewAreaArgs& Args) const
 {
-	if (!Sequence.IsValid())
-	{
-		return LayerId;
-	}
+	// if (!GetSequenceController().IsValid())
+	// {
+	// 	return LayerId;
+	// }
 
 	const ESlateDrawEffect DrawEffects = bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 
@@ -158,7 +161,7 @@ int32 FActActionTimeSliderController::OnPaintViewArea(const FGeometry& AllottedG
 		LayerId = DrawMarkedFrames(AllottedGeometry, RangeToScreen, OutDrawElements, LayerId, DrawEffects, false);
 	}
 
-	LayerId = DrawVerticalFrames(AllottedGeometry, RangeToScreen, OutDrawElements, LayerId, DrawEffects);
+	// LayerId = DrawVerticalFrames(AllottedGeometry, RangeToScreen, OutDrawElements, LayerId, DrawEffects);
 
 	if (Args.bDisplayScrubPosition)
 	{
@@ -201,10 +204,10 @@ int32 FActActionTimeSliderController::OnPaintViewArea(const FGeometry& AllottedG
 
 int32 FActActionTimeSliderController::DrawPlaybackRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const
 {
-	if (!Sequence.IsValid())
-	{
-		return LayerId;
-	}
+	// if (!Sequence.IsValid())
+	// {
+	// 	return LayerId;
+	// }
 
 	if (!TimeSliderArgs.PlaybackRange.IsSet())
 	{
@@ -260,10 +263,10 @@ int32 FActActionTimeSliderController::DrawPlaybackRange(const FGeometry& Allotte
 
 int32 FActActionTimeSliderController::DrawSubSequenceRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const
 {
-	if (!Sequence.IsValid())
-	{
-		return LayerId;
-	}
+	// if (!Sequence.IsValid())
+	// {
+	// 	return LayerId;
+	// }
 
 	TOptional<TRange<FFrameNumber>> RangeValue;
 	RangeValue = TimeSliderArgs.SubSequenceRange.Get(RangeValue);
@@ -346,10 +349,10 @@ int32 FActActionTimeSliderController::DrawSubSequenceRange(const FGeometry& Allo
 
 int32 FActActionTimeSliderController::DrawSelectionRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const
 {
-	if (!Sequence.IsValid())
-	{
-		return LayerId;
-	}
+	// if (!Sequence.IsValid())
+	// {
+	// 	return LayerId;
+	// }
 
 	// ** TODO:可能不需要这个范围，而且这里应该考虑挪到Widget中
 	// TRange<double> SelectionRange = TimeSliderArgs.SelectionRange.Get() / TimeSliderArgs.TickResolution.Get();
@@ -396,10 +399,10 @@ int32 FActActionTimeSliderController::DrawSelectionRange(const FGeometry& Allott
 
 void FActActionTimeSliderController::DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<double>& ViewRange, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, ActActionSequence::FActActionDrawTickArgs& InArgs) const
 {
-	if (!Sequence.IsValid())
-	{
-		return;
-	}
+	// if (!Sequence.IsValid())
+	// {
+	// 	return;
+	// }
 
 	FFrameRate TickResolution = TimeSliderArgs.TickResolution.Get();
 	FFrameRate DisplayRate = TimeSliderArgs.DisplayRate.Get();
@@ -554,37 +557,37 @@ int32 FActActionTimeSliderController::DrawMarkedFrames(const FGeometry& Allotted
 	// return LayerId + 1;
 }
 
-int32 FActActionTimeSliderController::DrawVerticalFrames(const FGeometry& AllottedGeometry, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ESlateDrawEffect& DrawEffects) const
-{
-	TSet<FFrameNumber> VerticalFrames = TimeSliderArgs.VerticalFrames.Get();
-	if (VerticalFrames.Num() < 1)
-	{
-		return LayerId;
-	}
-
-	for (FFrameNumber TickFrame : VerticalFrames)
-	{
-		double Seconds = TickFrame / TimeSliderArgs.TickResolution.Get();
-
-		const float LinePos = RangeToScreen.InputToLocalX(Seconds);
-		TArray<FVector2D> LinePoints;
-		LinePoints.AddUninitialized(2);
-		LinePoints[0] = FVector2D(LinePos, 0.0f);
-		LinePoints[1] = FVector2D(LinePos, FMath::FloorToFloat(AllottedGeometry.Size.Y));
-
-		FSlateDrawElement::MakeLines(
-			OutDrawElements,
-			LayerId + 1,
-			AllottedGeometry.ToPaintGeometry(),
-			LinePoints,
-			DrawEffects,
-			FLinearColor(0.7f, 0.7f, 0.f, 0.4f),
-			false
-		);
-	}
-
-	return LayerId + 1;
-}
+// int32 FActActionTimeSliderController::DrawVerticalFrames(const FGeometry& AllottedGeometry, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ESlateDrawEffect& DrawEffects) const
+// {
+// 	TSet<FFrameNumber> VerticalFrames = TimeSliderArgs.VerticalFrames.Get();
+// 	if (VerticalFrames.Num() < 1)
+// 	{
+// 		return LayerId;
+// 	}
+//
+// 	for (FFrameNumber TickFrame : VerticalFrames)
+// 	{
+// 		double Seconds = TickFrame / TimeSliderArgs.TickResolution.Get();
+//
+// 		const float LinePos = RangeToScreen.InputToLocalX(Seconds);
+// 		TArray<FVector2D> LinePoints;
+// 		LinePoints.AddUninitialized(2);
+// 		LinePoints[0] = FVector2D(LinePos, 0.0f);
+// 		LinePoints[1] = FVector2D(LinePos, FMath::FloorToFloat(AllottedGeometry.Size.Y));
+//
+// 		FSlateDrawElement::MakeLines(
+// 			OutDrawElements,
+// 			LayerId + 1,
+// 			AllottedGeometry.ToPaintGeometry(),
+// 			LinePoints,
+// 			DrawEffects,
+// 			FLinearColor(0.7f, 0.7f, 0.f, 0.4f),
+// 			false
+// 		);
+// 	}
+//
+// 	return LayerId + 1;
+// }
 
 FFrameTime FActActionTimeSliderController::ComputeScrubTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, ActActionSequence::FActActionScrubRangeToScreen RangeToScreen) const
 {
@@ -592,10 +595,10 @@ FFrameTime FActActionTimeSliderController::ComputeScrubTimeFromMouse(const FGeom
 	double MouseSeconds = RangeToScreen.LocalXToInput(CursorPos.X);
 	FFrameTime ScrubTime = MouseSeconds * TimeSliderArgs.TickResolution.Get();
 
-	if (!Sequence.IsValid())
-	{
-		return ScrubTime;
-	}
+	// if (!Sequence.IsValid())
+	// {
+	// 	return ScrubTime;
+	// }
 
 	// if (Sequencer->GetSequencerSettings()->GetIsSnapEnabled())
 	// {
@@ -632,17 +635,17 @@ FFrameTime FActActionTimeSliderController::ComputeScrubTimeFromMouse(const FGeom
 void FActActionTimeSliderController::CommitScrubPosition(FFrameTime NewValue, bool bIsScrubbing)
 {
 	// The user can scrub past the viewing range of the time slider controller, so we clamp it to the view range.
-	if (Sequence.IsValid())
-	{
-		ActActionSequence::FActActionAnimatedRange ViewRange = TimeSliderArgs.ViewRange.Get();
+	// if (Sequence.IsValid())
+	// {
+	ActActionSequence::FActActionAnimatedRange ViewRange = TimeSliderArgs.ViewRange.Get();
 
-		FFrameRate TickResolution = Sequence.Pin()->GetActActionSequenceEditor()->GetTickResolution();
+	FFrameRate TickResolution = GetSequenceController()->GetActActionSequenceEditor()->GetTickResolution();
 
-		FFrameTime LowerBound = (ViewRange.GetLowerBoundValue() * TickResolution).CeilToFrame();
-		FFrameTime UpperBound = (ViewRange.GetUpperBoundValue() * TickResolution).FloorToFrame();
+	FFrameTime LowerBound = (ViewRange.GetLowerBoundValue() * TickResolution).CeilToFrame();
+	FFrameTime UpperBound = (ViewRange.GetUpperBoundValue() * TickResolution).FloorToFrame();
 
-		NewValue = FMath::Clamp(NewValue, LowerBound, UpperBound);
-	}
+	NewValue = FMath::Clamp(NewValue, LowerBound, UpperBound);
+	// }
 
 	// Manage the scrub position ourselves if its not bound to a delegate
 	if (!TimeSliderArgs.ScrubPosition.IsBound())
@@ -965,10 +968,10 @@ FReply FActActionTimeSliderController::OnMouseButtonUp(SWidget& OwnerWidget, con
 
 FReply FActActionTimeSliderController::OnMouseMove(SWidget& OwnerWidget, const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
-	if (!Sequence.IsValid())
-	{
-		return FReply::Unhandled();
-	}
+	// if (!Sequence.IsValid())
+	// {
+	// 	return FReply::Unhandled();
+	// }
 
 	bool bHandleLeftMouseButton = MouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton);
 	bool bHandleRightMouseButton = MouseEvent.IsMouseButtonDown(EKeys::RightMouseButton) && TimeSliderArgs.AllowZoom;
@@ -1145,4 +1148,30 @@ FReply FActActionTimeSliderController::OnMouseWheel(SWidget& OwnerWidget, const 
 	}
 
 	return FReply::Unhandled();
+}
+
+void FActActionTimeSliderController::SetTimeSliderPlaybackTotalLength(float InTotalLength)
+{
+	// ** 添加右侧TimeSlider
+	UE_LOG(LogActAction, Log, TEXT("InTotalLength : %f"), InTotalLength);
+	// ** 限制显示的最大长度为当前的Sequence总时长
+	TargetViewRange = TRange<double>(0, InTotalLength);
+	FFrameNumber EndFrame = FFrameNumber((int32)(InTotalLength * GetTimeSliderArgs().TickResolution.Get().Numerator));
+	SetPlaybackRangeEnd(EndFrame);
+}
+
+
+ActActionSequence::FActActionAnimatedRange FActActionTimeSliderController::GetViewRange() const
+{
+	ActActionSequence::FActActionAnimatedRange AnimatedRange(TargetViewRange.GetLowerBoundValue(), TargetViewRange.GetUpperBoundValue());
+	return AnimatedRange;
+}
+
+void FActActionTimeSliderController::MakeTimeSliderWidget()
+{
+	TimeSliderArgs.ViewRange.Bind(TAttribute<ActActionSequence::FActActionAnimatedRange>::FGetter::CreateSP(this, &FActActionTimeSliderController::GetViewRange));
+	// Create the top and bottom sliders
+	TSharedPtr<SActActionSequenceTimeSliderWidget> ActActionSequenceTimeSliderWidget = SNew(SActActionSequenceTimeSliderWidget, SharedThis(this))
+		.MirrorLabels(false);
+	SequenceTimeSliderWidget = ActActionSequenceTimeSliderWidget;
 }

@@ -12,7 +12,7 @@ void SActActionSequenceTimeSliderWidget::Construct(const FArguments& InArgs, con
 
 void SActActionSequenceTimeSliderWidget::DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<double>& ViewRange, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, ActActionSequence::FActActionDrawTickArgs& InArgs) const
 {
-	ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs = TimeSliderController->GetTimeSliderArgs();
+	ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs = GetTimeSliderArgs();
 	FFrameRate TickResolution = TimeSliderArgs.TickResolution.Get();
 	FFrameRate DisplayRate = TimeSliderArgs.DisplayRate.Get();
 	FPaintGeometry PaintGeometry = InArgs.AllottedGeometry.ToPaintGeometry();
@@ -20,7 +20,7 @@ void SActActionSequenceTimeSliderWidget::DrawTicks(FSlateWindowElementList& OutD
 
 	double MajorGridStep = 0.0;
 	int32 MinorDivisions = 0;
-	if (!TimeSliderController->GetGridMetrics(InArgs.AllottedGeometry.Size.X, ViewRange.GetLowerBoundValue(), ViewRange.GetUpperBoundValue(), MajorGridStep, MinorDivisions))
+	if (!GetTimeSliderController()->GetGridMetrics(InArgs.AllottedGeometry.Size.X, ViewRange.GetLowerBoundValue(), ViewRange.GetUpperBoundValue(), MajorGridStep, MinorDivisions))
 	{
 		return;
 	}
@@ -37,7 +37,7 @@ void SActActionSequenceTimeSliderWidget::DrawTicks(FSlateWindowElementList& OutD
 	const double LastMajorLine = FMath::CeilToDouble(ViewRange.GetUpperBoundValue() / MajorGridStep) * MajorGridStep;
 
 	const float FlooredScrubPx = RangeToScreen.InputToLocalX(ConvertFrameTime(TimeSliderArgs.ScrubPosition.Get(), TickResolution, TimeSliderArgs.DisplayRate.Get()).FloorToFrame() / DisplayRate);
-	
+
 	for (double CurrentMajorLine = FirstMajorLine; CurrentMajorLine < LastMajorLine; CurrentMajorLine += MajorGridStep)
 	{
 		float MajorLinePx = RangeToScreen.InputToLocalX(CurrentMajorLine);
@@ -98,7 +98,7 @@ void SActActionSequenceTimeSliderWidget::DrawTicks(FSlateWindowElementList& OutD
 
 int32 SActActionSequenceTimeSliderWidget::DrawPlaybackRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const
 {
-	ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs = TimeSliderController->GetTimeSliderArgs();
+	ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs = GetTimeSliderArgs();
 	if (!TimeSliderArgs.PlaybackRange.IsSet())
 	{
 		return LayerId;
@@ -154,7 +154,7 @@ int32 SActActionSequenceTimeSliderWidget::DrawPlaybackRange(const FGeometry& All
 
 int32 SActActionSequenceTimeSliderWidget::DrawSubSequenceRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const
 {
-	ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs = TimeSliderController->GetTimeSliderArgs();
+	ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs = GetTimeSliderArgs();
 
 	TOptional<TRange<FFrameNumber>> RangeValue;
 	RangeValue = TimeSliderArgs.SubSequenceRange.Get(RangeValue);
@@ -285,12 +285,12 @@ int32 SActActionSequenceTimeSliderWidget::DrawSelectionRange(const FGeometry& Al
 
 int32 SActActionSequenceTimeSliderWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
-	TWeakPtr<FActActionSequenceController> Sequence = TimeSliderController->GetSequence();
-	if (!Sequence.IsValid())
-	{
-		return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
-	}
-	ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs = TimeSliderController->GetTimeSliderArgs();
+	// TWeakPtr<FActActionSequenceController> Sequence = GetSequenceController();
+	// if (!Sequence.IsValid())
+	// {
+	// 	return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
+	// }
+	ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs = GetTimeSliderArgs();
 	const TRange<double> LocalViewRange = TimeSliderArgs.ViewRange.Get();
 	const float LocalViewRangeMin = LocalViewRange.GetLowerBoundValue();
 	const float LocalViewRangeMax = LocalViewRange.GetUpperBoundValue();
@@ -340,7 +340,7 @@ int32 SActActionSequenceTimeSliderWidget::OnPaint(const FPaintArgs& Args, const 
 
 	// TRANS_EN:Draw the scrub handle
 	FQualifiedFrameTime ScrubPosition = FQualifiedFrameTime(TimeSliderArgs.ScrubPosition.Get(), TimeSliderArgs.TickResolution.Get());
-	ActActionSequence::FActActionScrubberMetrics ScrubberMetrics = TimeSliderController->GetScrubPixelMetrics(ScrubPosition, RangeToScreen);
+	ActActionSequence::FActActionScrubberMetrics ScrubberMetrics = GetTimeSliderController()->GetScrubPixelMetrics(ScrubPosition, RangeToScreen);
 	const float HandleStart = ScrubberMetrics.HandleRangePx.GetLowerBoundValue();
 	const float HandleEnd = ScrubberMetrics.HandleRangePx.GetUpperBoundValue();
 
@@ -402,8 +402,8 @@ int32 SActActionSequenceTimeSliderWidget::OnPaint(const FPaintArgs& Args, const 
 		ActActionSequence::FActActionAnimatedRange AnimatedRange = TimeSliderArgs.ViewRange.Get();
 		FFrameTime MouseDownTime[2];
 		ActActionSequence::FActActionScrubRangeToScreen MouseDownRange(AnimatedRange, MouseDownGeometry.Size);
-		MouseDownTime[0] = TimeSliderController->ComputeFrameTimeFromMouse(MouseDownGeometry, MouseDownPosition[0], MouseDownRange);
-		MouseDownTime[1] = TimeSliderController->ComputeFrameTimeFromMouse(MouseDownGeometry, MouseDownPosition[1], MouseDownRange);
+		MouseDownTime[0] = GetTimeSliderController()->ComputeFrameTimeFromMouse(MouseDownGeometry, MouseDownPosition[0], MouseDownRange);
+		MouseDownTime[1] = GetTimeSliderController()->ComputeFrameTimeFromMouse(MouseDownGeometry, MouseDownPosition[1], MouseDownRange);
 		float MouseStartPosX = RangeToScreen.InputToLocalX(MouseDownTime[0] / TickResolution);
 		float MouseEndPosX = RangeToScreen.InputToLocalX(MouseDownTime[1] / TickResolution);
 		float RangePosX = MouseStartPosX < MouseEndPosX ? MouseStartPosX : MouseEndPosX;
@@ -423,21 +423,21 @@ int32 SActActionSequenceTimeSliderWidget::OnPaint(const FPaintArgs& Args, const 
 
 FReply SActActionSequenceTimeSliderWidget::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
-	TimeSliderController->OnMouseButtonDown(*this, MyGeometry, MouseEvent);
+	GetTimeSliderController()->OnMouseButtonDown(*this, MyGeometry, MouseEvent);
 	return FReply::Handled().CaptureMouse(AsShared()).PreventThrottling();
 }
 
 FReply SActActionSequenceTimeSliderWidget::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
-	return TimeSliderController->OnMouseButtonUp(*this, MyGeometry, MouseEvent);
+	return GetTimeSliderController()->OnMouseButtonUp(*this, MyGeometry, MouseEvent);
 }
 
 FReply SActActionSequenceTimeSliderWidget::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
-	return TimeSliderController->OnMouseMove(*this, MyGeometry, MouseEvent);
+	return GetTimeSliderController()->OnMouseMove(*this, MyGeometry, MouseEvent);
 }
 
 FReply SActActionSequenceTimeSliderWidget::OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
-	return TimeSliderController->OnMouseWheel(*this, MyGeometry, MouseEvent);
+	return GetTimeSliderController()->OnMouseWheel(*this, MyGeometry, MouseEvent);
 }
