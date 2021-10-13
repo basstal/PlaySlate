@@ -11,7 +11,4 @@ public:
 
 protected:
 	TWeakPtr<FActActionPreviewSceneController> PreviewScenePtr;
-	// FAssetEditorToolkit* AssetEditorToolkitPtr;
-	// TSharedPtr<SActActionViewportWidget> ViewportWidget;
-
 };

@@ -14,8 +14,25 @@ public:
 	FActActionPreviewSceneController(const ConstructionValues& CVS, const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor);
 	virtual ~FActActionPreviewSceneController() override;
 
-	/** Override for preview component selection to inform the editor we consider it selected */
-	bool PreviewComponentSelectionOverride(const UPrimitiveComponent* InComponent) const;
+	//~Begin FPreviewScene interface
+	virtual void AddComponent(UActorComponent* Component, const FTransform& LocalToWorld, bool bAttachToRoot) override;
+	//~End FPreviewScene interface
+
+	//~Begin FTickableObjectBase interface
+	virtual void Tick(float DeltaTime) override;
+	//~End FTickableObjectBase interface
+
+	/**
+	 * Widget Make Client回调方法
+	 * @return 构造的FActActionViewportClient，是SEditorViewport必须实现的组件之一
+	 */
+	TSharedPtr<FActActionViewportClient> MakeViewportClient();
+
+	/**
+	 * 构造Sequence的Widget为SActActionViewportWidget
+	 */
+	void MakeViewportWidget();
+
 	/**
 	 * 在Viewport中生成指定ActorType类型的Actor
 	 *
@@ -35,50 +52,28 @@ public:
 	 * @param InRange 传入的Range
 	 */
 	void EvaluateInternal(ActActionSequence::FActActionEvaluationRange InRange);
-
-	//~Begin FPreviewScene interface
-	virtual void AddComponent(UActorComponent* Component, const FTransform& LocalToWorld, bool bAttachToRoot) override;
-	//~End FPreviewScene interface
-	
-	//~Begin FTickableObjectBase interface
-	virtual void Tick(float DeltaTime) override;
-	//~End FTickableObjectBase interface
-
-	TSharedPtr<FActActionViewportClient> MakeViewportClient(const TSharedRef<SActActionViewportWidget>& InViewportWidget);
-
-	void MakeViewportWidget();
 protected:
-	/** The one and only actor we have */
-	AActor* ActActionActor;
-
-	/** The main preview skeletal mesh component */
-	UDebugSkelMeshComponent* ActActionSkeletalMesh;
-
-	/** Cached bounds of the floor mesh */
-	FBoxSphereBounds FloorBounds;
-
-	/** LOD index cached & used to check for broadcasting OnLODChanged delegate */
-	int32 LastCachedLODForPreviewComponent;
-
-	/** LOD changed delegate */
-	FSimpleMulticastDelegate OnLODChanged;
-	TSharedPtr<SActActionViewportWidget> ActActionViewportWidget;
-	// TSharedPtr<FActActionViewportClient> ViewportClient;
 	/**
 	* 对Editor的引用，调用编辑器资源和相关工具方法
 	*/
 	TWeakPtr<FActActionSequenceEditor> ActActionSequenceEditor;
+	/** The one and only actor we have */
+	AActor* ActActionActor;
+	/** The main preview skeletal mesh component */
+	UDebugSkelMeshComponent* ActActionSkeletalMesh;
+	/** Cached bounds of the floor mesh */
+	FBoxSphereBounds FloorBounds;
 	/**
-	 * 当前预览动画的定格位置
+	 * PreviewScene Main Widget
+	 */
+	TSharedPtr<SActActionViewportWidget> ActActionViewportWidget;
+	/**
+	 * 当前预览动画的定格事件，单位秒
 	 */
 	double PreviewScrubTime;
 public:
 	TSharedRef<SActActionViewportWidget> GetActActionViewportWidget() const
 	{
 		return ActActionViewportWidget.ToSharedRef();
-	}
-	UDebugSkelMeshComponent* GetActActionSkeletalMesh() const
-	{
-		return ActActionSkeletalMesh;
 	}
 };

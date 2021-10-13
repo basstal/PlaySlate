@@ -3,6 +3,7 @@
 #include "PlaySlate.h"
 #include "NovaSequenceEditor/Controllers/Viewport/ActActionViewportClient.h"
 #include "NovaSequenceEditor/ActActionSequenceEditor.h"
+#include "NovaSequenceEditor/Controllers/Viewport/ActActionPreviewSceneController.h"
 
 void SActActionViewportWidget::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor)
 {

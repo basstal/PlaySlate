@@ -9,7 +9,7 @@ class UActActionSequence : public UObject
 
 public:
 	UActActionSequence();
-	
+
 	UPROPERTY()
 	UAnimBlueprint* EditAnimBlueprint;
 
@@ -22,7 +22,7 @@ public:
 
 	UPROPERTY()
 	FFrameRate DisplayRate;
-	
+
 	/**
 	 * 动画播放的帧区间
 	 */

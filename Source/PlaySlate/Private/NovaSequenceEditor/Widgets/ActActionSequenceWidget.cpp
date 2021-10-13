@@ -28,7 +28,7 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 {
 	ColumnFillCoefficients[0] = 0.4f;
 	ColumnFillCoefficients[1] = 0.6f;
-	SequenceController = InSequenceController;
+	ActActionSequenceController = InSequenceController;
 
 	TSharedRef<SScrollBar> ScrollBar = SNew(SScrollBar).Thickness(FVector2D(9.0f, 9.0f));
 	SAssignNew(TrackArea, SActActionSequenceTrackArea);
@@ -107,7 +107,7 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 								.Text(LOCTEXT("Track", "Track"))
 								.IsEnabled_Lambda([=]()
 								{
-									return SequenceController.Pin().IsValid();
+									return ActActionSequenceController.Pin().IsValid();
 								})
 							]
 
@@ -307,12 +307,12 @@ TSharedRef<SWidget> SActActionSequenceWidget::MakeAddMenu()
 
 void SActActionSequenceWidget::PopulateAddMenuContext(FMenuBuilder& MenuBuilder)
 {
-	if (!SequenceController.IsValid())
+	if (!ActActionSequenceController.IsValid())
 	{
 		return;
 	}
 	// ** 填充AddTrack菜单
-	TSharedRef<FActActionSequenceController> ActActionSequenceControllerRef = SequenceController.Pin().ToSharedRef();
+	TSharedRef<FActActionSequenceController> ActActionSequenceControllerRef = ActActionSequenceController.Pin().ToSharedRef();
 	MenuBuilder.BeginSection("AddTracks");
 	ActActionSequenceControllerRef->BuildAddTrackMenu(MenuBuilder);
 	MenuBuilder.EndSection();

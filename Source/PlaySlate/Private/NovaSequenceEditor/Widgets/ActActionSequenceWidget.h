@@ -83,7 +83,7 @@ protected:
 	 * 当前View的Controller，转发所有逻辑行为
 	 * Widget中所有Controller应该都是WeakPtr
 	 */
-	TWeakPtr<FActActionSequenceController> SequenceController;
+	TWeakPtr<FActActionSequenceController> ActActionSequenceController;
 	/**
 	 * 用做左侧显示Outliner和Track区域的Sequence的TreeView 
 	 */
@@ -96,7 +96,7 @@ protected:
 	TSharedPtr<SVerticalBox> MainSequenceArea;
 	/** 整个Sequence轨道的左侧和右侧分别占比 */
 	float ColumnFillCoefficients[2];
-	
+
 public:
 	TSharedRef<FActActionTimeSliderController> GetTimeSliderController() const
 	{

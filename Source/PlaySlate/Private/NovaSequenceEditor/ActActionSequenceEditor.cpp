@@ -50,13 +50,13 @@ void FActActionSequenceEditor::InitActActionSequenceEditor(const TSharedPtr<IToo
 	InitAssetEditor(EToolkitMode::Standalone, InitToolkitHost, FName("ActAction_AppIdentifier"), StandaloneDefaultLayout, true, false, ActActionSequence);
 
 	// ** 通过对应Widget的Controller，填充Tab的实际内容Widget，并保留对Controller的引用
-	// ** SequenceController
+	// ** ActActionSequenceController
 	ActActionSequenceController = MakeShareable(new FActActionSequenceController(SharedThis(this)));
 	ActActionSequenceController->ExecuteTrackEditorCreateDelegate();
 	ActActionSequence::FActActionSequenceViewParams ViewParams = ActActionSequence::FActActionSequenceViewParams();
 	ActActionSequenceController->MakeSequenceWidget(ViewParams);
-	ActActionSequenceWidgetParent->SetContent(ActActionSequenceController->GetSequenceWidget());
-	
+	ActActionSequenceWidgetParent->SetContent(ActActionSequenceController->GetActActionSequenceWidget());
+
 	// ** PreviewScene(Viewport)Controller
 	FPreviewScene::ConstructionValues ConstructionValues = FPreviewScene::ConstructionValues()
 	                                                       .AllowAudioPlayback(true)

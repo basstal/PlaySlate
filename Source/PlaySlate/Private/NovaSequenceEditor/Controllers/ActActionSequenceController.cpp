@@ -37,8 +37,8 @@ FActActionSequenceController::FActActionSequenceController(const TSharedRef<FAct
 FActActionSequenceController::~FActActionSequenceController()
 {
 	UE_LOG(LogActAction, Log, TEXT("FActActionSequenceController::~FActActionSequenceController"));
-	SequenceWidget.Reset();
-	TimeSliderController.Reset();
+	ActActionSequenceWidget.Reset();
+	ActActionTimeSliderController.Reset();
 	TreeViewRoot.Reset();
 	TrackEditors.Empty();
 }
@@ -100,16 +100,15 @@ void FActActionSequenceController::AddAnimMontageTrack(UAnimMontage* AnimMontage
 		UE_LOG(LogActAction, Log, TEXT("AnimMontage : %s"), *AnimMontage->GetName());
 		ActActionSequence->EditAnimMontage = AnimMontage;
 		// ** 添加左侧Track
-		if (SequenceWidget.IsValid())
+		if (ActActionSequenceWidget.IsValid())
 		{
-			TSharedPtr<SActActionSequenceTreeView> SequenceTreeView = SequenceWidget->GetTreeView();
+			TSharedPtr<SActActionSequenceTreeView> SequenceTreeView = ActActionSequenceWidget->GetTreeView();
 			SequenceTreeView->AddDisplayNode(MakeShareable(new FActActionSequenceTreeViewNode(SharedThis(this), TreeViewRoot)));
 		}
-		if (TimeSliderController.IsValid())
+		if (ActActionTimeSliderController.IsValid())
 		{
 			float CalculateSequenceLength = AnimMontage->CalculateSequenceLength();
-			TimeSliderController->SetTimeSliderPlaybackTotalLength(CalculateSequenceLength);
-			
+			ActActionTimeSliderController->SetTimeSliderPlaybackTotalLength(CalculateSequenceLength);
 		}
 
 		if (ActActionSequenceEditor.IsValid())
@@ -159,7 +158,7 @@ void FActActionSequenceController::MakeSequenceWidget(ActActionSequence::FActAct
 	TSharedRef<FActActionSequenceController> ActionSequenceController = SharedThis(this);
 	// ** 构造所有显示节点的根节点
 	TreeViewRoot = MakeShareable(new FActActionSequenceTreeViewNode(ActionSequenceController));
-	
+
 	// Get the desired display format from the user's settings each time.
 	TAttribute<EFrameNumberDisplayFormats> GetDisplayFormatAttr = MakeAttributeLambda([=]
 	{
@@ -170,8 +169,8 @@ void FActActionSequenceController::MakeSequenceWidget(ActActionSequence::FActAct
 	TAttribute<FFrameRate> GetDisplayRateAttr = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetDisplayRate);
 	// Create our numeric type interface so we can pass it to the time slider below.
 	NumericTypeInterface = MakeShareable(new FFrameNumberInterface(GetDisplayFormatAttr, 0, GetTickResolutionAttr, GetDisplayRateAttr));
-	
-	TSharedPtr<SActActionSequenceWidget> ActActionSequenceWidget = SNew(SActActionSequenceWidget, ActionSequenceController)
+
+	TSharedPtr<SActActionSequenceWidget> ActActionSequenceWidgetPtr = SNew(SActActionSequenceWidget, ActionSequenceController)
 		.PlaybackRange(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetPlaybackRange)
 		.PlaybackStatus(this, &FActActionSequenceController::GetPlaybackStatus)
 		.SelectionRange(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetSelectionRange)
@@ -187,8 +186,8 @@ void FActActionSequenceController::MakeSequenceWidget(ActActionSequence::FActAct
 		.ToolbarExtender(ViewParams.ToolbarExtender);
 
 	// ** 将内部Widget的Controller同步到这个的Controller中
-	TimeSliderController = ActActionSequenceWidget->GetTimeSliderController();
-	SequenceWidget = ActActionSequenceWidget;
+	ActActionTimeSliderController = ActActionSequenceWidgetPtr->GetTimeSliderController();
+	ActActionSequenceWidget = ActActionSequenceWidgetPtr;
 }
 
 FFrameTime FActActionSequenceController::GetLocalFrameTime() const
@@ -211,7 +210,6 @@ void FActActionSequenceController::OnBeginScrubbing()
 {
 	// Pause first since there's no explicit evaluation in the stopped state when OnEndScrubbing() is called
 	Pause();
-
 	SetPlaybackStatus(ActActionSequence::EPlaybackType::Scrubbing);
 }
 
@@ -269,11 +267,6 @@ UActActionSequence* FActActionSequenceController::GetActActionSequence() const
 {
 	TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
 	return ActActionSequenceEditorRef->GetActActionSequence();
-}
-
-TSharedRef<FActActionSequenceEditor> FActActionSequenceController::GetActActionSequenceEditor() const
-{
-	return ActActionSequenceEditor.Pin().ToSharedRef();
 }
 
 

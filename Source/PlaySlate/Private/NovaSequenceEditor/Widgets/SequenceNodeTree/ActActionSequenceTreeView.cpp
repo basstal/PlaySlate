@@ -164,7 +164,7 @@ TSharedRef<ITableRow> SActActionSequenceTreeView::OnGenerateRow(TSharedRef<FActA
 		if (!TrackLane.IsValid())
 		{
 			// Add a track slot for the row
-			TSharedRef<FActActionTimeSliderController> TimeSliderController = SequenceNodeTree->GetSequenceController()->GetTimeSliderController();
+			TSharedRef<FActActionTimeSliderController> TimeSliderController = SequenceNodeTree->GetSequenceController()->GetActActionTimeSliderController();
 			auto DelegateSP = TAttribute<ActActionSequence::FActActionAnimatedRange>::FGetter::CreateSP(TimeSliderController, &FActActionTimeSliderController::GetViewRange);
 			TAttribute<TRange<double>> ViewRange = ActActionSequence::FActActionAnimatedRange::WrapAttribute(TAttribute<ActActionSequence::FActActionAnimatedRange>::Create(DelegateSP));
 

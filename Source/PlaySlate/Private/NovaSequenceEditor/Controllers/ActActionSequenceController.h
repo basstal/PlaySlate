@@ -69,7 +69,6 @@ public:
 	 * @param ViewParams 构造Widget使用的相关参数
 	 */
 	void MakeSequenceWidget(ActActionSequence::FActActionSequenceViewParams ViewParams);
-
 	/**
 	 * @return 返回当前的帧时间
 	 */
@@ -106,10 +105,6 @@ public:
 	 * 获得编辑器编辑的对象实例
 	 */
 	UActActionSequence* GetActActionSequence() const;
-	/**
-	 * 获得SequenceEditor，以便协同调用其他Controller
-	 */
-	TSharedRef<FActActionSequenceEditor> GetActActionSequenceEditor() const;
 protected:
 	/**
 	 * 对Editor的弱引用，调用编辑器资源和相关工具方法
@@ -132,7 +127,7 @@ protected:
 	/**
 	 * TimeSlider的Controller
 	 */
-	TSharedPtr<FActActionTimeSliderController> TimeSliderController;
+	TSharedPtr<FActActionTimeSliderController> ActActionTimeSliderController;
 	/**
 	 * 所有可见节点DisplayedRootNodes的父节点，
 	 * Sequence中所有可见根节点都储存在NodeTree中作为子节点
@@ -141,7 +136,7 @@ protected:
 	/**
 	 * UMG Sequence main
 	 */
-	TSharedPtr<SActActionSequenceWidget> SequenceWidget;
+	TSharedPtr<SActActionSequenceWidget> ActActionSequenceWidget;
 	/** Numeric type interface used for converting parsing and generating strings from numbers */
 	TSharedPtr<INumericTypeInterface<double>> NumericTypeInterface;
 public:
@@ -150,21 +145,31 @@ public:
 		return PlaybackState;
 	}
 
-	TSharedRef<SActActionSequenceWidget> GetSequenceWidget() const
+	TSharedRef<SActActionSequenceWidget> GetActActionSequenceWidget() const
 	{
-		return SequenceWidget.ToSharedRef();
+		return ActActionSequenceWidget.ToSharedRef();
 	}
 
 	TSharedRef<FActActionSequenceTreeViewNode> GetTreeViewRoot() const
 	{
 		return TreeViewRoot.ToSharedRef();
 	}
-	TSharedRef<FActActionTimeSliderController> GetTimeSliderController() const
+
+	TSharedRef<FActActionTimeSliderController> GetActActionTimeSliderController() const
 	{
-		return TimeSliderController.ToSharedRef();
+		return ActActionTimeSliderController.ToSharedRef();
 	}
+
 	TSharedRef<INumericTypeInterface<double>> GetNumericType() const
 	{
 		return NumericTypeInterface.ToSharedRef();
+	}
+
+	/**
+	* 获得SequenceEditor，以便协同调用其他Controller
+	*/
+	TSharedRef<FActActionSequenceEditor> GetActActionSequenceEditor() const
+	{
+		return ActActionSequenceEditor.Pin().ToSharedRef();
 	}
 };

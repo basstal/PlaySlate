@@ -80,7 +80,7 @@ protected:
 	 * Sequence Controller，Editor没有销毁的情况下不会为空
 	 */
 	TSharedPtr<FActActionSequenceController> ActActionSequenceController;
-	
+
 	TSharedPtr<SDockTab> ActActionSequenceWidgetParent;
 	TSharedPtr<SDockTab> ActActionViewportWidgetParent;
 public:
@@ -88,10 +88,12 @@ public:
 	{
 		return ActActionSequenceController.ToSharedRef();
 	}
+
 	TSharedRef<FActActionPreviewSceneController> GetActActionPreviewSceneController() const
 	{
 		return ActActionPreviewSceneController.ToSharedRef();
 	}
+
 	UActActionSequence* GetActActionSequence() const
 	{
 		return ActActionSequence;
