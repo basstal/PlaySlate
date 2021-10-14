@@ -1,16 +1,6 @@
 ﻿#include "ActActionSequenceTrackArea.h"
 
 
-FActActionTrackAreaSlot::FActActionTrackAreaSlot(const TSharedRef<SActActionSequenceTrackLane>& InSlotContent)
-	: HAlignment(), VAlignment(), TrackLane(InSlotContent)
-{
-}
-
-float FActActionTrackAreaSlot::GetVerticalOffset() const
-{
-	// ** TODO:
-	return 0.0f;
-}
 
 SActActionSequenceTrackArea::SActActionSequenceTrackArea() : Children(this)
 {

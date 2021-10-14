@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "TimeSlider/ActActionSequenceTimeSliderWidget.h"
+#include "TimeSlider/ActActionTimeSliderWidget.h"
 #include "Utils/ActActionSequenceUtil.h"
 
 #include "Widgets/SCompoundWidget.h"
@@ -8,16 +8,14 @@
 class FActActionSequenceController;
 class FActActionTimeSliderController;
 class SActActionSequenceTreeView;
-class SActActionSequenceTimeSliderWidget;
+class SActActionTimeSliderWidget;
 class SActActionSequenceTrackArea;
 
 /**
  * Sequence Tab的主要UI
  * 对应的Controller为FActActionSequenceController
  * 其下有子UI：
- *		SActActionSequenceTimeSliderWidget
- *		SActActionSequenceTrackArea
- *		SActActionSequenceTreeView
+ *		SActActionTimeSliderWidget
  *		...
  */
 class SActActionSequenceWidget : public SCompoundWidget
@@ -27,34 +25,6 @@ public:
 		{
 		}
 
-		/**
-		 * 动画播放的帧区间
-		 */
-		SLATE_ATTRIBUTE(TRange<FFrameNumber>, PlaybackRange)
-		/** The playback status */
-		SLATE_ATTRIBUTE(ActActionSequence::EPlaybackType, PlaybackStatus)
-		/** The selection range */
-		SLATE_ATTRIBUTE(TRange<FFrameNumber>, SelectionRange)
-		/** Called when the user changes the playback range */
-		SLATE_EVENT(ActActionSequence::OnFrameRangeChangedDelegate, OnPlaybackRangeChanged)
-		/** The current scrub position in (seconds) */
-		SLATE_ATTRIBUTE(FFrameTime, ScrubPosition)
-		/** The current scrub position text */
-		SLATE_ATTRIBUTE(FString, ScrubPositionText)
-		/** Called when the user has begun scrubbing */
-		SLATE_EVENT(FSimpleDelegate, OnBeginScrubbing)
-		/** Called when the user has finished scrubbing */
-		SLATE_EVENT(FSimpleDelegate, OnEndScrubbing)
-		/** Called when the user changes the scrub position */
-		SLATE_EVENT(ActActionSequence::OnScrubPositionChangedDelegate, OnScrubPositionChanged)
-		/** Called to populate the add combo button in the toolbar. */
-		SLATE_EVENT(ActActionSequence::OnGetAddMenuContentDelegate, OnGetAddMenuContent)
-		/** Called when any widget contained within sequencer has received focus */
-		SLATE_EVENT(FSimpleDelegate, OnReceivedFocus)
-		/** Extender to use for the add menu. */
-		SLATE_ARGUMENT(TSharedPtr<FExtender>, AddMenuExtender)
-		/** Extender to use for the toolbar. */
-		SLATE_ARGUMENT(TSharedPtr<FExtender>, ToolbarExtender)
 	SLATE_END_ARGS()
 
 	virtual ~SActActionSequenceWidget() override;
@@ -73,41 +43,28 @@ public:
 	 */
 	TSharedRef<SWidget> MakeAddMenu();
 	/**
-	 * 往AddTrack菜单中填充内容
-	 * 
-	 * @param MenuBuilder 被填充的菜单对象
+	 * @return 获得TimeSlider的Controller
 	 */
-	void PopulateAddMenuContext(FMenuBuilder& MenuBuilder);
+	TSharedRef<FActActionTimeSliderController> GetActActionTimeSliderController() const;
 protected:
 	/**
 	 * 当前View的Controller，转发所有逻辑行为
 	 * Widget中所有Controller应该都是WeakPtr
 	 */
 	TWeakPtr<FActActionSequenceController> ActActionSequenceController;
-	/**
-	 * 用做左侧显示Outliner和Track区域的Sequence的TreeView 
-	 */
-	TSharedPtr<SActActionSequenceTreeView> TreeView;
+
 	/** The top time slider widget */
-	TSharedPtr<SActActionSequenceTimeSliderWidget> SequenceTimeSliderWidget;
-	/** Section area widget */
-	TSharedPtr<SActActionSequenceTrackArea> TrackArea;
+	TSharedPtr<SActActionTimeSliderWidget> SequenceTimeSliderWidget;
 	/** Main Sequencer Area*/
 	TSharedPtr<SVerticalBox> MainSequenceArea;
 	/** 整个Sequence轨道的左侧和右侧分别占比 */
 	float ColumnFillCoefficients[2];
 
 public:
-	TSharedRef<FActActionTimeSliderController> GetTimeSliderController() const
+	TSharedRef<FActActionSequenceController> GetActActionSequenceController() const
 	{
-		return SequenceTimeSliderWidget->GetTimeSliderController();
+		return ActActionSequenceController.Pin().ToSharedRef();
 	}
-
-	TSharedRef<SActActionSequenceTreeView> GetTreeView() const
-	{
-		return TreeView.ToSharedRef();
-	}
-
 	/**
 	 * 获得一个存储好的百分比占比值
 	 *

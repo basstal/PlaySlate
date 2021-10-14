@@ -1,21 +1,23 @@
 ﻿#include "ActActionSequenceWidget.h"
 
 #include "PlaySlate.h"
-#include "NovaSequenceEditor/ActActionSequenceEditor.h"
 #include "NovaSequenceEditor/Controllers/ActActionSequenceController.h"
 #include "NovaSequenceEditor/Controllers/TimeSlider/ActActionTimeSliderController.h"
 #include "NovaSequenceEditor/Widgets/Viewport/ActActionViewportWidget.h"
+// ReSharper disable once CppUnusedIncludeDirective
 #include "NovaSequenceEditor/Widgets/SequenceNodeTree/ActActionSequenceTrackArea.h"
+// ReSharper disable once CppUnusedIncludeDirective
 #include "NovaSequenceEditor/Widgets/SequenceNodeTree/ActActionSequenceTreeView.h"
 // ReSharper disable once CppUnusedIncludeDirective
-#include "NovaSequenceEditor/Widgets/TimeSlider/ActActionSequenceTimeSliderWidget.h"
-#include "NovaSequenceEditor/Widgets/TimeSlider/ActActionSequenceSectionOverlay.h"
+#include "NovaSequenceEditor/Widgets/TimeSlider/ActActionTimeSliderWidget.h"
+#include "NovaSequenceEditor/Widgets/TimeSlider/ActActionSequenceSectionOverlayWidget.h"
 
 #include "FrameNumberNumericInterface.h"
 #include "Widgets/Input/SSearchBox.h"
 #include "Widgets/Layout/SGridPanel.h"
 #include "Widgets/Layout/SScrollBorder.h"
 #include "SEditorHeaderButton.h"
+#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
 
 #define LOCTEXT_NAMESPACE "ActActionToolkit"
 
@@ -31,37 +33,10 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 	ActActionSequenceController = InSequenceController;
 
 	TSharedRef<SScrollBar> ScrollBar = SNew(SScrollBar).Thickness(FVector2D(9.0f, 9.0f));
-	SAssignNew(TrackArea, SActActionSequenceTrackArea);
-	SAssignNew(TreeView, SActActionSequenceTreeView, InSequenceController->GetTreeViewRoot(), TrackArea.ToSharedRef())
-		.ExternalScrollbar(ScrollBar)
-		.Clipping(EWidgetClipping::ClipToBounds)
-		.OnGetContextMenuContent(ActActionSequence::OnGetContextMenuContentDelegate::CreateSP(this, &SActActionSequenceWidget::PopulateAddMenuContext));
-
+	TSharedRef<FActActionSequenceTreeViewNode> ActActionSequenceTreeViewNode = InSequenceController->GetActActionSequenceTreeViewRoot();
+	ActActionSequenceTreeViewNode->MakeActActionSequenceTreeView(ScrollBar);
 	TSharedRef<SScrollBar> PinnedAreaScrollBar = SNew(SScrollBar).Thickness(FVector2D(9.0f, 9.0f));
-	TSharedRef<SActActionSequenceTrackArea> PinnedTrackArea = SNew(SActActionSequenceTrackArea);
-	TSharedRef<SActActionSequenceTreeView> PinnedTreeView = SNew(SActActionSequenceTreeView, InSequenceController->GetTreeViewRoot(), PinnedTrackArea)
-		.ExternalScrollbar(PinnedAreaScrollBar)
-		.Clipping(EWidgetClipping::ClipToBounds)
-		.OnGetContextMenuContent(ActActionSequence::OnGetContextMenuContentDelegate::CreateSP(this, &SActActionSequenceWidget::PopulateAddMenuContext));
-	
-	TSharedRef<FActActionSequenceEditor> ActActionSequenceEditor = InSequenceController->GetActActionSequenceEditor();
-	// ** 初始化TimeSlider
-	ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs;
-	TimeSliderArgs.PlaybackRange = InArgs._PlaybackRange;
-	TimeSliderArgs.DisplayRate = TAttribute<FFrameRate>(ActActionSequenceEditor, &FActActionSequenceEditor::GetDisplayRate);
-	TimeSliderArgs.TickResolution = TAttribute<FFrameRate>(ActActionSequenceEditor, &FActActionSequenceEditor::GetTickResolution);
-	TimeSliderArgs.SelectionRange = InArgs._SelectionRange;
-	TimeSliderArgs.OnPlaybackRangeChanged = InArgs._OnPlaybackRangeChanged;
-	TimeSliderArgs.ScrubPosition = InArgs._ScrubPosition;
-	TimeSliderArgs.ScrubPositionText = InArgs._ScrubPositionText;
-	TimeSliderArgs.OnBeginScrubberMovement = InArgs._OnBeginScrubbing;
-	TimeSliderArgs.OnEndScrubberMovement = InArgs._OnEndScrubbing;
-	TimeSliderArgs.OnScrubPositionChanged = InArgs._OnScrubPositionChanged;
-	TimeSliderArgs.PlaybackStatus = InArgs._PlaybackStatus;
-	TimeSliderArgs.NumericTypeInterface = InSequenceController->GetNumericType();
-	TSharedPtr<FActActionTimeSliderController> TimeSliderControllerPtr = MakeShareable(new FActActionTimeSliderController(TimeSliderArgs, InSequenceController));
-	TimeSliderControllerPtr->MakeTimeSliderWidget();
-	SequenceTimeSliderWidget = TimeSliderControllerPtr->GetSequenceTimeSliderWidget();
+	ActActionSequenceTreeViewNode->MakeActActionSequenceTreeViewPinned(PinnedAreaScrollBar);
 
 	const FMargin ResizeBarPadding(4.0f, 0, 0, 0);
 	TAttribute<float> FillCoefficient_0, FillCoefficient_1;
@@ -144,7 +119,7 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 
 									+ SOverlay::Slot()
 									[
-										SNew(SScrollBorder, TreeView.ToSharedRef())
+										SNew(SScrollBorder, ActActionSequenceTreeViewNode->GetTreeView())
 										[
 											SNew(SHorizontalBox)
 
@@ -154,7 +129,7 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 											[
 												SNew(SBox)
 												[
-													PinnedTreeView
+													ActActionSequenceTreeViewNode->GetTreeViewPinned()
 												]
 											]
 
@@ -166,7 +141,7 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 												.Padding(ResizeBarPadding)
 												.Clipping(EWidgetClipping::ClipToBounds)
 												[
-													PinnedTrackArea
+													ActActionSequenceTreeViewNode->GetTrackAreaPinned()
 												]
 											]
 										]
@@ -191,7 +166,7 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 
 								+ SOverlay::Slot()
 								[
-									SNew(SScrollBorder, TreeView.ToSharedRef())
+									SNew(SScrollBorder, ActActionSequenceTreeViewNode->GetTreeView())
 									[
 										SNew(SHorizontalBox)
 
@@ -201,7 +176,7 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 										[
 											SNew(SBox)
 											[
-												TreeView.ToSharedRef()
+												ActActionSequenceTreeViewNode->GetTreeView()
 											]
 										]
 
@@ -213,7 +188,7 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 											.Padding(ResizeBarPadding)
 											.Clipping(EWidgetClipping::ClipToBounds)
 											[
-												TrackArea.ToSharedRef()
+												ActActionSequenceTreeViewNode->GetTrackArea()
 											]
 										]
 									]
@@ -250,7 +225,7 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 						.Padding(0)
 						.Clipping(EWidgetClipping::ClipToBounds)
 						[
-							SequenceTimeSliderWidget.ToSharedRef()
+							GetActActionTimeSliderController()->GetActActionTimeSliderWidget()
 						]
 					]
 
@@ -258,23 +233,14 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 					+ SGridPanel::Slot(1, 2, SGridPanel::Layer(10))
 					.Padding(ResizeBarPadding)
 					[
-						SNew(SActActionSequenceSectionOverlay, GetTimeSliderController())
-						.Visibility(EVisibility::HitTestInvisible)
-						.DisplayScrubPosition(false)
-						.DisplayTickLines(true)
-						.Clipping(EWidgetClipping::ClipToBounds)
+						InSequenceController->GetActActionSequenceSectionOverlayController0()->GetActActionSequenceSectionOverlayWidget()
 					]
 
 					// Overlay that draws the scrub position
 					+ SGridPanel::Slot(1, 2, SGridPanel::Layer(20))
 					.Padding(ResizeBarPadding)
 					[
-						SNew(SActActionSequenceSectionOverlay, GetTimeSliderController())
-						.Visibility(EVisibility::HitTestInvisible)
-						.DisplayScrubPosition(true)
-						.DisplayTickLines(false)
-						.DisplayMarkedFrames(true)
-						.Clipping(EWidgetClipping::ClipToBounds)
+						InSequenceController->GetActActionSequenceSectionOverlayController1()->GetActActionSequenceSectionOverlayWidget()
 					]
 				]
 			]
@@ -301,21 +267,14 @@ float SActActionSequenceWidget::GetPinnedAreaMaxHeight() const
 TSharedRef<SWidget> SActActionSequenceWidget::MakeAddMenu()
 {
 	FMenuBuilder MenuBuilder(true, nullptr);
-	PopulateAddMenuContext(MenuBuilder);
+	ActActionSequenceController.Pin()->PopulateAddMenuContext(MenuBuilder);
 	return MenuBuilder.MakeWidget();
 }
 
-void SActActionSequenceWidget::PopulateAddMenuContext(FMenuBuilder& MenuBuilder)
+
+TSharedRef<FActActionTimeSliderController> SActActionSequenceWidget::GetActActionTimeSliderController() const
 {
-	if (!ActActionSequenceController.IsValid())
-	{
-		return;
-	}
-	// ** 填充AddTrack菜单
-	TSharedRef<FActActionSequenceController> ActActionSequenceControllerRef = ActActionSequenceController.Pin().ToSharedRef();
-	MenuBuilder.BeginSection("AddTracks");
-	ActActionSequenceControllerRef->BuildAddTrackMenu(MenuBuilder);
-	MenuBuilder.EndSection();
+	return ActActionSequenceController.Pin()->GetActActionTimeSliderController();
 }
 
 #undef LOCTEXT_NAMESPACE

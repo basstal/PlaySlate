@@ -23,7 +23,7 @@ UObject* UActActionSequenceFactory::FactoryCreateNew(UClass* InClass, UObject* I
 
 UObject* UActActionSequenceFactory::FactoryCreateNew(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn, FName CallingContext)
 {
-	UActActionSequence * ActActionSequence = NewObject<UActActionSequence>(InParent, InName, Flags);
+	UActActionSequence* ActActionSequence = NewObject<UActActionSequence>(InParent, InName, Flags);
 	return ActActionSequence;
 }
 

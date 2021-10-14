@@ -12,6 +12,7 @@ class ASkeletalMeshActor;
 class UActActionSequence;
 class FActActionSequenceTreeViewNode;
 class SActActionViewportWidget;
+class FActActionSequenceSectionOverlayController;
 /**
  * Sequence Tab的主要控制器
  * 对应的View模块为SActActionSequenceWidget
@@ -21,6 +22,13 @@ class FActActionSequenceController : public TSharedFromThis<FActActionSequenceCo
 public:
 	FActActionSequenceController(const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor);
 	virtual ~FActActionSequenceController() override;
+
+	/**
+	* 构造Sequence的Widget为SActActionSequenceWidget，同时初始化TreeView相关内容
+	*
+	* @param ViewParams 构造Widget使用的相关参数
+	*/
+	void MakeSequenceWidget(ActActionSequence::FActActionSequenceViewParams ViewParams);
 
 	//~Begin FTickableEditorObject interface
 	virtual void Tick(float DeltaTime) override;
@@ -64,12 +72,6 @@ public:
 	 */
 	void Pause();
 	/**
-	 * 构造Sequence的Widget为SActActionSequenceWidget，同时初始化TreeView相关内容
-	 *
-	 * @param ViewParams 构造Widget使用的相关参数
-	 */
-	void MakeSequenceWidget(ActActionSequence::FActActionSequenceViewParams ViewParams);
-	/**
 	 * @return 返回当前的帧时间
 	 */
 	FFrameTime GetLocalFrameTime() const;
@@ -105,6 +107,16 @@ public:
 	 * 获得编辑器编辑的对象实例
 	 */
 	UActActionSequence* GetActActionSequence() const;
+	/**
+	 * @return 当前时间轴的显示范围
+	 */
+	ActActionSequence::FActActionAnimatedRange GetViewRange() const;
+	/**
+	 * 往AddTrack菜单中填充内容
+	 * 
+	 * @param MenuBuilder 被填充的菜单对象
+	 */
+	void PopulateAddMenuContext(FMenuBuilder& MenuBuilder);
 protected:
 	/**
 	 * 对Editor的弱引用，调用编辑器资源和相关工具方法
@@ -132,13 +144,31 @@ protected:
 	 * 所有可见节点DisplayedRootNodes的父节点，
 	 * Sequence中所有可见根节点都储存在NodeTree中作为子节点
 	 */
-	TSharedPtr<FActActionSequenceTreeViewNode> TreeViewRoot;
+	TSharedPtr<FActActionSequenceTreeViewNode> ActActionSequenceTreeViewNode;
+	/**
+	 * TODO:取一个更好的字段名
+	 * SectionOverlay的Controller，这个用来绘制TickLines
+	 */
+	TSharedPtr<FActActionSequenceSectionOverlayController> ActActionSequenceSectionOverlayController0;
+	/**
+	 * TODO:取一个更好的字段名
+	 * SectionOverlay的Controller，这个用来绘制Scrub位置
+	 */
+	TSharedPtr<FActActionSequenceSectionOverlayController> ActActionSequenceSectionOverlayController1;
 	/**
 	 * UMG Sequence main
 	 */
 	TSharedPtr<SActActionSequenceWidget> ActActionSequenceWidget;
 	/** Numeric type interface used for converting parsing and generating strings from numbers */
 	TSharedPtr<INumericTypeInterface<double>> NumericTypeInterface;
+	/**
+	 * TimeSlider的控制相关参数
+	 */
+	ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs;
+	/**
+	 * 当前Sequence时间轴的显示的范围，这里的单位是秒
+	 */
+	TRange<double> TargetViewRange;
 public:
 	ActActionSequence::EPlaybackType GetPlaybackStatus() const
 	{
@@ -150,9 +180,9 @@ public:
 		return ActActionSequenceWidget.ToSharedRef();
 	}
 
-	TSharedRef<FActActionSequenceTreeViewNode> GetTreeViewRoot() const
+	TSharedRef<FActActionSequenceTreeViewNode> GetActActionSequenceTreeViewRoot() const
 	{
-		return TreeViewRoot.ToSharedRef();
+		return ActActionSequenceTreeViewNode.ToSharedRef();
 	}
 
 	TSharedRef<FActActionTimeSliderController> GetActActionTimeSliderController() const
@@ -160,16 +190,25 @@ public:
 		return ActActionTimeSliderController.ToSharedRef();
 	}
 
-	TSharedRef<INumericTypeInterface<double>> GetNumericType() const
-	{
-		return NumericTypeInterface.ToSharedRef();
-	}
-
-	/**
-	* 获得SequenceEditor，以便协同调用其他Controller
-	*/
 	TSharedRef<FActActionSequenceEditor> GetActActionSequenceEditor() const
 	{
 		return ActActionSequenceEditor.Pin().ToSharedRef();
+	}
+
+	// TODO:取一个更好的函数名 
+	TSharedRef<FActActionSequenceSectionOverlayController> GetActActionSequenceSectionOverlayController0() const
+	{
+		return ActActionSequenceSectionOverlayController0.ToSharedRef();
+	}
+
+	// TODO:取一个更好的函数名 
+	TSharedRef<FActActionSequenceSectionOverlayController> GetActActionSequenceSectionOverlayController1() const
+	{
+		return ActActionSequenceSectionOverlayController1.ToSharedRef();
+	}
+
+	ActActionSequence::FActActionTimeSliderArgs& GetTimeSliderArgs()
+	{
+		return TimeSliderArgs;
 	}
 };

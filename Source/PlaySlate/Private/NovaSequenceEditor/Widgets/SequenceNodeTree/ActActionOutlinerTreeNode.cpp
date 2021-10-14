@@ -1,16 +1,17 @@
 ﻿#include "ActActionOutlinerTreeNode.h"
 
-#include "ActActionSequenceTreeView.h"
 #include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
 #include "NovaSequenceEditor/Controllers/ActActionSequenceController.h"
+#include "Subs/ActActionSequenceTreeViewRow.h"
 
 #include "Widgets/Text/SInlineEditableTextBlock.h"
 
 void SActActionOutlinerTreeNode::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceTreeViewNode>& Node, const TSharedRef<SActActionSequenceTreeViewRow>& InTableRow)
 {
 	DisplayNode = Node;
-	bIsOuterTopLevelNode = !Node->GetParent().IsValid();
-	bIsInnerTopLevelNode = Node->GetType() != ActActionSequence::ESequenceNodeType::Folder && Node->GetParent().IsValid() && Node->GetParent()->GetType() == ActActionSequence::ESequenceNodeType::Folder;
+	bool bParentNodeValid = Node->GetParentNode().IsValid();
+	bIsOuterTopLevelNode = !bParentNodeValid;
+	bIsInnerTopLevelNode = Node->GetType() != ActActionSequence::ESequenceNodeType::Folder && bParentNodeValid && Node->GetParentNode()->GetType() == ActActionSequence::ESequenceNodeType::Folder;
 
 	if (bIsOuterTopLevelNode)
 	{
@@ -24,7 +25,7 @@ void SActActionOutlinerTreeNode::Construct(const FArguments& InArgs, const TShar
 	}
 
 	FMargin InnerNodePadding;
-	if ( bIsInnerTopLevelNode )
+	if (bIsInnerTopLevelNode)
 	{
 		// InnerBackgroundBrush = FEditorStyle::GetBrush( "Sequencer.AnimationOutliner.TopLevelBorder_Expanded" );
 		InnerNodePadding = FMargin(0.f, 1.f);

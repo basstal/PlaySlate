@@ -1,26 +1,10 @@
 ﻿#pragma once
 
+#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionTrackAreaSlot.h"
+
 class SActActionSequenceTrackLane;
 class FActActionSequenceTreeViewNode;
-/**
-* Structure representing a slot in the track area.
-*/
-class FActActionTrackAreaSlot : public TSlotBase<FActActionTrackAreaSlot>
-{
-public:
-	/** Construction from a track lane */
-	FActActionTrackAreaSlot(const TSharedRef<SActActionSequenceTrackLane>& InSlotContent);
 
-	/** Get the vertical position of this slot inside its parent. */
-	float GetVerticalOffset() const;
-
-	/** Horizontal/Vertical alignment for the slot. */
-	EHorizontalAlignment HAlignment;
-	EVerticalAlignment VAlignment;
-
-	/** The track lane that we represent. */
-	TWeakPtr<SActActionSequenceTrackLane> TrackLane;
-};
 
 class SActActionSequenceTrackArea : public SPanel
 {

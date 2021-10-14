@@ -20,6 +20,7 @@
 #include "Animation/DebugSkelMeshComponent.h"
 #include "AnimPreviewInstance.h"
 #include "FrameNumberNumericInterface.h"
+#include "TimeSlider/ActActionSequenceSectionOverlayController.h"
 
 #define LOCTEXT_NAMESPACE "ActAction"
 
@@ -39,8 +40,49 @@ FActActionSequenceController::~FActActionSequenceController()
 	UE_LOG(LogActAction, Log, TEXT("FActActionSequenceController::~FActActionSequenceController"));
 	ActActionSequenceWidget.Reset();
 	ActActionTimeSliderController.Reset();
-	TreeViewRoot.Reset();
+	ActActionSequenceTreeViewNode.Reset();
 	TrackEditors.Empty();
+}
+
+
+void FActActionSequenceController::MakeSequenceWidget(ActActionSequence::FActActionSequenceViewParams ViewParams)
+{
+	// ** 构造所有显示节点的根节点
+	ActActionSequenceTreeViewNode = MakeShareable(new FActActionSequenceTreeViewNode(SharedThis(this)));
+
+	// Get the desired display format from the user's settings each time.
+	TAttribute<EFrameNumberDisplayFormats> GetDisplayFormatAttr = MakeAttributeLambda([=]
+	{
+		return EFrameNumberDisplayFormats::Frames;
+	});
+	TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = GetActActionSequenceEditor();
+	TAttribute<FFrameRate> GetTickResolutionAttr = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetTickResolution);
+	TAttribute<FFrameRate> GetDisplayRateAttr = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetDisplayRate);
+	// Create our numeric type interface so we can pass it to the time slider below.
+	NumericTypeInterface = MakeShareable(new FFrameNumberInterface(GetDisplayFormatAttr, 0, GetTickResolutionAttr, GetDisplayRateAttr));
+	// ** 初始化TimeSlider
+	TimeSliderArgs.PlaybackRange = TAttribute<TRange<FFrameNumber>>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetPlaybackRange);
+	TimeSliderArgs.DisplayRate = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetDisplayRate);
+	TimeSliderArgs.TickResolution = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetTickResolution);
+	TimeSliderArgs.SelectionRange = TAttribute<TRange<FFrameNumber>>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetSelectionRange);
+	TimeSliderArgs.OnPlaybackRangeChanged = ActActionSequence::OnFrameRangeChangedDelegate::CreateSP(ActActionSequenceEditorRef, &FActActionSequenceEditor::SetPlaybackRange);
+	TimeSliderArgs.ScrubPosition = TAttribute<FFrameTime>(this, &FActActionSequenceController::GetLocalFrameTime);
+	TimeSliderArgs.ScrubPositionText = TAttribute<FString>(this, &FActActionSequenceController::GetFrameTimeText);
+	TimeSliderArgs.OnBeginScrubberMovement = FSimpleDelegate::CreateSP(this, &FActActionSequenceController::OnBeginScrubbing);
+	TimeSliderArgs.OnEndScrubberMovement = FSimpleDelegate::CreateSP(this, &FActActionSequenceController::OnEndScrubbing);
+	TimeSliderArgs.OnScrubPositionChanged = ActActionSequence::OnScrubPositionChangedDelegate::CreateSP(this, &FActActionSequenceController::OnScrubPositionChanged);
+	TimeSliderArgs.PlaybackStatus = TAttribute<ActActionSequence::EPlaybackType>(this, &FActActionSequenceController::GetPlaybackStatus);
+	TimeSliderArgs.NumericTypeInterface = NumericTypeInterface;
+	TimeSliderArgs.ViewRange.Bind(TAttribute<ActActionSequence::FActActionAnimatedRange>::FGetter::CreateSP(this, &FActActionSequenceController::GetViewRange));
+	ActActionTimeSliderController = MakeShareable(new FActActionTimeSliderController(SharedThis(this)));
+	ActActionTimeSliderController->MakeTimeSliderWidget();
+
+	ActActionSequenceSectionOverlayController0 = MakeShareable(new FActActionSequenceSectionOverlayController(SharedThis(this)));
+	ActActionSequenceSectionOverlayController0->MakeSequenceSectionOverlayWidget(ActActionSequence::ESectionOverlayWidgetType::TickLines);
+	ActActionSequenceSectionOverlayController1 = MakeShareable(new FActActionSequenceSectionOverlayController(SharedThis(this)));
+	ActActionSequenceSectionOverlayController1->MakeSequenceSectionOverlayWidget(ActActionSequence::ESectionOverlayWidgetType::ScrubPosition);
+
+	ActActionSequenceWidget = SNew(SActActionSequenceWidget, SharedThis(this));
 }
 
 void FActActionSequenceController::Tick(float DeltaTime)
@@ -100,15 +142,19 @@ void FActActionSequenceController::AddAnimMontageTrack(UAnimMontage* AnimMontage
 		UE_LOG(LogActAction, Log, TEXT("AnimMontage : %s"), *AnimMontage->GetName());
 		ActActionSequence->EditAnimMontage = AnimMontage;
 		// ** 添加左侧Track
-		if (ActActionSequenceWidget.IsValid())
+		if (ActActionSequenceTreeViewNode.IsValid())
 		{
-			TSharedPtr<SActActionSequenceTreeView> SequenceTreeView = ActActionSequenceWidget->GetTreeView();
-			SequenceTreeView->AddDisplayNode(MakeShareable(new FActActionSequenceTreeViewNode(SharedThis(this), TreeViewRoot)));
+			ActActionSequenceTreeViewNode->GetTreeView()->AddDisplayNode(MakeShareable(new FActActionSequenceTreeViewNode(SharedThis(this), ActActionSequenceTreeViewNode)));
 		}
 		if (ActActionTimeSliderController.IsValid())
 		{
 			float CalculateSequenceLength = AnimMontage->CalculateSequenceLength();
-			ActActionTimeSliderController->SetTimeSliderPlaybackTotalLength(CalculateSequenceLength);
+			// ** 添加右侧TimeSlider
+			UE_LOG(LogActAction, Log, TEXT("InTotalLength : %f"), CalculateSequenceLength);
+			// ** 限制显示的最大长度为当前的Sequence总时长
+			TargetViewRange = TRange<double>(0, CalculateSequenceLength);
+			FFrameNumber EndFrame = FFrameNumber((int32)(CalculateSequenceLength * TimeSliderArgs.TickResolution.Get().Numerator));
+			ActActionTimeSliderController->SetPlaybackRangeEnd(EndFrame);
 		}
 
 		if (ActActionSequenceEditor.IsValid())
@@ -153,43 +199,6 @@ void FActActionSequenceController::Pause()
 	EvaluateInternal(Range);
 }
 
-void FActActionSequenceController::MakeSequenceWidget(ActActionSequence::FActActionSequenceViewParams ViewParams)
-{
-	TSharedRef<FActActionSequenceController> ActionSequenceController = SharedThis(this);
-	// ** 构造所有显示节点的根节点
-	TreeViewRoot = MakeShareable(new FActActionSequenceTreeViewNode(ActionSequenceController));
-
-	// Get the desired display format from the user's settings each time.
-	TAttribute<EFrameNumberDisplayFormats> GetDisplayFormatAttr = MakeAttributeLambda([=]
-	{
-		return EFrameNumberDisplayFormats::Frames;
-	});
-	TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = GetActActionSequenceEditor();
-	TAttribute<FFrameRate> GetTickResolutionAttr = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetTickResolution);
-	TAttribute<FFrameRate> GetDisplayRateAttr = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetDisplayRate);
-	// Create our numeric type interface so we can pass it to the time slider below.
-	NumericTypeInterface = MakeShareable(new FFrameNumberInterface(GetDisplayFormatAttr, 0, GetTickResolutionAttr, GetDisplayRateAttr));
-
-	TSharedPtr<SActActionSequenceWidget> ActActionSequenceWidgetPtr = SNew(SActActionSequenceWidget, ActionSequenceController)
-		.PlaybackRange(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetPlaybackRange)
-		.PlaybackStatus(this, &FActActionSequenceController::GetPlaybackStatus)
-		.SelectionRange(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetSelectionRange)
-		.OnPlaybackRangeChanged(ActActionSequenceEditorRef, &FActActionSequenceEditor::SetPlaybackRange)
-		.ScrubPosition(this, &FActActionSequenceController::GetLocalFrameTime)
-		.ScrubPositionText(this, &FActActionSequenceController::GetFrameTimeText)
-		.OnBeginScrubbing(this, &FActActionSequenceController::OnBeginScrubbing)
-		.OnEndScrubbing(this, &FActActionSequenceController::OnEndScrubbing)
-		.OnScrubPositionChanged(this, &FActActionSequenceController::OnScrubPositionChanged)
-		.OnGetAddMenuContent(ViewParams.OnGetAddMenuContent)
-		.OnReceivedFocus(ViewParams.OnReceivedFocus)
-		.AddMenuExtender(ViewParams.AddMenuExtender)
-		.ToolbarExtender(ViewParams.ToolbarExtender);
-
-	// ** 将内部Widget的Controller同步到这个的Controller中
-	ActActionTimeSliderController = ActActionSequenceWidgetPtr->GetTimeSliderController();
-	ActActionSequenceWidget = ActActionSequenceWidgetPtr;
-}
-
 FFrameTime FActActionSequenceController::GetLocalFrameTime() const
 {
 	const FFrameRate TickResolution = GetActActionSequenceEditor()->GetTickResolution();
@@ -203,7 +212,7 @@ FString FActActionSequenceController::GetFrameTimeText() const
 {
 	const FFrameTime CurrentPosition = PlayPosition.GetCurrentPosition();
 	const FFrameTime RootTime = ConvertFrameTime(CurrentPosition, PlayPosition.GetInputRate(), PlayPosition.GetOutputRate());
-	return GetNumericType()->ToString(RootTime.GetFrame().Value);
+	return NumericTypeInterface->ToString(RootTime.GetFrame().Value);
 }
 
 void FActActionSequenceController::OnBeginScrubbing()
@@ -270,4 +279,18 @@ UActActionSequence* FActActionSequenceController::GetActActionSequence() const
 }
 
 
+ActActionSequence::FActActionAnimatedRange FActActionSequenceController::GetViewRange() const
+{
+	ActActionSequence::FActActionAnimatedRange AnimatedRange(TargetViewRange.GetLowerBoundValue(), TargetViewRange.GetUpperBoundValue());
+	return AnimatedRange;
+}
+
+
+void FActActionSequenceController::PopulateAddMenuContext(FMenuBuilder& MenuBuilder)
+{
+	// ** 填充AddTrack菜单
+	MenuBuilder.BeginSection("AddTracks");
+	BuildAddTrackMenu(MenuBuilder);
+	MenuBuilder.EndSection();
+}
 #undef LOCTEXT_NAMESPACE

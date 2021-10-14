@@ -2,13 +2,12 @@
 
 
 class FActActionSequenceEditor;
+class FActActionPreviewSceneController;
+class SActActionViewportWidget;
 
 class FActActionViewportClient : public FEditorViewportClient
 {
 public:
-	FActActionViewportClient(const TSharedRef<class FActActionPreviewSceneController>& InPreviewScene, const TSharedRef<class SActActionViewportWidget>& InViewport, const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor);
+	FActActionViewportClient(const TSharedRef<FActActionPreviewSceneController>& InActActionPreviewSceneController, const TSharedRef<SActActionViewportWidget>& InActActionViewportWidget, FEditorModeTools& InEditorModeTools);
 	virtual ~FActActionViewportClient() override;
-
-protected:
-	TWeakPtr<FActActionPreviewSceneController> PreviewScenePtr;
 };

@@ -14,6 +14,17 @@ public:
 	FActActionPreviewSceneController(const ConstructionValues& CVS, const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor);
 	virtual ~FActActionPreviewSceneController() override;
 
+	/**
+	* 构造Sequence的Widget为SActActionViewportWidget
+	*/
+	void MakeViewportWidget();
+	/**
+	* Widget Make Client回调方法
+	* 
+	* @return 构造的FActActionViewportClient，是SEditorViewport必须实现的组件之一
+	*/
+	TSharedPtr<FActActionViewportClient> MakeViewportClient();
+
 	//~Begin FPreviewScene interface
 	virtual void AddComponent(UActorComponent* Component, const FTransform& LocalToWorld, bool bAttachToRoot) override;
 	//~End FPreviewScene interface
@@ -21,17 +32,6 @@ public:
 	//~Begin FTickableObjectBase interface
 	virtual void Tick(float DeltaTime) override;
 	//~End FTickableObjectBase interface
-
-	/**
-	 * Widget Make Client回调方法
-	 * @return 构造的FActActionViewportClient，是SEditorViewport必须实现的组件之一
-	 */
-	TSharedPtr<FActActionViewportClient> MakeViewportClient();
-
-	/**
-	 * 构造Sequence的Widget为SActActionViewportWidget
-	 */
-	void MakeViewportWidget();
 
 	/**
 	 * 在Viewport中生成指定ActorType类型的Actor
@@ -68,7 +68,7 @@ protected:
 	 */
 	TSharedPtr<SActActionViewportWidget> ActActionViewportWidget;
 	/**
-	 * 当前预览动画的定格事件，单位秒
+	 * 当前预览动画的定格时间，单位秒
 	 */
 	double PreviewScrubTime;
 public:

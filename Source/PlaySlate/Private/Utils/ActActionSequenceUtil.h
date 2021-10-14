@@ -2,6 +2,8 @@
 
 class FActActionSequenceController;
 class FActActionTrackEditorBase;
+class FActActionSequenceTreeViewNode;
+class SActActionSequenceTreeViewRow;
 
 namespace ActActionSequence
 {
@@ -58,6 +60,12 @@ namespace ActActionSequence
 		Stepping,
 		Paused,
 		MAX
+	};
+
+	enum class ESectionOverlayWidgetType : uint8
+	{
+		TickLines,
+		ScrubPosition
 	};
 
 	/** A delegate which will create an auto-key handler. */
@@ -450,5 +458,24 @@ namespace ActActionSequence
 			  ScrubberStyle(ESequencerScrubberStyle::Vanilla)
 		{
 		}
+	};
+
+	/** Structure used to define a column in the tree view */
+	struct FActActionSequenceTreeViewColumn
+	{
+		typedef TFunction<TSharedRef<SWidget>(const TSharedRef<FActActionSequenceTreeViewNode>&, const TSharedRef<SActActionSequenceTreeViewRow>&)> FOnGenerate;
+
+		FActActionSequenceTreeViewColumn(const FOnGenerate& InOnGenerate, const TAttribute<float>& InWidth) : Generator(InOnGenerate), Width(InWidth)
+		{
+		}
+
+		FActActionSequenceTreeViewColumn(FOnGenerate&& InOnGenerate, const TAttribute<float>& InWidth) : Generator(MoveTemp(InOnGenerate)), Width(InWidth)
+		{
+		}
+
+		/** Function used to generate a cell for this column */
+		FOnGenerate Generator;
+		/** Attribute specifying the width of this column */
+		TAttribute<float> Width;
 	};
 }

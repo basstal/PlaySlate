@@ -7,19 +7,16 @@
 #include "AssetEditorModeManager.h"
 #include "EditorModeManager.h"
 #include "UnrealWidget.h"
-#include "NovaSequenceEditor/ActActionSequenceEditor.h"
 
-FActActionViewportClient::FActActionViewportClient(const TSharedRef<FActActionPreviewSceneController>& InPreviewScene, const TSharedRef<SActActionViewportWidget>& InViewport, const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor)
-	: FEditorViewportClient(&InActActionSequenceEditor->GetEditorModeManager(), StaticCast<FPreviewScene*>(&InPreviewScene.Get()), StaticCastSharedRef<SEditorViewport>(InViewport)),
-	  PreviewScenePtr(InPreviewScene)
+FActActionViewportClient::FActActionViewportClient(const TSharedRef<FActActionPreviewSceneController>& InActActionPreviewSceneController, const TSharedRef<SActActionViewportWidget>& InActActionViewportWidget, FEditorModeTools& InEditorModeTools)
+	: FEditorViewportClient(&InEditorModeTools, StaticCast<FPreviewScene*>(&InActActionPreviewSceneController.Get()), StaticCastSharedRef<SEditorViewport>(InActActionViewportWidget))
 {
 	FAssetEditorModeManager* ModeManager = (FAssetEditorModeManager*)ModeTools.Get();
+	Widget->SetUsesEditorModeTools(ModeManager);
 	if (ModeManager)
 	{
-		Widget->SetUsesEditorModeTools(ModeManager);
-		ModeManager->SetPreviewScene(StaticCast<FPreviewScene*>(&InPreviewScene.Get()));
+		ModeManager->SetPreviewScene(StaticCast<FPreviewScene*>(&InActActionPreviewSceneController.Get()));
 	}
-	// ModeTools->SetDefaultMode(ActActionSequence::ActActionViewportEditMode);
 	// Default to local space
 	ModeTools->SetCoordSystem(COORD_Local);
 	Invalidate();
@@ -27,7 +24,7 @@ FActActionViewportClient::FActActionViewportClient(const TSharedRef<FActActionPr
 	DrawHelper.PerspectiveGridSize = HALF_WORLD_MAX1;
 	DrawHelper.AxesLineThickness = 0.0f;
 	// Toggling grid now relies on the show flag
-	DrawHelper.bDrawGrid = true;
+	DrawHelper.bDrawGrid = false;
 	ModeTools->SetWidgetMode(UE::Widget::WM_Rotate);
 	SetRealtime(true);
 	ViewportType = LVT_Perspective;

@@ -28,6 +28,20 @@ FActActionPreviewSceneController::~FActActionPreviewSceneController()
 	ActActionViewportWidget.Reset();
 }
 
+void FActActionPreviewSceneController::MakeViewportWidget()
+{
+	// ** NOTE:合理不能用SNew的原因是在构造时会调用到FActActionPreviewSceneController::MakeViewportClient，需要先设置好ActActionViewportWidget指针
+	SAssignNew(ActActionViewportWidget, SActActionViewportWidget, SharedThis(this));
+}
+
+TSharedPtr<FActActionViewportClient> FActActionPreviewSceneController::MakeViewportClient()
+{
+	return MakeShareable(new FActActionViewportClient(
+		this->AsShared(),
+		ActActionViewportWidget.ToSharedRef(),
+		ActActionSequenceEditor.Pin()->GetEditorModeManager()));
+}
+
 void FActActionPreviewSceneController::AddComponent(UActorComponent* Component, const FTransform& LocalToWorld, bool bAttachToRoot)
 {
 	if (bAttachToRoot)
@@ -50,19 +64,6 @@ void FActActionPreviewSceneController::Tick(float DeltaTime)
 	}
 	// Handle updating the preview component to represent the effects of root motion
 	ActActionSkeletalMesh->ConsumeRootMotion(FloorBounds.GetBox().Min, FloorBounds.GetBox().Max);
-}
-
-TSharedPtr<FActActionViewportClient> FActActionPreviewSceneController::MakeViewportClient()
-{
-	return MakeShareable(new FActActionViewportClient(
-		this->AsShared(),
-		ActActionViewportWidget.ToSharedRef(),
-		ActActionSequenceEditor.Pin().ToSharedRef()));
-}
-
-void FActActionPreviewSceneController::MakeViewportWidget()
-{
-	SAssignNew(ActActionViewportWidget, SActActionViewportWidget, ActActionSequenceEditor.Pin().ToSharedRef());
 }
 
 void FActActionPreviewSceneController::SpawnActorInViewport(UClass* ActorType, UAnimBlueprint* AnimBlueprint)

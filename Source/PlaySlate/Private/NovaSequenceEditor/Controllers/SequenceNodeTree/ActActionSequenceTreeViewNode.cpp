@@ -1,21 +1,67 @@
 ﻿#include "ActActionSequenceTreeViewNode.h"
 
+#include "PlaySlate.h"
 #include "ActActionSequenceSectionBase.h"
 #include "NovaSequenceEditor/ActActionSequenceEditor.h"
 #include "NovaSequenceEditor/Controllers/ActActionSequenceController.h"
 #include "NovaSequenceEditor/Widgets/SequenceNodeTree/ActActionOutlinerTreeNode.h"
 #include "NovaSequenceEditor/Widgets/SequenceNodeTree/ActActionSequenceCombinedKeysTrack.h"
 #include "NovaSequenceEditor/Widgets/SequenceNodeTree/ActActionSequenceSectionArea.h"
+#include "NovaSequenceEditor/Widgets/SequenceNodeTree/ActActionSequenceTreeView.h"
+#include "NovaSequenceEditor/Widgets/SequenceNodeTree/ActActionSequenceTrackArea.h"
 
-FActActionSequenceTreeViewNode::FActActionSequenceTreeViewNode(const TSharedRef<FActActionSequenceController>& InActActionSequenceController, const TSharedPtr<FActActionSequenceTreeViewNode>& InParentTree, FName InNodeName)
-	: NodeName(InNodeName),
-	  ParentNode(InParentTree),
-	  ActActionSequenceController(InActActionSequenceController)
+FActActionSequenceTreeViewNode::FActActionSequenceTreeViewNode(const TSharedRef<FActActionSequenceController>& InActActionSequenceController, const TSharedPtr<FActActionSequenceTreeViewNode>& InParentNode, FName InNodeName)
+	: ActActionSequenceController(InActActionSequenceController),
+	  ParentNode(InParentNode),
+	  NodeName(InNodeName)
 {
 }
 
 FActActionSequenceTreeViewNode::~FActActionSequenceTreeViewNode()
 {
+	UE_LOG(LogActAction, Log, TEXT("FActActionSequenceTreeViewNode::~FActActionSequenceTreeViewNode : %s"));
+}
+
+void FActActionSequenceTreeViewNode::MakeActActionSequenceTreeView(const TSharedRef<SScrollBar>& ScrollBar)
+{
+	TrackArea = SNew(SActActionSequenceTrackArea);
+	TreeView = SNew(SActActionSequenceTreeView, SharedThis(this), TrackArea.ToSharedRef())
+		.ExternalScrollbar(ScrollBar)
+		.Clipping(EWidgetClipping::ClipToBounds);
+}
+
+void FActActionSequenceTreeViewNode::MakeActActionSequenceTreeViewPinned(const TSharedRef<SScrollBar>& ScrollBar)
+{
+	TrackAreaPinned = SNew(SActActionSequenceTrackArea);
+	TreeViewPinned = SNew(SActActionSequenceTreeView, SharedThis(this), TrackAreaPinned.ToSharedRef())
+		.ExternalScrollbar(ScrollBar)
+		.Clipping(EWidgetClipping::ClipToBounds);
+}
+
+
+void FActActionSequenceTreeViewNode::MakeContainerWidgetForOutliner(const TSharedRef<SActActionSequenceTreeViewRow>& InRow)
+{
+	ActActionOutlinerTreeNode = SNew(SActActionOutlinerTreeNode, SharedThis(this), InRow)
+	.IconBrush(this, &FActActionSequenceTreeViewNode::GetIconBrush)
+	.IconColor(this, &FActActionSequenceTreeViewNode::GetDisplayNameColor)
+	.IconOverlayBrush(this, &FActActionSequenceTreeViewNode::GetIconOverlayBrush)
+	.IconToolTipText(this, &FActActionSequenceTreeViewNode::GetIconToolTipText)
+	.CustomContent()
+	[
+		GetCustomOutlinerContent()
+	];
+}
+
+
+void FActActionSequenceTreeViewNode::MakeWidgetForSectionArea()
+{
+	if (GetType() == ActActionSequence::ESequenceNodeType::Track)
+	{
+		ActActionSectionWidget = SNew(SActActionSequenceSectionArea, SharedThis(this));
+	}
+	ActActionSectionWidget = SNew(SActActionSequenceCombinedKeysTrack, SharedThis(this))
+		.Visibility(EVisibility::Visible)
+		.TickResolution(ActActionSequenceController.Pin()->GetActActionSequenceEditor(), &FActActionSequenceEditor::GetTickResolution);
 }
 
 bool FActActionSequenceTreeViewNode::IsTreeViewRoot()
@@ -28,55 +74,12 @@ const TArray<TSharedRef<FActActionSequenceTreeViewNode>>& FActActionSequenceTree
 	return ChildNodes;
 }
 
-
-void FActActionSequenceTreeViewNode::SetParent(TSharedPtr<FActActionSequenceTreeViewNode> InParent, int32 DesiredChildIndex)
-{
-	TSharedPtr<FActActionSequenceTreeViewNode> CurrentParent = ParentNode;
-	if (CurrentParent != InParent)
-	{
-		const FString OldPath = GetPathName();
-
-		TSharedRef<FActActionSequenceTreeViewNode> ThisNode = AsShared();
-		if (CurrentParent)
-		{
-			// Remove from parent
-			CurrentParent->ChildNodes.Remove(ThisNode);
-		}
-
-		if (InParent)
-		{
-			// Add to new parent
-			if (DesiredChildIndex != INDEX_NONE && ensureMsgf(DesiredChildIndex <= InParent->ChildNodes.Num(), TEXT("Invalid insert index specified")))
-			{
-				InParent->ChildNodes.Insert(ThisNode, DesiredChildIndex);
-			}
-			else
-			{
-				InParent->ChildNodes.Add(ThisNode);
-			}
-
-			// bExpanded = ParentNode.GetSavedExpansionState(*this);
-
-			// if (InParent != ParentNode.GetRootNode())
-			// {
-			// 	bPinned = false;
-			// 	ParentNode.SavePinnedState(*this, false);
-			// }
-		}
-
-		ParentNode = InParent;
-
-		// ParentNode->GetSequenceController().OnNodePathChanged(OldPath, GetPathName());
-	}
-}
-
-
 FString FActActionSequenceTreeViewNode::GetPathName() const
 {
 	// First get our parent's path
 	FString PathName;
 
-	TSharedPtr<FActActionSequenceTreeViewNode> Parent = GetParent();
+	TSharedPtr<FActActionSequenceTreeViewNode> Parent = GetParentNode();
 	if (Parent.IsValid())
 	{
 		ensure(Parent != SharedThis(this));
@@ -91,29 +94,7 @@ FString FActActionSequenceTreeViewNode::GetPathName() const
 
 bool FActActionSequenceTreeViewNode::IsHidden() const
 {
-	// return ParentNode.HasActiveFilter() && !ParentNode.IsNodeFiltered(AsShared());
 	return false;
-}
-
-TSharedRef<SWidget> FActActionSequenceTreeViewNode::GenerateContainerWidgetForOutliner(const TSharedRef<SActActionSequenceTreeViewRow>& InRow)
-{
-	TSharedPtr<SWidget> NewWidget = SNew(SActActionOutlinerTreeNode, SharedThis(this), InRow);
-	// .IconBrush(this, &FActActionSequenceTreeViewNode::GetIconBrush)
-	// .IconColor(this, &FActActionSequenceTreeViewNode::GetIconColor)
-	// .IconOverlayBrush(this, &FActActionSequenceTreeViewNode::GetIconOverlayBrush)
-	// .IconToolTipText(this, &FActActionSequenceTreeViewNode::GetIconToolTipText)
-	// .CustomContent()
-	// [
-	// 	GetCustomOutlinerContent()
-	// ];
-
-	return NewWidget.ToSharedRef();
-}
-
-
-ActActionSequence::ESequenceNodeType FActActionSequenceTreeViewNode::GetType()
-{
-	return ActActionSequence::ESequenceNodeType::Root;
 }
 
 bool FActActionSequenceTreeViewNode::IsSelectable() const
@@ -121,11 +102,36 @@ bool FActActionSequenceTreeViewNode::IsSelectable() const
 	return true;
 }
 
-TSharedPtr<FActActionSequenceTreeViewNode> FActActionSequenceTreeViewNode::GetParent() const
+bool FActActionSequenceTreeViewNode::IsVisible() const
 {
-	TSharedPtr<FActActionSequenceTreeViewNode> Pinned = ParentNode;
-	return (Pinned && Pinned->GetType() != ActActionSequence::ESequenceNodeType::Root) ? Pinned : nullptr;
+	return true;
 }
+
+ActActionSequence::ESequenceNodeType FActActionSequenceTreeViewNode::GetType()
+{
+	return ActActionSequence::ESequenceNodeType::Root;
+}
+
+void FActActionSequenceTreeViewNode::SetParent(TSharedPtr<FActActionSequenceTreeViewNode> InParent, int32 DesiredChildIndex)
+{
+	if (!InParent || ParentNode == InParent)
+	{
+		return;
+	}
+	// Remove from parent
+	ParentNode->ChildNodes.Remove(SharedThis(this));
+	// Add to new parent
+	if (DesiredChildIndex != INDEX_NONE && ensureMsgf(DesiredChildIndex <= InParent->ChildNodes.Num(), TEXT("Invalid insert index specified")))
+	{
+		InParent->ChildNodes.Insert(SharedThis(this), DesiredChildIndex);
+	}
+	else
+	{
+		InParent->ChildNodes.Add(SharedThis(this));
+	}
+	ParentNode = InParent;
+}
+
 
 TSharedPtr<FActActionSequenceTreeViewNode> FActActionSequenceTreeViewNode::GetSectionAreaAuthority() const
 {
@@ -139,35 +145,13 @@ TSharedPtr<FActActionSequenceTreeViewNode> FActActionSequenceTreeViewNode::GetSe
 		}
 		else
 		{
-			Authority = Authority->GetParent();
+			Authority = Authority->GetParentNode();
 		}
 	}
 
 	return Authority;
 }
 
-bool FActActionSequenceTreeViewNode::IsVisible() const
-{
-	return true;
-}
-
-TSharedRef<SWidget> FActActionSequenceTreeViewNode::GenerateWidgetForSectionArea(const TAttribute<TRange<double>>& ViewRange)
-{
-	if (GetType() == ActActionSequence::ESequenceNodeType::Track)
-	{
-		return SNew(SActActionSequenceSectionArea, SharedThis(this))
-			.ViewRange(ViewRange);
-	}
-
-	auto VisibilityLambda = [this]()
-	{
-		return EVisibility::Visible;
-	};
-	return SNew(SActActionSequenceCombinedKeysTrack, SharedThis(this))
-		.ViewRange(ViewRange)
-		.Visibility_Lambda(VisibilityLambda)
-		.TickResolution(this, &FActActionSequenceTreeViewNode::GetTickResolution);
-}
 
 TArray<TSharedRef<FActActionSequenceSectionBase>>& FActActionSequenceTreeViewNode::GetSections()
 {
@@ -176,27 +160,9 @@ TArray<TSharedRef<FActActionSequenceSectionBase>>& FActActionSequenceTreeViewNod
 
 float FActActionSequenceTreeViewNode::GetNodeHeight() const
 {
-	float SectionHeight = Sections.Num() > 0
-		                      ? Sections[0]->GetSectionHeight()
-		                      : 15.0f;
+	float SectionHeight = Sections.Num() > 0 ? Sections[0]->GetSectionHeight() : 15.0f;
 	float PaddedSectionHeight = SectionHeight + 6.0f;
-
 	return PaddedSectionHeight;
-}
-
-TSharedRef<FActActionSequenceController> FActActionSequenceTreeViewNode::GetSequenceController() const
-{
-	return ActActionSequenceController.Pin().ToSharedRef();
-}
-
-FFrameRate FActActionSequenceTreeViewNode::GetTickResolution() const
-{
-	return GetSequenceController()->GetActActionSequenceEditor()->GetTickResolution();
-}
-
-TSharedPtr<FActActionSequenceTreeViewNode> FActActionSequenceTreeViewNode::GetParentOrRoot() const
-{
-	return ParentNode;
 }
 
 bool FActActionSequenceTreeViewNode::CanRenameNode() const
@@ -206,8 +172,7 @@ bool FActActionSequenceTreeViewNode::CanRenameNode() const
 
 FSlateFontInfo FActActionSequenceTreeViewNode::GetDisplayNameFont() const
 {
-	FSlateFontInfo NodeFont = FEditorStyle::GetFontStyle("Sequencer.AnimationOutliner.RegularFont");
-	return NodeFont;
+	return FEditorStyle::GetFontStyle("Sequencer.AnimationOutliner.RegularFont");
 }
 
 FSlateColor FActActionSequenceTreeViewNode::GetDisplayNameColor() const
@@ -219,12 +184,12 @@ bool FActActionSequenceTreeViewNode::ValidateDisplayName(const FText& NewDisplay
 {
 	if (NewDisplayName.IsEmpty())
 	{
-		OutErrorMessage = NSLOCTEXT("Sequencer", "RenameFailed_LeftBlank", "Labels cannot be left blank");
+		OutErrorMessage = NSLOCTEXT("Sequence", "RenameFailed_LeftBlank", "Labels cannot be left blank");
 		return false;
 	}
 	else if (NewDisplayName.ToString().Len() >= NAME_SIZE)
 	{
-		OutErrorMessage = FText::Format(NSLOCTEXT("Sequencer", "RenameFailed_TooLong", "Names must be less than {0} characters long"), NAME_SIZE);
+		OutErrorMessage = FText::Format(NSLOCTEXT("Sequence", "RenameFailed_TooLong", "Names must be less than {0} characters long"), NAME_SIZE);
 		return false;
 	}
 	return true;
@@ -232,5 +197,29 @@ bool FActActionSequenceTreeViewNode::ValidateDisplayName(const FText& NewDisplay
 
 void FActActionSequenceTreeViewNode::SetDisplayName(const FText& NewDisplayName)
 {
-	NodeName = FName(NewDisplayName.ToString());
+	FText OutErrorMessage;
+	if (ValidateDisplayName(NewDisplayName, OutErrorMessage))
+	{
+		NodeName = FName(NewDisplayName.ToString());
+	}
+}
+
+const FSlateBrush* FActActionSequenceTreeViewNode::GetIconBrush() const
+{
+	return nullptr;
+}
+
+const FSlateBrush* FActActionSequenceTreeViewNode::GetIconOverlayBrush() const
+{
+	return nullptr;
+}
+
+FText FActActionSequenceTreeViewNode::GetIconToolTipText() const
+{
+	return FText();
+}
+
+TSharedRef<SWidget> FActActionSequenceTreeViewNode::GetCustomOutlinerContent()
+{
+	return SNew(SSpacer);
 }

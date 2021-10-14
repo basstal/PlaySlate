@@ -9,8 +9,6 @@
 
 void SActActionSequenceSectionArea::Construct(const FArguments& InArgs, TSharedRef<FActActionSequenceTreeViewNode> InNode)
 {
-	ViewRange = InArgs._ViewRange;
-
 	check(InNode->GetType() == ActActionSequence::ESequenceNodeType::Track);
 	SectionAreaNode = InNode;
 
