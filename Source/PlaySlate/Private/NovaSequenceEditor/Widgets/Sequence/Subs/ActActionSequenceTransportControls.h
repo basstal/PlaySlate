@@ -1,9 +1,9 @@
 ﻿#pragma once
 
 #include "ITransportControl.h"
-#include "NovaSequenceEditor/ActActionSequenceEditor.h"
 
 class FActActionSequenceController;
+class FActActionPreviewSceneController;
 
 class SActActionSequenceTransportControls : public SCompoundWidget
 {
@@ -15,7 +15,7 @@ public:
 	SLATE_END_ARGS()
 
 	virtual ~SActActionSequenceTransportControls() override;
-	
+
 	void Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceController>& InActActionSequenceController);
 
 	/** 点击逐帧前进的回调 */
@@ -43,8 +43,6 @@ public:
 	/** 获得当前播放状态 */
 	EPlaybackMode::Type GetPlaybackMode() const;
 protected:
-	/** Controller of this widget */
-	TWeakPtr<FActActionSequenceController> ActActionSequenceController;
-	/** 对Editor的引用，以获取控制播放的对象 */
-	TWeakPtr<FActActionSequenceEditor> ActActionSequenceEditor;
+	/** 对Controller的引用，以获取控制播放的对象 */
+	TWeakPtr<FActActionPreviewSceneController> ActActionPreviewSceneController;
 };

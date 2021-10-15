@@ -3,6 +3,7 @@
 #include "PlaySlate.h"
 #include "EditorWidgetsModule.h"
 #include "ITransportControl.h"
+#include "NovaSequenceEditor/ActActionSequenceEditor.h"
 #include "NovaSequenceEditor/Controllers/Sequence/ActActionSequenceController.h"
 #include "NovaSequenceEditor/Controllers/Viewport/ActActionPreviewSceneController.h"
 
@@ -13,8 +14,7 @@ SActActionSequenceTransportControls::~SActActionSequenceTransportControls()
 
 void SActActionSequenceTransportControls::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceController>& InActActionSequenceController)
 {
-	ActActionSequenceController = InActActionSequenceController;
-	ActActionSequenceEditor = ActActionSequenceController.Pin()->GetActActionSequenceEditor();
+	ActActionPreviewSceneController = InActActionSequenceController->GetActActionSequenceEditor()->GetActActionPreviewSceneController();
 
 	FEditorWidgetsModule& EditorWidgetsModule = FModuleManager::LoadModuleChecked<FEditorWidgetsModule>("EditorWidgets");
 
@@ -37,76 +37,70 @@ void SActActionSequenceTransportControls::Construct(const FArguments& InArgs, co
 
 FReply SActActionSequenceTransportControls::OnClick_Forward_Step()
 {
-	ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController()->PlayStep(true);
+	ActActionPreviewSceneController.Pin()->PlayStep(true);
 	return FReply::Handled();
 }
 
 FReply SActActionSequenceTransportControls::OnClick_Forward_End()
 {
-	ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController()->EvaluateToOneEnd(true);
+	ActActionPreviewSceneController.Pin()->EvaluateToOneEnd(true);
 	return FReply::Handled();
 }
 
 FReply SActActionSequenceTransportControls::OnClick_Backward_Step()
 {
-	ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController()->PlayStep(false);
+	ActActionPreviewSceneController.Pin()->PlayStep(false);
 	return FReply::Handled();
 }
 
 FReply SActActionSequenceTransportControls::OnClick_Backward_End()
 {
-	ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController()->EvaluateToOneEnd(false);
+	ActActionPreviewSceneController.Pin()->EvaluateToOneEnd(false);
 	return FReply::Handled();
 }
 
 FReply SActActionSequenceTransportControls::OnClick_Forward()
 {
-	if (ActActionSequenceEditor.IsValid())
+	TSharedRef<FActActionPreviewSceneController> ActActionPreviewSceneControllerRef = ActActionPreviewSceneController.Pin().ToSharedRef();
+	EPlaybackMode::Type PlaybackMode = ActActionPreviewSceneControllerRef->GetPlaybackMode();
+	if (PlaybackMode == EPlaybackMode::Stopped || PlaybackMode == EPlaybackMode::PlayingReverse)
 	{
-		TSharedRef<FActActionPreviewSceneController> ActActionPreviewSceneController = ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController();
-		EPlaybackMode::Type PlaybackMode = ActActionPreviewSceneController->GetPlaybackMode();
-		if (PlaybackMode == EPlaybackMode::Stopped || PlaybackMode == EPlaybackMode::PlayingReverse)
-		{
-			ActActionPreviewSceneController->TogglePlay(EPlaybackMode::PlayingForward);
-		}
-		else
-		{
-			ActActionPreviewSceneController->TogglePlay(EPlaybackMode::Stopped);
-		}
+		ActActionPreviewSceneControllerRef->TogglePlay(EPlaybackMode::PlayingForward);
+	}
+	else
+	{
+		ActActionPreviewSceneControllerRef->TogglePlay(EPlaybackMode::Stopped);
 	}
 	return FReply::Handled();
 }
 
 FReply SActActionSequenceTransportControls::OnClick_Backward()
 {
-	if (ActActionSequenceEditor.IsValid())
+	TSharedRef<FActActionPreviewSceneController> ActActionPreviewSceneControllerRef = ActActionPreviewSceneController.Pin().ToSharedRef();
+	EPlaybackMode::Type PlaybackMode = ActActionPreviewSceneControllerRef->GetPlaybackMode();
+	if (PlaybackMode == EPlaybackMode::Stopped || PlaybackMode == EPlaybackMode::PlayingForward)
 	{
-		TSharedRef<FActActionPreviewSceneController> ActActionPreviewSceneController = ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController();
-		EPlaybackMode::Type PlaybackMode = ActActionPreviewSceneController->GetPlaybackMode();
-		if (PlaybackMode == EPlaybackMode::Stopped || PlaybackMode == EPlaybackMode::PlayingForward)
-		{
-			ActActionPreviewSceneController->TogglePlay(EPlaybackMode::PlayingReverse);
-		}
-		else
-		{
-			ActActionPreviewSceneController->TogglePlay(EPlaybackMode::Stopped);
-		}
+		ActActionPreviewSceneControllerRef->TogglePlay(EPlaybackMode::PlayingReverse);
+	}
+	else
+	{
+		ActActionPreviewSceneControllerRef->TogglePlay(EPlaybackMode::Stopped);
 	}
 	return FReply::Handled();
 }
 
 FReply SActActionSequenceTransportControls::OnClick_ToggleLoop()
 {
-	ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController()->ToggleLoop();
+	ActActionPreviewSceneController.Pin()->ToggleLoop();
 	return FReply::Handled();
 }
 
 bool SActActionSequenceTransportControls::IsLoopStatusOn() const
 {
-	return ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController()->IsLoopStatusOn();
+	return ActActionPreviewSceneController.Pin()->IsLoopStatusOn();
 }
 
 EPlaybackMode::Type SActActionSequenceTransportControls::GetPlaybackMode() const
 {
-	return ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController()->GetPlaybackMode();
+	return ActActionPreviewSceneController.Pin()->GetPlaybackMode();
 }
