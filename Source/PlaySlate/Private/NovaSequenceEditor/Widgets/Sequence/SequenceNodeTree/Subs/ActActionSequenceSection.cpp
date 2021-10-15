@@ -9,7 +9,7 @@ void SActActionSequenceSection::Construct(const FArguments& InArgs, TSharedRef<F
 	ParentSectionArea = SectionNode;
 	Section = SectionNode->GetSections()[InSectionIndex];
 	// Layout = FSectionLayout(*SectionNode, InSectionIndex);
-	// HandleOffsetPx = 0.f;
+	// HandleOffsetPx = 0.0f;
 
 	ChildSlot
 	[

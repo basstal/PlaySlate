@@ -22,7 +22,7 @@ void SActActionSequenceSplitterOverlay::Construct(const FArguments& InArgs)
 					return SlotPadding[Index];
 				}
 
-				return FMargin(0.f);
+				return FMargin(0.0f);
 			})))
 			[
 				SNew(SBox)

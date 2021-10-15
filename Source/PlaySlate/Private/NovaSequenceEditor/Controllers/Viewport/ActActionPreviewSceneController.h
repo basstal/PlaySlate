@@ -48,7 +48,7 @@ public:
 	 */
 	void InitAnimationByAnimMontage(UAnimMontage* AnimMontage);
 	/**
-	 * 根据EvaluationRange结构来获得当前动画的预览位置
+	 * 根据EvaluationRange结构来设置当前动画的预览位置
 	 *
 	 * @param InRange 传入的Range
 	 */
@@ -62,9 +62,9 @@ public:
 	/**
 	 * 动画播放的点击事件，同时控制播放、暂停，以及播放的方向
 	 *
-	 * @param bForward 是前进播放，否则倒退播放
+	 * @param InPlaybackMode 当前播放状态
 	 */
-	void TogglePlay(bool bForward);
+	void TogglePlay(const EPlaybackMode::Type& InPlaybackMode);
 	/** 控制循环播放 */
 	void ToggleLoop();
 	/** @return 是否在循环播放 */
@@ -77,6 +77,8 @@ public:
 	void PlayStep(bool bForward);
 	/** @retrun 获得当前播放状态 */
 	EPlaybackMode::Type GetPlaybackMode();
+	/** @return 当前动画播放的时间位置，单位秒 */
+	float GetCurrentPosition();
 protected:
 	/**
 	* 对Editor的引用，调用编辑器资源和相关工具方法

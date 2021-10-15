@@ -37,9 +37,9 @@ FMargin SActActionSequenceTreeViewRow::GetRowPadding() const
 	const TArray<TSharedRef<FActActionSequenceTreeViewNode>>& ChildNodes = ParentNode->GetChildNodes();
 	if (ParentNode.IsValid() && ParentNode->GetType() == ActActionSequence::ESequenceNodeType::Root && ChildNodes.Num() > 0 && ChildNodes[0] != PinnedNode)
 	{
-		return FMargin(0.f, 1.f, 0.f, 0.f);
+		return FMargin(0.0f, 1.f, 0.0f, 0.0f);
 	}
-	return FMargin(0.f, 0.f, 0.f, 0.f);
+	return FMargin(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
 TSharedRef<SWidget> SActActionSequenceTreeViewRow::GenerateWidgetForColumn(const FName& InColumnName)

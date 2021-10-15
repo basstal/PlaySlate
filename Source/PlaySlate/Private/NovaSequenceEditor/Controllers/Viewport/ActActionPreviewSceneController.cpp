@@ -12,6 +12,7 @@
 #include "Animation/AnimBlueprint.h"
 #include "Animation/AnimSingleNodeInstance.h"
 #include "AnimPreviewInstance.h"
+#include "NovaSequenceEditor/Controllers/Sequence/ActActionSequenceController.h"
 
 FActActionPreviewSceneController::FActActionPreviewSceneController(const ConstructionValues& CVS, const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor)
 	: FAdvancedPreviewScene(CVS),
@@ -119,7 +120,12 @@ void FActActionPreviewSceneController::InitAnimationByAnimMontage(UAnimMontage* 
 				ActActionSkeletalMesh->SetSkeletalMeshWithoutResettingAnimation(PreviewMesh);
 				ActActionSkeletalMesh->EnablePreview(true, AnimSequence);
 				ActActionSkeletalMesh->PreviewInstance->SetLooping(true);
-				ActActionSkeletalMesh->SetPlayRate(1.0f);
+				// TODO:
+				// float CalculateSequenceLength = AnimMontage->CalculateSequenceLength();
+				// TSharedRef<FActActionSequenceController> ActActionSequenceController = ActActionSequenceEditor.Pin()->GetActActionSequenceController();
+				// float PlayRate = CalculateSequenceLength / ActActionSequenceController->GetTargetViewRange().GetUpperBoundValue();
+				// UE_LOG(LogActAction, Log, TEXT("PlayRate : %f"), PlayRate);
+				ActActionSkeletalMesh->SetPlayRate(2.0f);
 
 				//Place the camera at a good viewer position
 				TSharedPtr<FEditorViewportClient> ViewportClient = ActActionViewportWidget->GetViewportClient();
@@ -140,7 +146,8 @@ void FActActionPreviewSceneController::EvaluateInternal(ActActionSequence::FActA
 			ActActionSkeletalMesh->PreviewInstance->SetPlaying(false);
 		}
 		FFrameTime CurrentPosition = InRange.GetTime();
-		PreviewScrubTime = CurrentPosition.AsDecimal() / 60;
+		const FFrameRate TickResolution = ActActionSequenceEditor.Pin()->GetTickResolution();
+		PreviewScrubTime = TickResolution.AsSeconds(CurrentPosition);
 		ActActionSkeletalMesh->PreviewInstance->SetPosition(PreviewScrubTime);
 		ActActionSkeletalMesh->PreviewInstance->UpdateAnimation(PreviewScrubTime, false);
 	}
@@ -155,49 +162,45 @@ void FActActionPreviewSceneController::EvaluateToOneEnd(bool bIsEndEnd)
 		{
 			PreviewLength = ActActionSkeletalMesh->PreviewInstance->GetLength();
 		}
-		const FFrameRate TargetFrameRate = ActActionSequenceEditor.Pin()->GetTickResolution();
-		ActActionSequence::FActActionEvaluationRange InRange(TargetFrameRate.AsFrameTime(PreviewLength), TargetFrameRate);
+		const FFrameRate TickResolution = ActActionSequenceEditor.Pin()->GetTickResolution();
+		ActActionSequence::FActActionEvaluationRange InRange(TickResolution.AsFrameTime(PreviewLength), TickResolution);
 		EvaluateInternal(InRange);
 	}
 }
 
-void FActActionPreviewSceneController::TogglePlay(bool bForward)
+void FActActionPreviewSceneController::TogglePlay(const EPlaybackMode::Type& InPlaybackMode)
 {
 	if (UAnimSingleNodeInstance* PreviewInstance = Cast<UAnimSingleNodeInstance>(ActActionSkeletalMesh->PreviewInstance))
 	{
+		bool bPlay = InPlaybackMode != EPlaybackMode::Stopped;
+		bool bReverse = InPlaybackMode == EPlaybackMode::PlayingReverse;
 		bool bIsReverse = PreviewInstance->IsReverse();
 		bool bIsPlaying = PreviewInstance->IsPlaying();
-		// 如果当前正在播放，并且播放顺序与传入参数相反，则反置Reverse参数
-		if (bForward != bIsReverse && bIsPlaying)
+		if (bPlay != bIsPlaying)
 		{
-			PreviewInstance->SetReverse(!bIsReverse);
-		}
-		else if (bIsPlaying)
-		{
-			// already playing, simply pause
-			PreviewInstance->SetPlaying(false);
-
-			if (ActActionSkeletalMesh && ActActionSkeletalMesh->bPauseClothingSimulationWithAnim)
-			{
-				ActActionSkeletalMesh->SuspendClothingSimulation();
-			}
-		}
-		else
-		{
-			// if not playing, play forward
-			// if we're at the end of the animation, jump back to the beginning before playing
+			// 播放状态与待设置的播放状态不同，改变播放状态
 			if (PreviewInstance->GetCurrentTime() >= PreviewInstance->GetLength())
 			{
 				PreviewInstance->SetPosition(0.0f, false);
 			}
-
-			PreviewInstance->SetReverse(!bForward);
-			PreviewInstance->SetPlaying(true);
-
+			PreviewInstance->SetPlaying(bPlay);
+			PreviewInstance->SetReverse(bReverse);
 			if (ActActionSkeletalMesh && ActActionSkeletalMesh->bPauseClothingSimulationWithAnim)
 			{
-				ActActionSkeletalMesh->ResumeClothingSimulation();
+				if (bPlay)
+				{
+					ActActionSkeletalMesh->ResumeClothingSimulation();
+				}
+				else
+				{
+					ActActionSkeletalMesh->SuspendClothingSimulation();
+				}
 			}
+		}
+		else if (bPlay && bReverse != bIsReverse)
+		{
+			// 如果当前正在播放，并且播放顺序与传入参数相反，则反置Reverse参数
+			PreviewInstance->SetReverse(bReverse);
 		}
 	}
 	else if (ActActionSkeletalMesh)
@@ -245,10 +248,10 @@ void FActActionPreviewSceneController::PlayStep(bool bForward)
 	}
 	else if (ActActionSkeletalMesh && bForward)
 	{
-		const FFrameRate TargetFrameRate = ActActionSequenceEditor.Pin()->GetTickResolution();
+		const FFrameRate TickResolution = ActActionSequenceEditor.Pin()->GetTickResolution();
 		// Advance a single frame, leaving it paused afterwards
 		ActActionSkeletalMesh->GlobalAnimRateScale = 1.0f;
-		ActActionSkeletalMesh->TickAnimation(TargetFrameRate.AsInterval(), false);
+		ActActionSkeletalMesh->TickAnimation(TickResolution.AsInterval(), false);
 		ActActionSkeletalMesh->GlobalAnimRateScale = 0.0f;
 	}
 }
@@ -268,4 +271,13 @@ EPlaybackMode::Type FActActionPreviewSceneController::GetPlaybackMode()
 		return (ActActionSkeletalMesh->GlobalAnimRateScale > 0.0f) ? EPlaybackMode::PlayingForward : EPlaybackMode::Stopped;
 	}
 	return EPlaybackMode::Stopped;
+}
+
+float FActActionPreviewSceneController::GetCurrentPosition()
+{
+	if (UAnimSingleNodeInstance* PreviewInstance = Cast<UAnimSingleNodeInstance>(ActActionSkeletalMesh->PreviewInstance))
+	{
+		return PreviewInstance->GetCurrentTime();
+	}
+	return 0.0f;
 }

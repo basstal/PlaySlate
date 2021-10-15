@@ -36,12 +36,12 @@ int32 SActActionSequenceSectionOverlayWidget::OnPaint(const FPaintArgs& Args, co
 		ActActionSequence::FActActionPaintPlaybackRangeArgs PaintPlaybackRangeArgsTemp = PaintArgs.PlaybackRangeArgs.GetValue();
 		LayerId = ActActionSequenceSectionOverlayController.Pin()->DrawPlaybackRange(AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, RangeToScreen, PaintPlaybackRangeArgsTemp);
 		LayerId = ActActionSequenceSectionOverlayController.Pin()->DrawSubSequenceRange(AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, RangeToScreen, PaintPlaybackRangeArgsTemp);
-		PaintPlaybackRangeArgsTemp.SolidFillOpacity = 0.f;
+		PaintPlaybackRangeArgsTemp.SolidFillOpacity = 0.0f;
 	}
 
 	if (PaintArgs.bDisplayTickLines)
 	{
-		static FLinearColor TickColor(0.f, 0.f, 0.f, 0.3f);
+		static FLinearColor TickColor(0.0f, 0.0f, 0.0f, 0.3f);
 
 		// Draw major tick lines in the section area
 		ActActionSequence::FActActionDrawTickArgs DrawTickArgs;

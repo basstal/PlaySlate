@@ -232,7 +232,7 @@ FReply FActActionTimeSliderController::OnMouseButtonUp(const FGeometry& MyGeomet
 		if (!bPanning)
 		{
 			// return unhandled in case our parent wants to use our right mouse button to open a context menu
-			if (DistanceDragged == 0.f)
+			if (DistanceDragged == 0.0f)
 			{
 				return FReply::Unhandled().ReleaseMouseCapture();
 			}
@@ -312,7 +312,7 @@ FReply FActActionTimeSliderController::OnMouseButtonUp(const FGeometry& MyGeomet
 		}
 
 		MouseDragType = ActActionSequence::EDragType::DRAG_NONE;
-		DistanceDragged = 0.f;
+		DistanceDragged = 0.0f;
 		bMouseDownInRegion = false;
 
 		return FReply::Handled().ReleaseMouseCapture();
@@ -449,7 +449,7 @@ FReply FActActionTimeSliderController::OnMouseMove(const FGeometry& MyGeometry, 
 		}
 	}
 
-	if (DistanceDragged != 0.f && (bHandleLeftMouseButton || bHandleRightMouseButton))
+	if (DistanceDragged != 0.0f && (bHandleLeftMouseButton || bHandleRightMouseButton))
 	{
 		return FReply::Handled().CaptureMouse(ActActionTimeSliderWidget.ToSharedRef());
 	}

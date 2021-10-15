@@ -61,13 +61,37 @@ FReply SActActionSequenceTransportControls::OnClick_Backward_End()
 
 FReply SActActionSequenceTransportControls::OnClick_Forward()
 {
-	ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController()->TogglePlay(true);
+	if (ActActionSequenceEditor.IsValid())
+	{
+		TSharedRef<FActActionPreviewSceneController> ActActionPreviewSceneController = ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController();
+		EPlaybackMode::Type PlaybackMode = ActActionPreviewSceneController->GetPlaybackMode();
+		if (PlaybackMode == EPlaybackMode::Stopped || PlaybackMode == EPlaybackMode::PlayingReverse)
+		{
+			ActActionPreviewSceneController->TogglePlay(EPlaybackMode::PlayingForward);
+		}
+		else
+		{
+			ActActionPreviewSceneController->TogglePlay(EPlaybackMode::Stopped);
+		}
+	}
 	return FReply::Handled();
 }
 
 FReply SActActionSequenceTransportControls::OnClick_Backward()
 {
-	ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController()->TogglePlay(false);
+	if (ActActionSequenceEditor.IsValid())
+	{
+		TSharedRef<FActActionPreviewSceneController> ActActionPreviewSceneController = ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController();
+		EPlaybackMode::Type PlaybackMode = ActActionPreviewSceneController->GetPlaybackMode();
+		if (PlaybackMode == EPlaybackMode::Stopped || PlaybackMode == EPlaybackMode::PlayingForward)
+		{
+			ActActionPreviewSceneController->TogglePlay(EPlaybackMode::PlayingReverse);
+		}
+		else
+		{
+			ActActionPreviewSceneController->TogglePlay(EPlaybackMode::Stopped);
+		}
+	}
 	return FReply::Handled();
 }
 

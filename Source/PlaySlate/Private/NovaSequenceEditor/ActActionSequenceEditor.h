@@ -53,6 +53,8 @@ public:
 	 * @return 获得当前资源使用的显示帧率
 	 */
 	FFrameRate GetDisplayRate() const;
+	/** 设置当前资源的AnimMontage实例 */
+	void SetAnimMontage(UAnimMontage* AnimMontage);
 protected:
 	/**
 	 * 当前编辑的资源实例

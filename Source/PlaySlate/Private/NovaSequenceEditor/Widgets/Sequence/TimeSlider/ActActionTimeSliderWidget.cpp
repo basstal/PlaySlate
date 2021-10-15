@@ -267,7 +267,7 @@ int32 SActActionTimeSliderWidget::DrawPlaybackRange(const FGeometry& AllottedGeo
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		LayerId + 1,
-		AllottedGeometry.ToPaintGeometry(FVector2D(PlaybackRangeL, 0.f), FVector2D(Args.BrushWidth, AllottedGeometry.Size.Y)),
+		AllottedGeometry.ToPaintGeometry(FVector2D(PlaybackRangeL, 0.0f), FVector2D(Args.BrushWidth, AllottedGeometry.Size.Y)),
 		Args.StartBrush,
 		ESlateDrawEffect::None,
 		FColor(32, 128, 32, OpacityBlend) // 120, 75, 50 (HSV)
@@ -276,7 +276,7 @@ int32 SActActionTimeSliderWidget::DrawPlaybackRange(const FGeometry& AllottedGeo
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		LayerId + 1,
-		AllottedGeometry.ToPaintGeometry(FVector2D(PlaybackRangeR - Args.BrushWidth, 0.f), FVector2D(Args.BrushWidth, AllottedGeometry.Size.Y)),
+		AllottedGeometry.ToPaintGeometry(FVector2D(PlaybackRangeR - Args.BrushWidth, 0.0f), FVector2D(Args.BrushWidth, AllottedGeometry.Size.Y)),
 		Args.EndBrush,
 		ESlateDrawEffect::None,
 		FColor(128, 32, 32, OpacityBlend) // 0, 75, 50 (HSV)
@@ -286,7 +286,7 @@ int32 SActActionTimeSliderWidget::DrawPlaybackRange(const FGeometry& AllottedGeo
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		LayerId + 1,
-		AllottedGeometry.ToPaintGeometry(FVector2D(0.f, 0.f), FVector2D(PlaybackRangeL, AllottedGeometry.Size.Y)),
+		AllottedGeometry.ToPaintGeometry(FVector2D(0.0f, 0.0f), FVector2D(PlaybackRangeL, AllottedGeometry.Size.Y)),
 		FEditorStyle::GetBrush("WhiteBrush"),
 		ESlateDrawEffect::None,
 		FLinearColor::Black.CopyWithNewOpacity(0.3f * OpacityBlend / 255.f)
@@ -295,7 +295,7 @@ int32 SActActionTimeSliderWidget::DrawPlaybackRange(const FGeometry& AllottedGeo
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		LayerId + 1,
-		AllottedGeometry.ToPaintGeometry(FVector2D(PlaybackRangeR, 0.f), FVector2D(AllottedGeometry.Size.X - PlaybackRangeR, AllottedGeometry.Size.Y)),
+		AllottedGeometry.ToPaintGeometry(FVector2D(PlaybackRangeR, 0.0f), FVector2D(AllottedGeometry.Size.X - PlaybackRangeR, AllottedGeometry.Size.Y)),
 		FEditorStyle::GetBrush("WhiteBrush"),
 		ESlateDrawEffect::None,
 		FLinearColor::Black.CopyWithNewOpacity(0.3f * OpacityBlend / 255.f)
@@ -331,7 +331,7 @@ int32 SActActionTimeSliderWidget::DrawSubSequenceRange(const FGeometry& Allotted
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		LayerId + 1,
-		AllottedGeometry.ToPaintGeometry(FVector2D(SubSequenceRangeL, 0.f), FVector2D(Args.BrushWidth, AllottedGeometry.Size.Y)),
+		AllottedGeometry.ToPaintGeometry(FVector2D(SubSequenceRangeL, 0.0f), FVector2D(Args.BrushWidth, AllottedGeometry.Size.Y)),
 		LineBrushL,
 		ESlateDrawEffect::None,
 		GreenTint
@@ -341,7 +341,7 @@ int32 SActActionTimeSliderWidget::DrawSubSequenceRange(const FGeometry& Allotted
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		LayerId + 1,
-		AllottedGeometry.ToPaintGeometry(FVector2D(SubSequenceRangeR - Args.BrushWidth, 0.f), FVector2D(Args.BrushWidth, AllottedGeometry.Size.Y)),
+		AllottedGeometry.ToPaintGeometry(FVector2D(SubSequenceRangeR - Args.BrushWidth, 0.0f), FVector2D(Args.BrushWidth, AllottedGeometry.Size.Y)),
 		LineBrushR,
 		ESlateDrawEffect::None,
 		RedTint
@@ -351,7 +351,7 @@ int32 SActActionTimeSliderWidget::DrawSubSequenceRange(const FGeometry& Allotted
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		LayerId + 1,
-		AllottedGeometry.ToPaintGeometry(FVector2D(0.f, 0.f), FVector2D(SubSequenceRangeL, AllottedGeometry.Size.Y)),
+		AllottedGeometry.ToPaintGeometry(FVector2D(0.0f, 0.0f), FVector2D(SubSequenceRangeL, AllottedGeometry.Size.Y)),
 		FEditorStyle::GetBrush("WhiteBrush"),
 		ESlateDrawEffect::None,
 		FLinearColor::Black.CopyWithNewOpacity(0.3f)
@@ -360,7 +360,7 @@ int32 SActActionTimeSliderWidget::DrawSubSequenceRange(const FGeometry& Allotted
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		LayerId + 1,
-		AllottedGeometry.ToPaintGeometry(FVector2D(SubSequenceRangeR, 0.f), FVector2D(AllottedGeometry.Size.X - SubSequenceRangeR, AllottedGeometry.Size.Y)),
+		AllottedGeometry.ToPaintGeometry(FVector2D(SubSequenceRangeR, 0.0f), FVector2D(AllottedGeometry.Size.X - SubSequenceRangeR, AllottedGeometry.Size.Y)),
 		FEditorStyle::GetBrush("WhiteBrush"),
 		ESlateDrawEffect::None,
 		FLinearColor::Black.CopyWithNewOpacity(0.3f)
@@ -370,7 +370,7 @@ int32 SActActionTimeSliderWidget::DrawSubSequenceRange(const FGeometry& Allotted
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		LayerId + 1,
-		AllottedGeometry.ToPaintGeometry(FVector2D(SubSequenceRangeL - 16.f, 0.f), FVector2D(16.f, AllottedGeometry.Size.Y)),
+		AllottedGeometry.ToPaintGeometry(FVector2D(SubSequenceRangeL - 16.f, 0.0f), FVector2D(16.f, AllottedGeometry.Size.Y)),
 		FEditorStyle::GetBrush("Sequencer.Timeline.SubSequenceRangeHashL"),
 		ESlateDrawEffect::None,
 		GreenTint
@@ -379,7 +379,7 @@ int32 SActActionTimeSliderWidget::DrawSubSequenceRange(const FGeometry& Allotted
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		LayerId + 1,
-		AllottedGeometry.ToPaintGeometry(FVector2D(SubSequenceRangeR, 0.f), FVector2D(16.f, AllottedGeometry.Size.Y)),
+		AllottedGeometry.ToPaintGeometry(FVector2D(SubSequenceRangeR, 0.0f), FVector2D(16.f, AllottedGeometry.Size.Y)),
 		FEditorStyle::GetBrush("Sequencer.Timeline.SubSequenceRangeHashR"),
 		ESlateDrawEffect::None,
 		RedTint

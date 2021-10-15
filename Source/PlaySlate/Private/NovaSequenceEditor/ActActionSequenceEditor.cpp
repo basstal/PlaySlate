@@ -202,5 +202,10 @@ FFrameRate FActActionSequenceEditor::GetDisplayRate() const
 	return ActActionSequence->DisplayRate;
 }
 
+void FActActionSequenceEditor::SetAnimMontage(UAnimMontage* AnimMontage)
+{
+	ActActionSequence->EditAnimMontage = AnimMontage;
+}
+
 
 #undef LOCTEXT_NAMESPACE

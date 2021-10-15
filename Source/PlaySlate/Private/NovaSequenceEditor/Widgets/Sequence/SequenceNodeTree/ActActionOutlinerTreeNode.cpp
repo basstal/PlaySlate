@@ -28,12 +28,12 @@ void SActActionOutlinerTreeNode::Construct(const FArguments& InArgs, const TShar
 	if (bIsInnerTopLevelNode)
 	{
 		// InnerBackgroundBrush = FEditorStyle::GetBrush( "Sequencer.AnimationOutliner.TopLevelBorder_Expanded" );
-		InnerNodePadding = FMargin(0.f, 1.f);
+		InnerNodePadding = FMargin(0.0f, 1.f);
 	}
 	else
 	{
 		// InnerBackgroundBrush = FEditorStyle::GetBrush( "Sequencer.AnimationOutliner.TransparentBorder" );
-		InnerNodePadding = FMargin(0.f);
+		InnerNodePadding = FMargin(0.0f);
 	}
 
 	TableRowStyle = &FEditorStyle::Get().GetWidgetStyle<FTableRowStyle>("TableView.Row");
@@ -57,7 +57,7 @@ void SActActionOutlinerTreeNode::Construct(const FArguments& InArgs, const TShar
 	//
 	// 		+ SHorizontalBox::Slot()
 	// 		  .AutoWidth()
-	// 		  .Padding(FMargin(0.f, 0.f, 5.f, 0.f))
+	// 		  .Padding(FMargin(0.0f, 0.0f, 5.f, 0.0f))
 	// 		[
 	// 			LabelContent
 	// 		]
@@ -95,7 +95,7 @@ void SActActionOutlinerTreeNode::Construct(const FArguments& InArgs, const TShar
 
 					// Expand track lanes button
 					+ SHorizontalBox::Slot()
-					  .Padding(FMargin(2.f, 0.f, 2.f, 0.f))
+					  .Padding(FMargin(2.f, 0.0f, 2.f, 0.0f))
 					  .VAlign(VAlign_Center)
 					  .AutoWidth()
 					[
@@ -115,7 +115,7 @@ void SActActionOutlinerTreeNode::Construct(const FArguments& InArgs, const TShar
 
 							// Icon
 							+ SHorizontalBox::Slot()
-							  .Padding(FMargin(0.f, 0.f, 4.f, 0.f))
+							  .Padding(FMargin(0.0f, 0.0f, 4.f, 0.0f))
 							  .VAlign(VAlign_Center)
 							  .AutoWidth()
 							[
@@ -147,7 +147,7 @@ void SActActionOutlinerTreeNode::Construct(const FArguments& InArgs, const TShar
 							// Label Slot
 							+ SHorizontalBox::Slot()
 							  .VAlign(VAlign_Center)
-							  .Padding(FMargin(0.f, 0.f, 4.f, 0.f))
+							  .Padding(FMargin(0.0f, 0.0f, 4.f, 0.0f))
 							[
 								LabelContent
 							]

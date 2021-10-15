@@ -40,10 +40,6 @@ public:
 	 */
 	void ExecuteTrackEditorCreateDelegate();
 	/**
-	 * TODO:
-	 */
-	void UpdateTimeBases();
-	/**
 	 * 构建AddTrack菜单的内容
 	 *
 	 * @param MenuBuilder 被修改的菜单构建者
@@ -61,12 +57,6 @@ public:
 	 * @param InPlaybackStatus 设置为该播放状态
 	 */
 	void SetPlaybackStatus(ActActionSequence::EPlaybackType InPlaybackStatus);
-	/**
-	 * 根据EvaluationRange结构来获得当前动画的预览位置
-	 *
-	 * @param InRange 传入的Range
-	 */
-	void EvaluateInternal(ActActionSequence::FActActionEvaluationRange InRange);
 	/**
 	 * 将当前播放状态设置为Stopped
 	 */
@@ -104,10 +94,6 @@ public:
 	 */
 	void OnScrubPositionChanged(FFrameTime NewScrubPosition, bool bScrubbing);
 	/**
-	 * 获得编辑器编辑的对象实例
-	 */
-	UActActionSequence* GetActActionSequence() const;
-	/**
 	 * @return 当前时间轴的显示范围
 	 */
 	ActActionSequence::FActActionAnimatedRange GetViewRange() const;
@@ -132,10 +118,6 @@ protected:
 	 * 当前的播放状态
 	 */
 	ActActionSequence::EPlaybackType PlaybackState;
-	/**
-	 * 当前的播放位置相关的数据结构
-	 */
-	ActActionSequence::FActActionPlaybackPosition PlayPosition;
 	/**
 	 * TimeSlider的Controller
 	 */
@@ -166,10 +148,16 @@ protected:
 	 */
 	ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs;
 	/**
+	 * TODO:这里要改成帧
 	 * 当前Sequence时间轴的显示的范围，这里的单位是秒
 	 */
 	TRange<double> TargetViewRange;
 public:
+	const TRange<double>& GetTargetViewRange() const
+	{
+		return TargetViewRange;
+	}
+
 	ActActionSequence::EPlaybackType GetPlaybackStatus() const
 	{
 		return PlaybackState;

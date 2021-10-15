@@ -30,7 +30,7 @@ namespace ActActionSequence
 		{
 			UpperTime = InFrameTimeRange.GetUpperBoundValue();
 			// Similar to adjusting the lower bound, if there's a sub frame on the upper bound, the frame number needs incrementing in order to evaluate keys in the sub frame
-			if (UpperTime.GetValue().GetSubFrame() != 0.f || InFrameTimeRange.GetUpperBound().IsInclusive())
+			if (UpperTime.GetValue().GetSubFrame() != 0.0f || InFrameTimeRange.GetUpperBound().IsInclusive())
 			{
 				UpperTime.GetValue().FrameNumber = UpperTime.GetValue().FrameNumber + 1;
 			}
@@ -41,7 +41,7 @@ namespace ActActionSequence
 		{
 			FFrameTime LowerTime = InFrameTimeRange.GetLowerBoundValue();
 			// If there is a sub frame on the start time, we're actually beyond that frame number, so it needs incrementing
-			if (LowerTime.GetSubFrame() != 0.f || InFrameTimeRange.GetLowerBound().IsExclusive())
+			if (LowerTime.GetSubFrame() != 0.0f || InFrameTimeRange.GetLowerBound().IsExclusive())
 			{
 				LowerTime.FrameNumber = (!UpperTime.IsSet() || LowerTime.FrameNumber < UpperTime.GetValue().FrameNumber) ? LowerTime.FrameNumber + 1 : LowerTime.FrameNumber;
 			}

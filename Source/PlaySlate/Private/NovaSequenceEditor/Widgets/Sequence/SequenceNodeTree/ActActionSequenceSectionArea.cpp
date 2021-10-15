@@ -99,7 +99,7 @@ void SActActionSequenceSectionArea::OnArrangeChildren(const FGeometry& AllottedG
 FVector2D SActActionSequenceSectionArea::ComputeDesiredSize(float) const
 {
 	// Note: X Size is not used
-	FVector2D Size(100, 0.f);
+	FVector2D Size(100, 0.0f);
 	if (Children.Num())
 	{
 		for (int32 Index = 0; Index < Children.Num(); ++Index)
