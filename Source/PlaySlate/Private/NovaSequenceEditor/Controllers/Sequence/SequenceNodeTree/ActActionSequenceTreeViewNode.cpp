@@ -3,12 +3,12 @@
 #include "PlaySlate.h"
 #include "ActActionSequenceSectionBase.h"
 #include "NovaSequenceEditor/ActActionSequenceEditor.h"
-#include "NovaSequenceEditor/Controllers/ActActionSequenceController.h"
-#include "NovaSequenceEditor/Widgets/SequenceNodeTree/ActActionOutlinerTreeNode.h"
-#include "NovaSequenceEditor/Widgets/SequenceNodeTree/ActActionSequenceCombinedKeysTrack.h"
-#include "NovaSequenceEditor/Widgets/SequenceNodeTree/ActActionSequenceSectionArea.h"
-#include "NovaSequenceEditor/Widgets/SequenceNodeTree/ActActionSequenceTreeView.h"
-#include "NovaSequenceEditor/Widgets/SequenceNodeTree/ActActionSequenceTrackArea.h"
+#include "NovaSequenceEditor/Controllers/Sequence/ActActionSequenceController.h"
+#include "NovaSequenceEditor/Widgets/Sequence/SequenceNodeTree/ActActionOutlinerTreeNode.h"
+#include "NovaSequenceEditor/Widgets/Sequence/SequenceNodeTree/ActActionSequenceCombinedKeysTrack.h"
+#include "NovaSequenceEditor/Widgets/Sequence/SequenceNodeTree/ActActionSequenceSectionArea.h"
+#include "NovaSequenceEditor/Widgets/Sequence/SequenceNodeTree/ActActionSequenceTreeView.h"
+#include "NovaSequenceEditor/Widgets/Sequence/SequenceNodeTree/ActActionSequenceTrackArea.h"
 
 FActActionSequenceTreeViewNode::FActActionSequenceTreeViewNode(const TSharedRef<FActActionSequenceController>& InActActionSequenceController, const TSharedPtr<FActActionSequenceTreeViewNode>& InParentNode, FName InNodeName)
 	: ActActionSequenceController(InActActionSequenceController),

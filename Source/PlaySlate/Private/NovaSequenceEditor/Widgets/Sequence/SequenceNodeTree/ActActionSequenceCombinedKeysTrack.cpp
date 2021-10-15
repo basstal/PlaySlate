@@ -1,6 +1,6 @@
 ﻿#include "ActActionSequenceCombinedKeysTrack.h"
 
-#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
+#include "NovaSequenceEditor/Controllers/Sequence/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
 
 void SActActionSequenceCombinedKeysTrack::Construct(const FArguments& InArgs, TSharedRef<FActActionSequenceTreeViewNode> InRootNode)
 {

@@ -6,6 +6,7 @@ class FActActionPreviewSceneController;
 class UActActionSequence;
 class FActActionViewportClient;
 class FActActionSequenceController;
+class FActActionDetailsViewController;
 
 /**
  * ActActionSequence资源编辑器的入口和管理者，提供一些工具方法和资源对象指针
@@ -45,16 +46,6 @@ public:
 	 */
 	void InitAnimBlueprint(UAnimBlueprint* AnimBlueprint);
 	/**
-	 * @return 
-	 */
-	TRange<FFrameNumber> GetPlaybackRange() const;
-	/**
-	 * TODO:
-	 *
-	 * @param  InRange
-	 */
-	void SetPlaybackRange(TRange<FFrameNumber> InRange);
-	/**
 	 * @return 获得当前资源使用的Tick帧率
 	 */
 	FFrameRate GetTickResolution() const;
@@ -62,10 +53,6 @@ public:
 	 * @return 获得当前资源使用的显示帧率
 	 */
 	FFrameRate GetDisplayRate() const;
-	/**
-	 * @return TODO:
-	 */
-	TRange<FFrameNumber> GetSelectionRange() const;
 protected:
 	/**
 	 * 当前编辑的资源实例
@@ -80,9 +67,20 @@ protected:
 	 * Sequence Controller，Editor没有销毁的情况下不会为空
 	 */
 	TSharedPtr<FActActionSequenceController> ActActionSequenceController;
-
+	/** Details View Controller */
+	TSharedPtr<FActActionDetailsViewController> ActActionDetailsViewController;
+	/** Sequence Widget Container */
 	TSharedPtr<SDockTab> ActActionSequenceWidgetParent;
+	/** Viewport Widget Container */
 	TSharedPtr<SDockTab> ActActionViewportWidgetParent;
+	/** Details Widget Container */
+	TSharedPtr<SDockTab> ActActionDetailsViewWidgetParent;
+	/**
+	 * 动画播放的帧区间
+	 */
+	TRange<FFrameNumber> PlaybackRange;
+	/** User-defined selection range. */
+	TRange<FFrameNumber> SelectionRange;
 public:
 	TSharedRef<FActActionSequenceController> GetActActionSequenceController() const
 	{
@@ -97,5 +95,23 @@ public:
 	UActActionSequence* GetActActionSequence() const
 	{
 		return ActActionSequence;
+	}
+
+	TRange<FFrameNumber> GetSelectionRange() const
+	{
+		return SelectionRange;
+	}
+
+	TRange<FFrameNumber> GetPlaybackRange() const
+	{
+		return PlaybackRange;
+	}
+
+	void SetPlaybackRange(TRange<FFrameNumber> InRange)
+	{
+		if (ensure(InRange.HasLowerBound() && InRange.HasUpperBound()))
+		{
+			PlaybackRange = InRange;
+		}
 	}
 };

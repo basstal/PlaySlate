@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionTrackAreaSlot.h"
+#include "NovaSequenceEditor/Controllers/Sequence/SequenceNodeTree/ActActionTrackAreaSlot.h"
 
 class SActActionSequenceTrackLane;
 class FActActionSequenceTreeViewNode;

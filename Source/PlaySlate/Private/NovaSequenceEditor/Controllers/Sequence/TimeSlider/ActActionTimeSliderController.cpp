@@ -2,9 +2,10 @@
 
 #include "PlaySlate.h"
 #include "Utils/ActActionStaticUtil.h"
+#include "Utils/ActActionSequenceUtil.h"
 #include "NovaSequenceEditor/ActActionSequenceEditor.h"
-#include "NovaSequenceEditor/Controllers/ActActionSequenceController.h"
-#include "NovaSequenceEditor/Widgets/TimeSlider/ActActionTimeSliderWidget.h"
+#include "NovaSequenceEditor/Controllers/Sequence/ActActionSequenceController.h"
+#include "NovaSequenceEditor/Widgets/Sequence/TimeSlider/ActActionTimeSliderWidget.h"
 
 FActActionTimeSliderController::FActActionTimeSliderController(const TSharedRef<FActActionSequenceController>& InSequenceController)
 	: ActActionSequenceController(InSequenceController),

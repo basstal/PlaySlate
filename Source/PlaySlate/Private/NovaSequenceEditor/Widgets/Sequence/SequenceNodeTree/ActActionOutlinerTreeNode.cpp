@@ -1,7 +1,7 @@
 ﻿#include "ActActionOutlinerTreeNode.h"
 
-#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
-#include "NovaSequenceEditor/Controllers/ActActionSequenceController.h"
+#include "NovaSequenceEditor/Controllers/Sequence/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
+#include "NovaSequenceEditor/Controllers/Sequence/ActActionSequenceController.h"
 #include "Subs/ActActionSequenceTreeViewRow.h"
 
 #include "Widgets/Text/SInlineEditableTextBlock.h"

@@ -1,8 +1,8 @@
 ﻿#include "ActActionSequenceSectionOverlayController.h"
 
 #include "PlaySlate.h"
-#include "NovaSequenceEditor/Controllers/ActActionSequenceController.h"
-#include "NovaSequenceEditor/Widgets/TimeSlider/ActActionSequenceSectionOverlayWidget.h"
+#include "NovaSequenceEditor/Controllers/Sequence/ActActionSequenceController.h"
+#include "NovaSequenceEditor/Widgets/Sequence/TimeSlider/ActActionSequenceSectionOverlayWidget.h"
 #include "Utils/ActActionStaticUtil.h"
 
 FActActionSequenceSectionOverlayController::FActActionSequenceSectionOverlayController(const TSharedRef<FActActionSequenceController>& InSequenceController)

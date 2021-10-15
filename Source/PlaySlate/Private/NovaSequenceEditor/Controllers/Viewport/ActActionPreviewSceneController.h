@@ -2,6 +2,7 @@
 
 
 #include "AdvancedPreviewScene.h"
+#include "ITransportControl.h"
 #include "Utils/ActActionPlaybackUtil.h"
 
 class FActActionViewportClient;
@@ -52,6 +53,30 @@ public:
 	 * @param InRange 传入的Range
 	 */
 	void EvaluateInternal(ActActionSequence::FActActionEvaluationRange InRange);
+	/**
+	 * 设置到动画的一端，开始或结尾
+	 *
+	 * @param bIsEndEnd 是结尾端
+	 */
+	void EvaluateToOneEnd(bool bIsEndEnd);
+	/**
+	 * 动画播放的点击事件，同时控制播放、暂停，以及播放的方向
+	 *
+	 * @param bForward 是前进播放，否则倒退播放
+	 */
+	void TogglePlay(bool bForward);
+	/** 控制循环播放 */
+	void ToggleLoop();
+	/** @return 是否在循环播放 */
+	bool IsLoopStatusOn();
+	/**
+	 * 逐帧播放
+	 *
+	 * @param bForward 是否是逐帧前进，否则倒退
+	 */
+	void PlayStep(bool bForward);
+	/** @retrun 获得当前播放状态 */
+	EPlaybackMode::Type GetPlaybackMode();
 protected:
 	/**
 	* 对Editor的引用，调用编辑器资源和相关工具方法

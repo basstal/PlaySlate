@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "TimeSlider/ActActionTimeSliderWidget.h"
+#include "NovaSequenceEditor/Widgets/Sequence/TimeSlider/ActActionTimeSliderWidget.h"
 #include "Utils/ActActionSequenceUtil.h"
 
 #include "Widgets/SCompoundWidget.h"
@@ -29,15 +29,13 @@ public:
 
 	virtual ~SActActionSequenceWidget() override;
 
-	void Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceController>& InSequenceController);
+	void Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceController>& InActActionSequenceController);
 
 	/**
 	 * 搜素框内文本改变的回调
 	 * @param Filter 回调的文本框内内容
 	 */
 	void OnOutlinerSearchChanged(const FText& Filter);
-	/** Get the maximum height the pinned track area should be allowed to be */
-	float GetPinnedAreaMaxHeight() const;
 	/**
 	 * @return 构造AddTrack菜单Widget 
 	 */

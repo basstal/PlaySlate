@@ -2,11 +2,14 @@
 
 #include "PlaySlate.h"
 #include "NovaSequenceEditor/Assets/ActActionSequence.h"
-#include "NovaSequenceEditor/Controllers/ActActionSequenceController.h"
+#include "NovaSequenceEditor/Controllers/Sequence/ActActionSequenceController.h"
 #include "NovaSequenceEditor/Controllers/Viewport/ActActionPreviewSceneController.h"
+// ReSharper disable once CppUnusedIncludeDirective
 #include "NovaSequenceEditor/Widgets/Viewport/ActActionViewportWidget.h"
 // ReSharper disable once CppUnusedIncludeDirective
-#include "NovaSequenceEditor/Widgets/ActActionSequenceWidget.h"
+#include "NovaSequenceEditor/Widgets/Sequence/ActActionSequenceWidget.h"
+#include "NovaSequenceEditor/Widgets/DetailsView/ActActionDetailsViewWidget.h"
+#include "NovaSequenceEditor/Controllers/DetailsView/ActActionDetailsViewController.h"
 
 #include "Animation/AnimBlueprint.h"
 #include "Animation/SkeletalMeshActor.h"
@@ -14,7 +17,9 @@
 #define LOCTEXT_NAMESPACE "ActActionToolkit"
 
 FActActionSequenceEditor::FActActionSequenceEditor(UActActionSequence* InActActionSequence)
-	: ActActionSequence(InActActionSequence)
+	: ActActionSequence(InActActionSequence),
+	  PlaybackRange(0, 0),
+	  SelectionRange(0, 0)
 {
 	check(InActActionSequence);
 }
@@ -47,7 +52,7 @@ void FActActionSequenceEditor::InitActActionSequenceEditor(const TSharedPtr<IToo
 			->SetHideTabWell(true))
 	);
 	// Initialize the asset editor
-	InitAssetEditor(EToolkitMode::Standalone, InitToolkitHost, FName("ActAction_AppIdentifier"), StandaloneDefaultLayout, true, false, ActActionSequence);
+	InitAssetEditor(EToolkitMode::Standalone, InitToolkitHost, FName("ActAction_AppIdentifier"), StandaloneDefaultLayout, true, true, ActActionSequence);
 
 	// ** 通过对应Widget的Controller，填充Tab的实际内容Widget，并保留对Controller的引用
 	// ** ActActionSequenceController
@@ -64,6 +69,15 @@ void FActActionSequenceEditor::InitActActionSequenceEditor(const TSharedPtr<IToo
 	ActActionPreviewSceneController = MakeShareable(new FActActionPreviewSceneController(ConstructionValues, SharedThis(this)));
 	ActActionPreviewSceneController->MakeViewportWidget();
 	ActActionViewportWidgetParent->SetContent(ActActionPreviewSceneController->GetActActionViewportWidget());
+
+	// ** DetailsView Controller
+	ActActionDetailsViewController = MakeShareable(new FActActionDetailsViewController(SharedThis(this)));
+	ActActionDetailsViewController->MakeDetailsViewWidget();
+	if (ActActionDetailsViewWidgetParent)
+	{
+		ActActionDetailsViewWidgetParent->SetContent(ActActionDetailsViewController->GetActActionDetailsViewWidget());
+	}
+
 
 	// ** Init by resource
 	InitAnimBlueprint(ActActionSequence->EditAnimBlueprint);
@@ -122,6 +136,23 @@ void FActActionSequenceEditor::RegisterTabSpawners(const TSharedRef<FTabManager>
 			return ActActionSequenceWidgetParent.ToSharedRef();
 		}));
 	TabSpawnerEntrySequence.SetDisplayName(LOCTEXT("SequencerMainTab", "Sequence"));
+
+	FTabSpawnerEntry& TabSpawnerEntryDetailsView = InTabManager->RegisterTabSpawner(
+		ActActionSequence::ActActionDetailsViewTabId,
+		FOnSpawnTab::CreateLambda([this](const FSpawnTabArgs& Args)-> TSharedRef<SDockTab>
+		{
+			ActActionDetailsViewWidgetParent = SNew(SDockTab)
+				.Label(LOCTEXT("ActActionSequenceMainTitle", "ActActionDetailsView"))
+				.TabColorScale(GetTabColorScale())
+				.TabRole(ETabRole::PanelTab)
+				.Icon(FEditorStyle::GetBrush("LevelEditor.Tabs.Viewports"));
+			if (ActActionDetailsViewController.IsValid())
+			{
+				ActActionDetailsViewWidgetParent->SetContent(ActActionDetailsViewController->GetActActionDetailsViewWidget());
+			}
+			return ActActionDetailsViewWidgetParent.ToSharedRef();
+		}));
+	TabSpawnerEntryDetailsView.SetDisplayName(LOCTEXT("SequencerMainTab", "DetailsView"));
 }
 
 void FActActionSequenceEditor::UnregisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
@@ -161,19 +192,6 @@ void FActActionSequenceEditor::InitAnimBlueprint(UAnimBlueprint* AnimBlueprint)
 	}
 }
 
-TRange<FFrameNumber> FActActionSequenceEditor::GetPlaybackRange() const
-{
-	return ActActionSequence->PlaybackRange;
-}
-
-void FActActionSequenceEditor::SetPlaybackRange(TRange<FFrameNumber> InRange)
-{
-	if (ensure(InRange.HasLowerBound() && InRange.HasUpperBound()))
-	{
-		ActActionSequence->PlaybackRange = InRange;
-	}
-}
-
 FFrameRate FActActionSequenceEditor::GetTickResolution() const
 {
 	return ActActionSequence->TickResolution;
@@ -184,9 +202,5 @@ FFrameRate FActActionSequenceEditor::GetDisplayRate() const
 	return ActActionSequence->DisplayRate;
 }
 
-TRange<FFrameNumber> FActActionSequenceEditor::GetSelectionRange() const
-{
-	return ActActionSequence->SelectionRange;
-}
 
 #undef LOCTEXT_NAMESPACE

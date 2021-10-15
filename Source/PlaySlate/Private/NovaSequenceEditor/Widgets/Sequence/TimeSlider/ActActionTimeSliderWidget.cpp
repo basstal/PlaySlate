@@ -1,6 +1,6 @@
 ﻿#include "ActActionTimeSliderWidget.h"
 
-#include "NovaSequenceEditor/Controllers/TimeSlider/ActActionTimeSliderController.h"
+#include "NovaSequenceEditor/Controllers/Sequence/TimeSlider/ActActionTimeSliderController.h"
 
 #include "Fonts/FontMeasure.h"
 #include "Utils/ActActionStaticUtil.h"

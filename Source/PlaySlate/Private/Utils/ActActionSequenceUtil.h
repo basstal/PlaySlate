@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "ActActionDelegates.h"
 
 class FActActionSequenceController;
 class FActActionTrackEditorBase;
@@ -9,85 +10,8 @@ namespace ActActionSequence
 {
 	const FName ActActionSequenceTabId(TEXT("ActAction_Sequence"));
 	const FName ActActionViewportTabId(TEXT("ActAction_Viewport"));
+	const FName ActActionDetailsViewTabId(TEXT("ActAction_DetailsView"));
 
-	enum class ESequenceNodeType : uint8
-	{
-		Root,
-		Folder,
-		Object,
-		Track,
-	};
-
-	/** If we are dragging a scrubber or dragging to set the time range */
-	enum class EDragType : uint8
-	{
-		DRAG_SCRUBBING_TIME,
-		DRAG_SETTING_RANGE,
-		DRAG_PLAYBACK_START,
-		DRAG_PLAYBACK_END,
-		DRAG_SELECTION_START,
-		DRAG_SELECTION_END,
-		DRAG_MARK,
-		DRAG_NONE
-	};
-
-	/** Enum representing supported scrubber styles */
-	enum class ESequencerScrubberStyle : uint8
-	{
-		/** Scrubber is represented as a single thin line for the current time, with a constant-sized thumb. */
-		Vanilla,
-
-		/** Scrubber thumb occupies a full 'display rate' frame, with a single thin line for the current time. Tailored to frame-accuracy scenarios. */
-		FrameBlock,
-	};
-
-	/** Enum specifying how to interpolate to a new view range */
-	enum class EActActionViewRangeInterpolation : uint8
-	{
-		/** Use an externally defined animated interpolation */
-		Animated,
-		/** Set the view range immediately */
-		Immediate,
-	};
-
-	enum class EPlaybackType : uint8
-	{
-		Stopped,
-		Playing,
-		Recording,
-		Scrubbing,
-		Jumping,
-		Stepping,
-		Paused,
-		MAX
-	};
-
-	enum class ESectionOverlayWidgetType : uint8
-	{
-		TickLines,
-		ScrubPosition
-	};
-
-	/** A delegate which will create an auto-key handler. */
-	DECLARE_DELEGATE_RetVal_TwoParams(FFrameNumber, OnGetNearestKeyDelegate, FFrameTime, bool)
-	DECLARE_DELEGATE_RetVal_OneParam(TSharedRef<FActActionTrackEditorBase>, OnCreateTrackEditorDelegate, TSharedRef<FActActionSequenceController>);
-
-	/** A delegate that is executed when menu object is clicked. Unlike FExtender delegates we pass in the FGuid which exists even for deleted objects. */
-	DECLARE_DELEGATE_TwoParams(OnBuildCustomContextMenuForGuidDelegate, FMenuBuilder&, FGuid);
-	DECLARE_DELEGATE_TwoParams(OnScrubPositionChangedDelegate, FFrameTime, bool)
-	DECLARE_DELEGATE_TwoParams(OnViewRangeChangedDelegate, TRange<double>, EActActionViewRangeInterpolation)
-	/** A delegate that is executed when adding menu content. */
-	DECLARE_DELEGATE_TwoParams(OnGetAddMenuContentDelegate, FMenuBuilder& /*MenuBuilder*/, TSharedRef<FActActionSequenceController>);
-	DECLARE_DELEGATE_TwoParams(OnSetMarkedFrameDelegate, int32, FFrameNumber)
-	DECLARE_DELEGATE_OneParam(OnTimeRangeChangedDelegate, TRange<double>)
-	DECLARE_DELEGATE_OneParam(OnFrameRangeChangedDelegate, TRange<FFrameNumber>)
-	DECLARE_DELEGATE_OneParam(OnAddMarkedFrameDelegate, FFrameNumber)
-	DECLARE_DELEGATE_OneParam(OnDeleteMarkedFrameDelegate, int32)
-	DECLARE_DELEGATE_OneParam(OnGetContextMenuContentDelegate, FMenuBuilder&);
-	/** Called when an asset is selected in the asset view */
-	DECLARE_DELEGATE_OneParam(OnAssetSelectedDelegate, const FAssetData& /*AssetData*/);
-	/** Called when enter is pressed on an asset in the asset view */
-	DECLARE_DELEGATE_OneParam(OnAssetEnterPressedDelegate, const TArray<FAssetData>& /*SelectedAssets*/);
 
 	/** Utility struct for converting between scrub range space and local/absolute screen space */
 	struct FActActionScrubRangeToScreen

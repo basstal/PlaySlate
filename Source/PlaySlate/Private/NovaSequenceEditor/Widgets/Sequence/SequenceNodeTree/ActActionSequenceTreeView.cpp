@@ -1,10 +1,10 @@
 ﻿#include "ActActionSequenceTreeView.h"
 
-#include "NovaSequenceEditor/Widgets/SequenceNodeTree/ActActionSequenceTrackArea.h"
-#include "NovaSequenceEditor/Widgets/SequenceNodeTree/Subs/ActActionSequenceTrackLane.h"
-#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
-#include "NovaSequenceEditor/Controllers/ActActionSequenceController.h"
-#include "NovaSequenceEditor/Widgets/SequenceNodeTree/ActActionOutlinerTreeNode.h"
+#include "NovaSequenceEditor/Widgets/Sequence/SequenceNodeTree/ActActionSequenceTrackArea.h"
+#include "NovaSequenceEditor/Widgets/Sequence/SequenceNodeTree/Subs/ActActionSequenceTrackLane.h"
+#include "NovaSequenceEditor/Controllers/Sequence/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
+#include "NovaSequenceEditor/Controllers/Sequence/ActActionSequenceController.h"
+#include "NovaSequenceEditor/Widgets/Sequence/SequenceNodeTree/ActActionOutlinerTreeNode.h"
 #include "Subs/ActActionSequenceTreeViewRow.h"
 
 

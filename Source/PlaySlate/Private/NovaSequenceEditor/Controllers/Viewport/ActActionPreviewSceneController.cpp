@@ -62,8 +62,11 @@ void FActActionPreviewSceneController::Tick(float DeltaTime)
 	{
 		GetWorld()->Tick(LEVELTICK_All, DeltaTime);
 	}
-	// Handle updating the preview component to represent the effects of root motion
-	ActActionSkeletalMesh->ConsumeRootMotion(FloorBounds.GetBox().Min, FloorBounds.GetBox().Max);
+	if (ActActionSkeletalMesh)
+	{
+		// Handle updating the preview component to represent the effects of root motion
+		ActActionSkeletalMesh->ConsumeRootMotion(FloorBounds.GetBox().Min, FloorBounds.GetBox().Max);
+	}
 }
 
 void FActActionPreviewSceneController::SpawnActorInViewport(UClass* ActorType, UAnimBlueprint* AnimBlueprint)
@@ -116,7 +119,7 @@ void FActActionPreviewSceneController::InitAnimationByAnimMontage(UAnimMontage* 
 				ActActionSkeletalMesh->SetSkeletalMeshWithoutResettingAnimation(PreviewMesh);
 				ActActionSkeletalMesh->EnablePreview(true, AnimSequence);
 				ActActionSkeletalMesh->PreviewInstance->SetLooping(true);
-				ActActionSkeletalMesh->SetPlayRate(60);
+				ActActionSkeletalMesh->SetPlayRate(1.0f);
 
 				//Place the camera at a good viewer position
 				TSharedPtr<FEditorViewportClient> ViewportClient = ActActionViewportWidget->GetViewportClient();
@@ -141,4 +144,128 @@ void FActActionPreviewSceneController::EvaluateInternal(ActActionSequence::FActA
 		ActActionSkeletalMesh->PreviewInstance->SetPosition(PreviewScrubTime);
 		ActActionSkeletalMesh->PreviewInstance->UpdateAnimation(PreviewScrubTime, false);
 	}
+}
+
+void FActActionPreviewSceneController::EvaluateToOneEnd(bool bIsEndEnd)
+{
+	if (ActActionSkeletalMesh && ActActionSkeletalMesh->IsPreviewOn())
+	{
+		float PreviewLength = 0;
+		if (bIsEndEnd)
+		{
+			PreviewLength = ActActionSkeletalMesh->PreviewInstance->GetLength();
+		}
+		const FFrameRate TargetFrameRate = ActActionSequenceEditor.Pin()->GetTickResolution();
+		ActActionSequence::FActActionEvaluationRange InRange(TargetFrameRate.AsFrameTime(PreviewLength), TargetFrameRate);
+		EvaluateInternal(InRange);
+	}
+}
+
+void FActActionPreviewSceneController::TogglePlay(bool bForward)
+{
+	if (UAnimSingleNodeInstance* PreviewInstance = Cast<UAnimSingleNodeInstance>(ActActionSkeletalMesh->PreviewInstance))
+	{
+		bool bIsReverse = PreviewInstance->IsReverse();
+		bool bIsPlaying = PreviewInstance->IsPlaying();
+		// 如果当前正在播放，并且播放顺序与传入参数相反，则反置Reverse参数
+		if (bForward != bIsReverse && bIsPlaying)
+		{
+			PreviewInstance->SetReverse(!bIsReverse);
+		}
+		else if (bIsPlaying)
+		{
+			// already playing, simply pause
+			PreviewInstance->SetPlaying(false);
+
+			if (ActActionSkeletalMesh && ActActionSkeletalMesh->bPauseClothingSimulationWithAnim)
+			{
+				ActActionSkeletalMesh->SuspendClothingSimulation();
+			}
+		}
+		else
+		{
+			// if not playing, play forward
+			// if we're at the end of the animation, jump back to the beginning before playing
+			if (PreviewInstance->GetCurrentTime() >= PreviewInstance->GetLength())
+			{
+				PreviewInstance->SetPosition(0.0f, false);
+			}
+
+			PreviewInstance->SetReverse(!bForward);
+			PreviewInstance->SetPlaying(true);
+
+			if (ActActionSkeletalMesh && ActActionSkeletalMesh->bPauseClothingSimulationWithAnim)
+			{
+				ActActionSkeletalMesh->ResumeClothingSimulation();
+			}
+		}
+	}
+	else if (ActActionSkeletalMesh)
+	{
+		ActActionSkeletalMesh->GlobalAnimRateScale = (ActActionSkeletalMesh->GlobalAnimRateScale > 0.0f) ? 0.0f : 1.0f;
+	}
+}
+
+void FActActionPreviewSceneController::ToggleLoop()
+{
+	if (UAnimSingleNodeInstance* PreviewInstance = Cast<UAnimSingleNodeInstance>(ActActionSkeletalMesh->PreviewInstance))
+	{
+		bool bIsLooping = PreviewInstance->IsLooping();
+		PreviewInstance->SetLooping(!bIsLooping);
+	}
+}
+
+bool FActActionPreviewSceneController::IsLoopStatusOn()
+{
+	if (ActActionSkeletalMesh && ActActionSkeletalMesh->PreviewInstance)
+	{
+		return ActActionSkeletalMesh->PreviewInstance->IsLooping();
+	}
+	return false;
+}
+
+void FActActionPreviewSceneController::PlayStep(bool bForward)
+{
+	if (UAnimSingleNodeInstance* PreviewInstance = Cast<UAnimSingleNodeInstance>(ActActionSkeletalMesh->PreviewInstance))
+	{
+		bool bShouldStepCloth = FMath::Abs(PreviewInstance->GetLength() - PreviewInstance->GetCurrentTime()) > SMALL_NUMBER;
+		PreviewInstance->SetPlaying(false);
+		if (bForward)
+		{
+			PreviewInstance->StepForward();
+		}
+		else
+		{
+			PreviewInstance->StepBackward();
+		}
+		if (ActActionSkeletalMesh && bShouldStepCloth)
+		{
+			ActActionSkeletalMesh->bPerformSingleClothingTick = true;
+		}
+	}
+	else if (ActActionSkeletalMesh && bForward)
+	{
+		const FFrameRate TargetFrameRate = ActActionSequenceEditor.Pin()->GetTickResolution();
+		// Advance a single frame, leaving it paused afterwards
+		ActActionSkeletalMesh->GlobalAnimRateScale = 1.0f;
+		ActActionSkeletalMesh->TickAnimation(TargetFrameRate.AsInterval(), false);
+		ActActionSkeletalMesh->GlobalAnimRateScale = 0.0f;
+	}
+}
+
+EPlaybackMode::Type FActActionPreviewSceneController::GetPlaybackMode()
+{
+	if (UAnimSingleNodeInstance* PreviewInstance = Cast<UAnimSingleNodeInstance>(ActActionSkeletalMesh->PreviewInstance))
+	{
+		if (PreviewInstance->IsPlaying())
+		{
+			return PreviewInstance->IsReverse() ? EPlaybackMode::PlayingReverse : EPlaybackMode::PlayingForward;
+		}
+		return EPlaybackMode::Stopped;
+	}
+	else if (ActActionSkeletalMesh)
+	{
+		return (ActActionSkeletalMesh->GlobalAnimRateScale > 0.0f) ? EPlaybackMode::PlayingForward : EPlaybackMode::Stopped;
+	}
+	return EPlaybackMode::Stopped;
 }

@@ -2,7 +2,7 @@
 
 #include "PlaySlate.h"
 #include "Utils/ActActionSequenceUtil.h"
-#include "NovaSequenceEditor/Controllers/ActActionSequenceController.h"
+#include "NovaSequenceEditor/Controllers/Sequence/ActActionSequenceController.h"
 
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"

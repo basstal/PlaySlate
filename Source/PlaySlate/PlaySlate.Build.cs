@@ -19,14 +19,16 @@ public class PlaySlate : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"UnrealEd",
+			"EditorStyle",
 			"EditorFramework",
+			"EditorWidgets",
 			"BlueprintGraph",
 			"Kismet",
+			"KismetWidgets",
 			"RHI",
 			"TimeManagement",
 			"Slate",
 			"SlateCore",
-			"EditorStyle",
 			"AssetTools",
 			"ContentBrowser",
 			"AdvancedPreviewScene",

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "NovaSequenceEditor/Controllers/TimeSlider/ActActionSequenceSectionOverlayController.h"
+#include "NovaSequenceEditor/Controllers/Sequence/TimeSlider/ActActionSequenceSectionOverlayController.h"
 #include "Utils/ActActionSequenceUtil.h"
 
 class FActActionTimeSliderController;

@@ -1,7 +1,7 @@
 ﻿#include "ActActionSequenceSectionArea.h"
 
-#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
-#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceSectionBase.h"
+#include "NovaSequenceEditor/Controllers/Sequence/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
+#include "NovaSequenceEditor/Controllers/Sequence/SequenceNodeTree/ActActionSequenceSectionBase.h"
 #include "Subs/ActActionSequenceSection.h"
 
 

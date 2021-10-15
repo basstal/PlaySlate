@@ -1,7 +1,7 @@
 ﻿#include "ActActionSequenceSection.h"
 
-#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
-#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceSectionBase.h"
+#include "NovaSequenceEditor/Controllers/Sequence/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
+#include "NovaSequenceEditor/Controllers/Sequence/SequenceNodeTree/ActActionSequenceSectionBase.h"
 
 void SActActionSequenceSection::Construct(const FArguments& InArgs, TSharedRef<FActActionSequenceTreeViewNode> SectionNode, int32 InSectionIndex)
 {

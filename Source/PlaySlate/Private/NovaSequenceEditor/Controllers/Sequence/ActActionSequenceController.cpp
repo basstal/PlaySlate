@@ -6,13 +6,15 @@
 #include "NovaSequenceEditor/Assets/Tracks/ActActionTrackEditorBase.h"
 #include "NovaSequenceEditor/Assets/Tracks/ActActionAnimInstanceTrack.h"
 #include "NovaSequenceEditor/Assets/Tracks/ActActionAnimMontageTrack.h"
-#include "NovaSequenceEditor/Controllers/TimeSlider/ActActionTimeSliderController.h"
+#include "NovaSequenceEditor/Controllers/Sequence/TimeSlider/ActActionTimeSliderController.h"
 #include "NovaSequenceEditor/Controllers/Viewport/ActActionPreviewSceneController.h"
-#include "NovaSequenceEditor/Controllers/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
-#include "NovaSequenceEditor/Widgets/ActActionSequenceWidget.h"
-#include "NovaSequenceEditor/Widgets/SequenceNodeTree/ActActionSequenceTreeView.h"
+#include "NovaSequenceEditor/Controllers/Sequence/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
+#include "NovaSequenceEditor/Widgets/Sequence/ActActionSequenceWidget.h"
+#include "NovaSequenceEditor/Widgets/Sequence/SequenceNodeTree/ActActionSequenceTreeView.h"
 
 #include "Utils/ActActionPlaybackUtil.h"
+
+#include "NovaSequenceEditor/Controllers/Sequence/TimeSlider/ActActionSequenceSectionOverlayController.h"
 
 #include "IContentBrowserSingleton.h"
 #include "LevelEditorViewport.h"
@@ -20,14 +22,13 @@
 #include "Animation/DebugSkelMeshComponent.h"
 #include "AnimPreviewInstance.h"
 #include "FrameNumberNumericInterface.h"
-#include "TimeSlider/ActActionSequenceSectionOverlayController.h"
 
 #define LOCTEXT_NAMESPACE "ActAction"
 
 FActActionSequenceController::FActActionSequenceController(const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor)
 	: ActActionSequenceEditor(InActActionSequenceEditor),
-	  PlaybackState(ActActionSequence::EPlaybackType::Stopped)
-
+	  PlaybackState(ActActionSequence::EPlaybackType::Stopped),
+	  TargetViewRange(0, 0)
 {
 	PlayPosition.Reset(InActActionSequenceEditor->GetPlaybackRange().GetLowerBoundValue());
 	// ** 将Sequence能编辑的所有TrackEditor注册，以便能够使用AddTrackEditor以及AddTrackMenu

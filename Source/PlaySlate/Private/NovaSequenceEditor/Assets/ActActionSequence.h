@@ -10,24 +10,16 @@ class UActActionSequence : public UObject
 public:
 	UActActionSequence();
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	UAnimBlueprint* EditAnimBlueprint;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	UAnimMontage* EditAnimMontage;
 
 	/** The resolution at which all frame numbers within this data are stored */
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	FFrameRate TickResolution;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	FFrameRate DisplayRate;
-
-	/**
-	 * 动画播放的帧区间
-	 */
-	TRange<FFrameNumber> PlaybackRange;
-
-	/** User-defined selection range. */
-	TRange<FFrameNumber> SelectionRange;
 };
