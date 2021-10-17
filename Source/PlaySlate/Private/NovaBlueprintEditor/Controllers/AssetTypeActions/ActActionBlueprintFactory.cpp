@@ -13,7 +13,6 @@
 #include "Widgets/Layout/SUniformGridPanel.h"
 
 
-
 #define LOCTEXT_NAMESPACE "ActActionToolkit"
 
 UActActionBlueprintFactory::UActActionBlueprintFactory()
@@ -22,12 +21,10 @@ UActActionBlueprintFactory::UActActionBlueprintFactory()
 	bEditAfterNew = true;
 	SupportedClass = UActActionBlueprint::StaticClass();
 	ParentClass = UActActionLogic::StaticClass();
-	
 }
 
 bool UActActionBlueprintFactory::ConfigureProperties()
 {
-	
 	TSharedPtr<SActActionBlueprintCreateDialog> Dialog = SNew(SActActionBlueprintCreateDialog);
 	return Dialog->ConfigureProperties(this);
 }
@@ -51,38 +48,36 @@ UObject* UActActionBlueprintFactory::FactoryCreateNew(UClass* InClass, UObject* 
 	{
 		FFormatNamedArguments Args;
 		Args.Add(TEXT("ClassName"), ParentClass != nullptr ? FText::FromString(ParentClass->GetName()) : LOCTEXT("Null", "(null)"));
-		FMessageDialog::Open(EAppMsgType::Ok,  FText::Format(LOCTEXT("CannotCreateActionBlueprint", "Cannot create a action blueprint '{ClassName}'"), Args));
+		FMessageDialog::Open(EAppMsgType::Ok, FText::Format(LOCTEXT("CannotCreateActionBlueprint", "Cannot create a action blueprint '{ClassName}'"), Args));
 		return nullptr;
 	}
 
-	UActActionBlueprint * NewBP = CastChecked<UActActionBlueprint>(FKismetEditorUtilities::CreateBlueprint(ParentClass, InParent, InName, BlueprintType, UActActionBlueprint::StaticClass(), UBlueprintGeneratedClass::StaticClass(), CallingContext));
+	UActActionBlueprint* NewBP = CastChecked<UActActionBlueprint>(FKismetEditorUtilities::CreateBlueprint(ParentClass, InParent, InName, BlueprintType, UActActionBlueprint::StaticClass(), UBlueprintGeneratedClass::StaticClass(), CallingContext));
 	if (NewBP)
 	{
-		UActActionBlueprint * ActionBP = UActActionBlueprint::FindRootActionBlueprint(NewBP);
+		UActActionBlueprint* ActionBP = UActActionBlueprint::FindRootActionBlueprint(NewBP);
 		if (ActionBP == nullptr)
 		{
 			// const UEdGraphSchema_K2 * K2Schema = GetDefault<UEdGraphSchema_K2>();
-			UEdGraph * NewGraph = FBlueprintEditorUtils::CreateNewGraph(NewBP, TEXT("Action Graph"), UActActionBlueprintGraph::StaticClass(), UActActionBlueprintGraphSchema::StaticClass());
+			UEdGraph* NewGraph = FBlueprintEditorUtils::CreateNewGraph(NewBP, TEXT("Action Graph"), UActActionBlueprintGraph::StaticClass(), UActActionBlueprintGraphSchema::StaticClass());
 #if WITH_EDITORONLY_DATA
 			if (NewBP->UbergraphPages.Num())
 			{
 				FBlueprintEditorUtils::RemoveGraphs(NewBP, NewBP->UbergraphPages);
 			}
-#endif //WITH_EDITORONLY_DATA
+#endif
 			FBlueprintEditorUtils::AddUbergraphPage(NewBP, NewGraph);
 			NewBP->LastEditedDocuments.Add(NewGraph);
 			NewGraph->bAllowDeletion = false;
 
-			UBlueprintEditorSettings *Settings = GetMutableDefault<UBlueprintEditorSettings>();
+			UBlueprintEditorSettings* Settings = GetMutableDefault<UBlueprintEditorSettings>();
 			if (Settings && Settings->bSpawnDefaultBlueprintNodes)
 			{
 				// int32 NodePositionY = 0;
 				// ** 默认事件结点
 				// FKismetEditorUtilities::AddDefaultEventNode(NewBP, NewGraph, FName(TEXT("K2_ActivateAbility")), UAction::StaticClass(), NodePositionY);
 				// FKismetEditorUtilities::AddDefaultEventNode(NewBP, NewGraph, FName(TEXT("K2_OnEndAbility")), UAction::StaticClass(), NodePositionY);
-				
 			}
-			
 		}
 	}
 	return NewBP;

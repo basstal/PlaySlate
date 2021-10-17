@@ -11,7 +11,7 @@
 FActActionViewportClient::FActActionViewportClient(const TSharedRef<FActActionPreviewSceneController>& InActActionPreviewSceneController, const TSharedRef<SActActionViewportWidget>& InActActionViewportWidget, FEditorModeTools& InEditorModeTools)
 	: FEditorViewportClient(&InEditorModeTools, StaticCast<FPreviewScene*>(&InActActionPreviewSceneController.Get()), StaticCastSharedRef<SEditorViewport>(InActActionViewportWidget))
 {
-	FAssetEditorModeManager* ModeManager = (FAssetEditorModeManager*)ModeTools.Get();
+	FAssetEditorModeManager* ModeManager = StaticCast<FAssetEditorModeManager*>(ModeTools.Get());
 	Widget->SetUsesEditorModeTools(ModeManager);
 	if (ModeManager)
 	{

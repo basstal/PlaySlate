@@ -32,7 +32,7 @@ void SActActionBlueprintCreateDialog::Construct(const FArguments& InArgs)
 					[
 						SAssignNew(ParentClassContainer, SVerticalBox)
 					]
-					
+
 				]
 
 				// OK/Cancel buttons
@@ -43,7 +43,7 @@ void SActActionBlueprintCreateDialog::Construct(const FArguments& InArgs)
 					[
 						// OK button
 						SNew(SButton).HAlign(HAlign_Center).ContentPadding(FEditorStyle::GetMargin("StandardDialog.ContentPadding")).OnClicked(this, &SActActionBlueprintCreateDialog::OKClicked).Text(LOCTEXT("CreateActionBlueprintOK", "OK"))
-						
+
 					]
 					+ SUniformGridPanel::Slot(1, 0)
 					[
@@ -67,7 +67,7 @@ FReply SActActionBlueprintCreateDialog::CancelClicked()
 
 void SActActionBlueprintCreateDialog::MakeParentClassPicker()
 {
-	FClassViewerModule & ClassViewerModule = FModuleManager::LoadModuleChecked<FClassViewerModule>("ClassViewer");
+	FClassViewerModule& ClassViewerModule = FModuleManager::LoadModuleChecked<FClassViewerModule>("ClassViewer");
 
 	FClassViewerInitializationOptions Options;
 	Options.Mode = EClassViewerMode::ClassPicker;
@@ -88,20 +88,18 @@ void SActActionBlueprintCreateDialog::MakeParentClassPicker()
 		ClassViewerModule.CreateClassViewer(Options, FOnClassPicked::CreateSP(this, &SActActionBlueprintCreateDialog::OnClassPicked))
 
 	];
-	
 }
 
 void SActActionBlueprintCreateDialog::OnClassPicked(UClass* ChosenClass)
 {
 	ParentClass = ChosenClass;
-
 }
 
 bool SActActionBlueprintCreateDialog::ConfigureProperties(TWeakObjectPtr<UActActionBlueprintFactory> InActionFactory)
 {
 	ActionFactory = InActionFactory;
 
-	TSharedRef<SWindow> Window = SNew(SWindow).Title(LOCTEXT("CreateActionBlueprintOptions", "Create Action Blueprint")).ClientSize(FVector2D(400, 700)).SupportsMinimize(false).SupportsMaximize(false)
+	const TSharedRef<SWindow> Window = SNew(SWindow).Title(LOCTEXT("CreateActionBlueprintOptions", "Create Action Blueprint")).ClientSize(FVector2D(400, 700)).SupportsMinimize(false).SupportsMaximize(false)
 	[
 		AsShared()
 
@@ -115,7 +113,7 @@ bool SActActionBlueprintCreateDialog::ConfigureProperties(TWeakObjectPtr<UActAct
 
 FReply SActActionBlueprintCreateDialog::OKClicked()
 {
-	if(ActionFactory.IsValid())
+	if (ActionFactory.IsValid())
 	{
 		ActionFactory->BlueprintType = BPTYPE_Normal;
 		ActionFactory->ParentClass = ParentClass.Get();
@@ -128,7 +126,7 @@ FReply SActActionBlueprintCreateDialog::OKClicked()
 void SActActionBlueprintCreateDialog::CloseDialog(bool bWasPicked)
 {
 	bOKClicked = bWasPicked;
-	if(PickerWindow.IsValid())
+	if (PickerWindow.IsValid())
 	{
 		PickerWindow.Pin()->RequestDestroyWindow();
 	}

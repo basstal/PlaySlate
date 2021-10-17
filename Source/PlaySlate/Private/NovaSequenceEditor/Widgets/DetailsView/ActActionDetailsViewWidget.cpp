@@ -3,15 +3,13 @@
 void SActActionDetailsViewWidget::Construct(const FArguments& InArgs)
 {
 	OnGetAsset = InArgs._OnGetAsset;
-
 	SSingleObjectDetailsPanel::Construct(SSingleObjectDetailsPanel::FArguments(), true, true);
-
 	InArgs._OnDetailsCreated.ExecuteIfBound(PropertyView.ToSharedRef());
 }
 
 EVisibility SActActionDetailsViewWidget::GetAssetDisplayNameVisibility() const
 {
-	return (GetObjectToObserve() != NULL) ? EVisibility::Visible : EVisibility::Collapsed;
+	return (GetObjectToObserve() != nullptr) ? EVisibility::Visible : EVisibility::Collapsed;
 }
 
 FText SActActionDetailsViewWidget::GetAssetDisplayName() const

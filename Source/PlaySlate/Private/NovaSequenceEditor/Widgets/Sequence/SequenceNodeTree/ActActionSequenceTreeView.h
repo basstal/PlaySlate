@@ -10,7 +10,7 @@ class FActActionSequenceTreeViewNode;
 class SActActionSequenceTreeView : public STreeView<TSharedRef<FActActionSequenceTreeViewNode>>
 {
 public:
-	SLATE_BEGIN_ARGS(SActActionSequenceTreeView)
+SLATE_BEGIN_ARGS(SActActionSequenceTreeView)
 		{
 		}
 

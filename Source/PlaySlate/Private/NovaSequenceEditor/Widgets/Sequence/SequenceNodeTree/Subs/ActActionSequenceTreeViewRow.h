@@ -7,15 +7,15 @@ class SActActionSequenceTreeViewRow : public SMultiColumnTableRow<TSharedRef<FAc
 {
 	DECLARE_DELEGATE_RetVal_ThreeParams(TSharedRef<SWidget>, OnGenerateWidgetForColumnDelegate, const TSharedRef<FActActionSequenceTreeViewNode>&, const FName&, const TSharedRef<SActActionSequenceTreeViewRow>&);
 public:
-	SLATE_BEGIN_ARGS(SActActionSequenceTreeViewRow)
-	{
-	}
+SLATE_BEGIN_ARGS(SActActionSequenceTreeViewRow)
+		{
+		}
 
-	/** Delegate to invoke to create a new column for this row */
-	SLATE_EVENT(OnGenerateWidgetForColumnDelegate, OnGenerateWidgetForColumn)
-SLATE_END_ARGS()
+		/** Delegate to invoke to create a new column for this row */
+		SLATE_EVENT(OnGenerateWidgetForColumnDelegate, OnGenerateWidgetForColumn)
+	SLATE_END_ARGS()
 
-void Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& OwnerTableView, const TSharedRef<FActActionSequenceTreeViewNode>& InNode);
+	void Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& OwnerTableView, const TSharedRef<FActActionSequenceTreeViewNode>& InNode);
 	//~Begin SMultiColumnTableRow interface
 	virtual TSharedRef<SWidget> GenerateWidgetForColumn(const FName& InColumnName) override;
 	//~End SMultiColumnTableRow interface

@@ -63,7 +63,8 @@ int32 SActActionSequenceSectionOverlayWidget::OnPaint(const FPaintArgs& Args, co
 	if (PaintArgs.bDisplayScrubPosition)
 	{
 		FQualifiedFrameTime ScrubPosition = FQualifiedFrameTime(TimeSliderArgs.ScrubPosition.Get(), TimeSliderArgs.TickResolution.Get());
-		ActActionSequence::FActActionScrubberMetrics ScrubMetrics = ActActionSequence::ActActionStaticUtil::GetScrubPixelMetrics(TimeSliderArgs.DisplayRate.Get(), ScrubPosition, RangeToScreen);
+		const FFrameRate DisplayRate = TimeSliderArgs.DisplayRate.Get();
+		ActActionSequence::FActActionScrubberMetrics ScrubMetrics = ActActionSequence::ActActionStaticUtil::GetScrubPixelMetrics(DisplayRate, ScrubPosition, RangeToScreen);
 
 		if (ScrubMetrics.bDrawExtents)
 		{

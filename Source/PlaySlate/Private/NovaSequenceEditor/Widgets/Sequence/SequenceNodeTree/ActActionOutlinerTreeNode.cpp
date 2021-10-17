@@ -1,15 +1,28 @@
 ﻿#include "ActActionOutlinerTreeNode.h"
 
+#include "PlaySlate.h"
 #include "NovaSequenceEditor/Controllers/Sequence/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
 #include "NovaSequenceEditor/Controllers/Sequence/ActActionSequenceController.h"
 #include "Subs/ActActionSequenceTreeViewRow.h"
 
 #include "Widgets/Text/SInlineEditableTextBlock.h"
 
+SActActionOutlinerTreeNode::SActActionOutlinerTreeNode()
+	: bIsOuterTopLevelNode(false),
+	  bIsInnerTopLevelNode(false),
+	  TableRowStyle(nullptr)
+{
+}
+
+SActActionOutlinerTreeNode::~SActActionOutlinerTreeNode()
+{
+	UE_LOG(LogActAction, Log, TEXT("SActActionOutlinerTreeNode::~SActActionOutlinerTreeNode"));
+}
+
 void SActActionOutlinerTreeNode::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceTreeViewNode>& Node, const TSharedRef<SActActionSequenceTreeViewRow>& InTableRow)
 {
 	DisplayNode = Node;
-	bool bParentNodeValid = Node->GetParentNode().IsValid();
+	const bool bParentNodeValid = Node->GetParentNode().IsValid();
 	bIsOuterTopLevelNode = !bParentNodeValid;
 	bIsInnerTopLevelNode = Node->GetType() != ActActionSequence::ESequenceNodeType::Folder && bParentNodeValid && Node->GetParentNode()->GetType() == ActActionSequence::ESequenceNodeType::Folder;
 
@@ -49,7 +62,7 @@ void SActActionOutlinerTreeNode::Construct(const FArguments& InArgs, const TShar
 		.Clipping(EWidgetClipping::ClipToBounds)
 		.IsSelected(FIsSelected::CreateSP(InTableRow, &SActActionSequenceTreeViewRow::IsSelectedExclusively));
 
-	TSharedRef<SWidget> LabelContent = EditableLabel.ToSharedRef();
+	const TSharedRef<SWidget> LabelContent = EditableLabel.ToSharedRef();
 
 	// if (TSharedPtr<SWidget> AdditionalLabelContent = Node->GetAdditionalOutlinerLabel())
 	// {
@@ -76,7 +89,7 @@ void SActActionOutlinerTreeNode::Construct(const FArguments& InArgs, const TShar
 
 	// ForegroundColor.Bind(this, &SActActionOutlinerTreeNode::GetForegroundBasedOnSelection);
 
-	TSharedRef<SWidget> FinalWidget =
+	const TSharedRef<SWidget> FinalWidget =
 		SNew(SBorder)
 		.VAlign(VAlign_Center)
 		// .BorderImage(this, &SActActionOutlinerTreeNode::GetNodeBorderImage)
@@ -212,12 +225,12 @@ FSlateColor SActActionOutlinerTreeNode::GetDisplayNameColor() const
 	return DisplayNode->GetDisplayNameColor();
 }
 
-bool SActActionOutlinerTreeNode::VerifyNodeTextChanged(const FText& NewLabel, FText& OutErrorMessage)
+bool SActActionOutlinerTreeNode::VerifyNodeTextChanged(const FText& NewLabel, FText& OutErrorMessage) const
 {
 	return DisplayNode->ValidateDisplayName(NewLabel, OutErrorMessage);
 }
 
-void SActActionOutlinerTreeNode::HandleNodeLabelTextCommitted(const FText& NewLabel, ETextCommit::Type CommitType)
+void SActActionOutlinerTreeNode::HandleNodeLabelTextCommitted(const FText& NewLabel, ETextCommit::Type CommitType) const
 {
 	DisplayNode->SetDisplayName(NewLabel);
 }

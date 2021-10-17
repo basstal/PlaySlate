@@ -7,5 +7,4 @@ class UActActionBlueprintGraph : public UEdGraph
 {
 	GENERATED_BODY()
 public:
-	
 };

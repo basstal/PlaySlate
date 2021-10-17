@@ -12,9 +12,10 @@
 
 class FContentBrowserModule;
 
-TSharedRef<FActActionTrackEditorBase> FActActionAnimMontageTrack::CreateTrackEditor(TSharedRef<FActActionSequenceController> InSequenceController)
+
+FActActionAnimMontageTrack::FActActionAnimMontageTrack(const TSharedRef<FActActionSequenceController>& ActActionSequenceController)
+	: FActActionTrackEditorBase(ActActionSequenceController)
 {
-	return MakeShareable(new FActActionAnimMontageTrack(InSequenceController));
 }
 
 void FActActionAnimMontageTrack::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
@@ -27,6 +28,11 @@ void FActActionAnimMontageTrack::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 	);
 }
 
+
+TSharedRef<FActActionTrackEditorBase> FActActionAnimMontageTrack::CreateTrackEditor(TSharedRef<FActActionSequenceController> InSequenceController)
+{
+	return MakeShareable(new FActActionAnimMontageTrack(InSequenceController));
+}
 
 void FActActionAnimMontageTrack::AssignAnimMontage()
 {
@@ -69,8 +75,7 @@ void FActActionAnimMontageTrack::OnAssetSelected(const FAssetData& InAssetData)
 	if (SequenceController.IsValid() && InAssetData.IsValid())
 	{
 		UE_LOG(LogActAction, Log, TEXT("InAssetData : %s"), *InAssetData.GetFullName());
-		UAnimMontage* AnimMontage = Cast<UAnimMontage>(InAssetData.GetAsset());
-		SequenceController.Pin()->AddAnimMontageTrack(AnimMontage);
+		// ** TODO:暂时不支持Montage资源
 		AnimMontageSelectionDialog->RequestDestroyWindow();
 	}
 }

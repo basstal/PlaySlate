@@ -15,5 +15,5 @@ public:
 
 	static UActActionBlueprint* FindRootActionBlueprint(UActActionBlueprint* DerivedBlueprint);
 
-#endif // WITH_EDITOR
+#endif
 };

@@ -33,7 +33,7 @@ public:
 	 * @param NewValue				Value resulting from the user's interaction
 	 * @param bIsScrubbing			True if done via scrubbing, false if just releasing scrubbing
 	 */
-	void CommitScrubPosition(FFrameTime NewValue, bool bIsScrubbing);
+	void CommitScrubPosition(FFrameTime NewValue, bool bIsScrubbing) const;
 	/**
 	 * Set a new range based on a min, max and an interpolation mode
 	 * 
@@ -41,7 +41,7 @@ public:
 	 * @param NewRangeMax		The new upper bound of the range
 	 * @param Interpolation		How to set the new range (either immediately, or animated)
 	 */
-	void SetViewRange(double NewRangeMin, double NewRangeMax, ActActionSequence::EActActionViewRangeInterpolation Interpolation);
+	void SetViewRange(double NewRangeMin, double NewRangeMax, ActActionSequence::EActActionViewRangeInterpolation Interpolation) const;
 
 	/**
 	 * Hit test the lower bound of a range
@@ -54,19 +54,19 @@ public:
 	/**
 	 * TODO:
 	 */
-	void SetPlaybackRangeStart(FFrameNumber NewStart);
+	void SetPlaybackRangeStart(FFrameNumber NewStart) const;
 	/**
 	* TODO:
 	*/
-	void SetPlaybackRangeEnd(FFrameNumber NewEnd);
+	void SetPlaybackRangeEnd(FFrameNumber NewEnd) const;
 	/**
 	* TODO:
 	*/
-	void SetSelectionRangeStart(FFrameNumber NewStart);
+	void SetSelectionRangeStart(FFrameNumber NewStart) const;
 	/**
 	* TODO:
 	*/
-	void SetSelectionRangeEnd(FFrameNumber NewEnd);
+	void SetSelectionRangeEnd(FFrameNumber NewEnd) const;
 
 	/**
 	 * Zoom the range by a given delta.
@@ -74,13 +74,13 @@ public:
 	 * @param InDelta		The total amount to zoom by (+ve = zoom out, -ve = zoom in)
 	 * @param ZoomBias		Bias to apply to lower/upper extents of the range. (0 = lower, 0.5 = equal, 1 = upper)
 	 */
-	bool ZoomByDelta(float InDelta, float ZoomBias = 0.5f);
+	bool ZoomByDelta(float InDelta, float ZoomBias = 0.5f) const;
 	/**
 	 * Pan the range by a given delta
 	 * 
 	 * @param InDelta		The total amount to pan by (+ve = pan forwards in time, -ve = pan backwards in time)
 	 */
-	void PanByDelta(float InDelta);
+	void PanByDelta(float InDelta) const;
 
 	/**
 	 * Widget的OnMouseButtonDown回调
@@ -109,7 +109,7 @@ public:
 	 * @param MyGeometry 当前点击的Geometry
 	 * @param MouseEvent 当前响应的鼠标事件
 	 */
-	FReply OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
+	FReply OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) const;
 
 	/**
 	 * @return 获得TimeSlider相关参数

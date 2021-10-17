@@ -18,12 +18,6 @@ FActActionAnimInstanceTrack::FActActionAnimInstanceTrack(const TSharedRef<FActAc
 {
 }
 
-//
-// bool FActActionAnimInstanceTrack::SupportsSequence(UActActionSequence* InSequence) const
-// {
-// 	return true;
-// }
-
 void FActActionAnimInstanceTrack::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 {
 	MenuBuilder.AddMenuEntry(

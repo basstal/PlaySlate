@@ -1,7 +1,6 @@
 ﻿#include "ActActionSequenceTrackArea.h"
 
 
-
 SActActionSequenceTrackArea::SActActionSequenceTrackArea() : Children(this)
 {
 }
@@ -24,7 +23,7 @@ FChildren* SActActionSequenceTrackArea::GetChildren()
 	return &Children;
 }
 
-TSharedPtr<SActActionSequenceTrackLane> SActActionSequenceTrackArea::FindTrackSlot(const TSharedRef<FActActionSequenceTreeViewNode>& InNode)
+TSharedPtr<SActActionSequenceTrackLane> SActActionSequenceTrackArea::FindTrackSlot(const TSharedRef<FActActionSequenceTreeViewNode>& InNode) const
 {
 	return TrackSlots.FindRef(InNode).Pin();
 }

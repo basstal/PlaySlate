@@ -64,7 +64,7 @@ void FActActionSequenceTreeViewNode::MakeWidgetForSectionArea()
 		.TickResolution(ActActionSequenceController.Pin()->GetActActionSequenceEditor(), &FActActionSequenceEditor::GetTickResolution);
 }
 
-bool FActActionSequenceTreeViewNode::IsTreeViewRoot()
+bool FActActionSequenceTreeViewNode::IsTreeViewRoot() const
 {
 	return ParentNode == nullptr;
 }
@@ -79,7 +79,7 @@ FString FActActionSequenceTreeViewNode::GetPathName() const
 	// First get our parent's path
 	FString PathName;
 
-	TSharedPtr<FActActionSequenceTreeViewNode> Parent = GetParentNode();
+	const TSharedPtr<FActActionSequenceTreeViewNode> Parent = GetParentNode();
 	if (Parent.IsValid())
 	{
 		ensure(Parent != SharedThis(this));
@@ -160,8 +160,8 @@ TArray<TSharedRef<FActActionSequenceSectionBase>>& FActActionSequenceTreeViewNod
 
 float FActActionSequenceTreeViewNode::GetNodeHeight() const
 {
-	float SectionHeight = Sections.Num() > 0 ? Sections[0]->GetSectionHeight() : 15.0f;
-	float PaddedSectionHeight = SectionHeight + 6.0f;
+	const float SectionHeight = Sections.Num() > 0 ? Sections[0]->GetSectionHeight() : 15.0f;
+	const float PaddedSectionHeight = SectionHeight + 6.0f;
 	return PaddedSectionHeight;
 }
 

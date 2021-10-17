@@ -25,7 +25,8 @@ void FActActionSequenceSectionOverlayController::MakeSequenceSectionOverlayWidge
 			.Clipping(EWidgetClipping::ClipToBounds);
 }
 
-int32 FActActionSequenceSectionOverlayController::DrawPlaybackRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const
+int32 FActActionSequenceSectionOverlayController::DrawPlaybackRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen,
+                                                                    const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const
 {
 	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	if (!TimeSliderArgs.PlaybackRange.IsSet())
@@ -35,8 +36,8 @@ int32 FActActionSequenceSectionOverlayController::DrawPlaybackRange(const FGeome
 
 	const uint8 OpacityBlend = TimeSliderArgs.SubSequenceRange.Get().IsSet() ? 128 : 255;
 
-	TRange<FFrameNumber> PlaybackRange = TimeSliderArgs.PlaybackRange.Get();
-	FFrameRate TickResolution = TimeSliderArgs.TickResolution.Get();
+	const TRange<FFrameNumber> PlaybackRange = TimeSliderArgs.PlaybackRange.Get();
+	const FFrameRate TickResolution = TimeSliderArgs.TickResolution.Get();
 	const float PlaybackRangeL = RangeToScreen.InputToLocalX(PlaybackRange.GetLowerBoundValue() / TickResolution);
 	const float PlaybackRangeR = RangeToScreen.InputToLocalX(PlaybackRange.GetUpperBoundValue() / TickResolution) - 1;
 
@@ -81,7 +82,8 @@ int32 FActActionSequenceSectionOverlayController::DrawPlaybackRange(const FGeome
 }
 
 
-int32 FActActionSequenceSectionOverlayController::DrawSubSequenceRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const
+int32 FActActionSequenceSectionOverlayController::DrawSubSequenceRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen,
+                                                                       const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const
 {
 	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	TOptional<TRange<FFrameNumber>> RangeValue;
@@ -102,7 +104,7 @@ int32 FActActionSequenceSectionOverlayController::DrawSubSequenceRange(const FGe
 	static const FSlateBrush* LineBrushL(FEditorStyle::GetBrush("Sequencer.Timeline.PlayRange_L"));
 	static const FSlateBrush* LineBrushR(FEditorStyle::GetBrush("Sequencer.Timeline.PlayRange_R"));
 
-	FColor GreenTint(32, 128, 32); // 120, 75, 50 (HSV)
+	const FColor GreenTint(32, 128, 32); // 120, 75, 50 (HSV)
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		LayerId + 1,
@@ -112,7 +114,7 @@ int32 FActActionSequenceSectionOverlayController::DrawSubSequenceRange(const FGe
 		GreenTint
 	);
 
-	FColor RedTint(128, 32, 32); // 0, 75, 50 (HSV)
+	const FColor RedTint(128, 32, 32); // 0, 75, 50 (HSV)
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		LayerId + 1,
@@ -166,10 +168,10 @@ int32 FActActionSequenceSectionOverlayController::DrawSubSequenceRange(const FGe
 void FActActionSequenceSectionOverlayController::DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<double>& ViewRange, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, ActActionSequence::FActActionDrawTickArgs& InArgs) const
 {
 	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
-	FFrameRate TickResolution = TimeSliderArgs.TickResolution.Get();
-	FFrameRate DisplayRate = TimeSliderArgs.DisplayRate.Get();
-	FPaintGeometry PaintGeometry = InArgs.AllottedGeometry.ToPaintGeometry();
-	FSlateFontInfo SmallLayoutFont = FCoreStyle::GetDefaultFontStyle("Regular", 8);
+	const FFrameRate TickResolution = TimeSliderArgs.TickResolution.Get();
+	const FFrameRate DisplayRate = TimeSliderArgs.DisplayRate.Get();
+	const FPaintGeometry PaintGeometry = InArgs.AllottedGeometry.ToPaintGeometry();
+	const FSlateFontInfo SmallLayoutFont = FCoreStyle::GetDefaultFontStyle("Regular", 8);
 
 	double MajorGridStep = 0.0;
 	int32 MinorDivisions = 0;
@@ -186,16 +188,13 @@ void FActActionSequenceSectionOverlayController::DrawTicks(FSlateWindowElementLi
 	TArray<FVector2D> LinePoints;
 	LinePoints.SetNumUninitialized(2);
 
-	const bool bAntiAliasLines = false;
-
 	const double FirstMajorLine = FMath::FloorToDouble(ViewRange.GetLowerBoundValue() / MajorGridStep) * MajorGridStep;
 	const double LastMajorLine = FMath::CeilToDouble(ViewRange.GetUpperBoundValue() / MajorGridStep) * MajorGridStep;
-
-	const float FlooredScrubPx = RangeToScreen.InputToLocalX(ConvertFrameTime(TimeSliderArgs.ScrubPosition.Get(), TickResolution, TimeSliderArgs.DisplayRate.Get()).FloorToFrame() / DisplayRate);
-
+	const FFrameNumber FrameNumber = ConvertFrameTime(TimeSliderArgs.ScrubPosition.Get(), TickResolution, DisplayRate).FloorToFrame();
+	const float FlooredScrubPx = RangeToScreen.InputToLocalX(FrameNumber / DisplayRate);
 	for (double CurrentMajorLine = FirstMajorLine; CurrentMajorLine < LastMajorLine; CurrentMajorLine += MajorGridStep)
 	{
-		float MajorLinePx = RangeToScreen.InputToLocalX(CurrentMajorLine);
+		const float MajorLinePx = RangeToScreen.InputToLocalX(CurrentMajorLine);
 
 		LinePoints[0] = FVector2D(MajorLinePx, InArgs.TickOffset);
 		LinePoints[1] = FVector2D(MajorLinePx, InArgs.TickOffset + InArgs.MajorTickHeight);
@@ -208,7 +207,7 @@ void FActActionSequenceSectionOverlayController::DrawTicks(FSlateWindowElementLi
 			LinePoints,
 			InArgs.DrawEffects,
 			InArgs.TickColor,
-			bAntiAliasLines
+			false
 		);
 
 		if (!InArgs.bOnlyDrawMajorTicks && !FMath::IsNearlyEqual(MajorLinePx, FlooredScrubPx, 3.f))
@@ -245,7 +244,7 @@ void FActActionSequenceSectionOverlayController::DrawTicks(FSlateWindowElementLi
 				LinePoints,
 				InArgs.DrawEffects,
 				InArgs.TickColor,
-				bAntiAliasLines
+				false
 			);
 		}
 	}

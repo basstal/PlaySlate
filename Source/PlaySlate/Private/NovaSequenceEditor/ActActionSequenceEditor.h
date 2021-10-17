@@ -21,7 +21,7 @@ public:
 	/**
 	* 初始化编辑器，设置当前编辑的资源实例及相关参数
 	*
-	* @param InitToolkitHost				仅透传到对应接口，无实际作用
+	* @param InitToolkitHost 仅透传到对应接口，无实际作用
 	*/
 	void InitActActionSequenceEditor(const TSharedPtr<IToolkitHost>& InitToolkitHost);
 
@@ -49,12 +49,8 @@ public:
 	 * @return 获得当前资源使用的Tick帧率
 	 */
 	FFrameRate GetTickResolution() const;
-	/**
-	 * @return 获得当前资源使用的显示帧率
-	 */
-	FFrameRate GetDisplayRate() const;
-	/** 设置当前资源的AnimMontage实例 */
-	void SetAnimMontage(UAnimMontage* AnimMontage);
+	/** @param InAnimSequence 设置当前资源的AnimSequence实例 */
+	void SetAnimSequence(UAnimSequence* InAnimSequence) const;
 protected:
 	/**
 	 * 当前编辑的资源实例

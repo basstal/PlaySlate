@@ -58,14 +58,14 @@ void FActActionSequenceEditor::InitActActionSequenceEditor(const TSharedPtr<IToo
 	// ** ActActionSequenceController
 	ActActionSequenceController = MakeShareable(new FActActionSequenceController(SharedThis(this)));
 	ActActionSequenceController->ExecuteTrackEditorCreateDelegate();
-	ActActionSequence::FActActionSequenceViewParams ViewParams = ActActionSequence::FActActionSequenceViewParams();
+	const ActActionSequence::FActActionSequenceViewParams ViewParams = ActActionSequence::FActActionSequenceViewParams();
 	ActActionSequenceController->MakeSequenceWidget(ViewParams);
 	ActActionSequenceWidgetParent->SetContent(ActActionSequenceController->GetActActionSequenceWidget());
 
 	// ** PreviewScene(Viewport)Controller
-	FPreviewScene::ConstructionValues ConstructionValues = FPreviewScene::ConstructionValues()
-	                                                       .AllowAudioPlayback(true)
-	                                                       .ShouldSimulatePhysics(true);
+	const FPreviewScene::ConstructionValues ConstructionValues = FPreviewScene::ConstructionValues()
+	                                                             .AllowAudioPlayback(true)
+	                                                             .ShouldSimulatePhysics(true);
 	ActActionPreviewSceneController = MakeShareable(new FActActionPreviewSceneController(ConstructionValues, SharedThis(this)));
 	ActActionPreviewSceneController->MakeViewportWidget();
 	ActActionViewportWidgetParent->SetContent(ActActionPreviewSceneController->GetActActionViewportWidget());
@@ -80,8 +80,8 @@ void FActActionSequenceEditor::InitActActionSequenceEditor(const TSharedPtr<IToo
 
 
 	// ** Init by resource
-	InitAnimBlueprint(ActActionSequence->EditAnimBlueprint);
-	ActActionSequenceController->AddAnimMontageTrack(ActActionSequence->EditAnimMontage);
+	InitAnimBlueprint(ActActionSequence->AnimBlueprint);
+	ActActionSequenceController->AddAnimSequenceTrack(ActActionSequence->AnimSequence);
 
 	// When undo occurs, get a notification so we can make sure our view is up to date
 	GEditor->RegisterForUndo(this);
@@ -177,16 +177,16 @@ void FActActionSequenceEditor::InitAnimBlueprint(UAnimBlueprint* AnimBlueprint)
 {
 	if (!AnimBlueprint || !AnimBlueprint->TargetSkeleton)
 	{
-		UE_LOG(LogActAction, Error, TEXT("FActActionSequenceController::InitAnimBlueprint with nullptr AnimBlueprint or AnimBlueprint->TargetSkeleton is nullptr"));
+		UE_LOG(LogActAction, Log, TEXT("FActActionSequenceEditor::InitAnimBlueprint with nullptr AnimBlueprint or AnimBlueprint->TargetSkeleton is nullptr"));
 		return;
 	}
 
 	if (ActActionSequence)
 	{
-		if (ActActionSequence->EditAnimBlueprint != AnimBlueprint)
+		if (ActActionSequence->AnimBlueprint != AnimBlueprint)
 		{
 			UE_LOG(LogActAction, Log, TEXT("AssignAsEditAnim PreviewActor : %s"), *AnimBlueprint->GetName());
-			ActActionSequence->EditAnimBlueprint = AnimBlueprint;
+			ActActionSequence->AnimBlueprint = AnimBlueprint;
 		}
 		ActActionPreviewSceneController->SpawnActorInViewport(ASkeletalMeshActor::StaticClass(), AnimBlueprint);
 	}
@@ -197,15 +197,9 @@ FFrameRate FActActionSequenceEditor::GetTickResolution() const
 	return ActActionSequence->TickResolution;
 }
 
-FFrameRate FActActionSequenceEditor::GetDisplayRate() const
+void FActActionSequenceEditor::SetAnimSequence(UAnimSequence* InAnimSequence) const
 {
-	return ActActionSequence->DisplayRate;
+	ActActionSequence->AnimSequence = InAnimSequence;
 }
-
-void FActActionSequenceEditor::SetAnimMontage(UAnimMontage* AnimMontage)
-{
-	ActActionSequence->EditAnimMontage = AnimMontage;
-}
-
 
 #undef LOCTEXT_NAMESPACE

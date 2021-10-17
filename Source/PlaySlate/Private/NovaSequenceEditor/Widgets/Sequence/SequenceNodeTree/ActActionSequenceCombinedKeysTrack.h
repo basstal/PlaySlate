@@ -5,7 +5,7 @@ class FActActionSequenceTreeViewNode;
 class SActActionSequenceCombinedKeysTrack : public SLeafWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SActActionSequenceCombinedKeysTrack)
+SLATE_BEGIN_ARGS(SActActionSequenceCombinedKeysTrack)
 		{
 		}
 

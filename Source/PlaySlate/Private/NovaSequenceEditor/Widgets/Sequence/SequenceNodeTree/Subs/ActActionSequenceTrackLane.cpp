@@ -6,7 +6,7 @@ void SActActionSequenceTrackLane::Construct(const FArguments& InArgs, const TSha
 	DisplayNode = InDisplayNode;
 	TreeView = InTreeView;
 
-	TSharedRef<SWidget> Widget = InArgs._Content.Widget;
+	const TSharedRef<SWidget> Widget = InArgs._Content.Widget;
 
 	// if (DisplayNode->IsResizable())
 	// {

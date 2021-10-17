@@ -32,28 +32,28 @@ void FActActionTimeSliderController::MakeTimeSliderWidget()
 FFrameTime FActActionTimeSliderController::ComputeFrameTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, ActActionSequence::FActActionScrubRangeToScreen RangeToScreen, bool CheckSnapping) const
 {
 	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
-	FVector2D CursorPos = Geometry.AbsoluteToLocal(ScreenSpacePosition);
-	double MouseValue = RangeToScreen.LocalXToInput(CursorPos.X);
+	const FVector2D CursorPos = Geometry.AbsoluteToLocal(ScreenSpacePosition);
+	const double MouseValue = RangeToScreen.LocalXToInput(CursorPos.X);
 	return MouseValue * TimeSliderArgs.TickResolution.Get();
 }
 
 FFrameTime FActActionTimeSliderController::ComputeScrubTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, ActActionSequence::FActActionScrubRangeToScreen RangeToScreen) const
 {
 	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
-	FVector2D CursorPos = Geometry.AbsoluteToLocal(ScreenSpacePosition);
-	double MouseSeconds = RangeToScreen.LocalXToInput(CursorPos.X);
-	FFrameTime ScrubTime = MouseSeconds * TimeSliderArgs.TickResolution.Get();
+	const FVector2D CursorPos = Geometry.AbsoluteToLocal(ScreenSpacePosition);
+	const double MouseSeconds = RangeToScreen.LocalXToInput(CursorPos.X);
+	const FFrameTime ScrubTime = MouseSeconds * TimeSliderArgs.TickResolution.Get();
 	return ScrubTime;
 }
 
-void FActActionTimeSliderController::CommitScrubPosition(FFrameTime NewValue, bool bIsScrubbing)
+void FActActionTimeSliderController::CommitScrubPosition(FFrameTime NewValue, bool bIsScrubbing) const
 {
 	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	// The user can scrub past the viewing range of the time slider controller, so we clamp it to the view range.
-	ActActionSequence::FActActionAnimatedRange ViewRange = TimeSliderArgs.ViewRange.Get();
-	FFrameRate TickResolution = ActActionSequenceController.Pin()->GetActActionSequenceEditor()->GetTickResolution();
-	FFrameTime LowerBound = (ViewRange.GetLowerBoundValue() * TickResolution).CeilToFrame();
-	FFrameTime UpperBound = (ViewRange.GetUpperBoundValue() * TickResolution).FloorToFrame();
+	const ActActionSequence::FActActionAnimatedRange ViewRange = TimeSliderArgs.ViewRange.Get();
+	const FFrameRate TickResolution = ActActionSequenceController.Pin()->GetActActionSequenceEditor()->GetTickResolution();
+	const FFrameTime LowerBound = (ViewRange.GetLowerBoundValue() * TickResolution).CeilToFrame();
+	const FFrameTime UpperBound = (ViewRange.GetUpperBoundValue() * TickResolution).FloorToFrame();
 	NewValue = FMath::Clamp(NewValue, LowerBound, UpperBound);
 	// Manage the scrub position ourselves if its not bound to a delegate
 	if (!TimeSliderArgs.ScrubPosition.IsBound())
@@ -63,12 +63,12 @@ void FActActionTimeSliderController::CommitScrubPosition(FFrameTime NewValue, bo
 	TimeSliderArgs.OnScrubPositionChanged.ExecuteIfBound(NewValue, bIsScrubbing);
 }
 
-void FActActionTimeSliderController::SetViewRange(double NewRangeMin, double NewRangeMax, ActActionSequence::EActActionViewRangeInterpolation Interpolation)
+void FActActionTimeSliderController::SetViewRange(double NewRangeMin, double NewRangeMax, ActActionSequence::EActActionViewRangeInterpolation Interpolation) const
 {
 	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	// Clamp to a minimum size to avoid zero-sized or negative visible ranges
-	double MinVisibleTimeRange = FFrameNumber(1) / TimeSliderArgs.TickResolution.Get();
-	TRange<double> ExistingViewRange = TimeSliderArgs.ViewRange.Get();
+	const double MinVisibleTimeRange = FFrameNumber(1) / TimeSliderArgs.TickResolution.Get();
+	const TRange<double> ExistingViewRange = TimeSliderArgs.ViewRange.Get();
 
 	if (NewRangeMax == ExistingViewRange.GetUpperBoundValue())
 	{
@@ -108,10 +108,10 @@ bool FActActionTimeSliderController::HitTestRangeEnd(const ActActionSequence::FA
 	return HitPixel >= RangeEndPixel - 10.0f && HitPixel <= RangeEndPixel + 4.0f;
 }
 
-void FActActionTimeSliderController::SetPlaybackRangeStart(FFrameNumber NewStart)
+void FActActionTimeSliderController::SetPlaybackRangeStart(FFrameNumber NewStart) const
 {
 	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
-	TRange<FFrameNumber> PlaybackRange = TimeSliderArgs.PlaybackRange.Get();
+	const TRange<FFrameNumber> PlaybackRange = TimeSliderArgs.PlaybackRange.Get();
 
 	if (NewStart <= ActActionSequence::ActActionStaticUtil::DiscreteExclusiveUpper(PlaybackRange.GetUpperBound()))
 	{
@@ -119,10 +119,10 @@ void FActActionTimeSliderController::SetPlaybackRangeStart(FFrameNumber NewStart
 	}
 }
 
-void FActActionTimeSliderController::SetPlaybackRangeEnd(FFrameNumber NewEnd)
+void FActActionTimeSliderController::SetPlaybackRangeEnd(FFrameNumber NewEnd) const
 {
 	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
-	TRange<FFrameNumber> PlaybackRange = TimeSliderArgs.PlaybackRange.Get();
+	const TRange<FFrameNumber> PlaybackRange = TimeSliderArgs.PlaybackRange.Get();
 
 	if (NewEnd >= ActActionSequence::ActActionStaticUtil::DiscreteInclusiveLower(PlaybackRange.GetLowerBound()))
 	{
@@ -130,10 +130,10 @@ void FActActionTimeSliderController::SetPlaybackRangeEnd(FFrameNumber NewEnd)
 	}
 }
 
-void FActActionTimeSliderController::SetSelectionRangeStart(FFrameNumber NewStart)
+void FActActionTimeSliderController::SetSelectionRangeStart(FFrameNumber NewStart) const
 {
 	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
-	TRange<FFrameNumber> SelectionRange = TimeSliderArgs.SelectionRange.Get();
+	const TRange<FFrameNumber> SelectionRange = TimeSliderArgs.SelectionRange.Get();
 
 	if (SelectionRange.IsEmpty())
 	{
@@ -145,10 +145,10 @@ void FActActionTimeSliderController::SetSelectionRangeStart(FFrameNumber NewStar
 	}
 }
 
-void FActActionTimeSliderController::SetSelectionRangeEnd(FFrameNumber NewEnd)
+void FActActionTimeSliderController::SetSelectionRangeEnd(FFrameNumber NewEnd) const
 {
 	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
-	TRange<FFrameNumber> SelectionRange = TimeSliderArgs.SelectionRange.Get();
+	const TRange<FFrameNumber> SelectionRange = TimeSliderArgs.SelectionRange.Get();
 
 	if (SelectionRange.IsEmpty())
 	{
@@ -160,17 +160,17 @@ void FActActionTimeSliderController::SetSelectionRangeEnd(FFrameNumber NewEnd)
 	}
 }
 
-bool FActActionTimeSliderController::ZoomByDelta(float InDelta, float ZoomBias)
+bool FActActionTimeSliderController::ZoomByDelta(float InDelta, float ZoomBias) const
 {
 	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
-	TRange<double> LocalViewRange = TimeSliderArgs.ViewRange.Get().GetAnimationTarget();
-	double LocalViewRangeMax = LocalViewRange.GetUpperBoundValue();
-	double LocalViewRangeMin = LocalViewRange.GetLowerBoundValue();
+	const TRange<double> LocalViewRange = TimeSliderArgs.ViewRange.Get().GetAnimationTarget();
+	const double LocalViewRangeMax = LocalViewRange.GetUpperBoundValue();
+	const double LocalViewRangeMin = LocalViewRange.GetLowerBoundValue();
 	const double OutputViewSize = LocalViewRangeMax - LocalViewRangeMin;
 	const double OutputChange = OutputViewSize * InDelta;
 
-	double NewViewOutputMin = LocalViewRangeMin - (OutputChange * ZoomBias);
-	double NewViewOutputMax = LocalViewRangeMax + (OutputChange * (1.f - ZoomBias));
+	const double NewViewOutputMin = LocalViewRangeMin - (OutputChange * ZoomBias);
+	const double NewViewOutputMax = LocalViewRangeMax + (OutputChange * (1.f - ZoomBias));
 
 	if (NewViewOutputMin < NewViewOutputMax)
 	{
@@ -181,19 +181,19 @@ bool FActActionTimeSliderController::ZoomByDelta(float InDelta, float ZoomBias)
 	return false;
 }
 
-void FActActionTimeSliderController::PanByDelta(float InDelta)
+void FActActionTimeSliderController::PanByDelta(float InDelta) const
 {
 	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
-	TRange<double> LocalViewRange = TimeSliderArgs.ViewRange.Get().GetAnimationTarget();
+	const TRange<double> LocalViewRange = TimeSliderArgs.ViewRange.Get().GetAnimationTarget();
 
-	double CurrentMin = LocalViewRange.GetLowerBoundValue();
-	double CurrentMax = LocalViewRange.GetUpperBoundValue();
+	const double CurrentMin = LocalViewRange.GetLowerBoundValue();
+	const double CurrentMax = LocalViewRange.GetUpperBoundValue();
 
 	// Adjust the delta to be a percentage of the current range
 	InDelta *= 0.1f * (CurrentMax - CurrentMin);
 
-	double NewViewOutputMin = CurrentMin + InDelta;
-	double NewViewOutputMax = CurrentMax + InDelta;
+	const double NewViewOutputMin = CurrentMin + InDelta;
+	const double NewViewOutputMax = CurrentMax + InDelta;
 
 	SetViewRange(NewViewOutputMin, NewViewOutputMax, ActActionSequence::EActActionViewRangeInterpolation::Animated);
 }
@@ -207,8 +207,8 @@ FReply FActActionTimeSliderController::OnMouseButtonDown(const FGeometry& MyGeom
 	bMouseDownInRegion = false;
 	MouseDownGeometry = MyGeometry;
 
-	FVector2D CursorPos = MouseEvent.GetScreenSpacePosition();
-	FVector2D LocalPos = MouseDownGeometry.AbsoluteToLocal(CursorPos);
+	const FVector2D CursorPos = MouseEvent.GetScreenSpacePosition();
+	const FVector2D LocalPos = MouseDownGeometry.AbsoluteToLocal(CursorPos);
 	if (LocalPos.Y >= 0 && LocalPos.Y < MouseDownGeometry.GetLocalSize().Y)
 	{
 		bMouseDownInRegion = true;
@@ -220,12 +220,10 @@ FReply FActActionTimeSliderController::OnMouseButtonDown(const FGeometry& MyGeom
 FReply FActActionTimeSliderController::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
-
-	bool bHandleLeftMouseButton = MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton && ActActionTimeSliderWidget->HasMouseCapture();
-	bool bHandleRightMouseButton = MouseEvent.GetEffectingButton() == EKeys::RightMouseButton && ActActionTimeSliderWidget->HasMouseCapture() && TimeSliderArgs.AllowZoom;
-
-	ActActionSequence::FActActionScrubRangeToScreen RangeToScreen = ActActionSequence::FActActionScrubRangeToScreen(TimeSliderArgs.ViewRange.Get(), MyGeometry.Size);
-	FFrameTime MouseTime = ComputeFrameTimeFromMouse(MyGeometry, MouseEvent.GetScreenSpacePosition(), RangeToScreen);
+	const bool bHandleLeftMouseButton = MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton && ActActionTimeSliderWidget->HasMouseCapture();
+	const bool bHandleRightMouseButton = MouseEvent.GetEffectingButton() == EKeys::RightMouseButton && ActActionTimeSliderWidget->HasMouseCapture() && TimeSliderArgs.AllowZoom;
+	const ActActionSequence::FActActionScrubRangeToScreen RangeToScreen = ActActionSequence::FActActionScrubRangeToScreen(TimeSliderArgs.ViewRange.Get(), MyGeometry.Size);
+	const FFrameTime MouseTime = ComputeFrameTimeFromMouse(MyGeometry, MouseEvent.GetScreenSpacePosition(), RangeToScreen);
 
 	if (bHandleRightMouseButton)
 	{
@@ -268,7 +266,7 @@ FReply FActActionTimeSliderController::OnMouseButtonUp(const FGeometry& MyGeomet
 		else if (MouseDragType == ActActionSequence::EDragType::DRAG_SETTING_RANGE)
 		{
 			// Zooming
-			FFrameTime MouseDownStart = ComputeFrameTimeFromMouse(MyGeometry, MouseDownPosition[0], RangeToScreen);
+			const FFrameTime MouseDownStart = ComputeFrameTimeFromMouse(MyGeometry, MouseDownPosition[0], RangeToScreen);
 
 			const bool bCanZoomIn = MouseTime > MouseDownStart;
 			const bool bCanZoomOut = ViewRangeStack.Num() > 0;
@@ -301,7 +299,7 @@ FReply FActActionTimeSliderController::OnMouseButtonUp(const FGeometry& MyGeomet
 			TimeSliderArgs.OnEndScrubberMovement.ExecuteIfBound();
 
 			FFrameTime ScrubTime = MouseTime;
-			FVector2D CursorPos = MouseEvent.GetScreenSpacePosition();
+			const FVector2D CursorPos = MouseEvent.GetScreenSpacePosition();
 
 			if (MouseDragType == ActActionSequence::EDragType::DRAG_SCRUBBING_TIME)
 			{
@@ -369,9 +367,11 @@ FReply FActActionTimeSliderController::OnMouseMove(const FGeometry& MyGeometry, 
 				FFrameTime MouseDownFree = ComputeFrameTimeFromMouse(MyGeometry, MouseDownPosition[0], RangeToScreen, false);
 
 				const FFrameRate TickResolution = TimeSliderArgs.TickResolution.Get();
+				const FFrameRate DisplayRate = TimeSliderArgs.DisplayRate.Get();
+				const FQualifiedFrameTime QualifiedFrameTime = FQualifiedFrameTime(TimeSliderArgs.ScrubPosition.Get(), TickResolution);
 				const bool bLockedPlayRange = TimeSliderArgs.IsPlaybackRangeLocked.Get();
 				const float MouseDownPixel = RangeToScreen.InputToLocalX(MouseDownFree / TickResolution);
-				ActActionSequence::FActActionScrubberMetrics ScrubberMetrics = ActActionSequence::ActActionStaticUtil::GetScrubPixelMetrics(TimeSliderArgs.DisplayRate.Get(), FQualifiedFrameTime(TimeSliderArgs.ScrubPosition.Get(), TickResolution), RangeToScreen, 4.0f);
+				ActActionSequence::FActActionScrubberMetrics ScrubberMetrics = ActActionSequence::ActActionStaticUtil::GetScrubPixelMetrics(DisplayRate, QualifiedFrameTime, RangeToScreen, 4.0f);
 				const bool bHitScrubber = ScrubberMetrics.HandleRangePx.Contains(MouseDownPixel);
 
 				TRange<double> SelectionRange = TimeSliderArgs.SelectionRange.Get() / TickResolution;
@@ -458,14 +458,14 @@ FReply FActActionTimeSliderController::OnMouseMove(const FGeometry& MyGeometry, 
 	return FReply::Handled();
 }
 
-FReply FActActionTimeSliderController::OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply FActActionTimeSliderController::OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) const
 {
 	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	TOptional<TRange<float>> NewTargetRange;
 
 	if (TimeSliderArgs.AllowZoom && MouseEvent.IsControlDown())
 	{
-		float MouseFractionX = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()).X / MyGeometry.GetLocalSize().X;
+		const float MouseFractionX = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()).X / MyGeometry.GetLocalSize().X;
 
 		const float ZoomDelta = -0.2f * MouseEvent.GetWheelDelta();
 		if (ZoomByDelta(ZoomDelta, MouseFractionX))

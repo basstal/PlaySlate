@@ -30,7 +30,7 @@ void FActActionBlueprintEditor::EnsureActActionBlueprintIsUpToDate(UBlueprint* B
 			break;
 		}
 	}
-#endif // WITH_EDITORONLY_DATA
+#endif
 }
 
 
@@ -82,7 +82,7 @@ UBlueprint* FActActionBlueprintEditor::GetBlueprintObj() const
 	const TArray<UObject*>& Objects = GetEditingObjects();
 	for (auto Obj : Objects)
 	{
-		if (auto Blueprint = Cast<UActActionBlueprint>(Obj))
+		if (const auto Blueprint = Cast<UActActionBlueprint>(Obj))
 		{
 			return Blueprint;
 		}

@@ -42,7 +42,7 @@ public:
 	/**
 	 * @return 是否为树的根节点
 	 */
-	bool IsTreeViewRoot();
+	bool IsTreeViewRoot() const;
 
 	/**
 	 * @return A List of all Child nodes belonging to this node

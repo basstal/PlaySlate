@@ -13,7 +13,7 @@ FActActionDetailsViewController::FActActionDetailsViewController(const TSharedRe
 
 FActActionDetailsViewController::~FActActionDetailsViewController()
 {
-	UE_LOG(LogActAction, Log, TEXT("FActActionDetailsViewController::~FActActionDetailsViewController : %s"));
+	UE_LOG(LogActAction, Log, TEXT("FActActionDetailsViewController::~FActActionDetailsViewController"));
 }
 
 void FActActionDetailsViewController::MakeDetailsViewWidget()

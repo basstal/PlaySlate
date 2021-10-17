@@ -4,16 +4,20 @@
 class FActActionAnimMontageTrack : public FActActionTrackEditorBase
 {
 public:
-	FActActionAnimMontageTrack(const TSharedRef<FActActionSequenceController>& ActActionSequenceController)
-		: FActActionTrackEditorBase(ActActionSequenceController)
-	{
-	}
+	FActActionAnimMontageTrack(const TSharedRef<FActActionSequenceController>& ActActionSequenceController);
 
+
+	//~Begin FActActionTrackEditorBase interface
 	virtual void BuildAddTrackMenu(FMenuBuilder& MenuBuilder) override;
-	void AssignAnimMontage();
-	void OnAssetSelected(const FAssetData& InAssetData);
-	void OnAssetEnterPressed(const TArray<FAssetData>& InAssetData);
+	//~End FActActionTrackEditorBase interface
 	static TSharedRef<FActActionTrackEditorBase> CreateTrackEditor(TSharedRef<FActActionSequenceController> InSequenceController);
+
+	/** TODO: */
+	void AssignAnimMontage();
+	/** TODO: */
+	void OnAssetSelected(const FAssetData& InAssetData);
+	/** TODO: */
+	void OnAssetEnterPressed(const TArray<FAssetData>& InAssetData);
 protected:
 	TSharedPtr<SWindow> AnimMontageSelectionDialog;
 };

@@ -30,7 +30,7 @@ UClass* FAssetTypeActions_ActActionBlueprint::GetSupportedClass() const
 
 void FAssetTypeActions_ActActionBlueprint::OpenAssetEditor(const TArray<UObject*>& InObjects, TSharedPtr<IToolkitHost> EditWithinLevelEditor)
 {
-	EToolkitMode::Type Mode = EditWithinLevelEditor.IsValid() ? EToolkitMode::WorldCentric : EToolkitMode::Standalone;
+	const EToolkitMode::Type Mode = EditWithinLevelEditor.IsValid() ? EToolkitMode::WorldCentric : EToolkitMode::Standalone;
 	UE_LOG(LogActAction, Log, TEXT("Mode : %d"), Mode);
 	for (auto ObjIt = InObjects.CreateConstIterator(); ObjIt; ++ObjIt)
 	{
@@ -40,7 +40,8 @@ void FAssetTypeActions_ActActionBlueprint::OpenAssetEditor(const TArray<UObject*
 			bool bLetOpen = true;
 			if (!ActActionBlueprint->ParentClass)
 			{
-				bLetOpen = EAppReturnType::Yes == FMessageDialog::Open(EAppMsgType::YesNo, LOCTEXT("FailedToLoadActActionBlueprintWithContinue", "Act Action Blueprint could not be loaded because it derives from an invalid class. Check to make sure the parent class for this blueprint hasn't been removed! Do you want to continue(it can crash the editor)?"));
+				bLetOpen = EAppReturnType::Yes == FMessageDialog::Open(EAppMsgType::YesNo, LOCTEXT("FailedToLoadActActionBlueprintWithContinue",
+				                                                                                   "Act Action Blueprint could not be loaded because it derives from an invalid class. Check to make sure the parent class for this blueprint hasn't been removed! Do you want to continue(it can crash the editor)?"));
 			}
 			if (bLetOpen)
 			{

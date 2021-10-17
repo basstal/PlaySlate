@@ -41,12 +41,8 @@ public:
 	 * @param AnimBlueprint 生成Actor指定的AnimBlueprint资源
 	 */
 	void SpawnActorInViewport(UClass* ActorType, UAnimBlueprint* AnimBlueprint);
-	/**
-	 * 根据montage实例初始化角色当前动画
-	 *
-	 * @param AnimMontage 初始化动画使用的Montage实例
-	 */
-	void InitAnimationByAnimMontage(UAnimMontage* AnimMontage);
+	/** @param InAnimSequence 初始化动画使用的Montage实例 */
+	void InitAnimation(UAnimSequence* InAnimSequence) const;
 	/**
 	 * 根据EvaluationRange结构来设置当前动画的预览位置
 	 *
@@ -64,21 +60,23 @@ public:
 	 *
 	 * @param InPlaybackMode 当前播放状态
 	 */
-	void TogglePlay(const EPlaybackMode::Type& InPlaybackMode);
+	void TogglePlay(const EPlaybackMode::Type& InPlaybackMode) const;
 	/** 控制循环播放 */
-	void ToggleLoop();
+	void ToggleLoop() const;
 	/** @return 是否在循环播放 */
-	bool IsLoopStatusOn();
+	bool IsLoopStatusOn() const;
 	/**
 	 * 逐帧播放
 	 *
 	 * @param bForward 是否是逐帧前进，否则倒退
 	 */
-	void PlayStep(bool bForward);
+	void PlayStep(bool bForward) const;
 	/** @retrun 获得当前播放状态 */
-	EPlaybackMode::Type GetPlaybackMode();
+	EPlaybackMode::Type GetPlaybackMode() const;
 	/** @return 当前动画播放的时间位置，单位秒 */
-	float GetCurrentPosition();
+	float GetCurrentPosition() const;
+	/** @return 获得AnimInstance */
+	UAnimSingleNodeInstance* GetAnimSingleNodeInstance() const;
 protected:
 	/**
 	* 对Editor的引用，调用编辑器资源和相关工具方法

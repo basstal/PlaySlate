@@ -3,8 +3,6 @@
 #include "PlaySlate.h"
 #include "NovaSequenceEditor/ActActionSequenceEditor.h"
 #include "NovaSequenceEditor/Assets/Tracks/ActActionTrackEditorBase.h"
-#include "NovaSequenceEditor/Assets/Tracks/ActActionAnimInstanceTrack.h"
-#include "NovaSequenceEditor/Assets/Tracks/ActActionAnimMontageTrack.h"
 #include "NovaSequenceEditor/Controllers/Sequence/TimeSlider/ActActionTimeSliderController.h"
 #include "NovaSequenceEditor/Controllers/Viewport/ActActionPreviewSceneController.h"
 #include "NovaSequenceEditor/Controllers/Sequence/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
@@ -30,8 +28,6 @@ FActActionSequenceController::FActActionSequenceController(const TSharedRef<FAct
 	  TargetViewRange(0, 0)
 {
 	// ** 将Sequence能编辑的所有TrackEditor注册，以便能够使用AddTrackEditor以及AddTrackMenu
-	TrackEditorDelegates.Add(ActActionSequence::OnCreateTrackEditorDelegate::CreateStatic(&FActActionAnimInstanceTrack::CreateTrackEditor));
-	TrackEditorDelegates.Add(ActActionSequence::OnCreateTrackEditorDelegate::CreateStatic(&FActActionAnimMontageTrack::CreateTrackEditor));
 }
 
 FActActionSequenceController::~FActActionSequenceController()
@@ -50,18 +46,17 @@ void FActActionSequenceController::MakeSequenceWidget(ActActionSequence::FActAct
 	ActActionSequenceTreeViewNode = MakeShareable(new FActActionSequenceTreeViewNode(SharedThis(this)));
 
 	// Get the desired display format from the user's settings each time.
-	TAttribute<EFrameNumberDisplayFormats> GetDisplayFormatAttr = MakeAttributeLambda([=]
+	const TAttribute<EFrameNumberDisplayFormats> GetDisplayFormatAttr = MakeAttributeLambda([=]
 	{
 		return EFrameNumberDisplayFormats::Frames;
 	});
-	TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
-	TAttribute<FFrameRate> GetTickResolutionAttr = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetTickResolution);
-	TAttribute<FFrameRate> GetDisplayRateAttr = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetDisplayRate);
+	const TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
+	const TAttribute<FFrameRate> GetTickResolutionAttr = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetTickResolution);
 	// Create our numeric type interface so we can pass it to the time slider below.
-	NumericTypeInterface = MakeShareable(new FFrameNumberInterface(GetDisplayFormatAttr, 0, GetTickResolutionAttr, GetDisplayRateAttr));
+	NumericTypeInterface = MakeShareable(new FFrameNumberInterface(GetDisplayFormatAttr, 0, GetTickResolutionAttr, GetTickResolutionAttr));
 	// ** 初始化TimeSlider
 	TimeSliderArgs.PlaybackRange = TAttribute<TRange<FFrameNumber>>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetPlaybackRange);
-	TimeSliderArgs.DisplayRate = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetDisplayRate);
+	TimeSliderArgs.DisplayRate = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetTickResolution);
 	TimeSliderArgs.TickResolution = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetTickResolution);
 	TimeSliderArgs.SelectionRange = TAttribute<TRange<FFrameNumber>>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetSelectionRange);
 	TimeSliderArgs.OnPlaybackRangeChanged = ActActionSequence::OnFrameRangeChangedDelegate::CreateSP(ActActionSequenceEditorRef, &FActActionSequenceEditor::SetPlaybackRange);
@@ -90,7 +85,7 @@ void FActActionSequenceController::Tick(float DeltaTime)
 
 TStatId FActActionSequenceController::GetStatId() const
 {
-	// ** TODO:STATGROUP_Tickables临时的标记
+	// ** TODO:临时的标记
 	RETURN_QUICK_DECLARE_CYCLE_STAT(FActActionSequenceController, STATGROUP_Tickables);
 }
 
@@ -115,18 +110,18 @@ void FActActionSequenceController::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 }
 
 // TODO:这个接口改到Editor中，资源调用Editor接口再调用Controller
-void FActActionSequenceController::AddAnimMontageTrack(UAnimMontage* AnimMontage)
+void FActActionSequenceController::AddAnimSequenceTrack(UAnimSequence* InAnimSequence)
 {
-	if (!AnimMontage)
+	if (!InAnimSequence)
 	{
-		UE_LOG(LogActAction, Error, TEXT("FActActionSequenceController::AddAnimMontageTrack with nullptr AnimMontage"))
+		UE_LOG(LogActAction, Log, TEXT("FActActionSequenceController::AddAnimMontageTrack with nullptr AnimMontage"))
 		return;
 	}
 	if (ActActionSequenceEditor.IsValid())
 	{
-		UE_LOG(LogActAction, Log, TEXT("AnimMontage : %s"), *AnimMontage->GetName());
-		TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
-		ActActionSequenceEditorRef->SetAnimMontage(AnimMontage);
+		UE_LOG(LogActAction, Log, TEXT("AnimMontage : %s"), *InAnimSequence->GetName());
+		const TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
+		ActActionSequenceEditorRef->SetAnimSequence(InAnimSequence);
 		if (ActActionSequenceTreeViewNode.IsValid())
 		{
 			// ** 添加TreeViewNode的内容
@@ -134,8 +129,8 @@ void FActActionSequenceController::AddAnimMontageTrack(UAnimMontage* AnimMontage
 		}
 		if (ActActionTimeSliderController.IsValid())
 		{
-			float CalculateSequenceLength = AnimMontage->CalculateSequenceLength();
-			FFrameRate SamplingFrameRate = AnimMontage->GetSamplingFrameRate();
+			const float CalculateSequenceLength = InAnimSequence->GetPlayLength();
+			const FFrameRate SamplingFrameRate = InAnimSequence->GetSamplingFrameRate();
 			UE_LOG(LogActAction, Log, TEXT("InTotalLength : %f"), CalculateSequenceLength);
 			// ** 限制显示的最大长度为当前的Sequence总时长
 			// TODO:
@@ -149,7 +144,7 @@ void FActActionSequenceController::AddAnimMontageTrack(UAnimMontage* AnimMontage
 
 		if (ActActionSequenceEditor.IsValid())
 		{
-			ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController()->InitAnimationByAnimMontage(AnimMontage);
+			ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController()->InitAnimation(InAnimSequence);
 		}
 	}
 }
@@ -185,9 +180,9 @@ FFrameTime FActActionSequenceController::GetLocalFrameTime() const
 {
 	if (ActActionSequenceEditor.IsValid())
 	{
-		TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
+		const TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
 		const FFrameRate TickResolution = ActActionSequenceEditorRef->GetTickResolution();
-		float CurrentPosition = ActActionSequenceEditorRef->GetActActionPreviewSceneController()->GetCurrentPosition();
+		const float CurrentPosition = ActActionSequenceEditorRef->GetActActionPreviewSceneController()->GetCurrentPosition();
 		return TickResolution.AsFrameTime(CurrentPosition);;
 	}
 	return FFrameTime(0);
@@ -213,28 +208,28 @@ void FActActionSequenceController::OnEndScrubbing()
 	SetPlaybackStatus(ActActionSequence::EPlaybackType::Stopped);
 }
 
-void FActActionSequenceController::SetGlobalTime(FFrameTime InFrameTime)
+void FActActionSequenceController::SetGlobalTime(FFrameTime InFrameTime) const
 {
 	if (ActActionSequenceEditor.IsValid())
 	{
-		TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
-		FFrameRate TickResolution = ActActionSequenceEditorRef->GetTickResolution();
+		const TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
+		const FFrameRate TickResolution = ActActionSequenceEditorRef->GetTickResolution();
 		// Don't update the sequence if the time hasn't changed as this will cause duplicate events and the like to fire.
 		// If we need to reevaluate the sequence at the same time for whatever reason, we should call ForceEvaluate()
 		TSharedRef<FActActionPreviewSceneController> ActActionPreviewSceneController = ActActionSequenceEditorRef->GetActActionPreviewSceneController();
-		float CurrentPosition = ActActionPreviewSceneController->GetCurrentPosition();
-		FFrameTime CurrentFrameTime = TickResolution.AsFrameTime(CurrentPosition);
+		const float CurrentPosition = ActActionPreviewSceneController->GetCurrentPosition();
+		const FFrameTime CurrentFrameTime = TickResolution.AsFrameTime(CurrentPosition);
 		if (CurrentFrameTime != InFrameTime)
 		{
-			ActActionSequence::FActActionEvaluationRange InRange(InFrameTime, TickResolution);
+			const ActActionSequence::FActActionEvaluationRange InRange(InFrameTime, TickResolution);
 			ActActionPreviewSceneController->EvaluateInternal(InRange);
 		}
 	}
 }
 
-void FActActionSequenceController::SetLocalTimeDirectly(FFrameTime InFrameTime)
+void FActActionSequenceController::SetLocalTimeDirectly(FFrameTime InFrameTime) const
 {
-	TWeakPtr<SWidget> PreviousFocusedWidget = FSlateApplication::Get().GetKeyboardFocusedWidget();
+	const TWeakPtr<SWidget> PreviousFocusedWidget = FSlateApplication::Get().GetKeyboardFocusedWidget();
 	// Clear focus before setting time in case there's a key editor value selected that gets committed to a newly selected key on UserMovedFocus
 	if (GetPlaybackStatus() == ActActionSequence::EPlaybackType::Stopped)
 	{

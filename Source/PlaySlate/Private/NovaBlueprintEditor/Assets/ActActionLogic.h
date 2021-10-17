@@ -7,5 +7,4 @@ class UActActionLogic : public UObject
 {
 	GENERATED_BODY()
 public:
-	
 };

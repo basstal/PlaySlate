@@ -30,15 +30,18 @@ void SActActionSequenceSectionArea::Construct(const FArguments& InArgs, TSharedR
 	}
 }
 
+
 EVisibility SActActionSequenceSectionArea::GetSectionVisibility(UObject* SectionObject) const
 {
 	return EVisibility::Visible;
 }
 
+
 bool SActActionSequenceSectionArea::GetSectionEnabled(TSharedRef<FActActionSequenceSectionBase> InSequenceSection) const
 {
 	return !InSequenceSection->IsReadOnly();
 }
+
 
 
 FText SActActionSequenceSectionArea::GetSectionToolTip(TSharedRef<FActActionSequenceSectionBase> InSequenceSection) const

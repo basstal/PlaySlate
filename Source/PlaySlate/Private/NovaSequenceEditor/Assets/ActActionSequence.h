@@ -11,15 +11,12 @@ public:
 	UActActionSequence();
 
 	UPROPERTY(EditAnywhere)
-	UAnimBlueprint* EditAnimBlueprint;
+	UAnimBlueprint* AnimBlueprint;
 
 	UPROPERTY(EditAnywhere)
-	UAnimMontage* EditAnimMontage;
+	UAnimSequence* AnimSequence;
 
 	/** The resolution at which all frame numbers within this data are stored */
 	UPROPERTY(EditAnywhere)
 	FFrameRate TickResolution;
-
-	UPROPERTY(EditAnywhere)
-	FFrameRate DisplayRate;
 };

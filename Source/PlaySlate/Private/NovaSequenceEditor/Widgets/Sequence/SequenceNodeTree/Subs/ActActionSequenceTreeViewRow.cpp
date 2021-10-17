@@ -7,7 +7,7 @@ void SActActionSequenceTreeViewRow::Construct(const FArguments& InArgs, const TS
 {
 	Node = InNode;
 	OnGenerateWidgetForColumn = InArgs._OnGenerateWidgetForColumn;
-	bool bIsSelectable = InNode->IsSelectable();
+	const bool bIsSelectable = InNode->IsSelectable();
 
 	SMultiColumnTableRow::Construct(
 		SMultiColumnTableRow::FArguments()
@@ -31,7 +31,7 @@ FReply SActActionSequenceTreeViewRow::OnAcceptDrop(const FDragDropEvent& DragDro
 
 FMargin SActActionSequenceTreeViewRow::GetRowPadding() const
 {
-	TSharedPtr<FActActionSequenceTreeViewNode> PinnedNode = Node.Pin();
+	const TSharedPtr<FActActionSequenceTreeViewNode> PinnedNode = Node.Pin();
 	TSharedPtr<FActActionSequenceTreeViewNode> ParentNode = PinnedNode ? PinnedNode->GetParentNode() : nullptr;
 
 	const TArray<TSharedRef<FActActionSequenceTreeViewNode>>& ChildNodes = ParentNode->GetChildNodes();
@@ -44,7 +44,7 @@ FMargin SActActionSequenceTreeViewRow::GetRowPadding() const
 
 TSharedRef<SWidget> SActActionSequenceTreeViewRow::GenerateWidgetForColumn(const FName& InColumnName)
 {
-	TSharedPtr<FActActionSequenceTreeViewNode> PinnedNode = Node.Pin();
+	const TSharedPtr<FActActionSequenceTreeViewNode> PinnedNode = Node.Pin();
 	if (PinnedNode.IsValid())
 	{
 		return OnGenerateWidgetForColumn.Execute(PinnedNode.ToSharedRef(), InColumnName, SharedThis(this));

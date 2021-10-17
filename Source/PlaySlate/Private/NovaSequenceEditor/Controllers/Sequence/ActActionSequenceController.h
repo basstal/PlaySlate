@@ -1,8 +1,6 @@
 ﻿#pragma once
 
-#include "Utils/ActActionPlaybackUtil.h"
 #include "Utils/ActActionSequenceUtil.h"
-
 #include "IContentBrowserSingleton.h"
 
 class FActActionSequenceEditor;
@@ -45,12 +43,8 @@ public:
 	 * @param MenuBuilder 被修改的菜单构建者
 	 */
 	void BuildAddTrackMenu(FMenuBuilder& MenuBuilder);
-	/**
-	 * 添加AnimMontage的Track
-	 *
-	 * @param AnimMontage 被添加的AnimMontage实例
-	 */
-	void AddAnimMontageTrack(UAnimMontage* AnimMontage);
+	/** @param InAnimSequence 被添加的AnimSequence实例 */
+	void AddAnimSequenceTrack(UAnimSequence* InAnimSequence);
 	/**
 	 * 设置当前的播放状态
 	 *
@@ -82,13 +76,13 @@ public:
 	 *
 	 * @param InFrameTime 设置的时间点
 	 */
-	void SetGlobalTime(FFrameTime InFrameTime);
+	void SetGlobalTime(FFrameTime InFrameTime) const;
 	/**
 	 * 设置局部时间点到指定时间
 	 * 
 	 * @param InFrameTime 设置的时间点
 	 */
-	void SetLocalTimeDirectly(FFrameTime InFrameTime);
+	void SetLocalTimeDirectly(FFrameTime InFrameTime) const;
 	/**
 	 * 时间轴拖拽器位置改变的回调
 	 */

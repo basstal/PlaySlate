@@ -10,7 +10,10 @@ class UActActionBlueprintFactory;
 class SActActionBlueprintCreateDialog : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SActActionBlueprintCreateDialog){}
+SLATE_BEGIN_ARGS(SActActionBlueprintCreateDialog)
+		{
+		}
+
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);

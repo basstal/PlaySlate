@@ -1,8 +1,6 @@
 ﻿#pragma once
 
-#include "NovaSequenceEditor/Widgets/Sequence/TimeSlider/ActActionTimeSliderWidget.h"
 #include "Utils/ActActionSequenceUtil.h"
-
 #include "Widgets/SCompoundWidget.h"
 
 class FActActionSequenceController;
@@ -21,15 +19,17 @@ class SActActionSequenceTrackArea;
 class SActActionSequenceWidget : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SActActionSequenceWidget)
+SLATE_BEGIN_ARGS(SActActionSequenceWidget)
 		{
 		}
 
 	SLATE_END_ARGS()
 
+	SActActionSequenceWidget();
 	virtual ~SActActionSequenceWidget() override;
 
-	void Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceController>& InActActionSequenceController);
+	void Construct(const FArguments& InArgs,
+	               const TSharedRef<FActActionSequenceController>& InActActionSequenceController);
 
 	/**
 	 * 搜素框内文本改变的回调
@@ -39,7 +39,7 @@ public:
 	/**
 	 * @return 构造AddTrack菜单Widget 
 	 */
-	TSharedRef<SWidget> MakeAddMenu();
+	TSharedRef<SWidget> MakeAddMenu() const;
 	/**
 	 * @return 获得TimeSlider的Controller
 	 */
@@ -57,12 +57,14 @@ protected:
 	TSharedPtr<SVerticalBox> MainSequenceArea;
 	/** 整个Sequence轨道的左侧和右侧分别占比 */
 	float ColumnFillCoefficients[2];
-
+	/** 过滤用的关键字 */
+	FText InFilter;
 public:
 	TSharedRef<FActActionSequenceController> GetActActionSequenceController() const
 	{
 		return ActActionSequenceController.Pin().ToSharedRef();
 	}
+
 	/**
 	 * 获得一个存储好的百分比占比值
 	 *

@@ -12,7 +12,7 @@ FText FAssetTypeActions_ActActionSequence::GetName() const
 
 FColor FAssetTypeActions_ActActionSequence::GetTypeColor() const
 {
-	return FColor(100,123,72);
+	return FColor(100, 123, 72);
 }
 
 UClass* FAssetTypeActions_ActActionSequence::GetSupportedClass() const

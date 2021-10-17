@@ -14,7 +14,7 @@ int32 SActActionSequenceCombinedKeysTrack::OnPaint(const FPaintArgs& Args, const
 {
 	// if (RootNode->GetSequenceController().GetSequencerSettings()->GetShowCombinedKeyframes())
 	// {
-	FVector2D KeyMarkSize = FVector2D(3.f, 21.f);
+	const FVector2D KeyMarkSize = FVector2D(3.f, 21.f);
 	for (float KeyPosition : KeyDrawPositions)
 	{
 		FSlateDrawElement::MakeBox(

@@ -21,5 +21,6 @@ public:
 	//~End FAssetTypeActions_Blueprint interface
 
 protected:
+	// ReSharper disable once CppHidingFunction
 	bool ShouldUseDataOnlyEditor(const UBlueprint* Blueprint) const;
 };

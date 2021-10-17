@@ -101,24 +101,23 @@ void FActActionPreviewSceneController::SpawnActorInViewport(UClass* ActorType, U
 	ActActionSkeletalMesh->RecreateRenderState_Concurrent();
 }
 
-void FActActionPreviewSceneController::InitAnimationByAnimMontage(UAnimMontage* AnimMontage)
+void FActActionPreviewSceneController::InitAnimation(UAnimSequence* InAnimSequence) const
 {
-	UAnimSequenceBase* AnimSequence = Cast<UAnimSequenceBase>(AnimMontage);
 	USkeleton* Skeleton = nullptr;
-	if (AnimSequence)
+	if (InAnimSequence)
 	{
-		Skeleton = AnimSequence->GetSkeleton();
+		Skeleton = InAnimSequence->GetSkeleton();
 	}
 	if (ActActionSkeletalMesh && Skeleton)
 	{
-		USkeletalMesh* PreviewMesh = Skeleton->GetAssetPreviewMesh(AnimSequence);
+		USkeletalMesh* PreviewMesh = Skeleton->GetAssetPreviewMesh(InAnimSequence);
 		if (PreviewMesh)
 		{
 			UAnimSingleNodeInstance* PreviewInstance = Cast<UAnimSingleNodeInstance>(ActActionSkeletalMesh->PreviewInstance);
-			if (!PreviewInstance || PreviewInstance->GetCurrentAsset() != AnimSequence || ActActionSkeletalMesh->SkeletalMesh != PreviewMesh)
+			if (!PreviewInstance || PreviewInstance->GetCurrentAsset() != InAnimSequence || ActActionSkeletalMesh->SkeletalMesh != PreviewMesh)
 			{
 				ActActionSkeletalMesh->SetSkeletalMeshWithoutResettingAnimation(PreviewMesh);
-				ActActionSkeletalMesh->EnablePreview(true, AnimSequence);
+				ActActionSkeletalMesh->EnablePreview(true, InAnimSequence);
 				ActActionSkeletalMesh->PreviewInstance->SetLooping(true);
 				// TODO:
 				// float CalculateSequenceLength = AnimMontage->CalculateSequenceLength();
@@ -145,7 +144,7 @@ void FActActionPreviewSceneController::EvaluateInternal(ActActionSequence::FActA
 		{
 			ActActionSkeletalMesh->PreviewInstance->SetPlaying(false);
 		}
-		FFrameTime CurrentPosition = InRange.GetTime();
+		const FFrameTime CurrentPosition = InRange.GetTime();
 		const FFrameRate TickResolution = ActActionSequenceEditor.Pin()->GetTickResolution();
 		PreviewScrubTime = TickResolution.AsSeconds(CurrentPosition);
 		ActActionSkeletalMesh->PreviewInstance->SetPosition(PreviewScrubTime);
@@ -163,19 +162,19 @@ void FActActionPreviewSceneController::EvaluateToOneEnd(bool bIsEndEnd)
 			PreviewLength = ActActionSkeletalMesh->PreviewInstance->GetLength();
 		}
 		const FFrameRate TickResolution = ActActionSequenceEditor.Pin()->GetTickResolution();
-		ActActionSequence::FActActionEvaluationRange InRange(TickResolution.AsFrameTime(PreviewLength), TickResolution);
+		const ActActionSequence::FActActionEvaluationRange InRange(TickResolution.AsFrameTime(PreviewLength), TickResolution);
 		EvaluateInternal(InRange);
 	}
 }
 
-void FActActionPreviewSceneController::TogglePlay(const EPlaybackMode::Type& InPlaybackMode)
+void FActActionPreviewSceneController::TogglePlay(const EPlaybackMode::Type& InPlaybackMode) const
 {
-	if (UAnimSingleNodeInstance* PreviewInstance = Cast<UAnimSingleNodeInstance>(ActActionSkeletalMesh->PreviewInstance))
+	if (UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 	{
-		bool bPlay = InPlaybackMode != EPlaybackMode::Stopped;
-		bool bReverse = InPlaybackMode == EPlaybackMode::PlayingReverse;
-		bool bIsReverse = PreviewInstance->IsReverse();
-		bool bIsPlaying = PreviewInstance->IsPlaying();
+		const bool bPlay = InPlaybackMode != EPlaybackMode::Stopped;
+		const bool bReverse = InPlaybackMode == EPlaybackMode::PlayingReverse;
+		const bool bIsReverse = PreviewInstance->IsReverse();
+		const bool bIsPlaying = PreviewInstance->IsPlaying();
 		if (bPlay != bIsPlaying)
 		{
 			// 播放状态与待设置的播放状态不同，改变播放状态
@@ -209,16 +208,16 @@ void FActActionPreviewSceneController::TogglePlay(const EPlaybackMode::Type& InP
 	}
 }
 
-void FActActionPreviewSceneController::ToggleLoop()
+void FActActionPreviewSceneController::ToggleLoop() const
 {
-	if (UAnimSingleNodeInstance* PreviewInstance = Cast<UAnimSingleNodeInstance>(ActActionSkeletalMesh->PreviewInstance))
+	if (UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 	{
-		bool bIsLooping = PreviewInstance->IsLooping();
+		const bool bIsLooping = PreviewInstance->IsLooping();
 		PreviewInstance->SetLooping(!bIsLooping);
 	}
 }
 
-bool FActActionPreviewSceneController::IsLoopStatusOn()
+bool FActActionPreviewSceneController::IsLoopStatusOn() const
 {
 	if (ActActionSkeletalMesh && ActActionSkeletalMesh->PreviewInstance)
 	{
@@ -227,11 +226,11 @@ bool FActActionPreviewSceneController::IsLoopStatusOn()
 	return false;
 }
 
-void FActActionPreviewSceneController::PlayStep(bool bForward)
+void FActActionPreviewSceneController::PlayStep(bool bForward) const
 {
-	if (UAnimSingleNodeInstance* PreviewInstance = Cast<UAnimSingleNodeInstance>(ActActionSkeletalMesh->PreviewInstance))
+	if (UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 	{
-		bool bShouldStepCloth = FMath::Abs(PreviewInstance->GetLength() - PreviewInstance->GetCurrentTime()) > SMALL_NUMBER;
+		const bool bShouldStepCloth = FMath::Abs(PreviewInstance->GetLength() - PreviewInstance->GetCurrentTime()) > SMALL_NUMBER;
 		PreviewInstance->SetPlaying(false);
 		if (bForward)
 		{
@@ -256,9 +255,9 @@ void FActActionPreviewSceneController::PlayStep(bool bForward)
 	}
 }
 
-EPlaybackMode::Type FActActionPreviewSceneController::GetPlaybackMode()
+EPlaybackMode::Type FActActionPreviewSceneController::GetPlaybackMode() const
 {
-	if (UAnimSingleNodeInstance* PreviewInstance = Cast<UAnimSingleNodeInstance>(ActActionSkeletalMesh->PreviewInstance))
+	if (UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 	{
 		if (PreviewInstance->IsPlaying())
 		{
@@ -273,11 +272,20 @@ EPlaybackMode::Type FActActionPreviewSceneController::GetPlaybackMode()
 	return EPlaybackMode::Stopped;
 }
 
-float FActActionPreviewSceneController::GetCurrentPosition()
+float FActActionPreviewSceneController::GetCurrentPosition() const
 {
-	if (UAnimSingleNodeInstance* PreviewInstance = Cast<UAnimSingleNodeInstance>(ActActionSkeletalMesh->PreviewInstance))
+	if (UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 	{
 		return PreviewInstance->GetCurrentTime();
 	}
 	return 0.0f;
+}
+
+UAnimSingleNodeInstance* FActActionPreviewSceneController::GetAnimSingleNodeInstance() const
+{
+	if (ActActionSkeletalMesh)
+	{
+		return Cast<UAnimSingleNodeInstance>(ActActionSkeletalMesh->PreviewInstance);
+	}
+	return nullptr;
 }

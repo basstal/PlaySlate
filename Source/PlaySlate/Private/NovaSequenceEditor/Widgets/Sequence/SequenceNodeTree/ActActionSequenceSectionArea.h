@@ -7,7 +7,7 @@ class SActActionSequenceSection;
 class SActActionSequenceSectionArea : public SPanel
 {
 public:
-	SLATE_BEGIN_ARGS(SActActionSequenceSectionArea)
+SLATE_BEGIN_ARGS(SActActionSequenceSectionArea)
 		{
 		}
 

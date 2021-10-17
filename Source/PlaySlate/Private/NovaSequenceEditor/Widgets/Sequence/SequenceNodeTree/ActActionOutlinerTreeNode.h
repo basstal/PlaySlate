@@ -6,7 +6,7 @@ class FActActionSequenceTreeViewNode;
 class SActActionOutlinerTreeNode : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SActActionOutlinerTreeNode)
+SLATE_BEGIN_ARGS(SActActionOutlinerTreeNode)
 		{
 		}
 
@@ -17,6 +17,9 @@ public:
 		SLATE_NAMED_SLOT(FArguments, CustomContent)
 
 	SLATE_END_ARGS()
+
+	SActActionOutlinerTreeNode();
+	virtual ~SActActionOutlinerTreeNode() override;
 
 	void Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceTreeViewNode>& Node, const TSharedRef<SActActionSequenceTreeViewRow>& InTableRow);
 
@@ -30,8 +33,8 @@ public:
 	bool IsNodeLabelReadOnly() const;
 	FSlateFontInfo GetDisplayNameFont() const;
 	FSlateColor GetDisplayNameColor() const;
-	bool VerifyNodeTextChanged(const FText& NewLabel, FText& OutErrorMessage);
-	void HandleNodeLabelTextCommitted(const FText& NewLabel, ETextCommit::Type CommitType);
+	bool VerifyNodeTextChanged(const FText& NewLabel, FText& OutErrorMessage) const;
+	void HandleNodeLabelTextCommitted(const FText& NewLabel, ETextCommit::Type CommitType) const;
 protected:
 	/** Holds the editable text label widget. */
 	TSharedPtr<SInlineEditableTextBlock> EditableLabel;

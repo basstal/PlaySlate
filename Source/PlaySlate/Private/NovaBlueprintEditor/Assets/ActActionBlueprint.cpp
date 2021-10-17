@@ -19,4 +19,4 @@ UActActionBlueprint* UActActionBlueprint::FindRootActionBlueprint(UActActionBlue
 	}
 	return ParentBP;
 }
-#endif // WITH_EDITOR
+#endif
