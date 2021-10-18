@@ -88,9 +88,18 @@ public:
 	 */
 	void OnScrubPositionChanged(FFrameTime NewScrubPosition, bool bScrubbing);
 	/**
-	 * @return 当前时间轴的显示范围
+	 * @return 当前TimeSlider的显示范围
 	 */
 	ActActionSequence::FActActionAnimatedRange GetViewRange() const;
+	/**
+	 * 设置当前的ViewRange
+	 * @param InViewRange 待设置的ViewRange
+	 * @param InViewRangeInterpolation TODO:
+	 */
+	void SetViewRange(TRange<double> InViewRange, ActActionSequence::EActActionViewRangeInterpolation InViewRangeInterpolation);
+
+	/** @return 当前TimeSlider的最大显示范围 */
+	ActActionSequence::FActActionAnimatedRange GetClampRange() const;
 	/**
 	 * 往AddTrack菜单中填充内容
 	 * 
@@ -143,15 +152,12 @@ protected:
 	ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs;
 	/**
 	 * TODO:这里要改成帧
-	 * 当前Sequence时间轴的显示的范围，这里的单位是秒
+	 * Sequence TimeSlider 的显示的范围，这里的单位是秒
 	 */
 	TRange<double> TargetViewRange;
+	/** Sequence TimeSlider 的最大显示范围，单位秒 */
+	TRange<double> TargetClampRange;
 public:
-	const TRange<double>& GetTargetViewRange() const
-	{
-		return TargetViewRange;
-	}
-
 	ActActionSequence::EPlaybackType GetPlaybackStatus() const
 	{
 		return PlaybackState;

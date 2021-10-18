@@ -3,6 +3,8 @@
 #include "Utils/ActActionSequenceUtil.h"
 
 class SActActionTimeSliderWidget;
+class SActActionTimeRangeSlider;
+class SActActionTimeRange;
 /**
  * Sequence的时间滑块控制器，管理Sequence的时间轴相关数据
  * 对应的View模块为SActActionSequenceTimeSliderWidget
@@ -120,10 +122,10 @@ protected:
 	 * 隶属的Controller
 	 */
 	TWeakPtr<FActActionSequenceController> ActActionSequenceController;
-	/**
-	 * 对应控制的Widget
-	 */
+	/** 对应控制的Widget */
 	TSharedPtr<SActActionTimeSliderWidget> ActActionTimeSliderWidget;
+	/** TimeRange Widget */
+	TSharedPtr<SActActionTimeRange> ActActionTimeRange;
 	/** Total mouse delta during dragging **/
 	float DistanceDragged;
 	/**
@@ -149,5 +151,9 @@ public:
 	TSharedRef<SActActionTimeSliderWidget> GetActActionTimeSliderWidget() const
 	{
 		return ActActionTimeSliderWidget.ToSharedRef();
+	}
+	TSharedRef<SActActionTimeRange> GetActActionTimeRange() const
+	{
+		return ActActionTimeRange.ToSharedRef();
 	}
 };

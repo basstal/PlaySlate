@@ -7,7 +7,6 @@
 #include "NovaSequenceEditor/Controllers/Viewport/ActActionPreviewSceneController.h"
 #include "NovaSequenceEditor/Controllers/Sequence/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
 #include "NovaSequenceEditor/Widgets/Sequence/ActActionSequenceWidget.h"
-#include "NovaSequenceEditor/Widgets/Sequence/SequenceNodeTree/ActActionSequenceTreeView.h"
 
 #include "Utils/ActActionPlaybackUtil.h"
 
@@ -25,7 +24,8 @@
 FActActionSequenceController::FActActionSequenceController(const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor)
 	: ActActionSequenceEditor(InActActionSequenceEditor),
 	  PlaybackState(ActActionSequence::EPlaybackType::Stopped),
-	  TargetViewRange(0, 0)
+	  TargetViewRange(0, 0),
+	  TargetClampRange(0, 0)
 {
 	// ** 将Sequence能编辑的所有TrackEditor注册，以便能够使用AddTrackEditor以及AddTrackMenu
 }
@@ -67,7 +67,11 @@ void FActActionSequenceController::MakeSequenceWidget(ActActionSequence::FActAct
 	TimeSliderArgs.OnScrubPositionChanged = ActActionSequence::OnScrubPositionChangedDelegate::CreateSP(this, &FActActionSequenceController::OnScrubPositionChanged);
 	TimeSliderArgs.PlaybackStatus = TAttribute<ActActionSequence::EPlaybackType>(this, &FActActionSequenceController::GetPlaybackStatus);
 	TimeSliderArgs.NumericTypeInterface = NumericTypeInterface;
+	// ** ViewRange
 	TimeSliderArgs.ViewRange.Bind(TAttribute<ActActionSequence::FActActionAnimatedRange>::FGetter::CreateSP(this, &FActActionSequenceController::GetViewRange));
+	TimeSliderArgs.OnViewRangeChanged = ActActionSequence::OnViewRangeChangedDelegate::CreateSP(this, &FActActionSequenceController::SetViewRange);
+	// ** ClampRange
+	TimeSliderArgs.ClampRange.Bind(TAttribute<ActActionSequence::FActActionAnimatedRange>::FGetter::CreateSP(this, &FActActionSequenceController::GetClampRange));
 	ActActionTimeSliderController = MakeShareable(new FActActionTimeSliderController(SharedThis(this)));
 	ActActionTimeSliderController->MakeTimeSliderWidget();
 
@@ -134,6 +138,7 @@ void FActActionSequenceController::AddAnimSequenceTrack(UAnimSequence* InAnimSeq
 			// float RealSequenceLength = TargetFrameTime.AsDecimal() / TickResolution.AsDecimal();
 			// UE_LOG(LogActAction, Log, TEXT("RealSequenceLength : %f"), RealSequenceLength);
 			TargetViewRange = TRange<double>(0, CalculateSequenceLength);
+			TargetClampRange = TRange<double>(0, CalculateSequenceLength);
 			ActActionTimeSliderController->SetPlaybackRangeEnd(SamplingFrameRate.AsFrameNumber(CalculateSequenceLength));
 		}
 
@@ -211,7 +216,7 @@ void FActActionSequenceController::SetGlobalTime(FFrameTime InFrameTime) const
 		const FFrameRate TickResolution = ActActionSequenceEditorRef->GetTickResolution();
 		// Don't update the sequence if the time hasn't changed as this will cause duplicate events and the like to fire.
 		// If we need to reevaluate the sequence at the same time for whatever reason, we should call ForceEvaluate()
-		TSharedRef<FActActionPreviewSceneController> ActActionPreviewSceneController = ActActionSequenceEditorRef->GetActActionPreviewSceneController();
+		const TSharedRef<FActActionPreviewSceneController> ActActionPreviewSceneController = ActActionSequenceEditorRef->GetActActionPreviewSceneController();
 		const float CurrentPosition = ActActionPreviewSceneController->GetCurrentPosition();
 		const FFrameTime CurrentFrameTime = TickResolution.AsFrameTime(CurrentPosition);
 		if (CurrentFrameTime != InFrameTime)
@@ -253,6 +258,17 @@ void FActActionSequenceController::OnScrubPositionChanged(FFrameTime NewScrubPos
 ActActionSequence::FActActionAnimatedRange FActActionSequenceController::GetViewRange() const
 {
 	ActActionSequence::FActActionAnimatedRange AnimatedRange(TargetViewRange.GetLowerBoundValue(), TargetViewRange.GetUpperBoundValue());
+	return AnimatedRange;
+}
+
+void FActActionSequenceController::SetViewRange(TRange<double> InViewRange, ActActionSequence::EActActionViewRangeInterpolation InViewRangeInterpolation)
+{
+	TargetViewRange = InViewRange;
+}
+
+ActActionSequence::FActActionAnimatedRange FActActionSequenceController::GetClampRange() const
+{
+	ActActionSequence::FActActionAnimatedRange AnimatedRange(TargetClampRange.GetLowerBoundValue(), TargetClampRange.GetUpperBoundValue());
 	return AnimatedRange;
 }
 

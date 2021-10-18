@@ -19,7 +19,7 @@ class SActActionSequenceTrackArea;
 class SActActionSequenceWidget : public SCompoundWidget
 {
 public:
-SLATE_BEGIN_ARGS(SActActionSequenceWidget)
+	SLATE_BEGIN_ARGS(SActActionSequenceWidget)
 		{
 		}
 
@@ -28,8 +28,7 @@ SLATE_BEGIN_ARGS(SActActionSequenceWidget)
 	SActActionSequenceWidget();
 	virtual ~SActActionSequenceWidget() override;
 
-	void Construct(const FArguments& InArgs,
-	               const TSharedRef<FActActionSequenceController>& InActActionSequenceController);
+	void Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceController>& InActActionSequenceController);
 
 	/**
 	 * 搜素框内文本改变的回调
@@ -51,11 +50,12 @@ protected:
 	 */
 	TWeakPtr<FActActionSequenceController> ActActionSequenceController;
 
-	/** The top time slider widget */
-	TSharedPtr<SActActionTimeSliderWidget> SequenceTimeSliderWidget;
 	/** Main Sequencer Area*/
 	TSharedPtr<SVerticalBox> MainSequenceArea;
-	/** 整个Sequence轨道的左侧和右侧分别占比 */
+	/**
+	 * TODO:存储在配置中
+	 * 整个Sequence轨道的左侧和右侧分别占比
+	 */
 	float ColumnFillCoefficients[2];
 	/** 过滤用的关键字 */
 	FText InFilter;

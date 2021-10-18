@@ -85,6 +85,7 @@ namespace ActActionSequence
 		FActActionTimeSliderArgs()
 			: ScrubPosition(0),
 			  ViewRange(FActActionAnimatedRange(0.0f, 5.0f)),
+			  ClampRange(FActActionAnimatedRange(0.0f, 5.0f)),
 			  AllowZoom(true)
 		{
 		}
@@ -95,8 +96,11 @@ namespace ActActionSequence
 		/** The scrub position text */
 		TAttribute<FString> ScrubPositionText;
 
-		/** View time range */
+		/** TimeSlider当前可见的区域 */
 		TAttribute<FActActionAnimatedRange> ViewRange;
+
+		/** TimeSlider可见区域的最大可调整的区域，与AnimSequence动画的播放区域相同 */
+		TAttribute<FActActionAnimatedRange> ClampRange;
 
 		/** Called when the scrub position changes */
 		OnScrubPositionChangedDelegate OnScrubPositionChanged;
@@ -389,11 +393,13 @@ namespace ActActionSequence
 	{
 		typedef TFunction<TSharedRef<SWidget>(const TSharedRef<FActActionSequenceTreeViewNode>&, const TSharedRef<SActActionSequenceTreeViewRow>&)> FOnGenerate;
 
-		FActActionSequenceTreeViewColumn(const FOnGenerate& InOnGenerate, const TAttribute<float>& InWidth) : Generator(InOnGenerate), Width(InWidth)
+		FActActionSequenceTreeViewColumn(const FOnGenerate& InOnGenerate, const TAttribute<float>& InWidth)
+			: Generator(InOnGenerate), Width(InWidth)
 		{
 		}
 
-		FActActionSequenceTreeViewColumn(FOnGenerate&& InOnGenerate, const TAttribute<float>& InWidth) : Generator(MoveTemp(InOnGenerate)), Width(InWidth)
+		FActActionSequenceTreeViewColumn(FOnGenerate&& InOnGenerate, const TAttribute<float>& InWidth)
+			: Generator(MoveTemp(InOnGenerate)), Width(InWidth)
 		{
 		}
 

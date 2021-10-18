@@ -8,7 +8,7 @@ class FActActionTimeSliderController;
 class SActActionSequenceSectionOverlayWidget : public SCompoundWidget
 {
 public:
-SLATE_BEGIN_ARGS(SActActionSequenceSectionOverlayWidget)
+	SLATE_BEGIN_ARGS(SActActionSequenceSectionOverlayWidget)
 		{
 		}
 

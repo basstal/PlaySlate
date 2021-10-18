@@ -13,6 +13,8 @@
 #include "NovaSequenceEditor/Widgets/Sequence/TimeSlider/ActActionSequenceSectionOverlayWidget.h"
 #include "NovaSequenceEditor/Widgets/Sequence/Subs/ActActionSequenceTransportControls.h"
 #include "NovaSequenceEditor/Widgets/Sequence/Subs/ActActionSequenceSplitterOverlay.h"
+// ReSharper disable once CppUnusedIncludeDirective
+#include "NovaSequenceEditor/Widgets/Sequence/TimeSlider/Subs/ActActionTimeRange.h"
 
 #include "FrameNumberNumericInterface.h"
 #include "Widgets/Input/SSearchBox.h"
@@ -33,15 +35,14 @@ SActActionSequenceWidget::~SActActionSequenceWidget()
 	UE_LOG(LogActAction, Log, TEXT("SActActionSequenceWidget::~SActActionSequenceWidget"));
 }
 
-void SActActionSequenceWidget::Construct(const FArguments& InArgs,
-                                         const TSharedRef<FActActionSequenceController>& InActActionSequenceController)
+void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceController>& InActActionSequenceController)
 {
 	ColumnFillCoefficients[0] = 0.4f;
 	ColumnFillCoefficients[1] = 0.6f;
 	ActActionSequenceController = InActActionSequenceController;
 
 	const TSharedRef<SScrollBar> ScrollBar = SNew(SScrollBar).Thickness(FVector2D(9.0f, 9.0f));
-	TSharedRef<FActActionSequenceTreeViewNode> ActActionSequenceTreeViewNode = InActActionSequenceController->
+	const TSharedRef<FActActionSequenceTreeViewNode> ActActionSequenceTreeViewNode = InActActionSequenceController->
 		GetActActionSequenceTreeViewRoot();
 	ActActionSequenceTreeViewNode->MakeActActionSequenceTreeView(ScrollBar);
 	const TSharedRef<SScrollBar> PinnedAreaScrollBar = SNew(SScrollBar).Thickness(FVector2D(9.0f, 9.0f));
@@ -53,6 +54,7 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs,
 		TAttribute<float>::FGetter::CreateSP(this, &SActActionSequenceWidget::GetColumnFillCoefficient, 0));
 	FillCoefficient_1.Bind(
 		TAttribute<float>::FGetter::CreateSP(this, &SActActionSequenceWidget::GetColumnFillCoefficient, 1));
+
 
 	ChildSlot
 	[
@@ -164,7 +166,6 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs,
 						]
 					]
 
-					// ** 第0列，第2行
 					+ SGridPanel::Slot(0, 3, SGridPanel::Layer(10))
 					  .VAlign(VAlign_Center)
 					  .HAlign(HAlign_Center)
@@ -202,16 +203,27 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs,
 					+ SGridPanel::Slot(1, 1, SGridPanel::Layer(10))
 					.Padding(ResizeBarPadding)
 					[
-						InActActionSequenceController->GetActActionSequenceSectionOverlayController0()->
-						                               GetActActionSequenceSectionOverlayWidget()
+						InActActionSequenceController->GetActActionSequenceSectionOverlayController0()->GetActActionSequenceSectionOverlayWidget()
 					]
 
 					// ** 第1列，第1行，Overlay that draws the scrub position
 					+ SGridPanel::Slot(1, 1, SGridPanel::Layer(20))
 					.Padding(ResizeBarPadding)
 					[
-						InActActionSequenceController->GetActActionSequenceSectionOverlayController1()->
-						                               GetActActionSequenceSectionOverlayWidget()
+						InActActionSequenceController->GetActActionSequenceSectionOverlayController1()->GetActActionSequenceSectionOverlayWidget()
+					]
+					// play range slider
+					+ SGridPanel::Slot(1, 3, SGridPanel::Layer(10))
+					.Padding(ResizeBarPadding)
+					[
+						SNew(SBorder)
+						.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
+						.BorderBackgroundColor(FLinearColor(0.5f, 0.5f, 0.5f, 1.0f))
+						.Clipping(EWidgetClipping::ClipToBounds)
+						.Padding(0)
+						[
+							InActActionSequenceController->GetActActionTimeSliderController()->GetActActionTimeRange()
+						]
 					]
 				]
 				+ SOverlay::Slot()

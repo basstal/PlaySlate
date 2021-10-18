@@ -1,7 +1,6 @@
 ﻿#include "ActActionAnimInstanceTrack.h"
 
 #include "PlaySlate.h"
-#include "Utils/ActActionSequenceUtil.h"
 #include "NovaSequenceEditor/Controllers/Sequence/ActActionSequenceController.h"
 
 #include "ContentBrowserModule.h"
@@ -48,7 +47,7 @@ void FActActionAnimInstanceTrack::AssignAnimInstance()
 	AssetPickerConfig.Filter.ClassNames.Add(UAnimBlueprint::StaticClass()->GetFName());
 	AssetPickerConfig.SaveSettingsName = TEXT("ActActionAnimMontageAssetPicker");
 
-	FContentBrowserModule& ContentBrowserModule = FModuleManager::Get().LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser"));
+	const FContentBrowserModule& ContentBrowserModule = FModuleManager::Get().LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser"));
 
 	const FVector2D DefaultWindowSize(1152.0f, 648.0f);
 	AnimInstanceSelectionDialog = SNew(SWindow)

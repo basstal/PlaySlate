@@ -49,7 +49,7 @@ void FActActionAnimMontageTrack::AssignAnimMontage()
 	AssetPickerConfig.Filter.ClassNames.Add(UAnimMontage::StaticClass()->GetFName());
 	AssetPickerConfig.SaveSettingsName = TEXT("ActActionAnimMontageAssetPicker");
 
-	FContentBrowserModule& ContentBrowserModule = FModuleManager::Get().LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser"));
+	const FContentBrowserModule& ContentBrowserModule = FModuleManager::Get().LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser"));
 
 	const FVector2D DefaultWindowSize(1152.0f, 648.0f);
 	AnimMontageSelectionDialog = SNew(SWindow)
