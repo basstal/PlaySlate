@@ -18,7 +18,7 @@ FActActionDetailsViewController::~FActActionDetailsViewController()
 
 void FActActionDetailsViewController::MakeDetailsViewWidget()
 {
-	ActActionDetailsViewWidget = SNew(SActActionDetailsViewWidget)
+	ActActionDetailsViewWidget = SNew(SActActionDetailsViewWidget, ActActionSequenceEditor.Pin().ToSharedRef())
 		.OnGetAsset(ActActionSequence::OnGetAssetDelegate::CreateLambda([this]()
 		{
 			return StaticCast<UObject*>(ActActionSequenceEditor.Pin()->GetActActionSequence());

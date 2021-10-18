@@ -38,7 +38,7 @@ void FActActionPreviewSceneController::MakeViewportWidget()
 TSharedPtr<FActActionViewportClient> FActActionPreviewSceneController::MakeViewportClient()
 {
 	return MakeShareable(new FActActionViewportClient(
-		this->AsShared(),
+		SharedThis(this),
 		ActActionViewportWidget.ToSharedRef(),
 		ActActionSequenceEditor.Pin()->GetEditorModeManager()));
 }
@@ -70,8 +70,13 @@ void FActActionPreviewSceneController::Tick(float DeltaTime)
 	}
 }
 
-void FActActionPreviewSceneController::SpawnActorInViewport(UClass* ActorType, UAnimBlueprint* AnimBlueprint)
+void FActActionPreviewSceneController::SpawnActorInViewport(UClass* ActorType, const UAnimBlueprint* AnimBlueprint)
 {
+	if (ActActionActor)
+	{
+		RemoveComponent(ActActionSkeletalMesh);
+		ActActionActor->Destroy();
+	}
 	AActor* SpawnedActor = GetWorld()->SpawnActor(ActorType);
 	check(SpawnedActor)
 	ActActionActor = SpawnedActor;
@@ -127,7 +132,7 @@ void FActActionPreviewSceneController::InitAnimation(UAnimSequence* InAnimSequen
 				ActActionSkeletalMesh->SetPlayRate(2.0f);
 
 				//Place the camera at a good viewer position
-				TSharedPtr<FEditorViewportClient> ViewportClient = ActActionViewportWidget->GetViewportClient();
+				const TSharedPtr<FEditorViewportClient> ViewportClient = ActActionViewportWidget->GetViewportClient();
 				FVector NewPosition = ViewportClient->GetViewLocation();
 				NewPosition.Normalize();
 				ViewportClient->SetViewLocation(NewPosition * (PreviewMesh->GetImportedBounds().SphereRadius * 1.5f));
@@ -257,7 +262,7 @@ void FActActionPreviewSceneController::PlayStep(bool bForward) const
 
 EPlaybackMode::Type FActActionPreviewSceneController::GetPlaybackMode() const
 {
-	if (UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
+	if (const UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 	{
 		if (PreviewInstance->IsPlaying())
 		{
@@ -274,7 +279,7 @@ EPlaybackMode::Type FActActionPreviewSceneController::GetPlaybackMode() const
 
 float FActActionPreviewSceneController::GetCurrentPosition() const
 {
-	if (UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
+	if (const UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 	{
 		return PreviewInstance->GetCurrentTime();
 	}

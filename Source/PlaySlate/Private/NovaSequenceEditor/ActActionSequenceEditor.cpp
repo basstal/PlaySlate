@@ -83,6 +83,14 @@ void FActActionSequenceEditor::InitActActionSequenceEditor(const TSharedPtr<IToo
 	InitAnimBlueprint(ActActionSequence->AnimBlueprint);
 	ActActionSequenceController->AddAnimSequenceTrack(ActActionSequence->AnimSequence);
 
+	// ** 添加属性修改的回调，使其他Controller能接收到Details面板的属性修改事件
+	OnAssetPropertiesModified.AddLambda([this](UObject* Object)
+	{
+		const UActActionSequence* ActActionSequence = Cast<UActActionSequence>(Object);
+		InitAnimBlueprint(ActActionSequence->AnimBlueprint);
+		ActActionSequenceController->AddAnimSequenceTrack(ActActionSequence->AnimSequence);
+	});
+
 	// When undo occurs, get a notification so we can make sure our view is up to date
 	GEditor->RegisterForUndo(this);
 }
@@ -171,6 +179,12 @@ FLinearColor FActActionSequenceEditor::GetWorldCentricTabColorScale() const
 FString FActActionSequenceEditor::GetWorldCentricTabPrefix() const
 {
 	return LOCTEXT("WorldCentricTabPrefix", "Sequencer ").ToString();
+}
+
+void FActActionSequenceEditor::NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, FProperty* PropertyThatChanged)
+{
+	UE_LOG(LogActAction, Log, TEXT("PropertyChangedEvent : %s"), *PropertyChangedEvent.GetPropertyName().ToString());
+	OnAssetPropertiesModified.Broadcast(ActActionSequence);
 }
 
 void FActActionSequenceEditor::InitAnimBlueprint(UAnimBlueprint* AnimBlueprint)

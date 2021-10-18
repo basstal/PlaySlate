@@ -40,7 +40,7 @@ public:
 	 * @param ActorType 指定的Actor类型
 	 * @param AnimBlueprint 生成Actor指定的AnimBlueprint资源
 	 */
-	void SpawnActorInViewport(UClass* ActorType, UAnimBlueprint* AnimBlueprint);
+	void SpawnActorInViewport(UClass* ActorType, const UAnimBlueprint* AnimBlueprint);
 	/** @param InAnimSequence 初始化动画使用的Montage实例 */
 	void InitAnimation(UAnimSequence* InAnimSequence) const;
 	/**

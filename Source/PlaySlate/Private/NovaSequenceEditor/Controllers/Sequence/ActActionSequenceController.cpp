@@ -122,11 +122,6 @@ void FActActionSequenceController::AddAnimSequenceTrack(UAnimSequence* InAnimSeq
 		UE_LOG(LogActAction, Log, TEXT("AnimMontage : %s"), *InAnimSequence->GetName());
 		const TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
 		ActActionSequenceEditorRef->SetAnimSequence(InAnimSequence);
-		if (ActActionSequenceTreeViewNode.IsValid())
-		{
-			// ** 添加TreeViewNode的内容
-			ActActionSequenceTreeViewNode->GetTreeView()->AddDisplayNode(MakeShareable(new FActActionSequenceTreeViewNode(SharedThis(this), ActActionSequenceTreeViewNode)));
-		}
 		if (ActActionTimeSliderController.IsValid())
 		{
 			const float CalculateSequenceLength = InAnimSequence->GetPlayLength();

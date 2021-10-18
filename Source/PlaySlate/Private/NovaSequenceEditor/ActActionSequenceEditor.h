@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "IAnimationEditor.h"
+#include "Utils/ActActionDelegates.h"
 
 class FActActionPreviewSceneController;
 class UActActionSequence;
@@ -13,7 +14,7 @@ class FActActionDetailsViewController;
  * 该对象会与编辑器的主页签一同释放
  * 其他子Controller（例如ActActionSequenceController）保存的都是WeakPtr
  */
-class FActActionSequenceEditor : public FWorkflowCentricApplication, public FGCObject, public FEditorUndoClient
+class FActActionSequenceEditor : public FWorkflowCentricApplication, public FGCObject, public FEditorUndoClient, public FNotifyHook
 {
 public:
 	FActActionSequenceEditor(UActActionSequence* InActActionSequence);
@@ -39,6 +40,10 @@ public:
 	virtual FString GetWorldCentricTabPrefix() const override;
 	//~End FAssetEditorToolkit interfaced
 
+	//~Begin FNotifyHook interface
+	virtual void NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, FProperty* PropertyThatChanged) override;
+	//~End FNotifyHook interface
+
 	/**
 	 * 根据AnimBlueprint初始化Viewport显示内容
 	 *
@@ -52,18 +57,11 @@ public:
 	/** @param InAnimSequence 设置当前资源的AnimSequence实例 */
 	void SetAnimSequence(UAnimSequence* InAnimSequence) const;
 protected:
-	/**
-	 * 当前编辑的资源实例
-	 */
+	/** 当前编辑的资源实例 */
 	UActActionSequence* ActActionSequence;
-	/**
-	 * Viewport Controller，Editor没有销毁的情况下不会为空
-	 */
+	/** Viewport Controller，Editor没有销毁的情况下不会为空 */
 	TSharedPtr<FActActionPreviewSceneController> ActActionPreviewSceneController;
-
-	/**
-	 * Sequence Controller，Editor没有销毁的情况下不会为空
-	 */
+	/** Sequence Controller，Editor没有销毁的情况下不会为空 */
 	TSharedPtr<FActActionSequenceController> ActActionSequenceController;
 	/** Details View Controller */
 	TSharedPtr<FActActionDetailsViewController> ActActionDetailsViewController;
@@ -73,9 +71,7 @@ protected:
 	TSharedPtr<SDockTab> ActActionViewportWidgetParent;
 	/** Details Widget Container */
 	TSharedPtr<SDockTab> ActActionDetailsViewWidgetParent;
-	/**
-	 * 动画播放的帧区间
-	 */
+	/** 动画播放的帧区间 */
 	TRange<FFrameNumber> PlaybackRange;
 	/** User-defined selection range. */
 	TRange<FFrameNumber> SelectionRange;
@@ -112,4 +108,7 @@ public:
 			PlaybackRange = InRange;
 		}
 	}
+
+	/** 资源属性修改的多播事件 */
+	ActActionSequence::OnAssetPropertiesModifiedMulticastDelegate OnAssetPropertiesModified;
 };
