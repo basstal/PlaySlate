@@ -79,23 +79,24 @@ void FActActionSequenceEditor::InitActActionSequenceEditor(const TSharedPtr<IToo
 	}
 
 	// ** Init by resource
-	InitAnimBlueprint(ActActionSequence->AnimBlueprint);
-	ActActionSequenceController->AddAnimSequenceTrack(ActActionSequence->AnimSequence);
-	if (OnHitBoxesChanged.IsBound())
-	{
-		OnHitBoxesChanged.Broadcast(ActActionSequence->ActActionHitBoxes);
-	}
+	ResetAssetProperties(ActActionSequence);
 
 	// ** 添加属性修改的回调，使其他Controller能接收到Details面板的属性修改事件
-	OnAssetPropertiesModified.AddLambda([this](UObject* Object)
-	{
-		const UActActionSequence* ActActionSequence = Cast<UActActionSequence>(Object);
-		InitAnimBlueprint(ActActionSequence->AnimBlueprint);
-		ActActionSequenceController->AddAnimSequenceTrack(ActActionSequence->AnimSequence);
-	});
+	OnAssetPropertiesModified.AddSP(this, &FActActionSequenceEditor::ResetAssetProperties);
 
 	// When undo occurs, get a notification so we can make sure our view is up to date
 	GEditor->RegisterForUndo(this);
+}
+
+void FActActionSequenceEditor::ResetAssetProperties(UObject* InObject)
+{
+	const UActActionSequence* ActActionSequencePtr = Cast<UActActionSequence>(InObject);
+	InitAnimBlueprint(ActActionSequencePtr->AnimBlueprint);
+	ActActionSequenceController->AddAnimSequenceTrack(ActActionSequencePtr->AnimSequence);
+	if (OnHitBoxesChanged.IsBound())
+	{
+		OnHitBoxesChanged.Broadcast(ActActionSequencePtr->ActActionHitBoxes);
+	}
 }
 
 void FActActionSequenceEditor::AddReferencedObjects(FReferenceCollector& Collector)

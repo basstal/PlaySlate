@@ -17,6 +17,8 @@ class SActActionSequenceTrackArea;
  */
 class FActActionSequenceTreeViewNode : public TSharedFromThis<FActActionSequenceTreeViewNode>
 {
+	friend class SActActionOutlinerTreeNode;
+
 public:
 	/**
 	 * 构造一个树节点
@@ -139,22 +141,17 @@ public:
 	/**
 	 * @return Gets an icon that represents this sequencer display node, This node's representative icon
 	 */
-	virtual const FSlateBrush* GetIconBrush() const;
+	const FSlateBrush* GetIconBrush() const;
 
 	/**
 	 * @return Get a brush to overlay on top of the icon for this node, An overlay brush, or nullptr
 	 */
-	virtual const FSlateBrush* GetIconOverlayBrush() const;
+	const FSlateBrush* GetIconOverlayBrush() const;
 
 	/**
 	 * @return Get the tooltip text to display for this node's icon, Text to display on the icon
 	 */
-	virtual FText GetIconToolTipText() const;
-
-	/**
-	 * @return Customizes an outliner widget that is to represent this node, Content to display on the outliner node
-	 */
-	virtual TSharedRef<SWidget> GetCustomOutlinerContent();
+	FText GetIconToolTipText() const;
 
 	/**
 	 * 将节点添加到显示中
@@ -243,6 +240,9 @@ protected:
 
 	/** 节点类型 */
 	ActActionSequence::ESequenceNodeType NodeType;
+
+	/** 当前节点的Outliner实际内容 */
+	TSharedPtr<SWidget> OutlinerContent;
 
 public:
 	TArray<TSharedRef<FActActionSequenceTreeViewNode>>& GetDisplayedRootNodes()

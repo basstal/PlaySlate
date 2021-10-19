@@ -9,11 +9,44 @@
 #include "NovaSequenceEditor/Widgets/Sequence/SequenceNodeTree/ActActionSequenceTreeView.h"
 #include "NovaSequenceEditor/Widgets/Sequence/SequenceNodeTree/ActActionSequenceTrackArea.h"
 
+#define LOCTEXT_NAMESPACE "ActActionSequence"
+
 FActActionSequenceTreeViewNode::FActActionSequenceTreeViewNode(const TSharedRef<FActActionSequenceController>& InActActionSequenceController, FName InNodeName, ActActionSequence::ESequenceNodeType InNodeType)
 	: ActActionSequenceController(InActActionSequenceController),
 	  NodeName(InNodeName),
 	  NodeType(InNodeType)
 {
+	if (NodeType == ActActionSequence::ESequenceNodeType::Folder)
+	{
+		OutlinerContent = SNew(SBorder)
+		.ToolTipText(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateLambda([this]()
+		                               {
+			                               return FText::Format(LOCTEXT("ActActionSequence", "ToolTip {0}"), FText::FromString(*this->NodeName.ToString()));
+		                               })))
+		.BorderImage(FEditorStyle::GetBrush("Sequencer.Section.BackgroundTint"))
+		.BorderBackgroundColor(FEditorStyle::GetColor("AnimTimeline.Outliner.ItemColor"))
+		[
+			SNew(SHorizontalBox)
+
+			+ SHorizontalBox::Slot()
+			  .VAlign(VAlign_Center)
+			  .HAlign(HAlign_Left)
+			  .Padding(2.0f, 1.0f)
+			  .FillWidth(1.0f)
+			[
+				SNew(STextBlock)
+					.TextStyle(&FEditorStyle::Get().GetWidgetStyle<FTextBlockStyle>("AnimTimeline.Outliner.Label"))
+					.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateLambda([this]()
+				                {
+					                return FText::Format(LOCTEXT("ActActionSequence", "{0}"), FText::FromString(*this->NodeName.ToString()));
+				                })))
+			]
+		];
+	}
+	else
+	{
+		OutlinerContent == SNullWidget::NullWidget;
+	}
 }
 
 FActActionSequenceTreeViewNode::~FActActionSequenceTreeViewNode()
@@ -47,7 +80,7 @@ TSharedRef<SActActionOutlinerTreeNode> FActActionSequenceTreeViewNode::MakeOutli
 	.IconToolTipText(this, &FActActionSequenceTreeViewNode::GetIconToolTipText)
 	.CustomContent()
 	[
-		GetCustomOutlinerContent()
+		OutlinerContent ? OutlinerContent.ToSharedRef() : SNullWidget::NullWidget
 	];
 	return ActActionOutlinerTreeNode.ToSharedRef();
 }
@@ -220,11 +253,6 @@ FText FActActionSequenceTreeViewNode::GetIconToolTipText() const
 	return FText();
 }
 
-TSharedRef<SWidget> FActActionSequenceTreeViewNode::GetCustomOutlinerContent()
-{
-	return SNew(SSpacer);
-}
-
 void FActActionSequenceTreeViewNode::AddDisplayNode(TSharedPtr<FActActionSequenceTreeViewNode> ChildTreeViewNode)
 {
 	DisplayedRootNodes.Add(ChildTreeViewNode.ToSharedRef());
@@ -263,6 +291,7 @@ void FActActionSequenceTreeViewNode::SetContentAsHitBox(const FActActionHitBoxDa
 {
 	if (ActActionOutlinerTreeNode.IsValid())
 	{
+		// TODO:
 	}
 }
 
@@ -273,3 +302,6 @@ void FActActionSequenceTreeViewNode::SetVisible(EVisibility bVisible)
 		ActActionOutlinerTreeNode->SetVisibility(bVisible);
 	}
 }
+
+
+#undef LOCTEXT_NAMESPACE

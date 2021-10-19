@@ -6,7 +6,7 @@ USTRUCT()
 struct FActActionHitBoxData
 {
 	GENERATED_BODY()
-
+	FActActionHitBoxData();
 	/**
 	 * 开始帧
 	 */

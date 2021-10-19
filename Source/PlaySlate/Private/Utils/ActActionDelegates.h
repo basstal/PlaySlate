@@ -57,5 +57,5 @@ namespace ActActionSequence
 
 	DECLARE_MULTICAST_DELEGATE_OneParam(OnAssetPropertiesModifiedMulticastDelegate, UObject*);
 
-	DECLARE_MULTICAST_DELEGATE_OneParam(OnHitBoxesChangedMulticastDelegate, TArray<FActActionHitBoxData>&);
+	DECLARE_MULTICAST_DELEGATE_OneParam(OnHitBoxesChangedMulticastDelegate, const TArray<FActActionHitBoxData>&);
 }

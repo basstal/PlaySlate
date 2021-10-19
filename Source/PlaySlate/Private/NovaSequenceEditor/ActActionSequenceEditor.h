@@ -32,6 +32,11 @@ public:
 	*/
 	void InitActActionSequenceEditor(const TSharedPtr<IToolkitHost>& InitToolkitHost);
 
+	/**
+	 * 根据资源重置所有资源属性的对应显示状态
+	 */
+	void ResetAssetProperties(UObject* InObject);
+
 	//~Begin FGCObject interface
 	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
 

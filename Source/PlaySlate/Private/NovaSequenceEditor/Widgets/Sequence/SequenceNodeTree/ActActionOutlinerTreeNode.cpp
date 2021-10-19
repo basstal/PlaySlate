@@ -3,6 +3,7 @@
 #include "PlaySlate.h"
 #include "NovaSequenceEditor/Controllers/Sequence/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
 #include "NovaSequenceEditor/Controllers/Sequence/ActActionSequenceController.h"
+#include "Styling/StyleColors.h"
 #include "Subs/ActActionSequenceTreeViewRow.h"
 
 #include "Widgets/Text/SInlineEditableTextBlock.h"
@@ -93,8 +94,8 @@ void SActActionOutlinerTreeNode::Construct(const FArguments& InArgs, const TShar
 		SNew(SBorder)
 		.VAlign(VAlign_Center)
 		// .BorderImage(this, &SActActionOutlinerTreeNode::GetNodeBorderImage)
-		// .BorderBackgroundColor(this, &SActActionOutlinerTreeNode::GetNodeBackgroundTint)
-		// .Padding(FMargin(0, Node->GetNodePadding().Combined() / 2))
+		.BorderBackgroundColor(this, &SActActionOutlinerTreeNode::GetNodeBackgroundTint)
+		.Padding(FMargin(0, 0.5f))
 		[
 			SNew(SHorizontalBox)
 
@@ -121,7 +122,7 @@ void SActActionOutlinerTreeNode::Construct(const FArguments& InArgs, const TShar
 					[
 						SNew(SBorder)
 						.BorderImage(FEditorStyle::GetBrush("Sequencer.AnimationOutliner.TopLevelBorder_Collapsed"))
-						// .BorderBackgroundColor(this, &SActActionOutlinerTreeNode::GetNodeInnerBackgroundTint)
+						.BorderBackgroundColor(this, &SActActionOutlinerTreeNode::GetNodeBackgroundTint)
 						.Padding(FMargin(0))
 						[
 							SNew(SHorizontalBox)
@@ -233,4 +234,16 @@ bool SActActionOutlinerTreeNode::VerifyNodeTextChanged(const FText& NewLabel, FT
 void SActActionOutlinerTreeNode::HandleNodeLabelTextCommitted(const FText& NewLabel, ETextCommit::Type CommitType) const
 {
 	DisplayNode->SetDisplayName(NewLabel);
+}
+
+FSlateColor SActActionOutlinerTreeNode::GetNodeBackgroundTint() const
+{
+	if (DisplayNode->ActActionOutlinerTreeNode->IsHovered())
+	{
+		return bIsOuterTopLevelNode ? FLinearColor(FColor(52, 52, 52, 255)) : FLinearColor(FColor(72, 72, 72, 255));
+	}
+	else
+	{
+		return bIsOuterTopLevelNode ? FLinearColor(FColor(48, 48, 48, 255)) : FLinearColor(FColor(62, 62, 62, 255));
+	}
 }

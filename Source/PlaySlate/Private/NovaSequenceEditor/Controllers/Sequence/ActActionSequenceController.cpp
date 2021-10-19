@@ -279,7 +279,7 @@ void FActActionSequenceController::PopulateAddMenuContext(FMenuBuilder& MenuBuil
 	MenuBuilder.EndSection();
 }
 
-void FActActionSequenceController::OnHitBoxesChanged(TArray<FActActionHitBoxData>& InHitBoxData)
+void FActActionSequenceController::OnHitBoxesChanged(const TArray<FActActionHitBoxData>& InHitBoxData)
 {
 	const TSharedRef<FActActionSequenceTreeViewNode> HitBoxesFolder = ActActionSequenceTreeViewNode->FindOrCreateFolder(FName("HitBoxesFolder"));
 	int HitBoxTreeViewNodeCount = HitBoxesFolder->GetChildNodes().Num();

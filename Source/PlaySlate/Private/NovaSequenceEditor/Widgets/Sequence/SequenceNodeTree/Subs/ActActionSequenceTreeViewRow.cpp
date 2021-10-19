@@ -7,14 +7,12 @@ void SActActionSequenceTreeViewRow::Construct(const FArguments& InArgs, const TS
 {
 	Node = InNode;
 	OnGenerateWidgetForColumn = InArgs._OnGenerateWidgetForColumn;
-	const bool bIsSelectable = InNode->IsSelectable();
-
 	SMultiColumnTableRow::Construct(
 		SMultiColumnTableRow::FArguments()
 		.OnDragDetected(this, &SActActionSequenceTreeViewRow::OnDragDetected)
 		.OnCanAcceptDrop(this, &SActActionSequenceTreeViewRow::OnCanAcceptDrop)
 		.OnAcceptDrop(this, &SActActionSequenceTreeViewRow::OnAcceptDrop)
-		.ShowSelection(bIsSelectable)
+		.ShowSelection(InNode->IsSelectable())
 		.Padding(this, &SActActionSequenceTreeViewRow::GetRowPadding),
 		OwnerTableView);
 }

@@ -21,7 +21,7 @@ void SActActionSequenceTreeView::Construct(const FArguments& InArgs, const TShar
 	STreeView::Construct(
 		STreeView::FArguments()
 		.TreeItemsSource(&InActActionSequenceTreeViewNode->GetDisplayedRootNodes())
-		.SelectionMode(ESelectionMode::Multi)
+		.SelectionMode(ESelectionMode::Single)
 		.OnGenerateRow(this, &SActActionSequenceTreeView::OnGenerateRow)
 		.OnGetChildren(this, &SActActionSequenceTreeView::OnGetChildren)
 		.HeaderRow(HeaderRow)

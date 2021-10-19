@@ -137,7 +137,7 @@ public:
 	*
 	* @param InHitBoxData 传入的攻击盒数据
 	*/
-	void OnHitBoxesChanged(TArray<FActActionHitBoxData>& InHitBoxData);
+	void OnHitBoxesChanged(const TArray<FActActionHitBoxData>& InHitBoxData);
 
 protected:
 	/**
