@@ -16,11 +16,11 @@
 // ReSharper disable once CppUnusedIncludeDirective
 #include "NovaSequenceEditor/Widgets/Sequence/TimeSlider/Subs/ActActionTimeRange.h"
 
+#include "SEditorHeaderButton.h"
 #include "FrameNumberNumericInterface.h"
 #include "Widgets/Input/SSearchBox.h"
 #include "Widgets/Layout/SGridPanel.h"
 #include "Widgets/Layout/SScrollBorder.h"
-#include "SEditorHeaderButton.h"
 #include "NovaSequenceEditor/Controllers/Sequence/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
 
 #define LOCTEXT_NAMESPACE "ActActionToolkit"
@@ -67,7 +67,7 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 				+ SOverlay::Slot()
 				[
 					SNew(SGridPanel)
-					.FillRow(2, 1.0f)
+					.FillRow(1, 1.0f)
 					.FillColumn(0, FillCoefficient_0)
 					.FillColumn(1, FillCoefficient_1)
 					// ** TODO:暂缺工具栏
@@ -91,28 +91,28 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 						.Clipping(EWidgetClipping::ClipToBounds)
 						[
 							SNew(SHorizontalBox)
-							+ SHorizontalBox::Slot()
-							  .AutoWidth()
-							  .VAlign(VAlign_Center)
-							  .Padding(FMargin(0, 0, 0.3f, 0))
-							[
-								SNew(SEditorHeaderButton)
-								.OnGetMenuContent(this, &SActActionSequenceWidget::MakeAddMenu)
-								.Icon(FAppStyle::Get().GetBrush("Icons.Plus"))
-								.Text(LOCTEXT("Track", "Track"))
-								.IsEnabled_Lambda([=]()
-								{
-									return ActActionSequenceController.Pin().IsValid();
-								})
-							]
-
-							+ SHorizontalBox::Slot()
-							.VAlign(VAlign_Center)
-							[
-								SNew(SSearchBox)
-								.HintText(LOCTEXT("SearchNodesHint", "Search Tracks"))
-								.OnTextChanged(this, &SActActionSequenceWidget::OnOutlinerSearchChanged)
-							]
+							// + SHorizontalBox::Slot()
+							//   .AutoWidth()
+							//   .VAlign(VAlign_Center)
+							//   .Padding(FMargin(0, 0, 0.3f, 0))
+							// [
+							// 	SNew(SEditorHeaderButton)
+							// 	.OnGetMenuContent(this, &SActActionSequenceWidget::MakeAddMenu)
+							// 	.Icon(FAppStyle::Get().GetBrush("Icons.Plus"))
+							// 	.Text(LOCTEXT("Track", "Track"))
+							// 	.IsEnabled_Lambda([=]()
+							// 	{
+							// 		return ActActionSequenceController.Pin().IsValid();
+							// 	})
+							// ]
+							//
+							// + SHorizontalBox::Slot()
+							// .VAlign(VAlign_Center)
+							// [
+							// 	SNew(SSearchBox)
+							// 	.HintText(LOCTEXT("SearchNodesHint", "Search Tracks"))
+							// 	.OnTextChanged(this, &SActActionSequenceWidget::OnOutlinerSearchChanged)
+							// ]
 						]
 					]
 
@@ -163,7 +163,7 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 						]
 					]
 
-					+ SGridPanel::Slot(0, 3, SGridPanel::Layer(10))
+					+ SGridPanel::Slot(0, 2, SGridPanel::Layer(10))
 					  .VAlign(VAlign_Center)
 					  .HAlign(HAlign_Center)
 					[
@@ -210,7 +210,7 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 						GetActActionTimeSliderController()->GetTickLinesSequenceSectionOverlayController()->GetActActionSequenceSectionOverlayWidget()
 					]
 					// play range slider
-					+ SGridPanel::Slot(1, 3, SGridPanel::Layer(10))
+					+ SGridPanel::Slot(1, 2, SGridPanel::Layer(10))
 					.Padding(ResizeBarPadding)
 					[
 						SNew(SBorder)
