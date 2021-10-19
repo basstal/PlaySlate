@@ -78,10 +78,13 @@ void FActActionSequenceEditor::InitActActionSequenceEditor(const TSharedPtr<IToo
 		ActActionDetailsViewWidgetParent->SetContent(ActActionDetailsViewController->GetActActionDetailsViewWidget());
 	}
 
-
 	// ** Init by resource
 	InitAnimBlueprint(ActActionSequence->AnimBlueprint);
 	ActActionSequenceController->AddAnimSequenceTrack(ActActionSequence->AnimSequence);
+	if (OnHitBoxesChanged.IsBound())
+	{
+		OnHitBoxesChanged.Broadcast(ActActionSequence->ActActionHitBoxes);
+	}
 
 	// ** 添加属性修改的回调，使其他Controller能接收到Details面板的属性修改事件
 	OnAssetPropertiesModified.AddLambda([this](UObject* Object)
@@ -117,6 +120,7 @@ FText FActActionSequenceEditor::GetBaseToolkitName() const
 
 void FActActionSequenceEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
 {
+	// ** NOTE:记得反注册中也要添加对应方法
 	FAssetEditorToolkit::RegisterTabSpawners(InTabManager);
 
 	FTabSpawnerEntry& TabSpawnerEntryViewport = InTabManager->RegisterTabSpawner(
@@ -167,6 +171,7 @@ void FActActionSequenceEditor::UnregisterTabSpawners(const TSharedRef<FTabManage
 {
 	InTabManager->UnregisterTabSpawner(ActActionSequence::ActActionSequenceTabId);
 	InTabManager->UnregisterTabSpawner(ActActionSequence::ActActionViewportTabId);
+	InTabManager->UnregisterTabSpawner(ActActionSequence::ActActionDetailsViewTabId);
 
 	FAssetEditorToolkit::UnregisterTabSpawners(InTabManager);
 }
@@ -214,6 +219,18 @@ FFrameRate FActActionSequenceEditor::GetTickResolution() const
 void FActActionSequenceEditor::SetAnimSequence(UAnimSequence* InAnimSequence) const
 {
 	ActActionSequence->AnimSequence = InAnimSequence;
+}
+
+void FActActionSequenceEditor::AddHitBox() const
+{
+	if (ActActionSequence)
+	{
+		ActActionSequence->ActActionHitBoxes.AddDefaulted();
+		if (OnHitBoxesChanged.IsBound())
+		{
+			OnHitBoxesChanged.Broadcast(ActActionSequence->ActActionHitBoxes);
+		}
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

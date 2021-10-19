@@ -7,6 +7,8 @@
 #include "NovaSequenceEditor/Controllers/Viewport/ActActionPreviewSceneController.h"
 #include "NovaSequenceEditor/Controllers/Sequence/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
 #include "NovaSequenceEditor/Widgets/Sequence/ActActionSequenceWidget.h"
+// ReSharper disable once CppUnusedIncludeDirective
+#include "NovaSequenceEditor/Controllers/Sequence/ActActionSequenceController.h"
 
 #include "Utils/ActActionPlaybackUtil.h"
 
@@ -16,6 +18,7 @@
 #include "Animation/DebugSkelMeshComponent.h"
 #include "AnimPreviewInstance.h"
 #include "FrameNumberNumericInterface.h"
+#include "NovaSequenceEditor/Assets/Tracks/ActActionHitBoxTrack.h"
 
 #define LOCTEXT_NAMESPACE "ActAction"
 
@@ -26,6 +29,7 @@ FActActionSequenceController::FActActionSequenceController(const TSharedRef<FAct
 	  TargetClampRange(0, 0)
 {
 	// ** 将Sequence能编辑的所有TrackEditor注册，以便能够使用AddTrackEditor以及AddTrackMenu
+	TrackEditorDelegates.Add(ActActionSequence::OnCreateTrackEditorDelegate::CreateStatic(FActActionHitBoxTrack::CreateTrackEditor));
 }
 
 FActActionSequenceController::~FActActionSequenceController()
@@ -40,6 +44,8 @@ FActActionSequenceController::~FActActionSequenceController()
 
 void FActActionSequenceController::MakeSequenceWidget(ActActionSequence::FActActionSequenceViewParams ViewParams)
 {
+	ActActionSequenceEditor.Pin()->OnHitBoxesChanged.AddSP(this, &FActActionSequenceController::OnHitBoxesChanged);
+
 	// ** 构造所有显示节点的根节点
 	ActActionSequenceTreeViewNode = MakeShareable(new FActActionSequenceTreeViewNode(SharedThis(this)));
 
@@ -73,6 +79,10 @@ void FActActionSequenceController::MakeSequenceWidget(ActActionSequence::FActAct
 	ActActionTimeSliderController = MakeShareable(new FActActionTimeSliderController(SharedThis(this)));
 	ActActionTimeSliderController->MakeTimeSliderWidget();
 	ActActionSequenceWidget = SNew(SActActionSequenceWidget, SharedThis(this));
+}
+
+void FActActionSequenceController::Tick(float DeltaTime)
+{
 }
 
 TStatId FActActionSequenceController::GetStatId() const
@@ -267,5 +277,29 @@ void FActActionSequenceController::PopulateAddMenuContext(FMenuBuilder& MenuBuil
 	MenuBuilder.BeginSection("AddTracks");
 	BuildAddTrackMenu(MenuBuilder);
 	MenuBuilder.EndSection();
+}
+
+void FActActionSequenceController::OnHitBoxesChanged(TArray<FActActionHitBoxData>& InHitBoxData)
+{
+	const TSharedRef<FActActionSequenceTreeViewNode> HitBoxesFolder = ActActionSequenceTreeViewNode->FindOrCreateFolder(FName("HitBoxesFolder"));
+	int HitBoxTreeViewNodeCount = HitBoxesFolder->GetChildNodes().Num();
+	if (HitBoxTreeViewNodeCount < InHitBoxData.Num())
+	{
+		for (int count = HitBoxTreeViewNodeCount; count < InHitBoxData.Num(); ++count)
+		{
+			TSharedRef<FActActionSequenceTreeViewNode> NewTreeViewNode = MakeShareable(new FActActionSequenceTreeViewNode(SharedThis(this), "HitBox", ActActionSequence::ESequenceNodeType::State));
+			NewTreeViewNode->SetParent(HitBoxesFolder);
+		}
+	}
+	int Index = 0;
+	for (const FActActionHitBoxData& InHitBox : InHitBoxData)
+	{
+		HitBoxesFolder->GetChildByIndex(Index++)->SetContentAsHitBox(InHitBox);
+	}
+	while (Index < HitBoxesFolder->GetChildNodes().Num())
+	{
+		HitBoxesFolder->GetChildByIndex(Index++)->SetVisible(EVisibility::Collapsed);
+	}
+	ActActionSequenceTreeViewNode->Refresh();
 }
 #undef LOCTEXT_NAMESPACE

@@ -3,7 +3,7 @@
 #include "PlaySlate.h"
 
 FActActionTrackEditorBase::FActActionTrackEditorBase(const TSharedRef<FActActionSequenceController>& InSequenceController)
-	: SequenceController(InSequenceController)
+	: ActActionSequenceController(InSequenceController)
 {
 }
 

@@ -6,14 +6,13 @@
 #include "NovaSequenceEditor/Controllers/Sequence/ActActionSequenceController.h"
 #include "NovaSequenceEditor/Widgets/Sequence/SequenceNodeTree/ActActionOutlinerTreeNode.h"
 #include "NovaSequenceEditor/Widgets/Sequence/SequenceNodeTree/ActActionSequenceCombinedKeysTrack.h"
-#include "NovaSequenceEditor/Widgets/Sequence/SequenceNodeTree/ActActionSequenceSectionArea.h"
 #include "NovaSequenceEditor/Widgets/Sequence/SequenceNodeTree/ActActionSequenceTreeView.h"
 #include "NovaSequenceEditor/Widgets/Sequence/SequenceNodeTree/ActActionSequenceTrackArea.h"
 
-FActActionSequenceTreeViewNode::FActActionSequenceTreeViewNode(const TSharedRef<FActActionSequenceController>& InActActionSequenceController, const TSharedPtr<FActActionSequenceTreeViewNode>& InParentNode, FName InNodeName)
+FActActionSequenceTreeViewNode::FActActionSequenceTreeViewNode(const TSharedRef<FActActionSequenceController>& InActActionSequenceController, FName InNodeName, ActActionSequence::ESequenceNodeType InNodeType)
 	: ActActionSequenceController(InActActionSequenceController),
-	  ParentNode(InParentNode),
-	  NodeName(InNodeName)
+	  NodeName(InNodeName),
+	  NodeType(InNodeType)
 {
 }
 
@@ -39,7 +38,7 @@ void FActActionSequenceTreeViewNode::MakeActActionSequenceTreeViewPinned(const T
 }
 
 
-void FActActionSequenceTreeViewNode::MakeContainerWidgetForOutliner(const TSharedRef<SActActionSequenceTreeViewRow>& InRow)
+TSharedRef<SActActionOutlinerTreeNode> FActActionSequenceTreeViewNode::MakeOutlinerWidget(const TSharedRef<SActActionSequenceTreeViewRow>& InRow)
 {
 	ActActionOutlinerTreeNode = SNew(SActActionOutlinerTreeNode, SharedThis(this), InRow)
 	.IconBrush(this, &FActActionSequenceTreeViewNode::GetIconBrush)
@@ -50,15 +49,12 @@ void FActActionSequenceTreeViewNode::MakeContainerWidgetForOutliner(const TShare
 	[
 		GetCustomOutlinerContent()
 	];
+	return ActActionOutlinerTreeNode.ToSharedRef();
 }
 
 
 void FActActionSequenceTreeViewNode::MakeWidgetForSectionArea()
 {
-	if (GetType() == ActActionSequence::ESequenceNodeType::Track)
-	{
-		ActActionSectionWidget = SNew(SActActionSequenceSectionArea, SharedThis(this));
-	}
 	ActActionSectionWidget = SNew(SActActionSequenceCombinedKeysTrack, SharedThis(this))
 		.Visibility(EVisibility::Visible)
 		.TickResolution(ActActionSequenceController.Pin()->GetActActionSequenceEditor(), &FActActionSequenceEditor::GetTickResolution);
@@ -72,6 +68,15 @@ bool FActActionSequenceTreeViewNode::IsTreeViewRoot() const
 const TArray<TSharedRef<FActActionSequenceTreeViewNode>>& FActActionSequenceTreeViewNode::GetChildNodes() const
 {
 	return ChildNodes;
+}
+
+TSharedPtr<FActActionSequenceTreeViewNode> FActActionSequenceTreeViewNode::GetChildByIndex(int Index) const
+{
+	if (ChildNodes.Num() > Index)
+	{
+		return ChildNodes[Index];
+	}
+	return nullptr;
 }
 
 FString FActActionSequenceTreeViewNode::GetPathName() const
@@ -107,9 +112,9 @@ bool FActActionSequenceTreeViewNode::IsVisible() const
 	return true;
 }
 
-ActActionSequence::ESequenceNodeType FActActionSequenceTreeViewNode::GetType()
+ActActionSequence::ESequenceNodeType FActActionSequenceTreeViewNode::GetType() const
 {
-	return ActActionSequence::ESequenceNodeType::Root;
+	return NodeType;
 }
 
 void FActActionSequenceTreeViewNode::SetParent(TSharedPtr<FActActionSequenceTreeViewNode> InParent, int32 DesiredChildIndex)
@@ -118,8 +123,11 @@ void FActActionSequenceTreeViewNode::SetParent(TSharedPtr<FActActionSequenceTree
 	{
 		return;
 	}
-	// Remove from parent
-	ParentNode->ChildNodes.Remove(SharedThis(this));
+	if (ParentNode)
+	{
+		// Remove from parent
+		ParentNode->ChildNodes.Remove(SharedThis(this));
+	}
 	// Add to new parent
 	if (DesiredChildIndex != INDEX_NONE && ensureMsgf(DesiredChildIndex <= InParent->ChildNodes.Num(), TEXT("Invalid insert index specified")))
 	{
@@ -139,14 +147,7 @@ TSharedPtr<FActActionSequenceTreeViewNode> FActActionSequenceTreeViewNode::GetSe
 
 	while (Authority.IsValid())
 	{
-		if (Authority->GetType() == ActActionSequence::ESequenceNodeType::Object || Authority->GetType() == ActActionSequence::ESequenceNodeType::Track)
-		{
-			return Authority;
-		}
-		else
-		{
-			Authority = Authority->GetParentNode();
-		}
+		Authority = Authority->GetParentNode();
 	}
 
 	return Authority;
@@ -222,4 +223,53 @@ FText FActActionSequenceTreeViewNode::GetIconToolTipText() const
 TSharedRef<SWidget> FActActionSequenceTreeViewNode::GetCustomOutlinerContent()
 {
 	return SNew(SSpacer);
+}
+
+void FActActionSequenceTreeViewNode::AddDisplayNode(TSharedPtr<FActActionSequenceTreeViewNode> ChildTreeViewNode)
+{
+	DisplayedRootNodes.Add(ChildTreeViewNode.ToSharedRef());
+	TreeView->SetTreeItemsSource(&DisplayedRootNodes);
+}
+
+void FActActionSequenceTreeViewNode::Refresh()
+{
+	DisplayedRootNodes.Reset();
+	for (auto& Item : GetChildNodes())
+	{
+		if (Item->IsVisible())
+		{
+			DisplayedRootNodes.Add(Item);
+		}
+	}
+	TreeView->SetTreeItemsSource(&DisplayedRootNodes);
+}
+
+TSharedRef<FActActionSequenceTreeViewNode> FActActionSequenceTreeViewNode::FindOrCreateFolder(const FName& InName)
+{
+	TSharedRef<FActActionSequenceTreeViewNode>* FindNode = ChildNodes.FindByPredicate([InName](auto ChildNode)
+	{
+		return ChildNode->NodeName == InName;
+	});
+	if (!FindNode)
+	{
+		TSharedRef<FActActionSequenceTreeViewNode> Folder = MakeShareable(new FActActionSequenceTreeViewNode(ActActionSequenceController.Pin().ToSharedRef(), InName, ActActionSequence::ESequenceNodeType::Folder));
+		Folder->SetParent(SharedThis(this), 0);
+		return Folder;
+	}
+	return *FindNode;
+}
+
+void FActActionSequenceTreeViewNode::SetContentAsHitBox(const FActActionHitBoxData& InHitBox)
+{
+	if (ActActionOutlinerTreeNode.IsValid())
+	{
+	}
+}
+
+void FActActionSequenceTreeViewNode::SetVisible(EVisibility bVisible)
+{
+	if (ActActionOutlinerTreeNode.IsValid())
+	{
+		ActActionOutlinerTreeNode->SetVisibility(bVisible);
+	}
 }

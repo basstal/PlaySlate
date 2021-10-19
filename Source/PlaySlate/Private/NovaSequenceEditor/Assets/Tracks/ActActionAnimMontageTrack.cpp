@@ -53,8 +53,8 @@ void FActActionAnimMontageTrack::AssignAnimMontage()
 
 	const FVector2D DefaultWindowSize(1152.0f, 648.0f);
 	AnimMontageSelectionDialog = SNew(SWindow)
-			.Title(LOCTEXT("TrackEditor", "Select AnimMontage Asset"))
-			.ClientSize(DefaultWindowSize);
+	.Title(LOCTEXT("TrackEditor", "Select AnimMontage Asset"))
+	.ClientSize(DefaultWindowSize);
 
 	AnimMontageSelectionDialog->SetContent(SNew(SBox)
 	.HeightOverride(300)
@@ -72,7 +72,7 @@ void FActActionAnimMontageTrack::AssignAnimMontage()
 
 void FActActionAnimMontageTrack::OnAssetSelected(const FAssetData& InAssetData)
 {
-	if (SequenceController.IsValid() && InAssetData.IsValid())
+	if (ActActionSequenceController.IsValid() && InAssetData.IsValid())
 	{
 		UE_LOG(LogActAction, Log, TEXT("InAssetData : %s"), *InAssetData.GetFullName());
 		// ** TODO:暂时不支持Montage资源

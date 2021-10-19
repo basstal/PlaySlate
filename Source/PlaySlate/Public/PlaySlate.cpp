@@ -22,7 +22,7 @@ void FPlaySlateModule::StartupModule()
 
 void FPlaySlateModule::ShutdownModule()
 {
-	if (FAssetToolsModule* AssetTools = FModuleManager::GetModulePtr<FAssetToolsModule>("AssetTools"))
+	if (const FAssetToolsModule* AssetTools = FModuleManager::GetModulePtr<FAssetToolsModule>("AssetTools"))
 	{
 		for (auto AssetTypeAction : CreatedAssetTypeActions)
 		{

@@ -32,7 +32,7 @@ FReply SActActionSequenceTreeViewRow::OnAcceptDrop(const FDragDropEvent& DragDro
 FMargin SActActionSequenceTreeViewRow::GetRowPadding() const
 {
 	const TSharedPtr<FActActionSequenceTreeViewNode> PinnedNode = Node.Pin();
-	TSharedPtr<FActActionSequenceTreeViewNode> ParentNode = PinnedNode ? PinnedNode->GetParentNode() : nullptr;
+	const TSharedPtr<FActActionSequenceTreeViewNode> ParentNode = PinnedNode ? PinnedNode->GetParentNode() : nullptr;
 
 	const TArray<TSharedRef<FActActionSequenceTreeViewNode>>& ChildNodes = ParentNode->GetChildNodes();
 	if (ParentNode.IsValid() && ParentNode->GetType() == ActActionSequence::ESequenceNodeType::Root && ChildNodes.Num() > 0 && ChildNodes[0] != PinnedNode)
@@ -44,13 +44,17 @@ FMargin SActActionSequenceTreeViewRow::GetRowPadding() const
 
 TSharedRef<SWidget> SActActionSequenceTreeViewRow::GenerateWidgetForColumn(const FName& InColumnName)
 {
-	const TSharedPtr<FActActionSequenceTreeViewNode> PinnedNode = Node.Pin();
-	if (PinnedNode.IsValid())
+	TSharedPtr<SWidget> ColumnWidget = SNullWidget::NullWidget;
+	if (OnGenerateWidgetForColumn.IsBound())
 	{
-		return OnGenerateWidgetForColumn.Execute(PinnedNode.ToSharedRef(), InColumnName, SharedThis(this));
+		ColumnWidget = OnGenerateWidgetForColumn.Execute(Node.Pin().ToSharedRef(), InColumnName, SharedThis(this));
 	}
 
-	return SNullWidget::NullWidget;
+	return SNew(SOverlay)
+		+ SOverlay::Slot()
+		[
+			ColumnWidget.ToSharedRef()
+		];
 }
 
 void SActActionSequenceTreeViewRow::AddTrackAreaReference(const TSharedRef<SActActionSequenceTrackLane>& InTrackLane)

@@ -10,7 +10,6 @@ void SActActionTimeSliderWidget::Construct(const FArguments& InArgs, const TShar
 	TimeSliderController = InTimeSliderController;
 }
 
-
 int32 SActActionTimeSliderWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
 	ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs = TimeSliderController.Pin()->GetTimeSliderArgs();
@@ -29,32 +28,19 @@ int32 SActActionTimeSliderWidget::OnPaint(const FPaintArgs& Args, const FGeometr
 	constexpr float MajorTickHeight = 9.0f;
 	const ESlateDrawEffect DrawEffects = bParentEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 	const bool bMirrorLabels = TimeSliderController.Pin()->bMirrorLabels;
-	ActActionSequence::FActActionDrawTickArgs DrawTickArgs
-	{
-		AllottedGeometry,
-		MyCullingRect,
-		FLinearColor::White,
-		bMirrorLabels ? 0.0f : FMath::Abs(AllottedGeometry.Size.Y - MajorTickHeight),
-		MajorTickHeight,
-		LayerId,
-		DrawEffects,
-		false,
-		bMirrorLabels
-	};
-	DrawTicks(OutDrawElements, LocalViewRange, RangeToScreen, DrawTickArgs);
-
-	// draw playback & selection range
-	ActActionSequence::FActActionPaintPlaybackRangeArgs PaintPlaybackRangeArgs
-	{
-		bMirrorLabels ? FEditorStyle::GetBrush("Sequencer.Timeline.PlayRange_Bottom_L") : FEditorStyle::GetBrush("Sequencer.Timeline.PlayRange_Top_L"),
-		bMirrorLabels ? FEditorStyle::GetBrush("Sequencer.Timeline.PlayRange_Bottom_R") : FEditorStyle::GetBrush("Sequencer.Timeline.PlayRange_Top_R"),
-		6.0f,
-		0.0f
-	};
-
-	LayerId = DrawPlaybackRange(AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, RangeToScreen, PaintPlaybackRangeArgs);
-
-	PaintPlaybackRangeArgs.SolidFillOpacity = 0.05f;
+	ActActionSequence::FActActionDrawTickArgs DrawTickArgs;
+	DrawTickArgs.AllottedGeometry = AllottedGeometry;
+	DrawTickArgs.bMirrorLabels = bMirrorLabels;
+	DrawTickArgs.bOnlyDrawMajorTicks = false;
+	DrawTickArgs.TickColor = FLinearColor::White;
+	DrawTickArgs.CullingRect = MyCullingRect;
+	DrawTickArgs.DrawEffects = DrawEffects;
+	// Draw major ticks under sections
+	DrawTickArgs.StartLayer = LayerId;
+	// Draw the tick the entire height of the section area
+	DrawTickArgs.TickOffset = bMirrorLabels ? 0.0f : FMath::Abs(AllottedGeometry.Size.Y - MajorTickHeight);
+	DrawTickArgs.MajorTickHeight = MajorTickHeight;
+	TimeSliderController.Pin()->DrawTicks(OutDrawElements, LocalViewRange, RangeToScreen, DrawTickArgs);
 
 	// Draw the scrub handle
 	FQualifiedFrameTime ScrubPosition = FQualifiedFrameTime(TimeSliderArgs.ScrubPosition.Get(), TimeSliderArgs.TickResolution.Get());
@@ -84,8 +70,6 @@ int32 SActActionTimeSliderWidget::OnPaint(const FPaintArgs& Args, const FGeometr
 		DrawEffects,
 		ScrubColor
 	);
-
-	// ** DrawMarkedFrames Removed
 
 	// Draw the current time next to the scrub handle
 	FLinearColor TextColor = FLinearColor::Yellow;
@@ -160,6 +144,3 @@ FReply SActActionTimeSliderWidget::OnMouseWheel(const FGeometry& MyGeometry, con
 {
 	return TimeSliderController.Pin()->OnMouseWheel(MyGeometry, MouseEvent);
 }
-
-
-

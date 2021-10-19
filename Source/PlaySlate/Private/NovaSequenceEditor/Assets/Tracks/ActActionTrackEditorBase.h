@@ -6,6 +6,7 @@ class FActActionTrackEditorBase : public TSharedFromThis<FActActionTrackEditorBa
 {
 public:
 	FActActionTrackEditorBase(const TSharedRef<FActActionSequenceController>& InSequenceController);
+
 	virtual ~FActActionTrackEditorBase();
 
 	/**
@@ -16,5 +17,5 @@ public:
 	virtual void BuildAddTrackMenu(FMenuBuilder& MenuBuilder) = 0;
 
 protected:
-	TWeakPtr<FActActionSequenceController> SequenceController;
+	TWeakPtr<FActActionSequenceController> ActActionSequenceController;
 };

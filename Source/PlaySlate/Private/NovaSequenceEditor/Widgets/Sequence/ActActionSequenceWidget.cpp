@@ -26,7 +26,7 @@
 #define LOCTEXT_NAMESPACE "ActActionToolkit"
 
 SActActionSequenceWidget::SActActionSequenceWidget()
-	: ColumnFillCoefficients{0.5, 0.5}
+	: ColumnFillCoefficients{0.3, 0.7}
 {
 }
 
@@ -42,18 +42,15 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 	ActActionSequenceController = InActActionSequenceController;
 
 	const TSharedRef<SScrollBar> ScrollBar = SNew(SScrollBar).Thickness(FVector2D(9.0f, 9.0f));
-	const TSharedRef<FActActionSequenceTreeViewNode> ActActionSequenceTreeViewNode = InActActionSequenceController->
-		GetActActionSequenceTreeViewRoot();
+	const TSharedRef<FActActionSequenceTreeViewNode> ActActionSequenceTreeViewNode = InActActionSequenceController->GetActActionSequenceTreeViewRoot();
 	ActActionSequenceTreeViewNode->MakeActActionSequenceTreeView(ScrollBar);
 	const TSharedRef<SScrollBar> PinnedAreaScrollBar = SNew(SScrollBar).Thickness(FVector2D(9.0f, 9.0f));
 	ActActionSequenceTreeViewNode->MakeActActionSequenceTreeViewPinned(PinnedAreaScrollBar);
 
 	const FMargin ResizeBarPadding(4.0f, 0, 0, 0);
 	TAttribute<float> FillCoefficient_0, FillCoefficient_1;
-	FillCoefficient_0.Bind(
-		TAttribute<float>::FGetter::CreateSP(this, &SActActionSequenceWidget::GetColumnFillCoefficient, 0));
-	FillCoefficient_1.Bind(
-		TAttribute<float>::FGetter::CreateSP(this, &SActActionSequenceWidget::GetColumnFillCoefficient, 1));
+	FillCoefficient_0.Bind(TAttribute<float>::FGetter::CreateSP(this, &SActActionSequenceWidget::GetColumnFillCoefficient, 0));
+	FillCoefficient_1.Bind(TAttribute<float>::FGetter::CreateSP(this, &SActActionSequenceWidget::GetColumnFillCoefficient, 1));
 
 
 	ChildSlot

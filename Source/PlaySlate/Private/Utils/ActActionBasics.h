@@ -4,10 +4,14 @@ namespace ActActionSequence
 {
 	enum class ESequenceNodeType : uint8
 	{
+		// 根节点，不作任何显示
 		Root,
+		// 包含某个类型的可伸缩节点，仅做显示用
 		Folder,
-		Object,
-		Track,
+		// 包含开始时间和结束时间的节点
+		State,
+		// 仅包含开始时间的节点
+		Notify,
 	};
 
 	/** If we are dragging a scrubber or dragging to set the time range */
@@ -59,5 +63,4 @@ namespace ActActionSequence
 		TickLines,
 		ScrubPosition
 	};
-
 }

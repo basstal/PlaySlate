@@ -2,14 +2,19 @@
 #include "ActActionDelegates.h"
 
 class FActActionSequenceController;
+
 class FActActionTrackEditorBase;
+
 class FActActionSequenceTreeViewNode;
+
 class SActActionSequenceTreeViewRow;
 
 namespace ActActionSequence
 {
 	const FName ActActionSequenceTabId(TEXT("ActAction_Sequence"));
+
 	const FName ActActionViewportTabId(TEXT("ActAction_Viewport"));
+
 	const FName ActActionDetailsViewTabId(TEXT("ActAction_DetailsView"));
 
 
@@ -17,11 +22,12 @@ namespace ActActionSequence
 	struct FActActionScrubRangeToScreen
 	{
 		double ViewStart;
+
 		float PixelsPerInput;
 
 		FActActionScrubRangeToScreen(const TRange<double>& InViewInput, const FVector2D& InWidgetSize)
 		{
-			float ViewInputRange = InViewInput.Size<double>();
+			const float ViewInputRange = InViewInput.Size<double>();
 
 			ViewStart = InViewInput.GetLowerBoundValue();
 			PixelsPerInput = ViewInputRange > 0 ? (InWidgetSize.X / ViewInputRange) : 0;
@@ -200,20 +206,28 @@ namespace ActActionSequence
 	{
 		/** Geometry of the area */
 		FGeometry AllottedGeometry;
+
 		/** Culling rect of the area */
 		FSlateRect CullingRect;
+
 		/** Color of each tick */
 		FLinearColor TickColor;
+
 		/** Offset in Y where to start the tick */
 		float TickOffset;
+
 		/** Height in of major ticks */
 		float MajorTickHeight;
+
 		/** Start layer for elements */
 		int32 StartLayer;
+
 		/** Draw effects to apply */
 		ESlateDrawEffect DrawEffects;
+
 		/** Whether or not to only draw major ticks */
 		bool bOnlyDrawMajorTicks;
+
 		/** Whether or not to mirror labels */
 		bool bMirrorLabels;
 	};
@@ -222,10 +236,13 @@ namespace ActActionSequence
 	{
 		/** Brush to use for the start bound */
 		const FSlateBrush* StartBrush;
+
 		/** Brush to use for the end bound */
 		const FSlateBrush* EndBrush;
+
 		/** The width of the above brushes, in slate units */
 		float BrushWidth;
+
 		/** level of opacity for the fill color between the range markers */
 		float SolidFillOpacity;
 	};
@@ -234,10 +251,13 @@ namespace ActActionSequence
 	{
 		/** The extents of the current frame that the scrubber is on, in pixels */
 		TRange<float> FrameExtentsPx;
+
 		/** The pixel range that the scrubber handle (thumb) occupies */
 		TRange<float> HandleRangePx;
+
 		/** The style of the scrubber handle */
 		ESequencerScrubberStyle Style;
+
 		/** The style of the scrubber handle */
 		bool bDrawExtents;
 	};
@@ -338,6 +358,7 @@ namespace ActActionSequence
 	struct FActActionAnimatedTypeCache
 	{
 		FDelegateHandle FactoryHandle;
+
 		TArray<FActActionAnimatedPropertyKey, TInlineAllocator<4>> AnimatedTypes;
 	};
 
@@ -345,10 +366,13 @@ namespace ActActionSequence
 	{
 		/** Whether to display tick lines */
 		bool bDisplayTickLines;
+
 		/** Whether to display the scrub position */
 		bool bDisplayScrubPosition;
+
 		/** Whether to display the marked frames */
 		bool bDisplayMarkedFrames;
+
 		/** Optional Paint args for the playback range*/
 		TOptional<FActActionPaintPlaybackRangeArgs> PlaybackRangeArgs;
 	};
@@ -405,6 +429,7 @@ namespace ActActionSequence
 
 		/** Function used to generate a cell for this column */
 		FOnGenerate Generator;
+
 		/** Attribute specifying the width of this column */
 		TAttribute<float> Width;
 	};

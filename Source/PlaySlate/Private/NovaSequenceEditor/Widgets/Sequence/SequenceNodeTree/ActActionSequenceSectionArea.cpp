@@ -9,7 +9,6 @@
 
 void SActActionSequenceSectionArea::Construct(const FArguments& InArgs, TSharedRef<FActActionSequenceTreeViewNode> InNode)
 {
-	check(InNode->GetType() == ActActionSequence::ESequenceNodeType::Track);
 	SectionAreaNode = InNode;
 
 	// Generate widgets for sections in this view
@@ -41,7 +40,6 @@ bool SActActionSequenceSectionArea::GetSectionEnabled(TSharedRef<FActActionSeque
 {
 	return !InSequenceSection->IsReadOnly();
 }
-
 
 
 FText SActActionSequenceSectionArea::GetSectionToolTip(TSharedRef<FActActionSequenceSectionBase> InSequenceSection) const

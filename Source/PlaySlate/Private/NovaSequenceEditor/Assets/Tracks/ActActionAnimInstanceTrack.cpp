@@ -51,8 +51,8 @@ void FActActionAnimInstanceTrack::AssignAnimInstance()
 
 	const FVector2D DefaultWindowSize(1152.0f, 648.0f);
 	AnimInstanceSelectionDialog = SNew(SWindow)
-    		.Title(LOCTEXT("TrackEditor", "Select AnimMontage Asset"))
-    		.ClientSize(DefaultWindowSize);
+    .Title(LOCTEXT("TrackEditor", "Select AnimMontage Asset"))
+    .ClientSize(DefaultWindowSize);
 
 	AnimInstanceSelectionDialog->SetContent(SNew(SBox)
 	.HeightOverride(300)
@@ -69,11 +69,10 @@ void FActActionAnimInstanceTrack::AssignAnimInstance()
 
 void FActActionAnimInstanceTrack::OnAssetSelected(const FAssetData& InAssetData)
 {
-	if (InAssetData.IsValid() && SequenceController.IsValid())
+	if (InAssetData.IsValid() && ActActionSequenceController.IsValid())
 	{
 		UE_LOG(LogActAction, Log, TEXT("InAssetData : %s"), *InAssetData.GetFullName());
-		UAnimBlueprint* AnimBlueprint = Cast<UAnimBlueprint>(InAssetData.GetAsset());
-		SequenceController.Pin()->GetActActionSequenceEditor()->InitAnimBlueprint(AnimBlueprint);
+		// ** 暂不支持以此方式添加AnimBlueprint
 		AnimInstanceSelectionDialog->RequestDestroyWindow();
 	}
 }

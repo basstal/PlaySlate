@@ -499,14 +499,12 @@ int32 FActActionTimeSliderController::DrawSubSequenceRange(const FGeometry& Allo
 	const FFrameRate Resolution = TimeSliderArgs.TickResolution.Get();
 	const FFrameNumber LowerFrame = RangeValue.GetValue().GetLowerBoundValue();
 	const FFrameNumber UpperFrame = RangeValue.GetValue().GetUpperBoundValue();
-
 	const float SubSequenceRangeL = RangeToScreen.InputToLocalX(LowerFrame / Resolution) - 1;
 	const float SubSequenceRangeR = RangeToScreen.InputToLocalX(UpperFrame / Resolution) + 1;
-
 	static const FSlateBrush* LineBrushL(FEditorStyle::GetBrush("Sequencer.Timeline.PlayRange_L"));
 	static const FSlateBrush* LineBrushR(FEditorStyle::GetBrush("Sequencer.Timeline.PlayRange_R"));
-
 	constexpr FColor GreenTint(32, 128, 32); // 120, 75, 50 (HSV)
+
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		LayerId + 1,

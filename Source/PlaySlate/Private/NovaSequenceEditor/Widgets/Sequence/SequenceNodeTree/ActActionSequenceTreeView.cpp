@@ -4,6 +4,7 @@
 #include "NovaSequenceEditor/Widgets/Sequence/SequenceNodeTree/Subs/ActActionSequenceTrackLane.h"
 #include "NovaSequenceEditor/Controllers/Sequence/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
 #include "NovaSequenceEditor/Controllers/Sequence/ActActionSequenceController.h"
+// ReSharper disable once CppUnusedIncludeDirective
 #include "NovaSequenceEditor/Widgets/Sequence/SequenceNodeTree/ActActionOutlinerTreeNode.h"
 #include "Subs/ActActionSequenceTreeViewRow.h"
 
@@ -15,29 +16,11 @@ void SActActionSequenceTreeView::Construct(const FArguments& InArgs, const TShar
 
 	HeaderRow = SNew(SHeaderRow)
 		.Visibility(EVisibility::Collapsed);
-
-	// Generate Columns
-	auto GenerateOutlinerLambda = [](const TSharedRef<FActActionSequenceTreeViewNode>& InActActionSequenceTreeViewNode, const TSharedRef<SActActionSequenceTreeViewRow>& InTreeViewRow)-> TSharedRef<SActActionOutlinerTreeNode>
-	{
-		InActActionSequenceTreeViewNode->MakeContainerWidgetForOutliner(InTreeViewRow);
-		return InActActionSequenceTreeViewNode->GetActActionOutlinerTreeNode();
-	};
-	Columns.Add("Outliner", ActActionSequence::FActActionSequenceTreeViewColumn(GenerateOutlinerLambda, 1.0f));
-	// Now populate the header row with the columns
-	for (TTuple<FName, ActActionSequence::FActActionSequenceTreeViewColumn>& Pair : Columns)
-	{
-		if (Pair.Key != FName("TrackArea"))
-		{
-			HeaderRow->AddColumn(
-				SHeaderRow::Column(Pair.Key)
-				.FillWidth(Pair.Value.Width)
-			);
-		}
-	}
+	HeaderRow->AddColumn(SHeaderRow::Column(FName("Outliner")).FillWidth(1.0f));
 
 	STreeView::Construct(
 		STreeView::FArguments()
-		.TreeItemsSource(&DisplayedRootNodes)
+		.TreeItemsSource(&InActActionSequenceTreeViewNode->GetDisplayedRootNodes())
 		.SelectionMode(ESelectionMode::Multi)
 		.OnGenerateRow(this, &SActActionSequenceTreeView::OnGenerateRow)
 		.OnGetChildren(this, &SActActionSequenceTreeView::OnGetChildren)
@@ -48,20 +31,13 @@ void SActActionSequenceTreeView::Construct(const FArguments& InArgs, const TShar
 	);
 }
 
-
-void SActActionSequenceTreeView::AddDisplayNode(TSharedPtr<FActActionSequenceTreeViewNode> SequenceDisplayNode)
-{
-	DisplayedRootNodes.Add(SequenceDisplayNode.ToSharedRef());
-	SetTreeItemsSource(&DisplayedRootNodes);
-}
-
 TSharedRef<ITableRow> SActActionSequenceTreeView::OnGenerateRow(TSharedRef<FActActionSequenceTreeViewNode> InDisplayNode, const TSharedRef<STableViewBase>& OwnerTable)
 {
 	TSharedRef<SActActionSequenceTreeViewRow> Row = SNew(SActActionSequenceTreeViewRow, OwnerTable, InDisplayNode)
 		.OnGenerateWidgetForColumn(this, &SActActionSequenceTreeView::GenerateWidgetFromColumn);
 
 	// Ensure the track area is kept up to date with the virtualized scroll of the tree view
-	TSharedPtr<FActActionSequenceTreeViewNode> SectionAuthority = InDisplayNode->GetSectionAreaAuthority();
+	const TSharedPtr<FActActionSequenceTreeViewNode> SectionAuthority = InDisplayNode->GetSectionAreaAuthority();
 	if (SectionAuthority.IsValid())
 	{
 		TSharedPtr<SActActionSequenceTrackLane> TrackLane = TrackArea->FindTrackSlot(SectionAuthority.ToSharedRef());
@@ -86,10 +62,9 @@ TSharedRef<ITableRow> SActActionSequenceTreeView::OnGenerateRow(TSharedRef<FActA
 
 TSharedRef<SWidget> SActActionSequenceTreeView::GenerateWidgetFromColumn(const TSharedRef<FActActionSequenceTreeViewNode>& InNode, const FName& ColumnId, const TSharedRef<SActActionSequenceTreeViewRow>& Row) const
 {
-	const ActActionSequence::FActActionSequenceTreeViewColumn* TreeViewColumn = Columns.Find(ColumnId);
-	if (TreeViewColumn)
+	if (ColumnId == "Outliner")
 	{
-		return TreeViewColumn->Generator(InNode, Row);
+		return InNode->MakeOutlinerWidget(Row);
 	}
 	return SNullWidget::NullWidget;
 }
@@ -101,18 +76,6 @@ void SActActionSequenceTreeView::OnGetChildren(TSharedRef<FActActionSequenceTree
 		if (!Node->IsHidden())
 		{
 			OutChildren.Add(Node);
-		}
-	}
-}
-
-void SActActionSequenceTreeView::Refresh()
-{
-	DisplayedRootNodes.Reset();
-	for (auto& Item : SequenceTreeViewNode.Pin()->GetChildNodes())
-	{
-		if (Item->IsVisible())
-		{
-			DisplayedRootNodes.Add(Item);
 		}
 	}
 }
