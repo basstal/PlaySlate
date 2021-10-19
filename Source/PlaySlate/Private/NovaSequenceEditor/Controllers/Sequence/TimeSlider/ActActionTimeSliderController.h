@@ -3,8 +3,13 @@
 #include "Utils/ActActionSequenceUtil.h"
 
 class SActActionTimeSliderWidget;
+
 class SActActionTimeRangeSlider;
+
 class SActActionTimeRange;
+
+class FActActionSequenceSectionOverlayController;
+
 /**
  * Sequence的时间滑块控制器，管理Sequence的时间轴相关数据
  * 对应的View模块为SActActionSequenceTimeSliderWidget
@@ -12,8 +17,10 @@ class SActActionTimeRange;
 class FActActionTimeSliderController : public TSharedFromThis<FActActionTimeSliderController>
 {
 	friend class SActActionTimeSliderWidget;
+
 public:
 	FActActionTimeSliderController(const TSharedRef<FActActionSequenceController>& InSequenceController);
+
 	~FActActionTimeSliderController();
 
 	/**
@@ -25,10 +32,12 @@ public:
 	 * TODO:
 	 */
 	FFrameTime ComputeFrameTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, ActActionSequence::FActActionScrubRangeToScreen RangeToScreen, bool CheckSnapping = true) const;
+
 	/**
 	 * TODO:
 	 */
 	FFrameTime ComputeScrubTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, ActActionSequence::FActActionScrubRangeToScreen RangeToScreen) const;
+
 	/**
 	 * Call this method when the user's interaction has changed the scrub position
 	 *
@@ -36,6 +45,7 @@ public:
 	 * @param bIsScrubbing			True if done via scrubbing, false if just releasing scrubbing
 	 */
 	void CommitScrubPosition(FFrameTime NewValue, bool bIsScrubbing) const;
+
 	/**
 	 * Set a new range based on a min, max and an interpolation mode
 	 * 
@@ -49,22 +59,27 @@ public:
 	 * Hit test the lower bound of a range
 	 */
 	bool HitTestRangeStart(const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const TRange<double>& Range, float HitPixel) const;
+
 	/**
 	 * Hit test the upper bound of a range
 	 */
 	bool HitTestRangeEnd(const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const TRange<double>& Range, float HitPixel) const;
+
 	/**
 	 * TODO:
 	 */
 	void SetPlaybackRangeStart(FFrameNumber NewStart) const;
+
 	/**
 	* TODO:
 	*/
 	void SetPlaybackRangeEnd(FFrameNumber NewEnd) const;
+
 	/**
 	* TODO:
 	*/
 	void SetSelectionRangeStart(FFrameNumber NewStart) const;
+
 	/**
 	* TODO:
 	*/
@@ -77,6 +92,7 @@ public:
 	 * @param ZoomBias		Bias to apply to lower/upper extents of the range. (0 = lower, 0.5 = equal, 1 = upper)
 	 */
 	bool ZoomByDelta(float InDelta, float ZoomBias = 0.5f) const;
+
 	/**
 	 * Pan the range by a given delta
 	 * 
@@ -91,6 +107,7 @@ public:
 	 * @param MouseEvent 当前响应的鼠标事件
 	 */
 	FReply OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
+
 	/**
 	 * Widget的OnMouseButtonUp回调
 	 * 
@@ -98,6 +115,7 @@ public:
 	 * @param MouseEvent 当前响应的鼠标事件
 	 */
 	FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
+
 	/**
 	 * Widget的OnMouseMove回调
 	 * 
@@ -105,6 +123,7 @@ public:
 	 * @param MouseEvent 当前响应的鼠标事件
 	 */
 	FReply OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
+
 	/**
 	 * Widget的OnMouseWheel回调
 	 * 
@@ -117,17 +136,22 @@ public:
 	 * @return 获得TimeSlider相关参数
 	 */
 	ActActionSequence::FActActionTimeSliderArgs& GetTimeSliderArgs() const;
+
 protected:
 	/**
 	 * 隶属的Controller
 	 */
 	TWeakPtr<FActActionSequenceController> ActActionSequenceController;
+
 	/** 对应控制的Widget */
 	TSharedPtr<SActActionTimeSliderWidget> ActActionTimeSliderWidget;
+
 	/** TimeRange Widget */
 	TSharedPtr<SActActionTimeRange> ActActionTimeRange;
+
 	/** Total mouse delta during dragging **/
 	float DistanceDragged;
+
 	/**
 	 * 当前鼠标的拖拽状态
 	 */
@@ -141,19 +165,44 @@ protected:
 
 	/** If we are currently panning the panel */
 	bool bPanning;
+
 	/** Range stack */
 	TArray<TRange<double>> ViewRangeStack;
+
 	/** Geometry on mouse down */
 	FGeometry MouseDownGeometry;
+
 	/* If we should mirror the labels on the timeline */
 	bool bMirrorLabels;
+
+	/**
+	* SectionOverlay的Controller，这个用来绘制TickLines
+	*/
+	TSharedPtr<FActActionSequenceSectionOverlayController> TickLinesSequenceSectionOverlayController;
+
+	/**
+	* SectionOverlay的Controller，这个用来绘制Scrub位置
+	*/
+	TSharedPtr<FActActionSequenceSectionOverlayController> ScrubPosSequenceSectionOverlayController;
+
 public:
 	TSharedRef<SActActionTimeSliderWidget> GetActActionTimeSliderWidget() const
 	{
 		return ActActionTimeSliderWidget.ToSharedRef();
 	}
+
 	TSharedRef<SActActionTimeRange> GetActActionTimeRange() const
 	{
 		return ActActionTimeRange.ToSharedRef();
+	}
+
+	TSharedRef<FActActionSequenceSectionOverlayController> GetTickLinesSequenceSectionOverlayController() const
+	{
+		return TickLinesSequenceSectionOverlayController.ToSharedRef();
+	}
+
+	TSharedRef<FActActionSequenceSectionOverlayController> GetScrubPosSequenceSectionOverlayController() const
+	{
+		return ScrubPosSequenceSectionOverlayController.ToSharedRef();
 	}
 };

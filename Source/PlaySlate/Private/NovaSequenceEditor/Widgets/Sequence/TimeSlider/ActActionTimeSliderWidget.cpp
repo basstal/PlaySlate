@@ -26,7 +26,7 @@ int32 SActActionTimeSliderWidget::OnPaint(const FPaintArgs& Args, const FGeometr
 	ActActionSequence::FActActionScrubRangeToScreen RangeToScreen(LocalViewRange, AllottedGeometry.Size);
 
 	// ** draw tick marks
-	const float MajorTickHeight = 9.0f;
+	constexpr float MajorTickHeight = 9.0f;
 	const ESlateDrawEffect DrawEffects = bParentEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 	const bool bMirrorLabels = TimeSliderController.Pin()->bMirrorLabels;
 	ActActionSequence::FActActionDrawTickArgs DrawTickArgs
@@ -53,7 +53,7 @@ int32 SActActionTimeSliderWidget::OnPaint(const FPaintArgs& Args, const FGeometr
 	};
 
 	LayerId = DrawPlaybackRange(AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, RangeToScreen, PaintPlaybackRangeArgs);
-	LayerId = DrawSubSequenceRange(AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, RangeToScreen, PaintPlaybackRangeArgs);
+	// LayerId = DrawSubSequenceRange(AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, RangeToScreen, PaintPlaybackRangeArgs);
 
 	PaintPlaybackRangeArgs.SolidFillOpacity = 0.05f;
 
@@ -102,7 +102,7 @@ int32 SActActionTimeSliderWidget::OnPaint(const FPaintArgs& Args, const FGeometr
 	FVector2D TextSize = SlateFontMeasureService->Measure(FrameString, SmallLayoutFont);
 
 	// Flip the text position if getting near the end of the view range
-	static const float TextOffsetPx = 2.f;
+	static constexpr float TextOffsetPx = 2.f;
 	bool bDrawLeft = (AllottedGeometry.Size.X - HandleEnd) < ((TextSize.X + 14.f) - TextOffsetPx);
 	float TextPosition = bDrawLeft ? (HandleStart - TextSize.X - TextOffsetPx) : (HandleEnd + TextOffsetPx);
 	FVector2D TextOffset(TextPosition, bMirrorLabels ? (DrawTickArgs.AllottedGeometry.Size.Y - TextSize.Y) : 0.0f);
@@ -164,7 +164,7 @@ FReply SActActionTimeSliderWidget::OnMouseWheel(const FGeometry& MyGeometry, con
 	return TimeSliderController.Pin()->OnMouseWheel(MyGeometry, MouseEvent);
 }
 
-void SActActionTimeSliderWidget::DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<double>& ViewRange, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, ActActionSequence::FActActionDrawTickArgs& InArgs) const
+void SActActionTimeSliderWidget::DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<double>& ViewRange, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionDrawTickArgs& InArgs) const
 {
 	const ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs = TimeSliderController.Pin()->GetTimeSliderArgs();
 	const FFrameRate TickResolution = TimeSliderArgs.TickResolution.Get();
@@ -328,7 +328,7 @@ int32 SActActionTimeSliderWidget::DrawSubSequenceRange(const FGeometry& Allotted
 	static const FSlateBrush* LineBrushL(FEditorStyle::GetBrush("Sequencer.Timeline.PlayRange_L"));
 	static const FSlateBrush* LineBrushR(FEditorStyle::GetBrush("Sequencer.Timeline.PlayRange_R"));
 
-	const FColor GreenTint(32, 128, 32); // 120, 75, 50 (HSV)
+	constexpr FColor GreenTint(32, 128, 32); // 120, 75, 50 (HSV)
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		LayerId + 1,
@@ -338,7 +338,7 @@ int32 SActActionTimeSliderWidget::DrawSubSequenceRange(const FGeometry& Allotted
 		GreenTint
 	);
 
-	const FColor RedTint(128, 32, 32); // 0, 75, 50 (HSV)
+	constexpr FColor RedTint(128, 32, 32); // 0, 75, 50 (HSV)
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		LayerId + 1,

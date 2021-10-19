@@ -7,7 +7,7 @@ void SActActionSequenceSectionOverlayWidget::Construct(const FArguments& InArgs,
 	bDisplayScrubPosition = InArgs._DisplayScrubPosition;
 	bDisplayTickLines = InArgs._DisplayTickLines;
 	bDisplayMarkedFrames = InArgs._DisplayMarkedFrames;
-	PaintPlaybackRangeArgs = InArgs._PaintPlaybackRangeArgs;
+	// PaintPlaybackRangeArgs = InArgs._PaintPlaybackRangeArgs;
 	ActActionSequenceSectionOverlayController = InActActionSequenceSectionOverlayController;
 }
 
@@ -18,27 +18,22 @@ int32 SActActionSequenceSectionOverlayWidget::OnPaint(const FPaintArgs& Args, co
 	PaintArgs.bDisplayScrubPosition = bDisplayScrubPosition.Get();
 	PaintArgs.bDisplayMarkedFrames = bDisplayMarkedFrames.Get();
 
-	if (PaintPlaybackRangeArgs.IsSet())
-	{
-		PaintArgs.PlaybackRangeArgs = PaintPlaybackRangeArgs.Get();
-	}
-
-	// ActActionSequenceSectionOverlayController.Pin()->OnPaintViewArea(AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, ShouldBeEnabled(bParentEnabled), PaintArgs);
+	// if (PaintPlaybackRangeArgs.IsSet())
+	// {
+	// 	PaintArgs.PlaybackRangeArgs = PaintPlaybackRangeArgs.Get();
+	// }
 
 	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = ActActionSequenceSectionOverlayController.Pin()->GetTimeSliderArgs();
 	const ESlateDrawEffect DrawEffects = ShouldBeEnabled(bParentEnabled) ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
-
 	TRange<double> LocalViewRange = TimeSliderArgs.ViewRange.Get();
 	ActActionSequence::FActActionScrubRangeToScreen RangeToScreen(LocalViewRange, AllottedGeometry.Size);
-
-	if (PaintArgs.PlaybackRangeArgs.IsSet())
-	{
-		ActActionSequence::FActActionPaintPlaybackRangeArgs PaintPlaybackRangeArgsTemp = PaintArgs.PlaybackRangeArgs.GetValue();
-		LayerId = ActActionSequenceSectionOverlayController.Pin()->DrawPlaybackRange(AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, RangeToScreen, PaintPlaybackRangeArgsTemp);
-		LayerId = ActActionSequenceSectionOverlayController.Pin()->DrawSubSequenceRange(AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, RangeToScreen, PaintPlaybackRangeArgsTemp);
-		PaintPlaybackRangeArgsTemp.SolidFillOpacity = 0.0f;
-	}
-
+	// if (PaintArgs.PlaybackRangeArgs.IsSet())
+	// {
+	// 	ActActionSequence::FActActionPaintPlaybackRangeArgs PaintPlaybackRangeArgsTemp = PaintArgs.PlaybackRangeArgs.GetValue();
+	// 	LayerId = ActActionSequenceSectionOverlayController.Pin()->DrawPlaybackRange(AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, RangeToScreen, PaintPlaybackRangeArgsTemp);
+	// 	LayerId = ActActionSequenceSectionOverlayController.Pin()->DrawSubSequenceRange(AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, RangeToScreen, PaintPlaybackRangeArgsTemp);
+	// 	PaintPlaybackRangeArgsTemp.SolidFillOpacity = 0.0f;
+	// }
 	if (PaintArgs.bDisplayTickLines)
 	{
 		static FLinearColor TickColor(0.0f, 0.0f, 0.0f, 0.3f);
@@ -65,7 +60,6 @@ int32 SActActionSequenceSectionOverlayWidget::OnPaint(const FPaintArgs& Args, co
 		FQualifiedFrameTime ScrubPosition = FQualifiedFrameTime(TimeSliderArgs.ScrubPosition.Get(), TimeSliderArgs.TickResolution.Get());
 		const FFrameRate DisplayRate = TimeSliderArgs.DisplayRate.Get();
 		ActActionSequence::FActActionScrubberMetrics ScrubMetrics = ActActionSequence::ActActionStaticUtil::GetScrubPixelMetrics(DisplayRate, ScrubPosition, RangeToScreen);
-
 		if (ScrubMetrics.bDrawExtents)
 		{
 			// Draw a box for the scrub position

@@ -1,12 +1,13 @@
 ﻿#include "ActActionSequenceSectionOverlayController.h"
 
+#include "ActActionTimeSliderController.h"
 #include "PlaySlate.h"
 #include "NovaSequenceEditor/Controllers/Sequence/ActActionSequenceController.h"
 #include "NovaSequenceEditor/Widgets/Sequence/TimeSlider/ActActionSequenceSectionOverlayWidget.h"
 #include "Utils/ActActionStaticUtil.h"
 
-FActActionSequenceSectionOverlayController::FActActionSequenceSectionOverlayController(const TSharedRef<FActActionSequenceController>& InSequenceController)
-	: ActActionSequenceController(InSequenceController)
+FActActionSequenceSectionOverlayController::FActActionSequenceSectionOverlayController(const TSharedRef<FActActionTimeSliderController>& InActActionTimeSliderController)
+	: ActActionTimeSliderController(InActActionTimeSliderController)
 {
 }
 
@@ -25,10 +26,9 @@ void FActActionSequenceSectionOverlayController::MakeSequenceSectionOverlayWidge
 			.Clipping(EWidgetClipping::ClipToBounds);
 }
 
-int32 FActActionSequenceSectionOverlayController::DrawPlaybackRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen,
-                                                                    const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const
+int32 FActActionSequenceSectionOverlayController::DrawPlaybackRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const
 {
-	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
+	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	if (!TimeSliderArgs.PlaybackRange.IsSet())
 	{
 		return LayerId;
@@ -82,10 +82,9 @@ int32 FActActionSequenceSectionOverlayController::DrawPlaybackRange(const FGeome
 }
 
 
-int32 FActActionSequenceSectionOverlayController::DrawSubSequenceRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen,
-                                                                       const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const
+int32 FActActionSequenceSectionOverlayController::DrawSubSequenceRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const
 {
-	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
+	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	TOptional<TRange<FFrameNumber>> RangeValue;
 	RangeValue = TimeSliderArgs.SubSequenceRange.Get(RangeValue);
 
@@ -104,7 +103,7 @@ int32 FActActionSequenceSectionOverlayController::DrawSubSequenceRange(const FGe
 	static const FSlateBrush* LineBrushL(FEditorStyle::GetBrush("Sequencer.Timeline.PlayRange_L"));
 	static const FSlateBrush* LineBrushR(FEditorStyle::GetBrush("Sequencer.Timeline.PlayRange_R"));
 
-	const FColor GreenTint(32, 128, 32); // 120, 75, 50 (HSV)
+	constexpr FColor GreenTint(32, 128, 32); // 120, 75, 50 (HSV)
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		LayerId + 1,
@@ -114,7 +113,7 @@ int32 FActActionSequenceSectionOverlayController::DrawSubSequenceRange(const FGe
 		GreenTint
 	);
 
-	const FColor RedTint(128, 32, 32); // 0, 75, 50 (HSV)
+	constexpr FColor RedTint(128, 32, 32); // 0, 75, 50 (HSV)
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		LayerId + 1,
@@ -165,9 +164,9 @@ int32 FActActionSequenceSectionOverlayController::DrawSubSequenceRange(const FGe
 	return LayerId + 1;
 }
 
-void FActActionSequenceSectionOverlayController::DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<double>& ViewRange, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, ActActionSequence::FActActionDrawTickArgs& InArgs) const
+void FActActionSequenceSectionOverlayController::DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<double>& ViewRange, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionDrawTickArgs& InArgs) const
 {
-	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
+	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	const FFrameRate TickResolution = TimeSliderArgs.TickResolution.Get();
 	const FFrameRate DisplayRate = TimeSliderArgs.DisplayRate.Get();
 	const FPaintGeometry PaintGeometry = InArgs.AllottedGeometry.ToPaintGeometry();
@@ -252,5 +251,5 @@ void FActActionSequenceSectionOverlayController::DrawTicks(FSlateWindowElementLi
 
 ActActionSequence::FActActionTimeSliderArgs& FActActionSequenceSectionOverlayController::GetTimeSliderArgs() const
 {
-	return ActActionSequenceController.Pin()->GetTimeSliderArgs();
+	return ActActionTimeSliderController.Pin()->GetTimeSliderArgs();
 }

@@ -1,5 +1,6 @@
 ﻿#include "ActActionTimeSliderController.h"
 
+#include "ActActionSequenceSectionOverlayController.h"
 #include "PlaySlate.h"
 #include "Utils/ActActionStaticUtil.h"
 #include "Utils/ActActionSequenceUtil.h"
@@ -31,6 +32,10 @@ void FActActionTimeSliderController::MakeTimeSliderWidget()
 	ActActionTimeSliderWidget = SNew(SActActionTimeSliderWidget, SharedThis(this));
 	TSharedRef<SActActionTimeRangeSlider> ActActionTimeRangeSlider = SNew(SActActionTimeRangeSlider, SharedThis(this));
 	ActActionTimeRange = SNew(SActActionTimeRange, SharedThis(this), ActActionTimeRangeSlider);
+	TickLinesSequenceSectionOverlayController = MakeShareable(new FActActionSequenceSectionOverlayController(SharedThis(this)));
+	TickLinesSequenceSectionOverlayController->MakeSequenceSectionOverlayWidget(ActActionSequence::ESectionOverlayWidgetType::TickLines);
+	ScrubPosSequenceSectionOverlayController = MakeShareable(new FActActionSequenceSectionOverlayController(SharedThis(this)));
+	ScrubPosSequenceSectionOverlayController->MakeSequenceSectionOverlayWidget(ActActionSequence::ESectionOverlayWidgetType::ScrubPosition);
 }
 
 FFrameTime FActActionTimeSliderController::ComputeFrameTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, ActActionSequence::FActActionScrubRangeToScreen RangeToScreen, bool CheckSnapping) const

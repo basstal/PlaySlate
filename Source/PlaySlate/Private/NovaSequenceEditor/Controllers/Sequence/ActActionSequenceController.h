@@ -29,7 +29,6 @@ public:
 	void MakeSequenceWidget(ActActionSequence::FActActionSequenceViewParams ViewParams);
 
 	//~Begin FTickableEditorObject interface
-	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 	//~End FTickableEditorObject interface
 
@@ -131,16 +130,6 @@ protected:
 	 */
 	TSharedPtr<FActActionSequenceTreeViewNode> ActActionSequenceTreeViewNode;
 	/**
-	 * TODO:取一个更好的字段名
-	 * SectionOverlay的Controller，这个用来绘制TickLines
-	 */
-	TSharedPtr<FActActionSequenceSectionOverlayController> ActActionSequenceSectionOverlayController0;
-	/**
-	 * TODO:取一个更好的字段名
-	 * SectionOverlay的Controller，这个用来绘制Scrub位置
-	 */
-	TSharedPtr<FActActionSequenceSectionOverlayController> ActActionSequenceSectionOverlayController1;
-	/**
 	 * UMG Sequence main
 	 */
 	TSharedPtr<SActActionSequenceWidget> ActActionSequenceWidget;
@@ -182,19 +171,6 @@ public:
 	{
 		return ActActionSequenceEditor.Pin().ToSharedRef();
 	}
-
-	// TODO:取一个更好的函数名 
-	TSharedRef<FActActionSequenceSectionOverlayController> GetActActionSequenceSectionOverlayController0() const
-	{
-		return ActActionSequenceSectionOverlayController0.ToSharedRef();
-	}
-
-	// TODO:取一个更好的函数名 
-	TSharedRef<FActActionSequenceSectionOverlayController> GetActActionSequenceSectionOverlayController1() const
-	{
-		return ActActionSequenceSectionOverlayController1.ToSharedRef();
-	}
-
 	ActActionSequence::FActActionTimeSliderArgs& GetTimeSliderArgs()
 	{
 		return TimeSliderArgs;

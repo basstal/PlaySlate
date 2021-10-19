@@ -74,17 +74,7 @@ void FActActionSequenceController::MakeSequenceWidget(ActActionSequence::FActAct
 	TimeSliderArgs.ClampRange.Bind(TAttribute<ActActionSequence::FActActionAnimatedRange>::FGetter::CreateSP(this, &FActActionSequenceController::GetClampRange));
 	ActActionTimeSliderController = MakeShareable(new FActActionTimeSliderController(SharedThis(this)));
 	ActActionTimeSliderController->MakeTimeSliderWidget();
-
-	ActActionSequenceSectionOverlayController0 = MakeShareable(new FActActionSequenceSectionOverlayController(SharedThis(this)));
-	ActActionSequenceSectionOverlayController0->MakeSequenceSectionOverlayWidget(ActActionSequence::ESectionOverlayWidgetType::TickLines);
-	ActActionSequenceSectionOverlayController1 = MakeShareable(new FActActionSequenceSectionOverlayController(SharedThis(this)));
-	ActActionSequenceSectionOverlayController1->MakeSequenceSectionOverlayWidget(ActActionSequence::ESectionOverlayWidgetType::ScrubPosition);
-
 	ActActionSequenceWidget = SNew(SActActionSequenceWidget, SharedThis(this));
-}
-
-void FActActionSequenceController::Tick(float DeltaTime)
-{
 }
 
 TStatId FActActionSequenceController::GetStatId() const
