@@ -7,7 +7,6 @@ void SActActionSequenceSectionOverlayWidget::Construct(const FArguments& InArgs,
 	bDisplayScrubPosition = InArgs._DisplayScrubPosition;
 	bDisplayTickLines = InArgs._DisplayTickLines;
 	bDisplayMarkedFrames = InArgs._DisplayMarkedFrames;
-	// PaintPlaybackRangeArgs = InArgs._PaintPlaybackRangeArgs;
 	ActActionSequenceSectionOverlayController = InActActionSequenceSectionOverlayController;
 }
 
@@ -17,27 +16,13 @@ int32 SActActionSequenceSectionOverlayWidget::OnPaint(const FPaintArgs& Args, co
 	PaintArgs.bDisplayTickLines = bDisplayTickLines.Get();
 	PaintArgs.bDisplayScrubPosition = bDisplayScrubPosition.Get();
 	PaintArgs.bDisplayMarkedFrames = bDisplayMarkedFrames.Get();
-
-	// if (PaintPlaybackRangeArgs.IsSet())
-	// {
-	// 	PaintArgs.PlaybackRangeArgs = PaintPlaybackRangeArgs.Get();
-	// }
-
-	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = ActActionSequenceSectionOverlayController.Pin()->GetTimeSliderArgs();
+	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = ActActionSequenceSectionOverlayController.Pin()->GetTimeSliderArgs();
 	const ESlateDrawEffect DrawEffects = ShouldBeEnabled(bParentEnabled) ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 	TRange<double> LocalViewRange = TimeSliderArgs.ViewRange.Get();
-	ActActionSequence::FActActionScrubRangeToScreen RangeToScreen(LocalViewRange, AllottedGeometry.Size);
-	// if (PaintArgs.PlaybackRangeArgs.IsSet())
-	// {
-	// 	ActActionSequence::FActActionPaintPlaybackRangeArgs PaintPlaybackRangeArgsTemp = PaintArgs.PlaybackRangeArgs.GetValue();
-	// 	LayerId = ActActionSequenceSectionOverlayController.Pin()->DrawPlaybackRange(AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, RangeToScreen, PaintPlaybackRangeArgsTemp);
-	// 	LayerId = ActActionSequenceSectionOverlayController.Pin()->DrawSubSequenceRange(AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, RangeToScreen, PaintPlaybackRangeArgsTemp);
-	// 	PaintPlaybackRangeArgsTemp.SolidFillOpacity = 0.0f;
-	// }
+	const ActActionSequence::FActActionScrubRangeToScreen RangeToScreen(LocalViewRange, AllottedGeometry.Size);
 	if (PaintArgs.bDisplayTickLines)
 	{
 		static FLinearColor TickColor(0.0f, 0.0f, 0.0f, 0.3f);
-
 		// Draw major tick lines in the section area
 		ActActionSequence::FActActionDrawTickArgs DrawTickArgs;
 		DrawTickArgs.AllottedGeometry = AllottedGeometry;
@@ -51,7 +36,6 @@ int32 SActActionSequenceSectionOverlayWidget::OnPaint(const FPaintArgs& Args, co
 		// Draw the tick the entire height of the section area
 		DrawTickArgs.TickOffset = 0.0f;
 		DrawTickArgs.MajorTickHeight = AllottedGeometry.Size.Y;
-
 		ActActionSequenceSectionOverlayController.Pin()->DrawTicks(OutDrawElements, LocalViewRange, RangeToScreen, DrawTickArgs);
 	}
 

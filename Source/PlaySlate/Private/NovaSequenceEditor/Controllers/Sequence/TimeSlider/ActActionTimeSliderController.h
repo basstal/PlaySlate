@@ -137,6 +137,22 @@ public:
 	 */
 	ActActionSequence::FActActionTimeSliderArgs& GetTimeSliderArgs() const;
 
+	/** 绘制子Sequence范围，TODO:当前可能不需要 */
+	int32 DrawSubSequenceRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const;
+
+	/** 绘制Playback范围，TODO:当前可能不需要 */
+	int32 DrawPlaybackRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const;
+
+	/**
+	 * 绘制帧显示
+	 *
+	 * @param OutDrawElements 待绘制的元素列表
+	 * @param ViewRange	当前绘制帧的显示范围
+	 * @param RangeToScreen	当前显示范围换算成屏幕像素
+	 * @param InArgs 其他参数
+	 */
+	void DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<double>& ViewRange, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionDrawTickArgs& InArgs) const;
+
 protected:
 	/**
 	 * 隶属的Controller

@@ -10,8 +10,6 @@
 
 #include "Utils/ActActionPlaybackUtil.h"
 
-#include "NovaSequenceEditor/Controllers/Sequence/TimeSlider/ActActionSequenceSectionOverlayController.h"
-
 #include "IContentBrowserSingleton.h"
 #include "LevelEditorViewport.h"
 #include "Animation/AnimInstance.h"

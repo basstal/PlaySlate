@@ -203,14 +203,14 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 					+ SGridPanel::Slot(1, 1, SGridPanel::Layer(10))
 					.Padding(ResizeBarPadding)
 					[
-						GetActActionTimeSliderController()->GetActActionSequenceSectionOverlayWidget()
+						GetActActionTimeSliderController()->GetScrubPosSequenceSectionOverlayController()->GetActActionSequenceSectionOverlayWidget()
 					]
 
 					// ** 第1列，第1行，Overlay that draws the scrub position
 					+ SGridPanel::Slot(1, 1, SGridPanel::Layer(20))
 					.Padding(ResizeBarPadding)
 					[
-						GetActActionTimeSliderController()->GetActActionSequenceSectionOverlayWidget()
+						GetActActionTimeSliderController()->GetTickLinesSequenceSectionOverlayController()->GetActActionSequenceSectionOverlayWidget()
 					]
 					// play range slider
 					+ SGridPanel::Slot(1, 3, SGridPanel::Layer(10))
