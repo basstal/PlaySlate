@@ -91,28 +91,28 @@ void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TShared
 						.Clipping(EWidgetClipping::ClipToBounds)
 						[
 							SNew(SHorizontalBox)
-							// + SHorizontalBox::Slot()
-							//   .AutoWidth()
-							//   .VAlign(VAlign_Center)
-							//   .Padding(FMargin(0, 0, 0.3f, 0))
-							// [
-							// 	SNew(SEditorHeaderButton)
-							// 	.OnGetMenuContent(this, &SActActionSequenceWidget::MakeAddMenu)
-							// 	.Icon(FAppStyle::Get().GetBrush("Icons.Plus"))
-							// 	.Text(LOCTEXT("Track", "Track"))
-							// 	.IsEnabled_Lambda([=]()
-							// 	{
-							// 		return ActActionSequenceController.Pin().IsValid();
-							// 	})
-							// ]
-							//
-							// + SHorizontalBox::Slot()
-							// .VAlign(VAlign_Center)
-							// [
-							// 	SNew(SSearchBox)
-							// 	.HintText(LOCTEXT("SearchNodesHint", "Search Tracks"))
-							// 	.OnTextChanged(this, &SActActionSequenceWidget::OnOutlinerSearchChanged)
-							// ]
+							+ SHorizontalBox::Slot()
+							  .AutoWidth()
+							  .VAlign(VAlign_Center)
+							  .Padding(FMargin(0, 0, 0.3f, 0))
+							[
+								SNew(SEditorHeaderButton)
+								.OnGetMenuContent(this, &SActActionSequenceWidget::MakeAddMenu)
+								.Icon(FAppStyle::Get().GetBrush("Icons.Plus"))
+								.Text(LOCTEXT("Track", "Track"))
+								.IsEnabled_Lambda([=]()
+								{
+									return ActActionSequenceController.Pin().IsValid();
+								})
+							]
+
+							+ SHorizontalBox::Slot()
+							.VAlign(VAlign_Center)
+							[
+								SNew(SSearchBox)
+								.HintText(LOCTEXT("SearchNodesHint", "Search Tracks"))
+								.OnTextChanged(this, &SActActionSequenceWidget::OnOutlinerSearchChanged)
+							]
 						]
 					]
 
