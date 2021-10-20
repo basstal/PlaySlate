@@ -1,16 +1,16 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
-
 #include "PlaySlate.h"
 
+#include "NovaAct/Assets/AssetTypeActions/AssetTypeActions_ActActionSequence.h"
+#include "NovaBlueprint/Assets/AssetTypeActions/AssetTypeActions_ActActionBlueprint.h"
+
 #include "AssetToolsModule.h"
-#include "NovaSequenceEditor/Assets/AssetTypeActions/AssetTypeActions_ActActionSequence.h"
-#include "NovaBlueprintEditor/Assets/AssetTypeActions/AssetTypeActions_ActActionBlueprint.h"
 
 DEFINE_LOG_CATEGORY(LogActAction)
 
 IMPLEMENT_MODULE(FPlaySlateModule, PlaySlate);
 
-#define LOCTEXT_NAMESPACE "PlaySlate"
+#define LOCTEXT_NAMESPACE "NovaAct"
 
 void FPlaySlateModule::StartupModule()
 {
@@ -22,23 +22,23 @@ void FPlaySlateModule::StartupModule()
 
 void FPlaySlateModule::ShutdownModule()
 {
-	if (const FAssetToolsModule* AssetTools = FModuleManager::GetModulePtr<FAssetToolsModule>("AssetTools"))
+	if (const FAssetToolsModule* AssetToolsModule = FModuleManager::GetModulePtr<FAssetToolsModule>("AssetTools"))
 	{
-		for (auto AssetTypeAction : CreatedAssetTypeActions)
+		IAssetTools& AssetTools = AssetToolsModule->Get();
+		for (const TSharedRef<IAssetTypeActions>& AssetTypeAction : RegisteredAssetTypeActions)
 		{
-			AssetTools->Get().UnregisterAssetTypeActions(AssetTypeAction.ToSharedRef());
+			AssetTools.UnregisterAssetTypeActions(AssetTypeAction);
 		}
 	}
-	CreatedAssetTypeActions.Empty();
+	RegisteredAssetTypeActions.Empty();
 }
 
-void FPlaySlateModule::RegisterAssetTypeActions(TSharedRef<IAssetTypeActions> InAssetTypeActions)
+void FPlaySlateModule::RegisterAssetTypeActions(const TSharedRef<IAssetTypeActions>& InAssetTypeActions)
 {
 	// ** NOTE:该模块必须在AssetTools模块之后初始化
 	IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
 	AssetTools.RegisterAssetTypeActions(InAssetTypeActions);
-	CreatedAssetTypeActions.Add(InAssetTypeActions);
+	RegisteredAssetTypeActions.Add(InAssetTypeActions);
 }
-
 
 #undef LOCTEXT_NAMESPACE

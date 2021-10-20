@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{DA8AA381-4060-5CBA-AE25-0C9C286F77FD}",
+	"EngineAssociation": "{CDB48578-4A9E-F5F6-9205-27BE3921FC46}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -8,12 +8,6 @@
 			"Name": "PlaySlate",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
-		}
-	],
-	"Plugins": [
-		{
-			"Name": "HoudiniEngine",
-			"Enabled": true
 		}
 	]
 }
