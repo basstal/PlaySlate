@@ -9,7 +9,7 @@ class FActActionSequenceTreeViewNode;
 class SActActionSequenceTrackArea : public SPanel
 {
 public:
-SLATE_BEGIN_ARGS(SActActionSequenceTrackArea)
+	SLATE_BEGIN_ARGS(SActActionSequenceTrackArea)
 		{
 		}
 
@@ -27,7 +27,7 @@ SLATE_BEGIN_ARGS(SActActionSequenceTrackArea)
 	TSharedPtr<SActActionSequenceTrackLane> FindTrackSlot(const TSharedRef<FActActionSequenceTreeViewNode>& InNode) const;
 
 	/** Add a new track slot to this area for the given node. The slot will be automatically cleaned up when all external references to the supplied slot are removed. */
-	void AddTrackSlot(const TSharedRef<FActActionSequenceTreeViewNode>& InNode, const TSharedRef<SActActionSequenceTrackLane>& InSlot);
+	TSharedRef<SActActionSequenceTrackLane> AddTrackSlot(const TSharedRef<FActActionSequenceTreeViewNode>& InNode);
 protected:
 	/** The track area's children. */
 	TPanelChildren<FActActionTrackAreaSlot> Children;

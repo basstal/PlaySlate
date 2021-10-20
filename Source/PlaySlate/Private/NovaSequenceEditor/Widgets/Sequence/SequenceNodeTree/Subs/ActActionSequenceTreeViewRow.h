@@ -22,7 +22,6 @@ public:
 
 	//~Begin SMultiColumnTableRow interface
 	virtual TSharedRef<SWidget> GenerateWidgetForColumn(const FName& InColumnName) override;
-
 	//~End SMultiColumnTableRow interface
 
 	void AddTrackAreaReference(const TSharedRef<SActActionSequenceTrackLane>& Lane);

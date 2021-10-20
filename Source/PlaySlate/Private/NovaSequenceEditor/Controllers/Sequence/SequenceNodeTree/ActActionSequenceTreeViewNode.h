@@ -1,16 +1,15 @@
 ﻿#pragma once
 
+#include "Utils/ActActionPlaybackUtil.h"
 #include "Utils/ActActionSequenceUtil.h"
 
 class FActActionSequenceSectionBase;
-
 class SActActionSequenceTreeViewRow;
-
 class SActActionOutlinerTreeNode;
-
 class SActActionSequenceTreeView;
-
 class SActActionSequenceTrackArea;
+class FActActionTrackAreaSlot;
+class SActActionSequenceTrackLane;
 
 /**
  * 基础的Sequence Node
@@ -107,7 +106,7 @@ public:
 	 * Get the display node that is ultimately responsible for constructing a section area widget for this node.
 	 * Could return this node itself, or a parent node
 	 */
-	TSharedPtr<FActActionSequenceTreeViewNode> GetSectionAreaAuthority() const;
+	TSharedPtr<FActActionSequenceTreeViewNode> GetSectionAreaAuthority();
 
 	/** TODO: */
 	TArray<TSharedRef<FActActionSequenceSectionBase>>& GetSections();
@@ -182,69 +181,70 @@ public:
 	 * @param bVisible 可见性枚举
 	 */
 	void SetVisible(EVisibility bVisible);
-
 protected:
 	/**
 	 * 当前编辑的Sequence，即所有NodeTree所属的Sequence
 	 */
 	TWeakPtr<FActActionSequenceController> ActActionSequenceController;
-
 	/**
 	 * 该节点的父节点，如果没有父节点则认为是树的根节点
 	 */
 	TSharedPtr<FActActionSequenceTreeViewNode> ParentNode;
-
 	/** List of children belonging to this node */
 	TArray<TSharedRef<FActActionSequenceTreeViewNode>> ChildNodes;
-
 	/** All of the sequence sections in this node */
 	TArray<TSharedRef<FActActionSequenceSectionBase>> Sections;
-
 	/** The name identifier of this node */
 	FName NodeName;
-
 	/**
 	 * OutlinerTreeNode Widget
 	 */
 	TSharedPtr<SActActionOutlinerTreeNode> ActActionOutlinerTreeNode;
-
 	/**
 	 * Section区域的Widget
 	 */
 	TSharedPtr<SWidget> ActActionSectionWidget;
-
 	/**
      * 这个Controller的Widget
      */
 	TSharedPtr<SActActionSequenceTreeView> TreeView;
-
 	/**
 	 * Widget TreeView 对应的TrackArea
 	 */
 	TSharedPtr<SActActionSequenceTrackArea> TrackArea;
-
 	/**
 	 * (Pinned)这个Controller的Widget
 	 */
 	TSharedPtr<SActActionSequenceTreeView> TreeViewPinned;
-
 	/**
 	 * (Pinned)Widget TreeView 对应的TrackArea
 	 */
 	TSharedPtr<SActActionSequenceTrackArea> TrackAreaPinned;
-
 	/**
 	 * 从树的数据中复制和缓存的根节点信息
 	 */
 	TArray<TSharedRef<FActActionSequenceTreeViewNode>> DisplayedRootNodes;
-
 	/** 节点类型 */
 	ActActionSequence::ESequenceNodeType NodeType;
-
 	/** 当前节点的Outliner实际内容 */
 	TSharedPtr<SWidget> OutlinerContent;
-
+	/** TrackAreaSlot Controller */
+	TSharedPtr<FActActionTrackAreaSlot> ActActionTrackAreaSlot;
+	/** TrackArea所使用的参数 */
+	ActActionSequence::FActActionTrackAreaArgs ActActionTrackAreaArgs;
+	/** TODO:临时存这里 */
+	FActActionHitBoxData CachedHitBox;
 public:
+	ActActionSequence::FActActionTrackAreaArgs& GetActActionTrackAreaArgs()
+	{
+		return ActActionTrackAreaArgs;
+	}
+
+	TSharedRef<FActActionTrackAreaSlot> GetActActionTrackAreaSlot() const
+	{
+		return ActActionTrackAreaSlot.ToSharedRef();
+	}
+
 	TArray<TSharedRef<FActActionSequenceTreeViewNode>>& GetDisplayedRootNodes()
 	{
 		if (IsTreeViewRoot())

@@ -45,11 +45,7 @@ TSharedRef<ITableRow> SActActionSequenceTreeView::OnGenerateRow(TSharedRef<FActA
 		{
 			// Add a track slot for the row
 			SectionAuthority->MakeWidgetForSectionArea();
-			TrackLane = SNew(SActActionSequenceTrackLane, SectionAuthority.ToSharedRef(), SharedThis(this))
-			[
-				SectionAuthority->GetActActionSectionWidget()
-			];
-			TrackArea->AddTrackSlot(SectionAuthority.ToSharedRef(), TrackLane.ToSharedRef());
+			TrackLane = TrackArea->AddTrackSlot(SectionAuthority.ToSharedRef());
 		}
 
 		if (ensure(TrackLane.IsValid()))

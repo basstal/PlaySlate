@@ -1,5 +1,6 @@
 ﻿#include "AssetTypeActions_ActActionSequence.h"
 
+#include "PlaySlate.h"
 #include "NovaSequenceEditor/ActActionSequenceEditor.h"
 #include "NovaSequenceEditor/Assets/ActActionSequence.h"
 
@@ -33,6 +34,8 @@ void FAssetTypeActions_ActActionSequence::OpenAssetEditor(const TArray<UObject*>
 			 */
 			TSharedRef<FActActionSequenceEditor> SequenceEditor(new FActActionSequenceEditor(ActActionSequence));
 			SequenceEditor->InitActActionSequenceEditor(EditWithinLevelEditor);
+			FPlaySlateModule& PlaySlateModule = FModuleManager::GetModuleChecked<FPlaySlateModule>("PlaySlate");
+			PlaySlateModule.ActActionSequenceEditor = SequenceEditor;
 			return;
 		}
 	}

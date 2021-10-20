@@ -63,4 +63,11 @@ namespace ActActionSequence
 		TickLines,
 		ScrubPosition
 	};
+
+	enum class ENotifyStateHandleHit : uint8
+	{
+		Start,
+		End,
+		None
+	};
 }

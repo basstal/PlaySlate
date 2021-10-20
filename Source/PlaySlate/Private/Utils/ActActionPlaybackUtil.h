@@ -161,17 +161,8 @@ namespace ActActionSequence
 		FActActionPlaybackPosition()
 			: InputRate(0, 0),
 			  OutputRate(0, 0)
-		// EvaluationType(EMovieSceneEvaluationType::WithSubFrames)
 		{
 		}
-
-		// /**
-		//  * @return Whether we are evaluating with sub frames, or frame-locked
-		//  */
-		// FORCEINLINE EMovieSceneEvaluationType GetEvaluationType() const
-		// {
-		// 	return EvaluationType;
-		// }
 
 		/**
 		 * @return The input frame rate that all frame times provided to this class will be interpreted as
@@ -284,5 +275,11 @@ namespace ActActionSequence
 		FFrameTime DestinationTime;
 		FFrameTime SourceTime;
 		double StartTime;
+	};
+
+	struct FActActionTrackAreaArgs
+	{
+		TAttribute<float> ViewInputMin;
+		TAttribute<float> ViewInputMax;
 	};
 }

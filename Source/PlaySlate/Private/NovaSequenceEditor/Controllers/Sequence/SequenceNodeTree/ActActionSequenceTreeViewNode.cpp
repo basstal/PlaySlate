@@ -91,6 +91,8 @@ void FActActionSequenceTreeViewNode::MakeWidgetForSectionArea()
 	ActActionSectionWidget = SNew(SActActionSequenceCombinedKeysTrack, SharedThis(this))
 		.Visibility(EVisibility::Visible)
 		.TickResolution(ActActionSequenceController.Pin()->GetActActionSequenceEditor(), &FActActionSequenceEditor::GetTickResolution);
+	ActActionTrackAreaSlot = MakeShareable(new FActActionTrackAreaSlot(SharedThis(this)));
+	ActActionTrackAreaSlot->MakeTrackLane();
 }
 
 bool FActActionSequenceTreeViewNode::IsTreeViewRoot() const
@@ -174,16 +176,17 @@ void FActActionSequenceTreeViewNode::SetParent(TSharedPtr<FActActionSequenceTree
 }
 
 
-TSharedPtr<FActActionSequenceTreeViewNode> FActActionSequenceTreeViewNode::GetSectionAreaAuthority() const
+TSharedPtr<FActActionSequenceTreeViewNode> FActActionSequenceTreeViewNode::GetSectionAreaAuthority()
 {
-	TSharedPtr<FActActionSequenceTreeViewNode> Authority = SharedThis(const_cast<FActActionSequenceTreeViewNode*>(this));
-
-	while (Authority.IsValid())
+	if (NodeType == ActActionSequence::ESequenceNodeType::Folder)
 	{
-		Authority = Authority->GetParentNode();
+		return nullptr;
 	}
-
-	return Authority;
+	else if (NodeType == ActActionSequence::ESequenceNodeType::State)
+	{
+		return SharedThis(this);
+	}
+	return nullptr;
 }
 
 
@@ -289,10 +292,16 @@ TSharedRef<FActActionSequenceTreeViewNode> FActActionSequenceTreeViewNode::FindO
 
 void FActActionSequenceTreeViewNode::SetContentAsHitBox(const FActActionHitBoxData& InHitBox)
 {
-	if (ActActionOutlinerTreeNode.IsValid())
+	// ** TODO:临时先把对象存这里
+	CachedHitBox = InHitBox;
+	ActActionTrackAreaArgs.ViewInputMin.Bind(TAttribute<float>::FGetter::CreateLambda([this]()
 	{
-		// TODO:
-	}
+		return CachedHitBox.Start;
+	}));
+	ActActionTrackAreaArgs.ViewInputMax.Bind(TAttribute<float>::FGetter::CreateLambda([this]()
+	{
+		return CachedHitBox.End;
+	}));
 }
 
 void FActActionSequenceTreeViewNode::SetVisible(EVisibility bVisible)
@@ -302,6 +311,4 @@ void FActActionSequenceTreeViewNode::SetVisible(EVisibility bVisible)
 		ActActionOutlinerTreeNode->SetVisibility(bVisible);
 	}
 }
-
-
 #undef LOCTEXT_NAMESPACE
