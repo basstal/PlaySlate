@@ -1,7 +1,7 @@
 ﻿#include "ActActionTimeRangeSlider.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/Controllers/ActEventTimeline/Image/ActActionTimeSliderController.h"
+#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineSlider.h"
 
 
 SActActionTimeRangeSlider::SActActionTimeRangeSlider()
@@ -19,7 +19,7 @@ SActActionTimeRangeSlider::~SActActionTimeRangeSlider()
 	UE_LOG(LogActAction, Log, TEXT("SActActionTimeRangeSlider::~SActActionTimeRangeSlider"));
 }
 
-void SActActionTimeRangeSlider::Construct(const FArguments& InArgs, const TSharedRef<FActActionTimeSliderController>& InTimeSliderController)
+void SActActionTimeRangeSlider::Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineSlider>& InTimeSliderController)
 {
 	TimeSliderController = InTimeSliderController;
 	LastViewRange = InTimeSliderController->GetTimeSliderArgs().ViewRange.Get();

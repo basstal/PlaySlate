@@ -1,11 +1,11 @@
 ﻿#include "ActActionTimeSliderWidget.h"
 
-#include "NovaAct/Controllers/ActEventTimeline/Image/ActActionTimeSliderController.h"
+#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineSlider.h"
 
 #include "Fonts/FontMeasure.h"
 #include "Common/NovaStaticFunction.h"
 
-void SActActionTimeSliderWidget::Construct(const FArguments& InArgs, const TSharedRef<FActActionTimeSliderController>& InTimeSliderController)
+void SActActionTimeSliderWidget::Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineSlider>& InTimeSliderController)
 {
 	TimeSliderController = InTimeSliderController;
 }
@@ -99,7 +99,7 @@ int32 SActActionTimeSliderWidget::OnPaint(const FPaintArgs& Args, const FGeometr
 
 	if (TimeSliderController.IsValid() && TimeSliderController.Pin()->MouseDragType == ENovaDragType::DRAG_SETTING_RANGE)
 	{
-		TSharedRef<FActActionTimeSliderController> TimeSliderControllerRef = TimeSliderController.Pin().ToSharedRef();
+		TSharedRef<FActEventTimelineSlider> TimeSliderControllerRef = TimeSliderController.Pin().ToSharedRef();
 		FFrameRate TickResolution = TimeSliderArgs.TickResolution.Get();
 		ActActionSequence::FActActionAnimatedRange AnimatedRange = TimeSliderArgs.ViewRange.Get();
 		FFrameTime MouseDownTime[2];

@@ -1,9 +1,9 @@
 ﻿#pragma once
 
-#include "NovaAct/Controllers/ActEventTimeline/Image/ActEventTimelineImage.h"
+#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineImage.h"
 #include "Common/NovaStruct.h"
 
-class FActActionTimeSliderController;
+class FActEventTimelineSlider;
 
 class SActActionSequenceSectionOverlayWidget : public SCompoundWidget
 {

@@ -1,4 +1,4 @@
-﻿#include "ActActionTimeSliderController.h"
+﻿#include "ActEventTimelineSlider.h"
 
 #include "ActEventTimelineImage.h"
 #include "PlaySlate.h"
@@ -10,7 +10,7 @@
 #include "NovaAct/Widgets/ActEventTimeline/Image/ActActionTimeSliderWidget.h"
 #include "NovaAct/Widgets/ActEventTimeline/Image/Subs/ActActionTimeRange.h"
 
-FActActionTimeSliderController::FActActionTimeSliderController(const TSharedRef<FActEventTimelineBrain>& InSequenceController)
+FActEventTimelineSlider::FActEventTimelineSlider(const TSharedRef<FActEventTimelineBrain>& InSequenceController)
 	: ActActionSequenceController(InSequenceController),
 	  DistanceDragged(0),
 	  MouseDragType(ENovaDragType::DRAG_NONE),
@@ -20,12 +20,12 @@ FActActionTimeSliderController::FActActionTimeSliderController(const TSharedRef<
 {
 }
 
-FActActionTimeSliderController::~FActActionTimeSliderController()
+FActEventTimelineSlider::~FActEventTimelineSlider()
 {
-	UE_LOG(LogActAction, Log, TEXT("FActActionTimeSliderController::~FActActionTimeSliderController"));
+	UE_LOG(LogActAction, Log, TEXT("FActEventTimelineSlider::~FActEventTimelineSlider"));
 }
 
-void FActActionTimeSliderController::MakeTimeSliderWidget()
+void FActEventTimelineSlider::MakeTimeSliderWidget()
 {
 	// Create the top and bottom sliders
 	ActActionTimeSliderWidget = SNew(SActActionTimeSliderWidget, SharedThis(this));
@@ -37,7 +37,7 @@ void FActActionTimeSliderController::MakeTimeSliderWidget()
 	ScrubPosSequenceSectionOverlayController->MakeSequenceSectionOverlayWidget(ENovaSectionOverlayWidgetType::ScrubPosition);
 }
 
-FFrameTime FActActionTimeSliderController::ComputeFrameTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, ActActionSequence::FActActionScrubRangeToScreen RangeToScreen, bool CheckSnapping) const
+FFrameTime FActEventTimelineSlider::ComputeFrameTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, ActActionSequence::FActActionScrubRangeToScreen RangeToScreen, bool CheckSnapping) const
 {
 	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	const FVector2D CursorPos = Geometry.AbsoluteToLocal(ScreenSpacePosition);
@@ -45,7 +45,7 @@ FFrameTime FActActionTimeSliderController::ComputeFrameTimeFromMouse(const FGeom
 	return MouseValue * TimeSliderArgs.TickResolution.Get();
 }
 
-FFrameTime FActActionTimeSliderController::ComputeScrubTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, ActActionSequence::FActActionScrubRangeToScreen RangeToScreen) const
+FFrameTime FActEventTimelineSlider::ComputeScrubTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, ActActionSequence::FActActionScrubRangeToScreen RangeToScreen) const
 {
 	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	const FVector2D CursorPos = Geometry.AbsoluteToLocal(ScreenSpacePosition);
@@ -54,7 +54,7 @@ FFrameTime FActActionTimeSliderController::ComputeScrubTimeFromMouse(const FGeom
 	return ScrubTime;
 }
 
-void FActActionTimeSliderController::CommitScrubPosition(FFrameTime NewValue, bool bIsScrubbing) const
+void FActEventTimelineSlider::CommitScrubPosition(FFrameTime NewValue, bool bIsScrubbing) const
 {
 	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	// The user can scrub past the viewing range of the time slider controller, so we clamp it to the view range.
@@ -71,7 +71,7 @@ void FActActionTimeSliderController::CommitScrubPosition(FFrameTime NewValue, bo
 	TimeSliderArgs.OnScrubPositionChanged.ExecuteIfBound(NewValue, bIsScrubbing);
 }
 
-void FActActionTimeSliderController::SetViewRange(double NewRangeMin, double NewRangeMax, ENovaViewRangeInterpolation Interpolation) const
+void FActEventTimelineSlider::SetViewRange(double NewRangeMin, double NewRangeMax, ENovaViewRangeInterpolation Interpolation) const
 {
 	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	// Clamp to a minimum size to avoid zero-sized or negative visible ranges
@@ -97,7 +97,7 @@ void FActActionTimeSliderController::SetViewRange(double NewRangeMin, double New
 	TimeSliderArgs.OnViewRangeChanged.ExecuteIfBound(NewRange, Interpolation);
 }
 
-bool FActActionTimeSliderController::HitTestRangeStart(const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const TRange<double>& Range, float HitPixel) const
+bool FActEventTimelineSlider::HitTestRangeStart(const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const TRange<double>& Range, float HitPixel) const
 {
 	const float RangeStartPixel = RangeToScreen.InputToLocalX(Range.GetLowerBoundValue());
 
@@ -105,14 +105,14 @@ bool FActActionTimeSliderController::HitTestRangeStart(const ActActionSequence::
 	return HitPixel >= RangeStartPixel - 4.0f && HitPixel <= RangeStartPixel + 10.0f;
 }
 
-bool FActActionTimeSliderController::HitTestRangeEnd(const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const TRange<double>& Range, float HitPixel) const
+bool FActEventTimelineSlider::HitTestRangeEnd(const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const TRange<double>& Range, float HitPixel) const
 {
 	const float RangeEndPixel = RangeToScreen.InputToLocalX(Range.GetUpperBoundValue());
 	// Hit test against the brush region to the left of the playback end position, +/- DragToleranceSlateUnits
 	return HitPixel >= RangeEndPixel - 10.0f && HitPixel <= RangeEndPixel + 4.0f;
 }
 
-void FActActionTimeSliderController::SetPlaybackRangeStart(FFrameNumber NewStart) const
+void FActEventTimelineSlider::SetPlaybackRangeStart(FFrameNumber NewStart) const
 {
 	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	const TRange<FFrameNumber> PlaybackRange = TimeSliderArgs.PlaybackRange.Get();
@@ -123,7 +123,7 @@ void FActActionTimeSliderController::SetPlaybackRangeStart(FFrameNumber NewStart
 	}
 }
 
-void FActActionTimeSliderController::SetPlaybackRangeEnd(FFrameNumber NewEnd) const
+void FActEventTimelineSlider::SetPlaybackRangeEnd(FFrameNumber NewEnd) const
 {
 	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	const TRange<FFrameNumber> PlaybackRange = TimeSliderArgs.PlaybackRange.Get();
@@ -134,7 +134,7 @@ void FActActionTimeSliderController::SetPlaybackRangeEnd(FFrameNumber NewEnd) co
 	}
 }
 
-void FActActionTimeSliderController::SetSelectionRangeStart(FFrameNumber NewStart) const
+void FActEventTimelineSlider::SetSelectionRangeStart(FFrameNumber NewStart) const
 {
 	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	const TRange<FFrameNumber> SelectionRange = TimeSliderArgs.SelectionRange.Get();
@@ -149,7 +149,7 @@ void FActActionTimeSliderController::SetSelectionRangeStart(FFrameNumber NewStar
 	}
 }
 
-void FActActionTimeSliderController::SetSelectionRangeEnd(FFrameNumber NewEnd) const
+void FActEventTimelineSlider::SetSelectionRangeEnd(FFrameNumber NewEnd) const
 {
 	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	const TRange<FFrameNumber> SelectionRange = TimeSliderArgs.SelectionRange.Get();
@@ -164,7 +164,7 @@ void FActActionTimeSliderController::SetSelectionRangeEnd(FFrameNumber NewEnd) c
 	}
 }
 
-bool FActActionTimeSliderController::ZoomByDelta(float InDelta, float ZoomBias) const
+bool FActEventTimelineSlider::ZoomByDelta(float InDelta, float ZoomBias) const
 {
 	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	const TRange<double> LocalViewRange = TimeSliderArgs.ViewRange.Get().GetAnimationTarget();
@@ -185,7 +185,7 @@ bool FActActionTimeSliderController::ZoomByDelta(float InDelta, float ZoomBias) 
 	return false;
 }
 
-void FActActionTimeSliderController::PanByDelta(float InDelta) const
+void FActEventTimelineSlider::PanByDelta(float InDelta) const
 {
 	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	const TRange<double> LocalViewRange = TimeSliderArgs.ViewRange.Get().GetAnimationTarget();
@@ -202,7 +202,7 @@ void FActActionTimeSliderController::PanByDelta(float InDelta) const
 	SetViewRange(NewViewOutputMin, NewViewOutputMax, ENovaViewRangeInterpolation::Animated);
 }
 
-FReply FActActionTimeSliderController::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply FActEventTimelineSlider::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	MouseDragType = ENovaDragType::DRAG_NONE;
 	DistanceDragged = 0;
@@ -220,7 +220,7 @@ FReply FActActionTimeSliderController::OnMouseButtonDown(const FGeometry& MyGeom
 	return FReply::Unhandled();
 }
 
-FReply FActActionTimeSliderController::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply FActEventTimelineSlider::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	const bool bHandleLeftMouseButton = MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton && ActActionTimeSliderWidget->HasMouseCapture();
@@ -318,7 +318,7 @@ FReply FActActionTimeSliderController::OnMouseButtonUp(const FGeometry& MyGeomet
 	return FReply::Unhandled();
 }
 
-FReply FActActionTimeSliderController::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply FActEventTimelineSlider::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 
@@ -456,7 +456,7 @@ FReply FActActionTimeSliderController::OnMouseMove(const FGeometry& MyGeometry, 
 	return FReply::Handled();
 }
 
-FReply FActActionTimeSliderController::OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) const
+FReply FActEventTimelineSlider::OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) const
 {
 	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = GetTimeSliderArgs();
 	TOptional<TRange<float>> NewTargetRange;
@@ -480,12 +480,12 @@ FReply FActActionTimeSliderController::OnMouseWheel(const FGeometry& MyGeometry,
 	return FReply::Unhandled();
 }
 
-ActActionSequence::FActActionTimeSliderArgs& FActActionTimeSliderController::GetTimeSliderArgs() const
+ActActionSequence::FActActionTimeSliderArgs& FActEventTimelineSlider::GetTimeSliderArgs() const
 {
 	return ActActionSequenceController.Pin()->GetTimeSliderArgs();
 }
 
-int32 FActActionTimeSliderController::DrawSubSequenceRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const
+int32 FActEventTimelineSlider::DrawSubSequenceRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const
 {
 	const ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs = GetTimeSliderArgs();
 	TOptional<TRange<FFrameNumber>> RangeValue;
@@ -565,7 +565,7 @@ int32 FActActionTimeSliderController::DrawSubSequenceRange(const FGeometry& Allo
 	return LayerId + 1;
 }
 
-int32 FActActionTimeSliderController::DrawPlaybackRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const
+int32 FActEventTimelineSlider::DrawPlaybackRange(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionPaintPlaybackRangeArgs& Args) const
 {
 	const ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs = GetTimeSliderArgs();
 	if (!TimeSliderArgs.PlaybackRange.IsSet())
@@ -620,7 +620,7 @@ int32 FActActionTimeSliderController::DrawPlaybackRange(const FGeometry& Allotte
 	return LayerId + 1;
 }
 
-void FActActionTimeSliderController::DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<double>& ViewRange, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionDrawTickArgs& InArgs) const
+void FActEventTimelineSlider::DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<double>& ViewRange, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionDrawTickArgs& InArgs) const
 {
 	const ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs = GetTimeSliderArgs();
 	const FFrameRate TickResolution = TimeSliderArgs.TickResolution.Get();

@@ -3,7 +3,7 @@
 #include "Widgets/SCompoundWidget.h"
 
 class FActEventTimelineBrain;
-class FActActionTimeSliderController;
+class FActEventTimelineSlider;
 class SActActionSequenceTreeView;
 class SActActionTimeSliderWidget;
 class SActActionSequenceTrackArea;
@@ -41,7 +41,7 @@ public:
 	/**
 	 * @return 获得TimeSlider的Controller
 	 */
-	TSharedRef<FActActionTimeSliderController> GetActActionTimeSliderController() const;
+	TSharedRef<FActEventTimelineSlider> GetActActionTimeSliderController() const;
 protected:
 	/**
 	 * 当前View的Controller，转发所有逻辑行为

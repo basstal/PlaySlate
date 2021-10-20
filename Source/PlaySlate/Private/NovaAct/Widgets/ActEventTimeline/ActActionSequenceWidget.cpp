@@ -2,7 +2,7 @@
 
 #include "PlaySlate.h"
 #include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
-#include "NovaAct/Controllers/ActEventTimeline/Image/ActActionTimeSliderController.h"
+#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineSlider.h"
 #include "NovaAct/Widgets/ActViewport/ActActionViewportWidget.h"
 // ReSharper disable once CppUnusedIncludeDirective
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/ActActionSequenceTrackArea.h"
@@ -269,7 +269,7 @@ TSharedRef<SWidget> SActActionSequenceWidget::MakeAddMenu() const
 }
 
 
-TSharedRef<FActActionTimeSliderController> SActActionSequenceWidget::GetActActionTimeSliderController() const
+TSharedRef<FActEventTimelineSlider> SActActionSequenceWidget::GetActActionTimeSliderController() const
 {
 	return ActActionSequenceController.Pin()->GetActActionTimeSliderController();
 }

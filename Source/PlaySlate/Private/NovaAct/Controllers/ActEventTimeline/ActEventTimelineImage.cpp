@@ -1,11 +1,11 @@
 ﻿#include "ActEventTimelineImage.h"
 
-#include "ActActionTimeSliderController.h"
+#include "ActEventTimelineSlider.h"
 #include "PlaySlate.h"
 #include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
 #include "NovaAct/Widgets/ActEventTimeline/Image/ActActionSequenceSectionOverlayWidget.h"
 
-FActEventTimelineImage::FActEventTimelineImage(const TSharedRef<FActActionTimeSliderController>& InActActionTimeSliderController)
+FActEventTimelineImage::FActEventTimelineImage(const TSharedRef<FActEventTimelineSlider>& InActActionTimeSliderController)
 	: ActActionTimeSliderController(InActActionTimeSliderController)
 {
 }

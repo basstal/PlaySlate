@@ -3,7 +3,7 @@
 #include "PlaySlate.h"
 #include "NovaAct/ActActionSequenceEditor.h"
 #include "NovaAct/Assets/Tracks/ActActionTrackEditorBase.h"
-#include "NovaAct/Controllers/ActEventTimeline/Image/ActActionTimeSliderController.h"
+#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineSlider.h"
 #include "NovaAct/Controllers/ActViewport/ActActionPreviewSceneController.h"
 #include "NovaAct/Controllers/ActEventTimeline/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
 #include "NovaAct/Widgets/ActEventTimeline/ActActionSequenceWidget.h"
@@ -74,7 +74,7 @@ void FActEventTimelineBrain::MakeSequenceWidget(ActActionSequence::FActActionSeq
 	TimeSliderArgs.OnViewRangeChanged = ActActionSequence::OnViewRangeChangedDelegate::CreateSP(this, &FActEventTimelineBrain::SetViewRange);
 	// ** ClampRange
 	TimeSliderArgs.ClampRange.Bind(TAttribute<ActActionSequence::FActActionAnimatedRange>::FGetter::CreateSP(this, &FActEventTimelineBrain::GetClampRange));
-	ActActionTimeSliderController = MakeShareable(new FActActionTimeSliderController(SharedThis(this)));
+	ActActionTimeSliderController = MakeShareable(new FActEventTimelineSlider(SharedThis(this)));
 	ActActionTimeSliderController->MakeTimeSliderWidget();
 	ActActionSequenceWidget = SNew(SActActionSequenceWidget, SharedThis(this));
 }

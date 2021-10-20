@@ -3,25 +3,22 @@
 #include "Common/NovaStruct.h"
 
 class SActActionTimeSliderWidget;
-
 class SActActionTimeRangeSlider;
-
 class SActActionTimeRange;
-
 class FActEventTimelineImage;
 
 /**
  * Sequence的时间滑块控制器，管理Sequence的时间轴相关数据
  * 对应的View模块为SActActionSequenceTimeSliderWidget
  */
-class FActActionTimeSliderController : public TSharedFromThis<FActActionTimeSliderController>
+class FActEventTimelineSlider : public TSharedFromThis<FActEventTimelineSlider>
 {
 	friend class SActActionTimeSliderWidget;
 
 public:
-	FActActionTimeSliderController(const TSharedRef<FActEventTimelineBrain>& InSequenceController);
+	FActEventTimelineSlider(const TSharedRef<FActEventTimelineBrain>& InSequenceController);
 
-	~FActActionTimeSliderController();
+	~FActEventTimelineSlider();
 
 	/**
 	* 构造TimeSlider的Widget

@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Common/NovaStruct.h"
 
-class FActActionTimeSliderController;
+class FActEventTimelineSlider;
 
 class SActActionTimeRangeSlider : public SCompoundWidget
 {
@@ -15,7 +15,7 @@ public:
 	SActActionTimeRangeSlider();
 	virtual ~SActActionTimeRangeSlider() override;
 
-	void Construct(const FArguments& InArgs, const TSharedRef<FActActionTimeSliderController>& InTimeSliderController);
+	void Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineSlider>& InTimeSliderController);
 
 	//~Begin SWidget interface
 	virtual FVector2D ComputeDesiredSize(float LayoutScaleMultiplier) const override;
@@ -38,7 +38,7 @@ public:
 
 protected:
 	/** Controller */
-	TWeakPtr<FActActionTimeSliderController> TimeSliderController;
+	TWeakPtr<FActEventTimelineSlider> TimeSliderController;
 	/** TimeSlider ViewRange记录 */
 	ActActionSequence::FActActionAnimatedRange LastViewRange;
 	/** 拖拽中 */

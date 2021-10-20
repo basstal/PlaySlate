@@ -4,7 +4,7 @@
 #include "Common/NovaStruct.h"
 
 class FActActionSequenceEditor;
-class FActActionTimeSliderController;
+class FActEventTimelineSlider;
 class SActActionSequenceWidget;
 class ASkeletalMeshActor;
 class UActActionSequence;
@@ -154,7 +154,7 @@ protected:
 	/**
 	 * TimeSlider的Controller
 	 */
-	TSharedPtr<FActActionTimeSliderController> ActActionTimeSliderController;
+	TSharedPtr<FActEventTimelineSlider> ActActionTimeSliderController;
 
 	/**
 	 * 所有可见节点DisplayedRootNodes的父节点，
@@ -200,7 +200,7 @@ public:
 		return ActActionSequenceTreeViewNode.ToSharedRef();
 	}
 
-	TSharedRef<FActActionTimeSliderController> GetActActionTimeSliderController() const
+	TSharedRef<FActEventTimelineSlider> GetActActionTimeSliderController() const
 	{
 		return ActActionTimeSliderController.ToSharedRef();
 	}

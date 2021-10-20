@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-class FActActionTimeSliderController;
+class FActEventTimelineSlider;
 
 class SActActionTimeSliderWidget : public SCompoundWidget
 {
@@ -11,7 +11,7 @@ public:
 
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, const TSharedRef<FActActionTimeSliderController>& InTimeSliderController);
+	void Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineSlider>& InTimeSliderController);
 
 	//~Begin SWidget interface
 	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
@@ -29,5 +29,5 @@ protected:
 	/**
 	 * Sequence Controller
 	 */
-	TWeakPtr<FActActionTimeSliderController> TimeSliderController;
+	TWeakPtr<FActEventTimelineSlider> TimeSliderController;
 };

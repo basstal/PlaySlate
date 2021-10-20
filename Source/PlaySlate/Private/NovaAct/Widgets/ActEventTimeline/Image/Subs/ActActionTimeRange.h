@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-class FActActionTimeSliderController;
+class FActEventTimelineSlider;
 class SActActionTimeRangeSlider;
 
 class SActActionTimeRange : public SCompoundWidget
@@ -12,7 +12,7 @@ public:
 
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, const TSharedRef<FActActionTimeSliderController>& InTimeSliderController, const TSharedRef<SActActionTimeRangeSlider>& InTimeRangeSlider);
+	void Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineSlider>& InTimeSliderController, const TSharedRef<SActActionTimeRangeSlider>& InTimeRangeSlider);
 
 	/** 属性绑定 */
 	double ViewStartTime() const;
@@ -27,5 +27,5 @@ public:
 	/** 获得Spinbox Delta */
 	double GetSpinboxDelta() const;
 protected:
-	TWeakPtr<FActActionTimeSliderController> TimeSliderController;
+	TWeakPtr<FActEventTimelineSlider> TimeSliderController;
 };

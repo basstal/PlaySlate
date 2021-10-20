@@ -1,12 +1,12 @@
 ﻿#include "ActActionTimeRange.h"
 
 #include "ActActionTimeRangeSlider.h"
-#include "NovaAct/Controllers/ActEventTimeline/Image/ActActionTimeSliderController.h"
+#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineSlider.h"
 #include "Widgets/Input/SSpinBox.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
-void SActActionTimeRange::Construct(const FArguments& InArgs, const TSharedRef<FActActionTimeSliderController>& InTimeSliderController, const TSharedRef<SActActionTimeRangeSlider>& InTimeRangeSlider)
+void SActActionTimeRange::Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineSlider>& InTimeSliderController, const TSharedRef<SActActionTimeRangeSlider>& InTimeRangeSlider)
 {
 	TimeSliderController = InTimeSliderController;
 

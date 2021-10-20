@@ -3,12 +3,12 @@
 #include "Common/NovaStruct.h"
 
 class SActActionSequenceSectionOverlayWidget;
-class FActActionTimeSliderController;
+class FActEventTimelineSlider;
 
 class FActEventTimelineImage : public TSharedFromThis<FActEventTimelineImage>
 {
 public:
-	FActEventTimelineImage(const TSharedRef<FActActionTimeSliderController>& InActActionTimeSliderController);
+	FActEventTimelineImage(const TSharedRef<FActEventTimelineSlider>& InActActionTimeSliderController);
 
 	~FActEventTimelineImage();
 
@@ -38,7 +38,7 @@ protected:
 	/**
 	 * 父Controller的弱引用
 	 */
-	TWeakPtr<FActActionTimeSliderController> ActActionTimeSliderController;
+	TWeakPtr<FActEventTimelineSlider> ActActionTimeSliderController;
 
 	/**
 	 * 对应的Widget
