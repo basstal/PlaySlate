@@ -2,11 +2,9 @@
 #include "ActActionDelegates.h"
 
 class FActActionSequenceController;
-
+class FActActionTrackAreaSlot;
 class FActActionTrackEditorBase;
-
 class FActActionSequenceTreeViewNode;
-
 class SActActionSequenceTreeViewRow;
 
 namespace ActActionSequence
@@ -432,5 +430,18 @@ namespace ActActionSequence
 
 		/** Attribute specifying the width of this column */
 		TAttribute<float> Width;
+	};
+
+	/** Structure used to cache physical geometry for a particular track */
+	struct FActActionCachedGeometry
+	{
+		FActActionCachedGeometry(TSharedRef<FActActionTrackAreaSlot> InTrack, float InTop, float InHeight)
+			: Track(MoveTemp(InTrack)), Top(InTop), Height(InHeight)
+		{
+		}
+
+		TSharedRef<FActActionTrackAreaSlot> Track;
+		float Top;
+		float Height;
 	};
 }

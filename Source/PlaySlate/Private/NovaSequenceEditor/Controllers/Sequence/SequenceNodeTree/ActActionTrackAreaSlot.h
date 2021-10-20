@@ -48,6 +48,10 @@ protected:
 
 	// FAnimNotifyEvent* AnimNotifyEvent;
 public:
+	TSharedRef<FActActionSequenceTreeViewNode> GetActActionSequenceTreeViewNode() const
+	{
+		return SequenceTreeViewNode.Pin().ToSharedRef();
+	}
 	TSharedRef<SActActionSequenceTrackLane> GetActActionSequenceTrackLane() const
 	{
 		return TrackLane.ToSharedRef();

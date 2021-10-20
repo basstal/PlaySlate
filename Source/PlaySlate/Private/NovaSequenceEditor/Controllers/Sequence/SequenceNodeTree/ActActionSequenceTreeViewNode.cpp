@@ -178,15 +178,11 @@ void FActActionSequenceTreeViewNode::SetParent(TSharedPtr<FActActionSequenceTree
 
 TSharedPtr<FActActionSequenceTreeViewNode> FActActionSequenceTreeViewNode::GetSectionAreaAuthority()
 {
-	if (NodeType == ActActionSequence::ESequenceNodeType::Folder)
+	if (IsTreeViewRoot())
 	{
 		return nullptr;
 	}
-	else if (NodeType == ActActionSequence::ESequenceNodeType::State)
-	{
-		return SharedThis(this);
-	}
-	return nullptr;
+	return SharedThis(this);
 }
 
 
@@ -310,5 +306,30 @@ void FActActionSequenceTreeViewNode::SetVisible(EVisibility bVisible)
 	{
 		ActActionOutlinerTreeNode->SetVisibility(bVisible);
 	}
+}
+
+float FActActionSequenceTreeViewNode::ComputeTrackPosition()
+{
+	// Positioning strategy:
+	// Attempt to root out any visible track in the specified track's sub-hierarchy, and compute the track's offset from that
+	const FGeometry& CachedGeometryOutlinerTreeNode = ActActionOutlinerTreeNode->GetCachedGeometry();
+	// UE_LOG(LogActAction, Log, TEXT("CachedGeometryOutlinerTreeNode : %s"), *CachedGeometryOutlinerTreeNode.ToString());
+	const FGeometry& CachedGeometryTrackArea = GetRoot()->TrackArea->GetCachedGeometry();
+	return CachedGeometryOutlinerTreeNode.AbsolutePosition.Y - CachedGeometryTrackArea.AbsolutePosition.Y;
+}
+
+TSharedPtr<FActActionSequenceTreeViewNode> FActActionSequenceTreeViewNode::GetRoot()
+{
+	if (IsTreeViewRoot())
+	{
+		return AsShared();
+	}
+
+	TSharedPtr<FActActionSequenceTreeViewNode> RootNode = AsShared();
+	while (!RootNode->IsTreeViewRoot())
+	{
+		RootNode = RootNode->GetParentNode();
+	}
+	return RootNode.ToSharedRef();
 }
 #undef LOCTEXT_NAMESPACE

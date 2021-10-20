@@ -181,6 +181,10 @@ public:
 	 * @param bVisible 可见性枚举
 	 */
 	void SetVisible(EVisibility bVisible);
+	/** 计算当前Track的纵向间距 */
+	float ComputeTrackPosition();
+	/** 获得根节点 */
+	TSharedPtr<FActActionSequenceTreeViewNode> GetRoot();
 protected:
 	/**
 	 * 当前编辑的Sequence，即所有NodeTree所属的Sequence
@@ -209,7 +213,7 @@ protected:
      */
 	TSharedPtr<SActActionSequenceTreeView> TreeView;
 	/**
-	 * Widget TreeView 对应的TrackArea
+	 * Widget TreeView 对应的TrackArea，
 	 */
 	TSharedPtr<SActActionSequenceTrackArea> TrackArea;
 	/**
@@ -234,6 +238,8 @@ protected:
 	ActActionSequence::FActActionTrackAreaArgs ActActionTrackAreaArgs;
 	/** TODO:临时存这里 */
 	FActActionHitBoxData CachedHitBox;
+	/** TrackAreaSlot 对应到 Geometry 信息 */
+	TMap<TSharedRef<FActActionTrackAreaSlot>, ActActionSequence::FActActionCachedGeometry> CachedTrackGeometry;
 public:
 	ActActionSequence::FActActionTrackAreaArgs& GetActActionTrackAreaArgs()
 	{

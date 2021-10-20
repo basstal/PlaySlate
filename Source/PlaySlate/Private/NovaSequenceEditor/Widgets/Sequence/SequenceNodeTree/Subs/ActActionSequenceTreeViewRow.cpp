@@ -57,5 +57,5 @@ TSharedRef<SWidget> SActActionSequenceTreeViewRow::GenerateWidgetForColumn(const
 
 void SActActionSequenceTreeViewRow::AddTrackAreaReference(const TSharedRef<SActActionSequenceTrackLane>& InTrackLane)
 {
-	TrackLaneReference = InTrackLane;
+	TargetTrackLane = InTrackLane;
 }

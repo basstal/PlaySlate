@@ -34,6 +34,8 @@ public:
 	FReply OnNotifyNodeDragStarted(TSharedRef<SActActionSequenceNotifyNode> InNotifyNode, const FPointerEvent& MouseEvent, const FVector2D& ScreenNodePosition, const bool bDragOnMarker);
 	/** TODO: */
 	FMargin GetNotifyTrackPadding() const;
+	/** Get the desired physical vertical position of this track */
+	float GetPhysicalPosition() const;
 protected:
 	/** Controller */
 	TWeakPtr<FActActionTrackAreaSlot> ActActionTrackAreaSlot;

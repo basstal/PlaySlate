@@ -41,5 +41,6 @@ protected:
 	/** Delegate to call to create a new widget for a particular column. */
 	ActActionSequence::OnGenerateWidgetForColumnDelegate OnGenerateWidgetForColumn;
 
-	TWeakPtr<SActActionSequenceTrackLane> TrackLaneReference;
+	/** 对应的TrackLane Widget */ 
+	TWeakPtr<SActActionSequenceTrackLane> TargetTrackLane;
 };

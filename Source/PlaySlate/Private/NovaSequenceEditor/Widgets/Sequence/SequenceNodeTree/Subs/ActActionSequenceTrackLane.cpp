@@ -125,3 +125,8 @@ FMargin SActActionSequenceTrackLane::GetNotifyTrackPadding() const
 	float RightMargin = CachedGeometry.GetLocalSize().X - NotifyNode->GetWidgetPosition().X - NotifyNode->ComputeDesiredSize(0).X;
 	return FMargin(LeftMargin, 0, RightMargin, 0);
 }
+
+float SActActionSequenceTrackLane::GetPhysicalPosition() const
+{
+	return ActActionTrackAreaSlot.Pin()->GetActActionSequenceTreeViewNode()->ComputeTrackPosition();
+}

@@ -22,14 +22,15 @@ void FActActionTrackAreaSlot::MakeTrackLane()
 	[
 		SequenceTreeViewNode.Pin()->GetActActionSectionWidget()
 	];
-	TSharedRef<SWeakWidget> AttachedWidget = SNew(SWeakWidget).PossiblyNullContent(TrackLane);
+	TSharedRef<SWeakWidget> AttachedWidget = SNew(SWeakWidget)
+	.Clipping(EWidgetClipping::ClipToBounds)
+	.PossiblyNullContent(TrackLane);
 	AttachWidget(AttachedWidget);
 }
 
 float FActActionTrackAreaSlot::GetVerticalOffset() const
 {
-	// ** TODO:
-	return 0.0f;
+	return TrackLane.IsValid() ? TrackLane->GetPhysicalPosition() : 0.f;
 }
 
 FText FActActionTrackAreaSlot::GetNodeTooltip()
