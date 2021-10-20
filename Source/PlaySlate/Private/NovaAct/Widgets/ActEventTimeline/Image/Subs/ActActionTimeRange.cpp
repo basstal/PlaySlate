@@ -1,7 +1,7 @@
 ﻿#include "ActActionTimeRange.h"
 
 #include "ActActionTimeRangeSlider.h"
-#include "NovaAct/Controllers/ActEventTimeline/TimeSlider/ActActionTimeSliderController.h"
+#include "NovaAct/Controllers/ActEventTimeline/Image/ActActionTimeSliderController.h"
 #include "Widgets/Input/SSpinBox.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"

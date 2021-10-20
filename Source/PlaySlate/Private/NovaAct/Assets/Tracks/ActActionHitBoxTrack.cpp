@@ -1,11 +1,11 @@
 ﻿#include "ActActionHitBoxTrack.h"
 
 #include "NovaAct/ActActionSequenceEditor.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActActionSequenceController.h"
+#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
-FActActionHitBoxTrack::FActActionHitBoxTrack(const TSharedRef<FActActionSequenceController>& ActActionSequenceController)
+FActActionHitBoxTrack::FActActionHitBoxTrack(const TSharedRef<FActEventTimelineBrain>& ActActionSequenceController)
 	: FActActionTrackEditorBase(ActActionSequenceController)
 {
 }
@@ -20,7 +20,7 @@ void FActActionHitBoxTrack::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 	);
 }
 
-TSharedRef<FActActionTrackEditorBase> FActActionHitBoxTrack::CreateTrackEditor(TSharedRef<FActActionSequenceController> InSequenceController)
+TSharedRef<FActActionTrackEditorBase> FActActionHitBoxTrack::CreateTrackEditor(TSharedRef<FActEventTimelineBrain> InSequenceController)
 {
 	return MakeShareable(new FActActionHitBoxTrack(InSequenceController));
 }

@@ -2,7 +2,7 @@
 
 #include "ITransportControl.h"
 
-class FActActionSequenceController;
+class FActEventTimelineBrain;
 class FActActionSequenceEditor;
 
 class SActActionSequenceTransportControls : public SCompoundWidget
@@ -16,7 +16,7 @@ SLATE_BEGIN_ARGS(SActActionSequenceTransportControls)
 
 	virtual ~SActActionSequenceTransportControls() override;
 
-	void Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceController>& InActActionSequenceController);
+	void Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineBrain>& InActActionSequenceController);
 
 	/** 点击逐帧前进的回调 */
 	FReply OnClick_Forward_Step() const;

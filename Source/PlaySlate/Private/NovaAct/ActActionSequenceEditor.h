@@ -6,7 +6,7 @@
 class FActActionPreviewSceneController;
 class UActActionSequence;
 class FActActionViewportClient;
-class FActActionSequenceController;
+class FActEventTimelineBrain;
 class FActAssetDetailsBrain;
 
 /**
@@ -88,7 +88,7 @@ protected:
 	TSharedPtr<FActActionPreviewSceneController> ActActionPreviewSceneController;
 
 	/** Sequence Controller，Editor没有销毁的情况下不会为空 */
-	TSharedPtr<FActActionSequenceController> ActActionSequenceController;
+	TSharedPtr<FActEventTimelineBrain> ActActionSequenceController;
 
 	/** Details View Controller */
 	TSharedPtr<FActAssetDetailsBrain> ActActionDetailsViewController;
@@ -109,7 +109,7 @@ protected:
 	TRange<FFrameNumber> SelectionRange;
 
 public:
-	TSharedRef<FActActionSequenceController> GetActActionSequenceController() const
+	TSharedRef<FActEventTimelineBrain> GetActActionSequenceController() const
 	{
 		return ActActionSequenceController.ToSharedRef();
 	}

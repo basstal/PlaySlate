@@ -3,15 +3,14 @@
 #include "Common/NovaStruct.h"
 
 class SActActionSequenceSectionOverlayWidget;
-
 class FActActionTimeSliderController;
 
-class FActActionSequenceSectionOverlayController : public TSharedFromThis<FActActionSequenceSectionOverlayController>
+class FActEventTimelineImage : public TSharedFromThis<FActEventTimelineImage>
 {
 public:
-	FActActionSequenceSectionOverlayController(const TSharedRef<FActActionTimeSliderController>& InActActionTimeSliderController);
+	FActEventTimelineImage(const TSharedRef<FActActionTimeSliderController>& InActActionTimeSliderController);
 
-	~FActActionSequenceSectionOverlayController();
+	~FActEventTimelineImage();
 
 	/**
 	 * 构造对应的Widget

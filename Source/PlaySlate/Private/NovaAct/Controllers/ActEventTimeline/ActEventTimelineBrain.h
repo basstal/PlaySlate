@@ -10,18 +10,18 @@ class ASkeletalMeshActor;
 class UActActionSequence;
 class FActActionSequenceTreeViewNode;
 class SActActionViewportWidget;
-class FActActionSequenceSectionOverlayController;
+class FActEventTimelineImage;
 
 /**
  * Sequence Tab的主要控制器
  * 对应的View模块为SActActionSequenceWidget
  */
-class FActActionSequenceController : public TSharedFromThis<FActActionSequenceController>, FTickableEditorObject
+class FActEventTimelineBrain : public TSharedFromThis<FActEventTimelineBrain>, FTickableEditorObject
 {
 public:
-	FActActionSequenceController(const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor);
+	FActEventTimelineBrain(const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor);
 
-	virtual ~FActActionSequenceController() override;
+	virtual ~FActEventTimelineBrain() override;
 
 	/**
 	* 构造Sequence的Widget为SActActionSequenceWidget，同时初始化TreeView相关内容

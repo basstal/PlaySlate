@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "NovaAct/Controllers/ActEventTimeline/TimeSlider/ActActionSequenceSectionOverlayController.h"
+#include "NovaAct/Controllers/ActEventTimeline/Image/ActEventTimelineImage.h"
 #include "Common/NovaStruct.h"
 
 class FActActionTimeSliderController;
@@ -19,7 +19,7 @@ public:
 
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceSectionOverlayController>& InActActionSequenceSectionOverlayController);
+	void Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineImage>& InActActionSequenceSectionOverlayController);
 
 	//~Begin SWidget interface
 	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
@@ -28,7 +28,7 @@ protected:
 	/**
 	 * 这个Widget的Controller
 	 */
-	TWeakPtr<FActActionSequenceSectionOverlayController> ActActionSequenceSectionOverlayController;
+	TWeakPtr<FActEventTimelineImage> ActActionSequenceSectionOverlayController;
 	/**
 	 * TODO:
 	 */

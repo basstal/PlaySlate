@@ -5,13 +5,13 @@
 class FActActionAnimInstanceTrack : public FActActionTrackEditorBase
 {
 public:
-	FActActionAnimInstanceTrack(const TSharedRef<FActActionSequenceController>& InSequenceController);
+	FActActionAnimInstanceTrack(const TSharedRef<FActEventTimelineBrain>& InSequenceController);
 
 	//~Begin FActActionTrackEditorBase interface
 	virtual void BuildAddTrackMenu(FMenuBuilder& MenuBuilder) override;
 	//~End FActActionTrackEditorBase interface
 
-	static TSharedRef<FActActionTrackEditorBase> CreateTrackEditor(TSharedRef<FActActionSequenceController> InSequenceController);
+	static TSharedRef<FActActionTrackEditorBase> CreateTrackEditor(TSharedRef<FActEventTimelineBrain> InSequenceController);
 
 	/**
 	 * Delegate callback

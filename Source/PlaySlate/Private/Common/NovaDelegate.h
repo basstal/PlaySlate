@@ -4,7 +4,7 @@
 
 class FActActionTrackEditorBase;
 struct FPointerEvent;
-class FActActionSequenceController;
+class FActEventTimelineBrain;
 class FActActionSequenceTreeViewNode;
 class SActActionSequenceTreeViewRow;
 class SActActionSequenceNotifyNode;
@@ -15,7 +15,7 @@ namespace ActActionSequence
 	// Called to get an object (used by the asset details panel)
 	DECLARE_DELEGATE_RetVal(UObject*, OnGetAssetDelegate);
 	DECLARE_DELEGATE_RetVal(float, OnGetDraggedNodePosDelegate);
-	DECLARE_DELEGATE_RetVal_OneParam(TSharedRef<FActActionTrackEditorBase>, OnCreateTrackEditorDelegate, TSharedRef<FActActionSequenceController>);
+	DECLARE_DELEGATE_RetVal_OneParam(TSharedRef<FActActionTrackEditorBase>, OnCreateTrackEditorDelegate, TSharedRef<FActEventTimelineBrain>);
 	/** A delegate which will create an auto-key handler. */
 	DECLARE_DELEGATE_RetVal_TwoParams(FFrameNumber, OnGetNearestKeyDelegate, FFrameTime, bool)
 	DECLARE_DELEGATE_RetVal_ThreeParams(TSharedRef<SWidget>, OnGenerateWidgetForColumnDelegate, const TSharedRef<FActActionSequenceTreeViewNode>&, const FName&, const TSharedRef<SActActionSequenceTreeViewRow>&);
@@ -38,7 +38,7 @@ namespace ActActionSequence
 	DECLARE_DELEGATE_TwoParams(OnScrubPositionChangedDelegate, FFrameTime, bool)
 	DECLARE_DELEGATE_TwoParams(OnViewRangeChangedDelegate, TRange<double>, ENovaViewRangeInterpolation)
 	/** A delegate that is executed when adding menu content. */
-	DECLARE_DELEGATE_TwoParams(OnGetAddMenuContentDelegate, FMenuBuilder& /*MenuBuilder*/, TSharedRef<FActActionSequenceController>);
+	DECLARE_DELEGATE_TwoParams(OnGetAddMenuContentDelegate, FMenuBuilder& /*MenuBuilder*/, TSharedRef<FActEventTimelineBrain>);
 	DECLARE_DELEGATE_TwoParams(OnSetMarkedFrameDelegate, int32, FFrameNumber)
 	DECLARE_DELEGATE_TwoParams(OnPanTrackRequestDelegate, int32, FVector2D)
 	DECLARE_DELEGATE_FourParams(OnNotifyStateHandleBeingDraggedDelegate, TSharedPtr<SActActionSequenceNotifyNode> /*NotifyNode*/, const FPointerEvent& /*PointerEvent*/, ENovaNotifyStateHandleHit /*Handle*/, float /*Time*/)

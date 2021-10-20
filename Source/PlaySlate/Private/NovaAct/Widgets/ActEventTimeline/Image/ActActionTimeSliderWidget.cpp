@@ -1,6 +1,6 @@
 ﻿#include "ActActionTimeSliderWidget.h"
 
-#include "NovaAct/Controllers/ActEventTimeline/TimeSlider/ActActionTimeSliderController.h"
+#include "NovaAct/Controllers/ActEventTimeline/Image/ActActionTimeSliderController.h"
 
 #include "Fonts/FontMeasure.h"
 #include "Common/NovaStaticFunction.h"

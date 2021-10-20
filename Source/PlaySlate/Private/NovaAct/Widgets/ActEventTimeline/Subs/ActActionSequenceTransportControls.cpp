@@ -4,7 +4,7 @@
 #include "EditorWidgetsModule.h"
 #include "ITransportControl.h"
 #include "NovaAct/ActActionSequenceEditor.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActActionSequenceController.h"
+#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
 #include "NovaAct/Controllers/ActViewport/ActActionPreviewSceneController.h"
 
 SActActionSequenceTransportControls::~SActActionSequenceTransportControls()
@@ -12,7 +12,7 @@ SActActionSequenceTransportControls::~SActActionSequenceTransportControls()
 	UE_LOG(LogActAction, Log, TEXT("SActActionSequenceTransportControls::~SActActionSequenceTransportControls"));
 }
 
-void SActActionSequenceTransportControls::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceController>& InActActionSequenceController)
+void SActActionSequenceTransportControls::Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineBrain>& InActActionSequenceController)
 {
 	ActActionSequenceEditor = InActActionSequenceController->GetActActionSequenceEditor();
 

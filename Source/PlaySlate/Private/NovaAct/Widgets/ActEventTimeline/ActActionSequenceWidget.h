@@ -2,7 +2,7 @@
 
 #include "Widgets/SCompoundWidget.h"
 
-class FActActionSequenceController;
+class FActEventTimelineBrain;
 class FActActionTimeSliderController;
 class SActActionSequenceTreeView;
 class SActActionTimeSliderWidget;
@@ -27,7 +27,7 @@ public:
 	SActActionSequenceWidget();
 	virtual ~SActActionSequenceWidget() override;
 
-	void Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceController>& InActActionSequenceController);
+	void Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineBrain>& InActActionSequenceController);
 
 	/**
 	 * 搜素框内文本改变的回调
@@ -47,7 +47,7 @@ protected:
 	 * 当前View的Controller，转发所有逻辑行为
 	 * Widget中所有Controller应该都是WeakPtr
 	 */
-	TWeakPtr<FActActionSequenceController> ActActionSequenceController;
+	TWeakPtr<FActEventTimelineBrain> ActActionSequenceController;
 
 	/** Main Sequencer Area*/
 	TSharedPtr<SVerticalBox> MainSequenceArea;
@@ -59,7 +59,7 @@ protected:
 	/** 过滤用的关键字 */
 	FText InFilter;
 public:
-	TSharedRef<FActActionSequenceController> GetActActionSequenceController() const
+	TSharedRef<FActEventTimelineBrain> GetActActionSequenceController() const
 	{
 		return ActActionSequenceController.Pin().ToSharedRef();
 	}

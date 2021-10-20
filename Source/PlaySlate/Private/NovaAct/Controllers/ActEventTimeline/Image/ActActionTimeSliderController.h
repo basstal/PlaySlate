@@ -8,7 +8,7 @@ class SActActionTimeRangeSlider;
 
 class SActActionTimeRange;
 
-class FActActionSequenceSectionOverlayController;
+class FActEventTimelineImage;
 
 /**
  * Sequence的时间滑块控制器，管理Sequence的时间轴相关数据
@@ -19,7 +19,7 @@ class FActActionTimeSliderController : public TSharedFromThis<FActActionTimeSlid
 	friend class SActActionTimeSliderWidget;
 
 public:
-	FActActionTimeSliderController(const TSharedRef<FActActionSequenceController>& InSequenceController);
+	FActActionTimeSliderController(const TSharedRef<FActEventTimelineBrain>& InSequenceController);
 
 	~FActActionTimeSliderController();
 
@@ -157,7 +157,7 @@ protected:
 	/**
 	 * 隶属的Controller
 	 */
-	TWeakPtr<FActActionSequenceController> ActActionSequenceController;
+	TWeakPtr<FActEventTimelineBrain> ActActionSequenceController;
 
 	/** 对应控制的Widget */
 	TSharedPtr<SActActionTimeSliderWidget> ActActionTimeSliderWidget;
@@ -194,12 +194,12 @@ protected:
 	/**
 	* SectionOverlay的Controller，这个用来绘制TickLines
 	*/
-	TSharedPtr<FActActionSequenceSectionOverlayController> TickLinesSequenceSectionOverlayController;
+	TSharedPtr<FActEventTimelineImage> TickLinesSequenceSectionOverlayController;
 
 	/**
 	* SectionOverlay的Controller，这个用来绘制Scrub位置
 	*/
-	TSharedPtr<FActActionSequenceSectionOverlayController> ScrubPosSequenceSectionOverlayController;
+	TSharedPtr<FActEventTimelineImage> ScrubPosSequenceSectionOverlayController;
 
 public:
 	TSharedRef<SActActionTimeSliderWidget> GetActActionTimeSliderWidget() const
@@ -212,12 +212,12 @@ public:
 		return ActActionTimeRange.ToSharedRef();
 	}
 
-	TSharedRef<FActActionSequenceSectionOverlayController> GetTickLinesSequenceSectionOverlayController() const
+	TSharedRef<FActEventTimelineImage> GetTickLinesSequenceSectionOverlayController() const
 	{
 		return TickLinesSequenceSectionOverlayController.ToSharedRef();
 	}
 
-	TSharedRef<FActActionSequenceSectionOverlayController> GetScrubPosSequenceSectionOverlayController() const
+	TSharedRef<FActEventTimelineImage> GetScrubPosSequenceSectionOverlayController() const
 	{
 		return ScrubPosSequenceSectionOverlayController.ToSharedRef();
 	}

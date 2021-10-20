@@ -1,7 +1,7 @@
 ﻿#include "ActActionTimeRangeSlider.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/Controllers/ActEventTimeline/TimeSlider/ActActionTimeSliderController.h"
+#include "NovaAct/Controllers/ActEventTimeline/Image/ActActionTimeSliderController.h"
 
 
 SActActionTimeRangeSlider::SActActionTimeRangeSlider()

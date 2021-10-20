@@ -3,7 +3,7 @@
 #include "PlaySlate.h"
 #include "ActActionSequenceSectionBase.h"
 #include "NovaAct/ActActionSequenceEditor.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActActionSequenceController.h"
+#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/ActActionOutlinerTreeNode.h"
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/ActActionSequenceCombinedKeysTrack.h"
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/ActActionSequenceTreeView.h"
@@ -11,7 +11,7 @@
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
-FActActionSequenceTreeViewNode::FActActionSequenceTreeViewNode(const TSharedRef<FActActionSequenceController>& InActActionSequenceController, FName InNodeName, ENovaSequenceNodeType InNodeType)
+FActActionSequenceTreeViewNode::FActActionSequenceTreeViewNode(const TSharedRef<FActEventTimelineBrain>& InActActionSequenceController, FName InNodeName, ENovaSequenceNodeType InNodeType)
 	: ActActionSequenceController(InActActionSequenceController),
 	  NodeName(InNodeName),
 	  NodeType(InNodeType)

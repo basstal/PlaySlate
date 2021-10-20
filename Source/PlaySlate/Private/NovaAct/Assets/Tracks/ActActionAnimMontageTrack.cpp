@@ -2,7 +2,7 @@
 
 #include "PlaySlate.h"
 #include "Common/NovaStruct.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActActionSequenceController.h"
+#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
 
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"
@@ -13,7 +13,7 @@
 class FContentBrowserModule;
 
 
-FActActionAnimMontageTrack::FActActionAnimMontageTrack(const TSharedRef<FActActionSequenceController>& ActActionSequenceController)
+FActActionAnimMontageTrack::FActActionAnimMontageTrack(const TSharedRef<FActEventTimelineBrain>& ActActionSequenceController)
 	: FActActionTrackEditorBase(ActActionSequenceController)
 {
 }
@@ -29,7 +29,7 @@ void FActActionAnimMontageTrack::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 }
 
 
-TSharedRef<FActActionTrackEditorBase> FActActionAnimMontageTrack::CreateTrackEditor(TSharedRef<FActActionSequenceController> InSequenceController)
+TSharedRef<FActActionTrackEditorBase> FActActionAnimMontageTrack::CreateTrackEditor(TSharedRef<FActEventTimelineBrain> InSequenceController)
 {
 	return MakeShareable(new FActActionAnimMontageTrack(InSequenceController));
 }

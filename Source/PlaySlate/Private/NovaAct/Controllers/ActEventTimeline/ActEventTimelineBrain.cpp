@@ -1,14 +1,14 @@
-﻿#include "ActActionSequenceController.h"
+﻿#include "ActEventTimelineBrain.h"
 
 #include "PlaySlate.h"
 #include "NovaAct/ActActionSequenceEditor.h"
 #include "NovaAct/Assets/Tracks/ActActionTrackEditorBase.h"
-#include "NovaAct/Controllers/ActEventTimeline/TimeSlider/ActActionTimeSliderController.h"
+#include "NovaAct/Controllers/ActEventTimeline/Image/ActActionTimeSliderController.h"
 #include "NovaAct/Controllers/ActViewport/ActActionPreviewSceneController.h"
 #include "NovaAct/Controllers/ActEventTimeline/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
 #include "NovaAct/Widgets/ActEventTimeline/ActActionSequenceWidget.h"
 // ReSharper disable once CppUnusedIncludeDirective
-#include "NovaAct/Controllers/ActEventTimeline/ActActionSequenceController.h"
+#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
 
 #include "IContentBrowserSingleton.h"
 #include "LevelEditorViewport.h"
@@ -20,7 +20,7 @@
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
-FActActionSequenceController::FActActionSequenceController(const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor)
+FActEventTimelineBrain::FActEventTimelineBrain(const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor)
 	: ActActionSequenceEditor(InActActionSequenceEditor),
 	  PlaybackState(ENovaPlaybackType::Stopped),
 	  TargetViewRange(0, 0),
@@ -30,9 +30,9 @@ FActActionSequenceController::FActActionSequenceController(const TSharedRef<FAct
 	TrackEditorDelegates.Add(ActActionSequence::OnCreateTrackEditorDelegate::CreateStatic(FActActionHitBoxTrack::CreateTrackEditor));
 }
 
-FActActionSequenceController::~FActActionSequenceController()
+FActEventTimelineBrain::~FActEventTimelineBrain()
 {
-	UE_LOG(LogActAction, Log, TEXT("FActActionSequenceController::~FActActionSequenceController"));
+	UE_LOG(LogActAction, Log, TEXT("FActEventTimelineBrain::~FActEventTimelineBrain"));
 	ActActionSequenceWidget.Reset();
 	ActActionTimeSliderController.Reset();
 	ActActionSequenceTreeViewNode.Reset();
@@ -40,9 +40,9 @@ FActActionSequenceController::~FActActionSequenceController()
 }
 
 
-void FActActionSequenceController::MakeSequenceWidget(ActActionSequence::FActActionSequenceViewParams ViewParams)
+void FActEventTimelineBrain::MakeSequenceWidget(ActActionSequence::FActActionSequenceViewParams ViewParams)
 {
-	ActActionSequenceEditor.Pin()->OnHitBoxesChanged.AddSP(this, &FActActionSequenceController::OnHitBoxesChanged);
+	ActActionSequenceEditor.Pin()->OnHitBoxesChanged.AddSP(this, &FActEventTimelineBrain::OnHitBoxesChanged);
 
 	// ** 构造所有显示节点的根节点
 	ActActionSequenceTreeViewNode = MakeShareable(new FActActionSequenceTreeViewNode(SharedThis(this)));
@@ -62,34 +62,34 @@ void FActActionSequenceController::MakeSequenceWidget(ActActionSequence::FActAct
 	TimeSliderArgs.TickResolution = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetTickResolution);
 	TimeSliderArgs.SelectionRange = TAttribute<TRange<FFrameNumber>>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetSelectionRange);
 	TimeSliderArgs.OnPlaybackRangeChanged = ActActionSequence::OnFrameRangeChangedDelegate::CreateSP(ActActionSequenceEditorRef, &FActActionSequenceEditor::SetPlaybackRange);
-	TimeSliderArgs.ScrubPosition = TAttribute<FFrameTime>(this, &FActActionSequenceController::GetLocalFrameTime);
-	TimeSliderArgs.ScrubPositionText = TAttribute<FString>(this, &FActActionSequenceController::GetFrameTimeText);
-	TimeSliderArgs.OnBeginScrubberMovement = FSimpleDelegate::CreateSP(this, &FActActionSequenceController::OnBeginScrubbing);
-	TimeSliderArgs.OnEndScrubberMovement = FSimpleDelegate::CreateSP(this, &FActActionSequenceController::OnEndScrubbing);
-	TimeSliderArgs.OnScrubPositionChanged = ActActionSequence::OnScrubPositionChangedDelegate::CreateSP(this, &FActActionSequenceController::OnScrubPositionChanged);
-	TimeSliderArgs.PlaybackStatus = TAttribute<ENovaPlaybackType>(this, &FActActionSequenceController::GetPlaybackStatus);
+	TimeSliderArgs.ScrubPosition = TAttribute<FFrameTime>(this, &FActEventTimelineBrain::GetLocalFrameTime);
+	TimeSliderArgs.ScrubPositionText = TAttribute<FString>(this, &FActEventTimelineBrain::GetFrameTimeText);
+	TimeSliderArgs.OnBeginScrubberMovement = FSimpleDelegate::CreateSP(this, &FActEventTimelineBrain::OnBeginScrubbing);
+	TimeSliderArgs.OnEndScrubberMovement = FSimpleDelegate::CreateSP(this, &FActEventTimelineBrain::OnEndScrubbing);
+	TimeSliderArgs.OnScrubPositionChanged = ActActionSequence::OnScrubPositionChangedDelegate::CreateSP(this, &FActEventTimelineBrain::OnScrubPositionChanged);
+	TimeSliderArgs.PlaybackStatus = TAttribute<ENovaPlaybackType>(this, &FActEventTimelineBrain::GetPlaybackStatus);
 	TimeSliderArgs.NumericTypeInterface = NumericTypeInterface;
 	// ** ViewRange
-	TimeSliderArgs.ViewRange.Bind(TAttribute<ActActionSequence::FActActionAnimatedRange>::FGetter::CreateSP(this, &FActActionSequenceController::GetViewRange));
-	TimeSliderArgs.OnViewRangeChanged = ActActionSequence::OnViewRangeChangedDelegate::CreateSP(this, &FActActionSequenceController::SetViewRange);
+	TimeSliderArgs.ViewRange.Bind(TAttribute<ActActionSequence::FActActionAnimatedRange>::FGetter::CreateSP(this, &FActEventTimelineBrain::GetViewRange));
+	TimeSliderArgs.OnViewRangeChanged = ActActionSequence::OnViewRangeChangedDelegate::CreateSP(this, &FActEventTimelineBrain::SetViewRange);
 	// ** ClampRange
-	TimeSliderArgs.ClampRange.Bind(TAttribute<ActActionSequence::FActActionAnimatedRange>::FGetter::CreateSP(this, &FActActionSequenceController::GetClampRange));
+	TimeSliderArgs.ClampRange.Bind(TAttribute<ActActionSequence::FActActionAnimatedRange>::FGetter::CreateSP(this, &FActEventTimelineBrain::GetClampRange));
 	ActActionTimeSliderController = MakeShareable(new FActActionTimeSliderController(SharedThis(this)));
 	ActActionTimeSliderController->MakeTimeSliderWidget();
 	ActActionSequenceWidget = SNew(SActActionSequenceWidget, SharedThis(this));
 }
 
-void FActActionSequenceController::Tick(float DeltaTime)
+void FActEventTimelineBrain::Tick(float DeltaTime)
 {
 }
 
-TStatId FActActionSequenceController::GetStatId() const
+TStatId FActEventTimelineBrain::GetStatId() const
 {
 	// ** TODO:临时的标记
 	RETURN_QUICK_DECLARE_CYCLE_STAT(FActActionSequenceController, STATGROUP_Tickables);
 }
 
-void FActActionSequenceController::ExecuteTrackEditorCreateDelegate()
+void FActEventTimelineBrain::ExecuteTrackEditorCreateDelegate()
 {
 	// Create tools and bind them to this sequence
 	for (int32 DelegateIndex = 0; DelegateIndex < TrackEditorDelegates.Num(); ++DelegateIndex)
@@ -101,7 +101,7 @@ void FActActionSequenceController::ExecuteTrackEditorCreateDelegate()
 	}
 }
 
-void FActActionSequenceController::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
+void FActEventTimelineBrain::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 {
 	for (int32 i = 0; i < TrackEditors.Num(); ++i)
 	{
@@ -110,11 +110,11 @@ void FActActionSequenceController::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 }
 
 // TODO:这个接口改到Editor中，资源调用Editor接口再调用Controller
-void FActActionSequenceController::AddAnimSequenceTrack(UAnimSequence* InAnimSequence)
+void FActEventTimelineBrain::AddAnimSequenceTrack(UAnimSequence* InAnimSequence)
 {
 	if (!InAnimSequence)
 	{
-		UE_LOG(LogActAction, Log, TEXT("FActActionSequenceController::AddAnimMontageTrack with nullptr AnimMontage"))
+		UE_LOG(LogActAction, Log, TEXT("FActEventTimelineBrain::AddAnimMontageTrack with nullptr AnimMontage"))
 		return;
 	}
 	if (ActActionSequenceEditor.IsValid())
@@ -145,7 +145,7 @@ void FActActionSequenceController::AddAnimSequenceTrack(UAnimSequence* InAnimSeq
 	}
 }
 
-void FActActionSequenceController::SetPlaybackStatus(ENovaPlaybackType InPlaybackStatus)
+void FActEventTimelineBrain::SetPlaybackStatus(ENovaPlaybackType InPlaybackStatus)
 {
 	PlaybackState = InPlaybackStatus;
 	// Inform the renderer when Sequencer is in a 'paused' state for the sake of inter-frame effects
@@ -167,12 +167,12 @@ void FActActionSequenceController::SetPlaybackStatus(ENovaPlaybackType InPlaybac
 	}
 }
 
-void FActActionSequenceController::Pause()
+void FActEventTimelineBrain::Pause()
 {
 	SetPlaybackStatus(ENovaPlaybackType::Stopped);
 }
 
-FFrameTime FActActionSequenceController::GetLocalFrameTime() const
+FFrameTime FActEventTimelineBrain::GetLocalFrameTime() const
 {
 	if (ActActionSequenceEditor.IsValid())
 	{
@@ -185,13 +185,13 @@ FFrameTime FActActionSequenceController::GetLocalFrameTime() const
 }
 
 
-FString FActActionSequenceController::GetFrameTimeText() const
+FString FActEventTimelineBrain::GetFrameTimeText() const
 {
 	const FFrameTime LocalFrameTime = GetLocalFrameTime();
 	return NumericTypeInterface->ToString(LocalFrameTime.GetFrame().Value);
 }
 
-void FActActionSequenceController::OnBeginScrubbing()
+void FActEventTimelineBrain::OnBeginScrubbing()
 {
 	// Pause first since there's no explicit evaluation in the stopped state when OnEndScrubbing() is called
 	Pause();
@@ -199,12 +199,12 @@ void FActActionSequenceController::OnBeginScrubbing()
 }
 
 
-void FActActionSequenceController::OnEndScrubbing()
+void FActEventTimelineBrain::OnEndScrubbing()
 {
 	SetPlaybackStatus(ENovaPlaybackType::Stopped);
 }
 
-void FActActionSequenceController::SetGlobalTime(FFrameTime InFrameTime) const
+void FActEventTimelineBrain::SetGlobalTime(FFrameTime InFrameTime) const
 {
 	if (ActActionSequenceEditor.IsValid())
 	{
@@ -223,7 +223,7 @@ void FActActionSequenceController::SetGlobalTime(FFrameTime InFrameTime) const
 	}
 }
 
-void FActActionSequenceController::SetLocalTimeDirectly(FFrameTime InFrameTime) const
+void FActEventTimelineBrain::SetLocalTimeDirectly(FFrameTime InFrameTime) const
 {
 	const TWeakPtr<SWidget> PreviousFocusedWidget = FSlateApplication::Get().GetKeyboardFocusedWidget();
 	// Clear focus before setting time in case there's a key editor value selected that gets committed to a newly selected key on UserMovedFocus
@@ -239,7 +239,7 @@ void FActActionSequenceController::SetLocalTimeDirectly(FFrameTime InFrameTime) 
 	}
 }
 
-void FActActionSequenceController::OnScrubPositionChanged(FFrameTime NewScrubPosition, bool bScrubbing)
+void FActEventTimelineBrain::OnScrubPositionChanged(FFrameTime NewScrubPosition, bool bScrubbing)
 {
 	if (PlaybackState == ENovaPlaybackType::Scrubbing)
 	{
@@ -251,25 +251,25 @@ void FActActionSequenceController::OnScrubPositionChanged(FFrameTime NewScrubPos
 	SetLocalTimeDirectly(NewScrubPosition);
 }
 
-ActActionSequence::FActActionAnimatedRange FActActionSequenceController::GetViewRange() const
+ActActionSequence::FActActionAnimatedRange FActEventTimelineBrain::GetViewRange() const
 {
 	ActActionSequence::FActActionAnimatedRange AnimatedRange(TargetViewRange.GetLowerBoundValue(), TargetViewRange.GetUpperBoundValue());
 	return AnimatedRange;
 }
 
-void FActActionSequenceController::SetViewRange(TRange<double> InViewRange, ENovaViewRangeInterpolation InViewRangeInterpolation)
+void FActEventTimelineBrain::SetViewRange(TRange<double> InViewRange, ENovaViewRangeInterpolation InViewRangeInterpolation)
 {
 	TargetViewRange = InViewRange;
 }
 
-ActActionSequence::FActActionAnimatedRange FActActionSequenceController::GetClampRange() const
+ActActionSequence::FActActionAnimatedRange FActEventTimelineBrain::GetClampRange() const
 {
 	ActActionSequence::FActActionAnimatedRange AnimatedRange(TargetClampRange.GetLowerBoundValue(), TargetClampRange.GetUpperBoundValue());
 	return AnimatedRange;
 }
 
 
-void FActActionSequenceController::PopulateAddMenuContext(FMenuBuilder& MenuBuilder)
+void FActEventTimelineBrain::PopulateAddMenuContext(FMenuBuilder& MenuBuilder)
 {
 	// ** 填充AddTrack菜单
 	MenuBuilder.BeginSection("AddTracks");
@@ -277,7 +277,7 @@ void FActActionSequenceController::PopulateAddMenuContext(FMenuBuilder& MenuBuil
 	MenuBuilder.EndSection();
 }
 
-void FActActionSequenceController::OnHitBoxesChanged(const TArray<FActActionHitBoxData>& InHitBoxData)
+void FActEventTimelineBrain::OnHitBoxesChanged(const TArray<FActActionHitBoxData>& InHitBoxData)
 {
 	const TSharedRef<FActActionSequenceTreeViewNode> HitBoxesFolder = ActActionSequenceTreeViewNode->FindOrCreateFolder(FName("HitBoxesFolder"));
 	int HitBoxTreeViewNodeCount = HitBoxesFolder->GetChildNodes().Num();

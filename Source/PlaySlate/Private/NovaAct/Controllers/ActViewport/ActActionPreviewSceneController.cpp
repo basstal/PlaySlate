@@ -11,7 +11,7 @@
 #include "Animation/AnimBlueprint.h"
 #include "Animation/AnimSingleNodeInstance.h"
 #include "AnimPreviewInstance.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActActionSequenceController.h"
+#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
 
 FActActionPreviewSceneController::FActActionPreviewSceneController(const ConstructionValues& CVS, const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor)
 	: FAdvancedPreviewScene(CVS),
@@ -125,7 +125,7 @@ void FActActionPreviewSceneController::InitAnimation(UAnimSequence* InAnimSequen
 				ActActionSkeletalMesh->PreviewInstance->SetLooping(true);
 				// TODO:
 				// float CalculateSequenceLength = AnimMontage->CalculateSequenceLength();
-				// TSharedRef<FActActionSequenceController> ActActionSequenceController = ActActionSequenceEditor.Pin()->GetActActionSequenceController();
+				// TSharedRef<FActEventTimelineBrain> ActActionSequenceController = ActActionSequenceEditor.Pin()->GetActActionSequenceController();
 				// float PlayRate = CalculateSequenceLength / ActActionSequenceController->GetTargetViewRange().GetUpperBoundValue();
 				// UE_LOG(LogActAction, Log, TEXT("PlayRate : %f"), PlayRate);
 				ActActionSkeletalMesh->SetPlayRate(2.0f);

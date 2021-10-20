@@ -3,7 +3,7 @@
 #include "PlaySlate.h"
 #include "Common/NovaConst.h"
 #include "NovaAct/Assets/ActActionSequence.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActActionSequenceController.h"
+#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
 #include "NovaAct/Controllers/ActViewport/ActActionPreviewSceneController.h"
 // ReSharper disable once CppUnusedIncludeDirective
 #include "NovaAct/Widgets/ActViewport/ActActionViewportWidget.h"
@@ -57,7 +57,7 @@ void FActActionSequenceEditor::InitActActionSequenceEditor(const TSharedPtr<IToo
 
 	// ** 通过对应Widget的Controller，填充Tab的实际内容Widget，并保留对Controller的引用
 	// ** ActActionSequenceController
-	ActActionSequenceController = MakeShareable(new FActActionSequenceController(SharedThis(this)));
+	ActActionSequenceController = MakeShareable(new FActEventTimelineBrain(SharedThis(this)));
 	ActActionSequenceController->ExecuteTrackEditorCreateDelegate();
 	const ActActionSequence::FActActionSequenceViewParams ViewParams = ActActionSequence::FActActionSequenceViewParams();
 	ActActionSequenceController->MakeSequenceWidget(ViewParams);

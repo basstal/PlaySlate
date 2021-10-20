@@ -1,7 +1,7 @@
 ﻿#include "ActActionAnimInstanceTrack.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActActionSequenceController.h"
+#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
 
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"
@@ -12,7 +12,7 @@
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
-FActActionAnimInstanceTrack::FActActionAnimInstanceTrack(const TSharedRef<FActActionSequenceController>& InSequenceController)
+FActActionAnimInstanceTrack::FActActionAnimInstanceTrack(const TSharedRef<FActEventTimelineBrain>& InSequenceController)
 	: FActActionTrackEditorBase(InSequenceController)
 {
 }
@@ -27,7 +27,7 @@ void FActActionAnimInstanceTrack::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 	);
 }
 
-TSharedRef<FActActionTrackEditorBase> FActActionAnimInstanceTrack::CreateTrackEditor(TSharedRef<FActActionSequenceController> InSequenceController)
+TSharedRef<FActActionTrackEditorBase> FActActionAnimInstanceTrack::CreateTrackEditor(TSharedRef<FActEventTimelineBrain> InSequenceController)
 {
 	return MakeShareable(new FActActionAnimInstanceTrack(InSequenceController));
 }

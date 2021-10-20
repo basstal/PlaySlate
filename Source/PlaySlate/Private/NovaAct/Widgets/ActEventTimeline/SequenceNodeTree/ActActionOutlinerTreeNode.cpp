@@ -2,7 +2,7 @@
 
 #include "PlaySlate.h"
 #include "NovaAct/Controllers/ActEventTimeline/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActActionSequenceController.h"
+#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
 #include "Styling/StyleColors.h"
 #include "Subs/ActActionSequenceTreeViewRow.h"
 

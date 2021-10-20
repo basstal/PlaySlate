@@ -26,7 +26,7 @@ public:
 	 * @param InNodeName 节点名称
 	 * @param InNodeType 节点类型
 	 */
-	FActActionSequenceTreeViewNode(const TSharedRef<FActActionSequenceController>& InActActionSequenceController, FName InNodeName = NAME_None, ENovaSequenceNodeType InNodeType = ENovaSequenceNodeType::Root);
+	FActActionSequenceTreeViewNode(const TSharedRef<FActEventTimelineBrain>& InActActionSequenceController, FName InNodeName = NAME_None, ENovaSequenceNodeType InNodeType = ENovaSequenceNodeType::Root);
 
 	virtual ~FActActionSequenceTreeViewNode();
 
@@ -189,7 +189,7 @@ protected:
 	/**
 	 * 当前编辑的Sequence，即所有NodeTree所属的Sequence
 	 */
-	TWeakPtr<FActActionSequenceController> ActActionSequenceController;
+	TWeakPtr<FActEventTimelineBrain> ActActionSequenceController;
 	/**
 	 * 该节点的父节点，如果没有父节点则认为是树的根节点
 	 */
@@ -298,7 +298,7 @@ public:
 		return TrackArea.ToSharedRef();
 	}
 
-	TSharedRef<FActActionSequenceController> GetSequenceController() const
+	TSharedRef<FActEventTimelineBrain> GetSequenceController() const
 	{
 		return ActActionSequenceController.Pin().ToSharedRef();
 	}

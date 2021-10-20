@@ -1,20 +1,20 @@
 ﻿#include "ActActionSequenceWidget.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActActionSequenceController.h"
-#include "NovaAct/Controllers/ActEventTimeline/TimeSlider/ActActionTimeSliderController.h"
+#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
+#include "NovaAct/Controllers/ActEventTimeline/Image/ActActionTimeSliderController.h"
 #include "NovaAct/Widgets/ActViewport/ActActionViewportWidget.h"
 // ReSharper disable once CppUnusedIncludeDirective
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/ActActionSequenceTrackArea.h"
 // ReSharper disable once CppUnusedIncludeDirective
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/ActActionSequenceTreeView.h"
 // ReSharper disable once CppUnusedIncludeDirective
-#include "NovaAct/Widgets/ActEventTimeline/TimeSlider/ActActionTimeSliderWidget.h"
-#include "NovaAct/Widgets/ActEventTimeline/TimeSlider/ActActionSequenceSectionOverlayWidget.h"
+#include "NovaAct/Widgets/ActEventTimeline/Image/ActActionTimeSliderWidget.h"
+#include "NovaAct/Widgets/ActEventTimeline/Image/ActActionSequenceSectionOverlayWidget.h"
 #include "NovaAct/Widgets/ActEventTimeline/Subs/ActActionSequenceTransportControls.h"
 #include "NovaAct/Widgets/ActEventTimeline/Subs/ActActionSequenceSplitterOverlay.h"
 // ReSharper disable once CppUnusedIncludeDirective
-#include "NovaAct/Widgets/ActEventTimeline/TimeSlider/Subs/ActActionTimeRange.h"
+#include "NovaAct/Widgets/ActEventTimeline/Image/Subs/ActActionTimeRange.h"
 
 #include "SEditorHeaderButton.h"
 #include "FrameNumberNumericInterface.h"
@@ -35,7 +35,7 @@ SActActionSequenceWidget::~SActActionSequenceWidget()
 	UE_LOG(LogActAction, Log, TEXT("SActActionSequenceWidget::~SActActionSequenceWidget"));
 }
 
-void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceController>& InActActionSequenceController)
+void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineBrain>& InActActionSequenceController)
 {
 	ColumnFillCoefficients[0] = 0.4f;
 	ColumnFillCoefficients[1] = 0.6f;

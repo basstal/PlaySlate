@@ -2,7 +2,7 @@
 
 #include "Common/NovaDelegate.h"
 
-class FActActionSequenceController;
+class FActEventTimelineBrain;
 class FActActionTrackAreaSlot;
 class FActActionTrackEditorBase;
 class FActActionSequenceTreeViewNode;

@@ -3,7 +3,7 @@
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/ActActionSequenceTrackArea.h"
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/Subs/ActActionSequenceTrackLane.h"
 #include "NovaAct/Controllers/ActEventTimeline/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActActionSequenceController.h"
+#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
 // ReSharper disable once CppUnusedIncludeDirective
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/ActActionOutlinerTreeNode.h"
 #include "Subs/ActActionSequenceTreeViewRow.h"

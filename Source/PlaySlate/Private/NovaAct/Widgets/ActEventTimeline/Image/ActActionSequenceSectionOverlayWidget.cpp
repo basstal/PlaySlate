@@ -2,7 +2,7 @@
 
 #include "Common/NovaStaticFunction.h"
 
-void SActActionSequenceSectionOverlayWidget::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceSectionOverlayController>& InActActionSequenceSectionOverlayController)
+void SActActionSequenceSectionOverlayWidget::Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineImage>& InActActionSequenceSectionOverlayController)
 {
 	bDisplayScrubPosition = InArgs._DisplayScrubPosition;
 	bDisplayTickLines = InArgs._DisplayTickLines;

@@ -1,16 +1,16 @@
 ﻿#include "ActActionTimeSliderController.h"
 
-#include "ActActionSequenceSectionOverlayController.h"
+#include "ActEventTimelineImage.h"
 #include "PlaySlate.h"
 #include "Common/NovaStaticFunction.h"
 #include "Common/NovaStruct.h"
 #include "NovaAct/ActActionSequenceEditor.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActActionSequenceController.h"
-#include "NovaAct/Widgets/ActEventTimeline/TimeSlider/Subs/ActActionTimeRangeSlider.h"
-#include "NovaAct/Widgets/ActEventTimeline/TimeSlider/ActActionTimeSliderWidget.h"
-#include "NovaAct/Widgets/ActEventTimeline/TimeSlider/Subs/ActActionTimeRange.h"
+#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
+#include "NovaAct/Widgets/ActEventTimeline/Image/Subs/ActActionTimeRangeSlider.h"
+#include "NovaAct/Widgets/ActEventTimeline/Image/ActActionTimeSliderWidget.h"
+#include "NovaAct/Widgets/ActEventTimeline/Image/Subs/ActActionTimeRange.h"
 
-FActActionTimeSliderController::FActActionTimeSliderController(const TSharedRef<FActActionSequenceController>& InSequenceController)
+FActActionTimeSliderController::FActActionTimeSliderController(const TSharedRef<FActEventTimelineBrain>& InSequenceController)
 	: ActActionSequenceController(InSequenceController),
 	  DistanceDragged(0),
 	  MouseDragType(ENovaDragType::DRAG_NONE),
@@ -31,9 +31,9 @@ void FActActionTimeSliderController::MakeTimeSliderWidget()
 	ActActionTimeSliderWidget = SNew(SActActionTimeSliderWidget, SharedThis(this));
 	TSharedRef<SActActionTimeRangeSlider> ActActionTimeRangeSlider = SNew(SActActionTimeRangeSlider, SharedThis(this));
 	ActActionTimeRange = SNew(SActActionTimeRange, SharedThis(this), ActActionTimeRangeSlider);
-	TickLinesSequenceSectionOverlayController = MakeShareable(new FActActionSequenceSectionOverlayController(SharedThis(this)));
+	TickLinesSequenceSectionOverlayController = MakeShareable(new FActEventTimelineImage(SharedThis(this)));
 	TickLinesSequenceSectionOverlayController->MakeSequenceSectionOverlayWidget(ENovaSectionOverlayWidgetType::TickLines);
-	ScrubPosSequenceSectionOverlayController = MakeShareable(new FActActionSequenceSectionOverlayController(SharedThis(this)));
+	ScrubPosSequenceSectionOverlayController = MakeShareable(new FActEventTimelineImage(SharedThis(this)));
 	ScrubPosSequenceSectionOverlayController->MakeSequenceSectionOverlayWidget(ENovaSectionOverlayWidgetType::ScrubPosition);
 }
 
