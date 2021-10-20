@@ -1,6 +1,7 @@
 ﻿#pragma once
+
 #include "SSingleObjectDetailsPanel.h"
-#include "Common/NovaStruct.h"
+#include "Common/NovaDelegate.h"
 
 class FActActionSequenceEditor;
 

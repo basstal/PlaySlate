@@ -3,13 +3,11 @@
 
 #include "AdvancedPreviewScene.h"
 #include "ITransportControl.h"
+#include "Common/NovaStruct.h"
 
 class FActActionViewportClient;
-
 class SActActionViewportWidget;
-
 class FActActionSequenceEditor;
-
 struct FActActionHitBoxData;
 
 class FActActionPreviewSceneController : public TSharedFromThis<FActActionPreviewSceneController>, public FAdvancedPreviewScene

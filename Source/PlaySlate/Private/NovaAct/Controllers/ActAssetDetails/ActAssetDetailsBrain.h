@@ -1,19 +1,16 @@
 ﻿#pragma once
-#include "NovaAct/ActActionSequenceEditor.h"
 
 class SActActionDetailsViewWidget;
+class FActActionSequenceEditor;
 
-class FActActionDetailsViewController : public TSharedFromThis<FActActionDetailsViewController>
+class FActAssetDetailsBrain : public TSharedFromThis<FActAssetDetailsBrain>
 {
 public:
-	FActActionDetailsViewController(const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor);
-	~FActActionDetailsViewController();
-
+	FActAssetDetailsBrain(const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor);
+	~FActAssetDetailsBrain();
 
 	/** 构造Widget */
 	void MakeDetailsViewWidget();
-
-
 protected:
 	/** Sequence Editor */
 	TWeakPtr<FActActionSequenceEditor> ActActionSequenceEditor;

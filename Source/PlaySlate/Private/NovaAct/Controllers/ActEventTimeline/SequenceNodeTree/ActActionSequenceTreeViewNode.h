@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Common/NovaStruct.h"
+#include "NovaAct/Assets/ActActionSequenceStructs.h"
 
 class FActActionSequenceSectionBase;
 class SActActionSequenceTreeViewRow;

@@ -7,7 +7,7 @@ class FActActionPreviewSceneController;
 class UActActionSequence;
 class FActActionViewportClient;
 class FActActionSequenceController;
-class FActActionDetailsViewController;
+class FActAssetDetailsBrain;
 
 /**
  * ActActionSequence资源编辑器的入口和管理者，提供一些工具方法和资源对象指针
@@ -91,7 +91,7 @@ protected:
 	TSharedPtr<FActActionSequenceController> ActActionSequenceController;
 
 	/** Details View Controller */
-	TSharedPtr<FActActionDetailsViewController> ActActionDetailsViewController;
+	TSharedPtr<FActAssetDetailsBrain> ActActionDetailsViewController;
 
 	/** Sequence Widget Container */
 	TSharedPtr<SDockTab> ActActionSequenceWidgetParent;

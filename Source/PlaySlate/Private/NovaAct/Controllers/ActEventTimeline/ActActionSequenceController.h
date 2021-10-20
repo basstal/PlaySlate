@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include "Common/NovaStruct.h"
 #include "IContentBrowserSingleton.h"
+#include "Common/NovaStruct.h"
 
 class FActActionSequenceEditor;
 class FActActionTimeSliderController;

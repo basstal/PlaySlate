@@ -1,4 +1,4 @@
-﻿#include "ActActionDetailsViewController.h"
+﻿#include "ActAssetDetailsBrain.h"
 
 #include "PlaySlate.h"
 // ReSharper disable once CppUnusedIncludeDirective
@@ -6,17 +6,17 @@
 #include "NovaAct/ActActionSequenceEditor.h"
 #include "NovaAct/Widgets/ActAssetDetails/ActActionDetailsViewWidget.h"
 
-FActActionDetailsViewController::FActActionDetailsViewController(const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor)
+FActAssetDetailsBrain::FActAssetDetailsBrain(const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor)
 	: ActActionSequenceEditor(InActActionSequenceEditor)
 {
 }
 
-FActActionDetailsViewController::~FActActionDetailsViewController()
+FActAssetDetailsBrain::~FActAssetDetailsBrain()
 {
-	UE_LOG(LogActAction, Log, TEXT("FActActionDetailsViewController::~FActActionDetailsViewController"));
+	UE_LOG(LogActAction, Log, TEXT("FActAssetDetailsBrain::~FActAssetDetailsBrain"));
 }
 
-void FActActionDetailsViewController::MakeDetailsViewWidget()
+void FActAssetDetailsBrain::MakeDetailsViewWidget()
 {
 	ActActionDetailsViewWidget = SNew(SActActionDetailsViewWidget, ActActionSequenceEditor.Pin().ToSharedRef())
 		.OnGetAsset(ActActionSequence::OnGetAssetDelegate::CreateLambda([this]()

@@ -10,7 +10,7 @@
 // ReSharper disable once CppUnusedIncludeDirective
 #include "NovaAct/Widgets/ActEventTimeline/ActActionSequenceWidget.h"
 #include "NovaAct/Widgets/ActAssetDetails/ActActionDetailsViewWidget.h"
-#include "NovaAct/Controllers/ActAssetDetails/ActActionDetailsViewController.h"
+#include "NovaAct/Controllers/ActAssetDetails/ActAssetDetailsBrain.h"
 
 #include "Animation/AnimBlueprint.h"
 #include "Animation/SkeletalMeshActor.h"
@@ -72,7 +72,7 @@ void FActActionSequenceEditor::InitActActionSequenceEditor(const TSharedPtr<IToo
 	ActActionViewportWidgetParent->SetContent(ActActionPreviewSceneController->GetActActionViewportWidget());
 
 	// ** DetailsView Controller
-	ActActionDetailsViewController = MakeShareable(new FActActionDetailsViewController(SharedThis(this)));
+	ActActionDetailsViewController = MakeShareable(new FActAssetDetailsBrain(SharedThis(this)));
 	ActActionDetailsViewController->MakeDetailsViewWidget();
 	if (ActActionDetailsViewWidgetParent)
 	{

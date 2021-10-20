@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include "Common/NovaStruct.h"
 #include "Widgets/SCompoundWidget.h"
 
 class FActActionSequenceController;
