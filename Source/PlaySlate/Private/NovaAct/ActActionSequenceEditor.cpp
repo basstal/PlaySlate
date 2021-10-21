@@ -91,7 +91,7 @@ void FActActionSequenceEditor::InitActActionSequenceEditor(const TSharedPtr<IToo
 
 void FActActionSequenceEditor::ResetAssetProperties(UObject* InObject)
 {
-	const UActActionSequence* ActActionSequencePtr = Cast<UActActionSequence>(InObject);
+	UActActionSequence* ActActionSequencePtr = Cast<UActActionSequence>(InObject);
 	InitAnimBlueprint(ActActionSequencePtr->AnimBlueprint);
 	ActActionSequenceController->AddAnimSequenceTrack(ActActionSequencePtr->AnimSequence);
 	if (OnHitBoxesChanged.IsBound())

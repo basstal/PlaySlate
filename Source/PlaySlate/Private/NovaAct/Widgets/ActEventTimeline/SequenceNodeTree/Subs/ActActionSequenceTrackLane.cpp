@@ -1,6 +1,7 @@
 ﻿#include "ActActionSequenceTrackLane.h"
 
 #include "SCurveEditor.h"
+#include "Common/NovaConst.h"
 #include "NovaAct/Controllers/ActEventTimeline/SequenceNodeTree/ActActionTrackAreaSlot.h"
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/Subs/ActActionSequenceNotifyNode.h"
 
@@ -80,7 +81,7 @@ FVector2D SActActionSequenceTrackLane::ComputeDesiredSize(float LayoutScaleMulti
 {
 	FVector2D Size;
 	Size.X = 200;
-	Size.Y = ActActionTrackAreaSlot.Pin()->NotifyHeight;
+	Size.Y = NovaConst::NotifyHeight;
 	return Size;
 }
 
@@ -91,7 +92,7 @@ void SActActionSequenceTrackLane::Update()
 	);
 
 	// if (ActActionTrackAreaSlot.IsValid() && ActActionTrackAreaSlot.Pin()->GetNotifyEvent())
-	if (ActActionTrackAreaSlot.IsValid())
+	if (ActActionTrackAreaSlot.IsValid() && ActActionTrackAreaSlot.Pin()->HasNotifyNode())
 	{
 		NotifyNode = SNew(SActActionSequenceNotifyNode, ActActionTrackAreaSlot.Pin().ToSharedRef())
 			.OnNodeDragStarted(this, &SActActionSequenceTrackLane::OnNotifyNodeDragStarted);

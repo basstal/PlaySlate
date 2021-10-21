@@ -277,7 +277,7 @@ void FActEventTimelineBrain::PopulateAddMenuContext(FMenuBuilder& MenuBuilder)
 	MenuBuilder.EndSection();
 }
 
-void FActEventTimelineBrain::OnHitBoxesChanged(const TArray<FActActionHitBoxData>& InHitBoxData)
+void FActEventTimelineBrain::OnHitBoxesChanged(TArray<FActActionHitBoxData>& InHitBoxData)
 {
 	const TSharedRef<FActActionSequenceTreeViewNode> HitBoxesFolder = ActActionSequenceTreeViewNode->FindOrCreateFolder(FName("HitBoxesFolder"));
 	int HitBoxTreeViewNodeCount = HitBoxesFolder->GetChildNodes().Num();
@@ -290,7 +290,7 @@ void FActEventTimelineBrain::OnHitBoxesChanged(const TArray<FActActionHitBoxData
 		}
 	}
 	int Index = 0;
-	for (const FActActionHitBoxData& InHitBox : InHitBoxData)
+	for (FActActionHitBoxData& InHitBox : InHitBoxData)
 	{
 		HitBoxesFolder->GetChildByIndex(Index++)->SetContentAsHitBox(InHitBox);
 	}

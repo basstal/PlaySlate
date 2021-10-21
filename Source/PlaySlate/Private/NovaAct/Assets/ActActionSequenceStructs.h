@@ -11,7 +11,7 @@ struct FActActionHitBoxData
 	 * 开始帧
 	 */
 	UPROPERTY(EditAnywhere)
-	int Start;
+	int Begin;
 
 	/**
 	 * 结束帧

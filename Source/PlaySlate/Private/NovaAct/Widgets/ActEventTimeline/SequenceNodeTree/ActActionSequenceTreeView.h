@@ -45,6 +45,12 @@ public:
 	 */
 	void OnGetChildren(TSharedRef<FActActionSequenceTreeViewNode> InParent, TArray<TSharedRef<FActActionSequenceTreeViewNode>>& OutChildren) const;
 
+	/**
+	 * 当展开状态改变的回调
+	 * @param InDisplayNode
+	 * @param bIsExpanded
+	 */
+	void OnExpansionChanged(TSharedRef<FActActionSequenceTreeViewNode> InDisplayNode, bool bIsExpanded);
 
 protected:
 	/** Pointer to the node tree data that is used to populate this tree */

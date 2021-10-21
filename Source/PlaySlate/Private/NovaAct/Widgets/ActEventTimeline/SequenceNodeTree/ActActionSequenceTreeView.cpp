@@ -1,5 +1,6 @@
 ﻿#include "ActActionSequenceTreeView.h"
 
+#include "PlaySlate.h"
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/ActActionSequenceTrackArea.h"
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/Subs/ActActionSequenceTrackLane.h"
 #include "NovaAct/Controllers/ActEventTimeline/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
@@ -24,6 +25,7 @@ void SActActionSequenceTreeView::Construct(const FArguments& InArgs, const TShar
 		.SelectionMode(ESelectionMode::Single)
 		.OnGenerateRow(this, &SActActionSequenceTreeView::OnGenerateRow)
 		.OnGetChildren(this, &SActActionSequenceTreeView::OnGetChildren)
+		.OnExpansionChanged(this, &SActActionSequenceTreeView::OnExpansionChanged)
 		.HeaderRow(HeaderRow)
 		.ExternalScrollbar(InArgs._ExternalScrollbar)
 		.HighlightParentNodesForSelection(true)
@@ -73,5 +75,14 @@ void SActActionSequenceTreeView::OnGetChildren(TSharedRef<FActActionSequenceTree
 		{
 			OutChildren.Add(Node);
 		}
+	}
+}
+
+void SActActionSequenceTreeView::OnExpansionChanged(TSharedRef<FActActionSequenceTreeViewNode> InDisplayNode, bool bIsExpanded)
+{
+	UE_LOG(LogActAction, Log, TEXT("InDisplayNode->GetPathName : %s, bIsExpanded : %d"), *InDisplayNode->GetPathName(), bIsExpanded);
+	for (const TSharedRef<FActActionSequenceTreeViewNode>& ChildNode : InDisplayNode->GetChildNodes())
+	{
+		ChildNode->SetVisible(bIsExpanded ? EVisibility::Visible : EVisibility::Collapsed);
 	}
 }

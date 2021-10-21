@@ -42,22 +42,15 @@ public:
 
 	//~Begin FAssetEditorToolkit interface
 	virtual FName GetToolkitFName() const override;
-
 	virtual FText GetBaseToolkitName() const override;
-
 	virtual void RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
-
 	virtual void UnregisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
-
 	virtual FLinearColor GetWorldCentricTabColorScale() const override;
-
 	virtual FString GetWorldCentricTabPrefix() const override;
-
 	//~End FAssetEditorToolkit interfaced
 
 	//~Begin FNotifyHook interface
 	virtual void NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, FProperty* PropertyThatChanged) override;
-
 	//~End FNotifyHook interface
 
 	/**

@@ -44,5 +44,5 @@ namespace ActActionSequence
 	DECLARE_DELEGATE_FourParams(OnNotifyStateHandleBeingDraggedDelegate, TSharedPtr<SActActionSequenceNotifyNode> /*NotifyNode*/, const FPointerEvent& /*PointerEvent*/, ENovaNotifyStateHandleHit /*Handle*/, float /*Time*/)
 
 	DECLARE_MULTICAST_DELEGATE_OneParam(OnAssetPropertiesModifiedMulticastDelegate, UObject*);
-	DECLARE_MULTICAST_DELEGATE_OneParam(OnHitBoxesChangedMulticastDelegate, const TArray<FActActionHitBoxData>&);
+	DECLARE_MULTICAST_DELEGATE_OneParam(OnHitBoxesChangedMulticastDelegate, TArray<FActActionHitBoxData>&);
 }

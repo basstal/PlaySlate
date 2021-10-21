@@ -3,6 +3,7 @@
 #include "PlaySlate.h"
 #include "ActActionSequenceSectionBase.h"
 #include "NovaAct/ActActionSequenceEditor.h"
+#include "NovaAct/Assets/ActActionSequenceStructs.h"
 #include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/ActActionOutlinerTreeNode.h"
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/ActActionSequenceCombinedKeysTrack.h"
@@ -14,7 +15,8 @@
 FActActionSequenceTreeViewNode::FActActionSequenceTreeViewNode(const TSharedRef<FActEventTimelineBrain>& InActActionSequenceController, FName InNodeName, ENovaSequenceNodeType InNodeType)
 	: ActActionSequenceController(InActActionSequenceController),
 	  NodeName(InNodeName),
-	  NodeType(InNodeType)
+	  NodeType(InNodeType),
+	  CachedHitBox(nullptr)
 {
 	if (NodeType == ENovaSequenceNodeType::Folder)
 	{
@@ -88,6 +90,18 @@ TSharedRef<SActActionOutlinerTreeNode> FActActionSequenceTreeViewNode::MakeOutli
 
 void FActActionSequenceTreeViewNode::MakeWidgetForSectionArea()
 {
+	ActActionTrackAreaArgs.ViewInputMin.Bind(TAttribute<float>::FGetter::CreateLambda([this]()
+	{
+		return ActActionSequenceController.Pin()->GetViewRange().GetLowerBoundValue();
+	}));
+	ActActionTrackAreaArgs.ViewInputMax.Bind(TAttribute<float>::FGetter::CreateLambda([this]()
+	{
+		return ActActionSequenceController.Pin()->GetViewRange().GetUpperBoundValue();
+	}));
+	ActActionTrackAreaArgs.TickResolution.Bind(TAttribute<FFrameRate>::FGetter::CreateLambda([this]()
+	{
+		return ActActionSequenceController.Pin()->GetActActionSequenceEditor()->GetTickResolution();
+	}));
 	ActActionSectionWidget = SNew(SActActionSequenceCombinedKeysTrack, SharedThis(this))
 		.Visibility(EVisibility::Visible)
 		.TickResolution(ActActionSequenceController.Pin()->GetActActionSequenceEditor(), &FActActionSequenceEditor::GetTickResolution);
@@ -286,25 +300,29 @@ TSharedRef<FActActionSequenceTreeViewNode> FActActionSequenceTreeViewNode::FindO
 	return *FindNode;
 }
 
-void FActActionSequenceTreeViewNode::SetContentAsHitBox(const FActActionHitBoxData& InHitBox)
+void FActActionSequenceTreeViewNode::SetContentAsHitBox(FActActionHitBoxData& InHitBox)
 {
 	// ** TODO:临时先把对象存这里
-	CachedHitBox = InHitBox;
-	ActActionTrackAreaArgs.ViewInputMin.Bind(TAttribute<float>::FGetter::CreateLambda([this]()
+	CachedHitBox = &InHitBox;
+	ActActionTrackAreaArgs.Begin.Bind(TAttribute<int>::FGetter::CreateLambda([this]()
 	{
-		return CachedHitBox.Start;
+		return CachedHitBox->Begin;
 	}));
-	ActActionTrackAreaArgs.ViewInputMax.Bind(TAttribute<float>::FGetter::CreateLambda([this]()
+	ActActionTrackAreaArgs.End.Bind(TAttribute<int>::FGetter::CreateLambda([this]()
 	{
-		return CachedHitBox.End;
+		return CachedHitBox->End;
 	}));
 }
 
-void FActActionSequenceTreeViewNode::SetVisible(EVisibility bVisible)
+void FActActionSequenceTreeViewNode::SetVisible(EVisibility InVisibility)
 {
 	if (ActActionOutlinerTreeNode.IsValid())
 	{
-		ActActionOutlinerTreeNode->SetVisibility(bVisible);
+		ActActionOutlinerTreeNode->SetVisibility(InVisibility);
+	}
+	if (ActActionTrackAreaSlot.IsValid())
+	{
+		ActActionTrackAreaSlot->SetVisibility(InVisibility);
 	}
 }
 
@@ -332,4 +350,12 @@ TSharedPtr<FActActionSequenceTreeViewNode> FActActionSequenceTreeViewNode::GetRo
 	}
 	return RootNode.ToSharedRef();
 }
+
+// EVisibility FActActionSequenceTreeViewNode::GetVisibility() const
+// {
+// 	if (ActActionOutlinerTreeNode.IsValid())
+// 	{
+// 		return ActActionOutlinerTreeNode->GetVisibility();
+// 	}
+// }
 #undef LOCTEXT_NAMESPACE

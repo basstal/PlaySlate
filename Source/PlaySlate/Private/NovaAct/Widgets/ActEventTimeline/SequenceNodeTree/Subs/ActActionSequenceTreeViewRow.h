@@ -9,12 +9,9 @@ class SActActionSequenceTrackLane;
 class SActActionSequenceTreeViewRow : public SMultiColumnTableRow<TSharedRef<FActActionSequenceTreeViewNode>>
 {
 public:
-	SLATE_BEGIN_ARGS(SActActionSequenceTreeViewRow)
-		{ }
-
+	SLATE_BEGIN_ARGS(SActActionSequenceTreeViewRow) { }
 		/** Delegate to invoke to create a new column for this row */
 		SLATE_EVENT(ActActionSequence::OnGenerateWidgetForColumnDelegate, OnGenerateWidgetForColumn)
-
 	SLATE_END_ARGS()
 
 

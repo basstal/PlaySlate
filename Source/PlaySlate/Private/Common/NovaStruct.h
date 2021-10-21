@@ -42,16 +42,13 @@ namespace ActActionSequence
 	struct FActActionAnimatedRange : public TRange<double>
 	{
 		FActActionAnimatedRange()
-			: TRange()
-		{ }
+			: TRange() { }
 
 		FActActionAnimatedRange(double LowerBound, double UpperBound)
-			: TRange(LowerBound, UpperBound)
-		{ }
+			: TRange(LowerBound, UpperBound) { }
 
 		FActActionAnimatedRange(const TRange<double>& InRange)
-			: TRange(InRange)
-		{ }
+			: TRange(InRange) { }
 
 		/** Helper function to wrap an attribute to an animated range with a non-animated one */
 		static TAttribute<TRange<double>> WrapAttribute(const TAttribute<FActActionAnimatedRange>& InAttribute)
@@ -81,8 +78,7 @@ namespace ActActionSequence
 			: ScrubPosition(0),
 			  ViewRange(FActActionAnimatedRange(0.0f, 5.0f)),
 			  ClampRange(FActActionAnimatedRange(0.0f, 5.0f)),
-			  AllowZoom(true)
-		{ }
+			  AllowZoom(true) { }
 
 		/** The scrub position */
 		TAttribute<FFrameTime> ScrubPosition;
@@ -338,8 +334,7 @@ namespace ActActionSequence
 	protected:
 		FActActionAnimatedPropertyKey()
 			: PropertyTypeName(NAME_None),
-			  ObjectTypeName(NAME_None)
-		{ }
+			  ObjectTypeName(NAME_None) { }
 	};
 
 	struct FActActionAnimatedTypeCache
@@ -394,8 +389,7 @@ namespace ActActionSequence
 		FActActionSequenceViewParams(FString InName = FString())
 			: UniqueName(MoveTemp(InName)),
 			  bReadOnly(false),
-			  ScrubberStyle(ENovaSequencerScrubberStyle::Vanilla)
-		{ }
+			  ScrubberStyle(ENovaSequencerScrubberStyle::Vanilla) { }
 	};
 
 	/** Structure used to define a column in the tree view */
@@ -405,13 +399,11 @@ namespace ActActionSequence
 
 		FActActionSequenceTreeViewColumn(const FOnGenerate& InOnGenerate, const TAttribute<float>& InWidth)
 			: Generator(InOnGenerate),
-			  Width(InWidth)
-		{ }
+			  Width(InWidth) { }
 
 		FActActionSequenceTreeViewColumn(FOnGenerate&& InOnGenerate, const TAttribute<float>& InWidth)
 			: Generator(MoveTemp(InOnGenerate)),
-			  Width(InWidth)
-		{ }
+			  Width(InWidth) { }
 
 		/** Function used to generate a cell for this column */
 		FOnGenerate Generator;
@@ -426,12 +418,11 @@ namespace ActActionSequence
 		FActActionCachedGeometry(TSharedRef<FActActionTrackAreaSlot> InTrack, float InTop, float InHeight)
 			: Track(MoveTemp(InTrack)),
 			  Top(InTop),
-			  Height(InHeight)
-		{ }
+			  Height(InHeight) { }
 
 		TSharedRef<FActActionTrackAreaSlot> Track;
-		float Top;
-		float Height;
+		float                               Top;
+		float                               Height;
 	};
 
 	/** ActActionSequence evaluation context. Should remain bitwise copyable, and contain no external state since this has the potential to be used on a thread */
@@ -444,8 +435,7 @@ namespace ActActionSequence
 			: EvaluationRange(InTime),
 			  CurrentFrameRate(InFrameRate),
 			  Direction(ENovaPlayDirection::Forwards),
-			  TimeOverride(FFrameNumber(TNumericLimits<int32>::Lowest()))
-		{ }
+			  TimeOverride(FFrameNumber(TNumericLimits<int32>::Lowest())) { }
 
 		/**
 		 * Construct this range from a raw range and a direction
@@ -454,8 +444,7 @@ namespace ActActionSequence
 			: EvaluationRange(InRange),
 			  CurrentFrameRate(InFrameRate),
 			  Direction(InDirection),
-			  TimeOverride(FFrameNumber(TNumericLimits<int32>::Lowest()))
-		{ }
+			  TimeOverride(FFrameNumber(TNumericLimits<int32>::Lowest())) { }
 
 		/**
 		 * Construct this range from 2 times, and whether the range should include the previous time or not
@@ -464,8 +453,7 @@ namespace ActActionSequence
 			: EvaluationRange(FActActionEvaluationRange::CalculateEvaluationRange(InCurrentTime, InPreviousTime, bInclusivePreviousTime)),
 			  CurrentFrameRate(InFrameRate),
 			  Direction((InCurrentTime - InPreviousTime >= FFrameTime()) ? ENovaPlayDirection::Forwards : ENovaPlayDirection::Backwards),
-			  TimeOverride(TNumericLimits<int32>::Lowest())
-		{ }
+			  TimeOverride(TNumericLimits<int32>::Lowest()) { }
 
 		static TRange<FFrameTime> CalculateEvaluationRange(FFrameTime CurrentTime, FFrameTime PreviousTime, bool bInclusivePreviousTime);
 		/**
@@ -582,8 +570,7 @@ namespace ActActionSequence
 	{
 		FActActionPlaybackPosition()
 			: InputRate(0, 0),
-			  OutputRate(0, 0)
-		{ }
+			  OutputRate(0, 0) { }
 
 		/**
 		 * @return The input frame rate that all frame times provided to this class will be interpreted as
@@ -689,19 +676,46 @@ namespace ActActionSequence
 		FActActionAutoScrubTarget(FFrameTime InDestinationTime, FFrameTime InSourceTime, double InStartTime)
 			: DestinationTime(InDestinationTime),
 			  SourceTime(InSourceTime),
-			  StartTime(InStartTime)
-		{ }
+			  StartTime(InStartTime) { }
 
 		FFrameTime DestinationTime;
 		FFrameTime SourceTime;
-		double StartTime;
+		double     StartTime;
 	};
 
 	struct FActActionTrackAreaArgs
 	{
+		/** 可调整的时间范围最小值 */
 		TAttribute<float> ViewInputMin;
+		/** 可调整的时间范围最大值 */
 		TAttribute<float> ViewInputMax;
+		/** 开始帧 */
+		TAttribute<int> Begin;
+		/** 结束帧 */
+		TAttribute<int> End;
+		/** 目标帧率 */
+		TAttribute<FFrameRate> TickResolution;
+
+		float GetBeginTime() const
+		{
+			return Begin.Get() * TickResolution.Get().AsInterval();
+		}
+
+		float GetEndTime() const
+		{
+			return End.Get() * TickResolution.Get().AsInterval();
+		}
+
+		float GetDurationTime() const
+		{
+			return (End.Get() - Begin.Get()) * TickResolution.Get().AsInterval();
+		}
+
+		float GetPlayLength() const
+		{
+			return ViewInputMax.Get() - ViewInputMin.Get();
+		}
 	};
 
-
+	
 }

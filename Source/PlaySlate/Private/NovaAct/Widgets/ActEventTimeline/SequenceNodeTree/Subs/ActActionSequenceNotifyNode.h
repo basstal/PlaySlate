@@ -6,10 +6,9 @@ class FActActionTrackAreaSlot;
 
 class SActActionSequenceNotifyNode : public SLeafWidget
 {
+	friend struct FActTrackAreaSlotDragDrop;
 public:
-	SLATE_BEGIN_ARGS(SActActionSequenceNotifyNode)
-		{
-		}
+	SLATE_BEGIN_ARGS(SActActionSequenceNotifyNode) { }
 
 		SLATE_EVENT(ActActionSequence::OnNotifyNodeDragStartedDelegate, OnNodeDragStarted)
 		SLATE_EVENT(ActActionSequence::OnNotifyStateHandleBeingDraggedDelegate, OnNotifyStateHandleBeingDragged)
@@ -22,9 +21,13 @@ public:
 	void Construct(const FArguments& InArgs, const TSharedRef<FActActionTrackAreaSlot>& InTrackAreaSlot);
 
 	//~Begin SWidget interface
-	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
-	virtual FReply OnDragDetected(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
-	virtual FVector2D ComputeDesiredSize(float) const override;
+	virtual int32        OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
+	virtual FReply       OnDragDetected(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual FCursorReply OnCursorQuery(const FGeometry& MyGeometry, const FPointerEvent& CursorEvent) const override;
+	virtual FReply       OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual FReply       OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual FVector2D    ComputeDesiredSize(float) const override;
+	virtual void         Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 	//~End SWidget interface
 
 	/** 获得描述文本 */
@@ -41,6 +44,14 @@ public:
 	ENovaNotifyStateHandleHit DurationHandleHitTest(const FVector2D& CursorTrackPosition) const;
 	/** TODO: */
 	FVector2D GetWidgetPosition() const;
+	/** TODO: */
+	float HandleOverflowPan(const FVector2D& ScreenCursorPos, float TrackScreenSpaceXPosition, float TrackScreenSpaceMin, float TrackScreenSpaceMax);
+	/** TODO: */
+	FReply OnNotifyNodeDragStarted(const FPointerEvent& MouseEvent, const FVector2D& InScreenNodePosition, bool bDragOnMarker);
+
+	/** TODO: */
+	FVector2D GetNotifyPositionOffset() const;
+	FVector2D GetNotifyPosition() const;
 protected:
 	/** Controller 弱引用 */
 	TWeakPtr<FActActionTrackAreaSlot> ActActionTrackAreaSlot;
@@ -58,7 +69,7 @@ protected:
 	bool bSelected;
 
 	/** Delegate that is called when the user initiates dragging */
-	ActActionSequence::OnNotifyNodeDragStartedDelegate OnNodeDragStarted;
+	// ActActionSequence::OnNotifyNodeDragStartedDelegate OnNodeDragStarted;
 	/** Delegate that is called when a notify state handle is being dragged */
 	ActActionSequence::OnNotifyStateHandleBeingDraggedDelegate OnNotifyStateHandleBeingDragged;
 	/** Delegate to redraw the notify panel */
@@ -89,15 +100,28 @@ protected:
 	float NotifyScrubHandleCentre;
 	/** Last position the user clicked in the widget */
 	FVector2D LastMouseDownPosition;
+	/** Cached owning track geometry */
+	FGeometry CachedTrackGeometry;
+	/** 屏幕位置 */
+	FVector2D ScreenPosition;
+	/** Store the position of a currently dragged node for display across tracks */
+	float CurrentDragXPosition;
+	float						LastSnappedTime;
+
 public:
 	bool GetBeingDragged() const
 	{
 		return bBeingDragged;
 	}
 
+	TSharedRef<FActActionTrackAreaSlot> GetActActionTrackAreaSlot() const
+	{
+		return ActActionTrackAreaSlot.Pin().ToSharedRef();
+	}
+
 public:
-	const FVector2D ScrubHandleSize = FVector2D(12.0f, 12.0f);
-	const FVector2D TextBorderSize = FVector2D(1.f, 1.f);
-	const FVector2D AlignmentMarkerSize = FVector2D(10.f, 20.f);
+	const FVector2D      ScrubHandleSize = FVector2D(12.0f, 12.0f);
+	const FVector2D      TextBorderSize = FVector2D(1.f, 1.f);
+	const FVector2D      AlignmentMarkerSize = FVector2D(10.f, 20.f);
 	const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle("Regular", 10);
 };

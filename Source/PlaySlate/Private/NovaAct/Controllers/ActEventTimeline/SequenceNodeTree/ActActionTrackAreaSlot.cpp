@@ -2,6 +2,7 @@
 
 #include "ActActionSequenceTreeViewNode.h"
 #include "PlaySlate.h"
+#include "Common/NovaConst.h"
 #include "NovaAct/ActActionSequenceEditor.h"
 #include "NovaAct/Assets/ActActionSequence.h"
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/Subs/ActActionSequenceTrackLane.h"
@@ -13,8 +14,7 @@ FActActionTrackAreaSlot::FActActionTrackAreaSlot(const TSharedRef<FActActionSequ
 	  VAlignment(VAlign_Top),
 	  SequenceTreeViewNode(InSequenceTreeViewNode)
 // AnimNotifyEvent(nullptr)
-{
-}
+{}
 
 void FActActionTrackAreaSlot::MakeTrackLane()
 {
@@ -53,18 +53,45 @@ FLinearColor FActActionTrackAreaSlot::GetEditorColor()
 {
 	return FLinearColor(1, 1, 0.5f);
 }
-
-float FActActionTrackAreaSlot::GetTime()
-{
-	return 0;
-}
-
-float FActActionTrackAreaSlot::GetDuration()
-{
-	return 0;
-}
+//
+// void FActActionTrackAreaSlot::GetTime(float& OutTime, int& OutFrame)
+// {
+// 	const ActActionSequence::FActActionTrackAreaArgs& TrackAreaArgs = GetActActionTrackAreaArgs();
+// 	const FFrameRate& FrameRate = TrackAreaArgs.TickResolution.Get();
+// 	OutTime = 0;
+// 	OutFrame = 0;
+// 	if (SequenceTreeViewNode.Pin()->GetType() == ENovaSequenceNodeType::State)
+// 	{
+// 		OutTime = FMath::Max(OutTime, (float)(TrackAreaArgs.Begin.Get() * FrameRate.AsInterval()));
+// 		OutFrame = FMath::Max(OutFrame, TrackAreaArgs.Begin.Get());
+// 	}
+// }
+//
+// void FActActionTrackAreaSlot::GetDuration(float& OutTime, int& OutFrame)
+// {
+// 	const ActActionSequence::FActActionTrackAreaArgs& TrackAreaArgs = GetActActionTrackAreaArgs();
+// 	const FFrameRate& FrameRate = TrackAreaArgs.TickResolution.Get();
+// 	OutTime = NovaConst::ActMinimumNotifyStateFrame * FrameRate.AsInterval();
+// 	OutFrame = NovaConst::ActMinimumNotifyStateFrame;
+// 	if (SequenceTreeViewNode.Pin()->GetType() == ENovaSequenceNodeType::State)
+// 	{
+// 		OutTime = FMath::Max(OutTime, (float)((TrackAreaArgs.End.Get() - TrackAreaArgs.Begin.Get()) * FrameRate.AsInterval()));
+// 		OutFrame = FMath::Max(OutFrame, TrackAreaArgs.End.Get() - TrackAreaArgs.Begin.Get());
+// 	}
+// }
 
 bool FActActionTrackAreaSlot::IsBranchingPoint()
 {
 	return true;
+}
+
+bool FActActionTrackAreaSlot::HasNotifyNode()
+{
+	ENovaSequenceNodeType NodeType = SequenceTreeViewNode.Pin()->GetType();
+	return NodeType != ENovaSequenceNodeType::Root && NodeType != ENovaSequenceNodeType::Folder;
+}
+
+void FActActionTrackAreaSlot::SetVisibility(EVisibility InVisibility)
+{
+	TrackLane->SetVisibility(InVisibility);
 }

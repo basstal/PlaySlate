@@ -18,10 +18,7 @@ class SActActionSequenceTrackArea;
 class SActActionSequenceWidget : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SActActionSequenceWidget)
-		{
-		}
-
+	SLATE_BEGIN_ARGS(SActActionSequenceWidget) { }
 	SLATE_END_ARGS()
 
 	SActActionSequenceWidget();

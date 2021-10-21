@@ -173,18 +173,20 @@ public:
 	 *
 	 * @param InHitBox 作为填充内容的数据
 	 */
-	void SetContentAsHitBox(const FActActionHitBoxData& InHitBox);
+	void SetContentAsHitBox(FActActionHitBoxData& InHitBox);
 
 	/**
 	 * 设置节点的可见性
 	 *
-	 * @param bVisible 可见性枚举
+	 * @param InVisibility 可见性枚举
 	 */
-	void SetVisible(EVisibility bVisible);
+	void SetVisible(EVisibility InVisibility);
 	/** 计算当前Track的纵向间距 */
 	float ComputeTrackPosition();
 	/** 获得根节点 */
 	TSharedPtr<FActActionSequenceTreeViewNode> GetRoot();
+	/** 获得当前节点的可见性，节点可见性由Outliner的可见性决定 */
+	// EVisibility GetVisibility() const;
 protected:
 	/**
 	 * 当前编辑的Sequence，即所有NodeTree所属的Sequence
@@ -237,10 +239,27 @@ protected:
 	/** TrackArea所使用的参数 */
 	ActActionSequence::FActActionTrackAreaArgs ActActionTrackAreaArgs;
 	/** TODO:临时存这里 */
-	FActActionHitBoxData CachedHitBox;
+	FActActionHitBoxData* CachedHitBox;
 	/** TrackAreaSlot 对应到 Geometry 信息 */
 	TMap<TSharedRef<FActActionTrackAreaSlot>, ActActionSequence::FActActionCachedGeometry> CachedTrackGeometry;
 public:
+	/** TODO:临时放到这里 */
+	void SetHitBoxBegin(int InBegin)
+	{
+		if (CachedHitBox)
+		{
+			CachedHitBox->Begin = InBegin;
+		}
+	}
+
+	void SetHitBoxDuration(int InDuration)
+	{
+		if (CachedHitBox)
+		{
+			CachedHitBox->End = InDuration - CachedHitBox->Begin;
+		}
+	}
+
 	ActActionSequence::FActActionTrackAreaArgs& GetActActionTrackAreaArgs()
 	{
 		return ActActionTrackAreaArgs;

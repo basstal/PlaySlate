@@ -26,13 +26,30 @@ public:
 	FName GetName();
 	/** 获得编辑器颜色 */
 	FLinearColor GetEditorColor();
-	/** TODO: */
-	float GetTime();
-	/** TODO: */
-	float GetDuration();
+	// /**
+	//  * 获得开始时间
+	//  *
+	//  * @param OutTime 输出的时间，单位秒
+	//  * @param OutFrame 输出的时间，单位帧
+	//  */
+	// void GetTime(float& OutTime, int& OutFrame);
+	// /**
+	//  * 获得当前节点状态持续时间
+	//  *
+	//  * @param OutTime 输出的时间，单位秒
+	//  * @param OutFrame 输出的时间，单位帧
+	//  */
+	// void GetDuration(float& OutTime, int& OutFrame);
 	/** TODO: */
 	bool IsBranchingPoint();
-
+	/** 是否需要创建NotifyNode */
+	bool HasNotifyNode();
+	/**
+	 * 设置该节点对应的Widget的可见性
+	 *
+	 * @param InVisibility
+	 */
+	void SetVisibility(EVisibility InVisibility);
 	/** NOTE:必须是public的因为LayoutUtils.h在用这个字段，Horizontal alignment for the slot. */
 	EHorizontalAlignment HAlignment;
 	/** NOTE:必须是public的因为LayoutUtils.h在用这个字段，Vertical alignment for the slot. */
@@ -51,6 +68,7 @@ public:
 	{
 		return SequenceTreeViewNode.Pin().ToSharedRef();
 	}
+
 	TSharedRef<SActActionSequenceTrackLane> GetActActionSequenceTrackLane() const
 	{
 		return TrackLane.ToSharedRef();
@@ -66,6 +84,5 @@ public:
 	// 	return AnimNotifyEvent;
 	// }
 
-	const float NotifyHeightOffset = 0.f;
-	const float NotifyHeight = 24.0f;
+	
 };
