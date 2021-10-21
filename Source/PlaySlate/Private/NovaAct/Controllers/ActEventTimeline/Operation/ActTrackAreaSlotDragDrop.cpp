@@ -34,12 +34,12 @@ void FActTrackAreaSlotDragDrop::OnDrop(bool bDropWasHandled, const FPointerEvent
 		// 	UBlendSpaceBase::UpdateBlendSpacesUsingAnimSequence(Sequence);
 		// }
 
-		float LocalX = SelectedNode->CachedTrackGeometry.AbsoluteToLocal(SelectedNode->ScreenPosition + NodeXOffset).X;
-		float SnapTime = SelectedNode->LastSnappedTime;
-		ActActionSequence::FActActionTrackAreaArgs& TrackAreaArgs = SelectedNode->GetActActionTrackAreaSlot()->GetActActionTrackAreaArgs();
-		FTrackScaleInfo TrackScaleInfo = FTrackScaleInfo(TrackAreaArgs.ViewInputMin.Get(), TrackAreaArgs.ViewInputMax.Get(), 0.f, 0.f, SelectedNode->CachedTrackGeometry.GetLocalSize());
+		// float LocalX = SelectedNode->CachedTrackGeometry.AbsoluteToLocal(SelectedNode->ScreenPosition + NodeXOffset).X;
+		// float LastSnappedTime = SelectedNode->LastSnappedTime;
+		// ActActionSequence::FActActionTrackAreaArgs& TrackAreaArgs = SelectedNode->GetActActionTrackAreaSlot()->GetActActionTrackAreaArgs();
+		// FTrackScaleInfo TrackScaleInfo = FTrackScaleInfo(TrackAreaArgs.ViewInputMin.Get(), TrackAreaArgs.ViewInputMax.Get(), 0.f, 0.f, SelectedNode->CachedTrackGeometry.GetLocalSize());
 		// ** TODO: 使用这个时间
-		float Time = SnapTime != -1.0f ? SnapTime : TrackScaleInfo.LocalXToInput(LocalX);
+		// float Time = SnapTime != -1.0f ? SnapTime : TrackScaleInfo.LocalXToInput(LocalX);
 		// SelectedNode->NodeObjectInterface->HandleDrop(Sequence, Time, TrackIndex);
 		// SelectedNode->HandleNodeDrop(SelectedNode, NodeXOffset);
 		SelectedNode->bBeingDragged = false;
@@ -236,7 +236,7 @@ void FActTrackAreaSlotDragDrop::OnDragged(const FDragDropEvent& DragDropEvent)
 // 	
 // }
 
-TSharedRef<FActTrackAreaSlotDragDrop> FActTrackAreaSlotDragDrop::New(TSharedPtr<SActActionSequenceNotifyNode> NotifyNode,
+TSharedRef<FActTrackAreaSlotDragDrop> FActTrackAreaSlotDragDrop::New(TSharedRef<SActActionSequenceNotifyNode> NotifyNode,
                                                                      TSharedPtr<SWidget> Decorator,
                                                                      const FVector2D& CursorPosition,
                                                                      const FVector2D& SelectionScreenPosition,

@@ -2,13 +2,13 @@
 
 #include "Common/NovaEnum.h"
 
-class FActActionTrackEditorBase;
 struct FPointerEvent;
+struct FActActionHitBoxData;
+class FActActionTrackEditorBase;
 class FActEventTimelineBrain;
 class FActActionSequenceTreeViewNode;
 class SActActionSequenceTreeViewRow;
 class SActActionSequenceNotifyNode;
-struct FActActionHitBoxData;
 
 namespace ActActionSequence
 {

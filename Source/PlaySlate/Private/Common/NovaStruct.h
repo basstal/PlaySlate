@@ -184,6 +184,8 @@ namespace ActActionSequence
 
 		/** Numeric Type interface for converting between frame numbers and display formats. */
 		TSharedPtr<INumericTypeInterface<double>> NumericTypeInterface;
+
+		int32 DBTestValue;
 	};
 
 	struct FActActionDrawTickArgs

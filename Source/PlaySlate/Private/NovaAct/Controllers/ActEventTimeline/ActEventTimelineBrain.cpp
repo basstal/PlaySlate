@@ -16,6 +16,7 @@
 #include "Animation/DebugSkelMeshComponent.h"
 #include "AnimPreviewInstance.h"
 #include "FrameNumberNumericInterface.h"
+#include "Common/NovaDataBinding.h"
 #include "NovaAct/Assets/Tracks/ActActionHitBoxTrack.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
@@ -56,6 +57,10 @@ void FActEventTimelineBrain::MakeSequenceWidget(ActActionSequence::FActActionSeq
 	const TAttribute<FFrameRate> GetTickResolutionAttr = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetTickResolution);
 	// Create our numeric type interface so we can pass it to the time slider below.
 	NumericTypeInterface = MakeShareable(new FFrameNumberInterface(GetDisplayFormatAttr, 0, GetTickResolutionAttr, GetTickResolutionAttr));
+
+	TSharedRef<TDataBinding<ActActionSequence::FActActionTimeSliderArgs>> TimeSliderArgsModel = NovaDataBinding::GetOrCreate<ActActionSequence::FActActionTimeSliderArgs>("TimeSliderArgs");
+	TimeSliderArgsModel->Trigger();
+
 	// ** 初始化TimeSlider
 	TimeSliderArgs.PlaybackRange = TAttribute<TRange<FFrameNumber>>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetPlaybackRange);
 	TimeSliderArgs.DisplayRate = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetTickResolution);
@@ -80,8 +85,7 @@ void FActEventTimelineBrain::MakeSequenceWidget(ActActionSequence::FActActionSeq
 }
 
 void FActEventTimelineBrain::Tick(float DeltaTime)
-{
-}
+{}
 
 TStatId FActEventTimelineBrain::GetStatId() const
 {

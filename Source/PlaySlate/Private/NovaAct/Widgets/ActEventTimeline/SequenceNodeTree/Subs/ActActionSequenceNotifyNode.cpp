@@ -609,7 +609,7 @@ FReply SActActionSequenceNotifyNode::OnNotifyNodeDragStarted(const FPointerEvent
 
 		// FPanTrackRequest PanRequestDelegate = FPanTrackRequest::CreateSP(this, &SAnimNotifyPanel::PanInputViewRange);
 		// FOnUpdatePanel UpdateDelegate = FOnUpdatePanel::CreateSP(this, &SAnimNotifyPanel::Update);
-		return FReply::Handled().BeginDragDrop(FActTrackAreaSlotDragDrop::New(AsShared(), NodeDragDecorator, ScreenCursorPos, OverlayOrigin, OverlayExtents, CurrentDragXPosition));
+		return FReply::Handled().BeginDragDrop(FActTrackAreaSlotDragDrop::New(SharedThis(this), NodeDragDecorator, ScreenCursorPos, OverlayOrigin, OverlayExtents, CurrentDragXPosition));
 	}
 	else
 	{

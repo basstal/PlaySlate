@@ -24,7 +24,7 @@ public:
 
 	// FNovaTrackClampInfo& GetTrackClampInfo(const FVector2D NodePos);
 
-	static TSharedRef<FActTrackAreaSlotDragDrop> New(TSharedPtr<SActActionSequenceNotifyNode> NotifyNode,
+	static TSharedRef<FActTrackAreaSlotDragDrop> New(TSharedRef<SActActionSequenceNotifyNode> NotifyNode,
 	                                                 TSharedPtr<SWidget> Decorator,
 	                                                 const FVector2D& CursorPosition,
 	                                                 const FVector2D& SelectionScreenPosition,

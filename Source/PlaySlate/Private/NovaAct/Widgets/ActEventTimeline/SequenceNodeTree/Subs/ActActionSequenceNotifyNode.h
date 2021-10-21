@@ -6,7 +6,7 @@ class FActActionTrackAreaSlot;
 
 class SActActionSequenceNotifyNode : public SLeafWidget
 {
-	friend struct FActTrackAreaSlotDragDrop;
+	friend class FActTrackAreaSlotDragDrop;
 public:
 	SLATE_BEGIN_ARGS(SActActionSequenceNotifyNode) { }
 
