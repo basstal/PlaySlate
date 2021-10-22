@@ -3,7 +3,7 @@
 #include "SSingleObjectDetailsPanel.h"
 #include "Common/NovaDelegate.h"
 
-class FActActionSequenceEditor;
+class FNovaActEditor;
 
 class SActActionDetailsViewWidget : public SCompoundWidget
 {
@@ -18,7 +18,7 @@ public:
 	SLATE_END_ARGS()
 
 
-	void Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor);
+	void Construct(const FArguments& InArgs, const TSharedRef<FNovaActEditor>& InActActionSequenceEditor);
 
 	//~Begin SWidget interface
 	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;

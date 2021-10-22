@@ -3,7 +3,7 @@
 #include "PlaySlate.h"
 #include "EditorWidgetsModule.h"
 #include "ITransportControl.h"
-#include "NovaAct/ActActionSequenceEditor.h"
+#include "NovaAct/NovaActEditor.h"
 #include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
 #include "NovaAct/Controllers/ActViewport/ActActionPreviewSceneController.h"
 

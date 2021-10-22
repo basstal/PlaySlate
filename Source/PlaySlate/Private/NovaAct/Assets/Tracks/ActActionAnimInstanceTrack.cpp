@@ -7,7 +7,7 @@
 #include "IContentBrowserSingleton.h"
 #include "GameFramework/Character.h"
 #include "Animation/AnimBlueprint.h"
-#include "NovaAct/ActActionSequenceEditor.h"
+#include "NovaAct/NovaActEditor.h"
 
 
 #define LOCTEXT_NAMESPACE "NovaAct"

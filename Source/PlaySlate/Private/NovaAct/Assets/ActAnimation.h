@@ -2,15 +2,15 @@
 
 #include "ActActionSequenceStructs.h"
 
-#include "ActActionSequence.generated.h"
+#include "ActAnimation.generated.h"
 
 UCLASS()
-class UActActionSequence : public UObject
+class UActAnimation : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	UActActionSequence();
+	UActAnimation();
 
 	UPROPERTY(EditAnywhere)
 	UAnimBlueprint* AnimBlueprint;

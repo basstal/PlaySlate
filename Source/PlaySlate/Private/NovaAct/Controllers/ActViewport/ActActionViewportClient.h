@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 
-class FActActionSequenceEditor;
+class FNovaActEditor;
 class FActActionPreviewSceneController;
 class SActActionViewportWidget;
 

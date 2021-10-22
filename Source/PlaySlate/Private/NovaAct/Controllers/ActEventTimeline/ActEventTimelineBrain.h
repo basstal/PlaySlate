@@ -3,11 +3,11 @@
 #include "IContentBrowserSingleton.h"
 #include "Common/NovaStruct.h"
 
-class FActActionSequenceEditor;
+class FNovaActEditor;
 class FActEventTimelineSlider;
 class SActActionSequenceWidget;
 class ASkeletalMeshActor;
-class UActActionSequence;
+class UActAnimation;
 class FActActionSequenceTreeViewNode;
 class SActActionViewportWidget;
 class FActEventTimelineImage;
@@ -19,7 +19,7 @@ class FActEventTimelineImage;
 class FActEventTimelineBrain : public TSharedFromThis<FActEventTimelineBrain>, FTickableEditorObject
 {
 public:
-	FActEventTimelineBrain(const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor);
+	FActEventTimelineBrain(const TSharedRef<FNovaActEditor>& InActActionSequenceEditor);
 
 	virtual ~FActEventTimelineBrain() override;
 
@@ -136,7 +136,7 @@ protected:
 	/**
 	 * 对Editor的弱引用，调用编辑器资源和相关工具方法
 	 */
-	TWeakPtr<FActActionSequenceEditor> ActActionSequenceEditor;
+	TWeakPtr<FNovaActEditor> ActActionSequenceEditor;
 
 	/**
 	 * 所有已注册的CreateTrackEditor代理方法，在FActActionTrackEditorBase的子类中实现
@@ -205,7 +205,7 @@ public:
 		return ActActionTimeSliderController.ToSharedRef();
 	}
 
-	TSharedRef<FActActionSequenceEditor> GetActActionSequenceEditor() const
+	TSharedRef<FNovaActEditor> GetActActionSequenceEditor() const
 	{
 		return ActActionSequenceEditor.Pin().ToSharedRef();
 	}

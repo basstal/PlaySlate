@@ -2,7 +2,7 @@
 
 #include "PlaySlate.h"
 #include "ActActionSequenceSectionBase.h"
-#include "NovaAct/ActActionSequenceEditor.h"
+#include "NovaAct/NovaActEditor.h"
 #include "NovaAct/Assets/ActActionSequenceStructs.h"
 #include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/ActActionOutlinerTreeNode.h"
@@ -104,7 +104,7 @@ void FActActionSequenceTreeViewNode::MakeWidgetForSectionArea()
 	}));
 	ActActionSectionWidget = SNew(SActActionSequenceCombinedKeysTrack, SharedThis(this))
 		.Visibility(EVisibility::Visible)
-		.TickResolution(ActActionSequenceController.Pin()->GetActActionSequenceEditor(), &FActActionSequenceEditor::GetTickResolution);
+		.TickResolution(ActActionSequenceController.Pin()->GetActActionSequenceEditor(), &FNovaActEditor::GetTickResolution);
 	ActActionTrackAreaSlot = MakeShareable(new FActActionTrackAreaSlot(SharedThis(this)));
 	ActActionTrackAreaSlot->MakeTrackLane();
 }

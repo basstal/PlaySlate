@@ -2,7 +2,7 @@
 
 #include "SEditorViewport.h"
 
-class FActActionSequenceEditor;
+class FNovaActEditor;
 class FActActionViewportClient;
 class FActActionPreviewSceneController;
 

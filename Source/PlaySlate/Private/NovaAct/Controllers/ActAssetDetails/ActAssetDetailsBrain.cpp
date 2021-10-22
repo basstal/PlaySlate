@@ -2,11 +2,11 @@
 
 #include "PlaySlate.h"
 // ReSharper disable once CppUnusedIncludeDirective
-#include "NovaAct/Assets/ActActionSequence.h"
-#include "NovaAct/ActActionSequenceEditor.h"
+#include "NovaAct/Assets/ActAnimation.h"
+#include "NovaAct/NovaActEditor.h"
 #include "NovaAct/Widgets/ActAssetDetails/ActActionDetailsViewWidget.h"
 
-FActAssetDetailsBrain::FActAssetDetailsBrain(const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor)
+FActAssetDetailsBrain::FActAssetDetailsBrain(const TSharedRef<FNovaActEditor>& InActActionSequenceEditor)
 	: ActActionSequenceEditor(InActActionSequenceEditor)
 {
 }

@@ -1,7 +1,7 @@
 ﻿#include "ActActionDetailsViewWidget.h"
-#include "NovaAct/ActActionSequenceEditor.h"
+#include "NovaAct/NovaActEditor.h"
 
-void SActActionDetailsViewWidget::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor)
+void SActActionDetailsViewWidget::Construct(const FArguments& InArgs, const TSharedRef<FNovaActEditor>& InActActionSequenceEditor)
 {
 	OnGetAsset = InArgs._OnGetAsset;
 

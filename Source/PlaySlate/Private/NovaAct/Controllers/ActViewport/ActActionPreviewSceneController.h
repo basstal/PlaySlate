@@ -7,13 +7,13 @@
 
 class FActActionViewportClient;
 class SActActionViewportWidget;
-class FActActionSequenceEditor;
+class FNovaActEditor;
 struct FActActionHitBoxData;
 
 class FActActionPreviewSceneController : public TSharedFromThis<FActActionPreviewSceneController>, public FAdvancedPreviewScene
 {
 public:
-	FActActionPreviewSceneController(const ConstructionValues& CVS, const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor);
+	FActActionPreviewSceneController(const ConstructionValues& CVS, const TSharedRef<FNovaActEditor>& InActActionSequenceEditor);
 
 	virtual ~FActActionPreviewSceneController() override;
 
@@ -97,7 +97,7 @@ protected:
 	/**
 	* 对Editor的引用，调用编辑器资源和相关工具方法
 	*/
-	TWeakPtr<FActActionSequenceEditor> ActActionSequenceEditor;
+	TWeakPtr<FNovaActEditor> ActActionSequenceEditor;
 
 	/** The one and only actor we have */
 	AActor* ActActionActor;

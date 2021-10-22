@@ -4,7 +4,7 @@
 #include "PlaySlate.h"
 #include "ActActionViewportClient.h"
 #include "NovaAct/Widgets/ActViewport/ActActionViewportWidget.h"
-#include "NovaAct/ActActionSequenceEditor.h"
+#include "NovaAct/NovaActEditor.h"
 
 #include "Animation/DebugSkelMeshComponent.h"
 #include "Animation/AnimInstance.h"
@@ -13,7 +13,7 @@
 #include "AnimPreviewInstance.h"
 #include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
 
-FActActionPreviewSceneController::FActActionPreviewSceneController(const ConstructionValues& CVS, const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor)
+FActActionPreviewSceneController::FActActionPreviewSceneController(const ConstructionValues& CVS, const TSharedRef<FNovaActEditor>& InActActionSequenceEditor)
 	: FAdvancedPreviewScene(CVS),
 	  ActActionSequenceEditor(InActActionSequenceEditor),
 	  ActActionActor(nullptr),

@@ -1,7 +1,7 @@
 ﻿#include "ActEventTimelineBrain.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/ActActionSequenceEditor.h"
+#include "NovaAct/NovaActEditor.h"
 #include "NovaAct/Assets/Tracks/ActActionTrackEditorBase.h"
 #include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineSlider.h"
 #include "NovaAct/Controllers/ActViewport/ActActionPreviewSceneController.h"
@@ -21,7 +21,7 @@
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
-FActEventTimelineBrain::FActEventTimelineBrain(const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor)
+FActEventTimelineBrain::FActEventTimelineBrain(const TSharedRef<FNovaActEditor>& InActActionSequenceEditor)
 	: ActActionSequenceEditor(InActActionSequenceEditor),
 	  PlaybackState(ENovaPlaybackType::Stopped),
 	  TargetViewRange(0, 0),
@@ -53,20 +53,17 @@ void FActEventTimelineBrain::MakeSequenceWidget(ActActionSequence::FActActionSeq
 	{
 		return EFrameNumberDisplayFormats::Frames;
 	});
-	const TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
-	const TAttribute<FFrameRate> GetTickResolutionAttr = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetTickResolution);
+	const TSharedRef<FNovaActEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
+	const TAttribute<FFrameRate> GetTickResolutionAttr = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FNovaActEditor::GetTickResolution);
 	// Create our numeric type interface so we can pass it to the time slider below.
 	NumericTypeInterface = MakeShareable(new FFrameNumberInterface(GetDisplayFormatAttr, 0, GetTickResolutionAttr, GetTickResolutionAttr));
 
-	TSharedRef<TDataBinding<ActActionSequence::FActActionTimeSliderArgs>> TimeSliderArgsModel = NovaDataBinding::GetOrCreate<ActActionSequence::FActActionTimeSliderArgs>("TimeSliderArgs");
-	TimeSliderArgsModel->Trigger();
-
 	// ** 初始化TimeSlider
-	TimeSliderArgs.PlaybackRange = TAttribute<TRange<FFrameNumber>>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetPlaybackRange);
-	TimeSliderArgs.DisplayRate = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetTickResolution);
-	TimeSliderArgs.TickResolution = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetTickResolution);
-	TimeSliderArgs.SelectionRange = TAttribute<TRange<FFrameNumber>>(ActActionSequenceEditorRef, &FActActionSequenceEditor::GetSelectionRange);
-	TimeSliderArgs.OnPlaybackRangeChanged = ActActionSequence::OnFrameRangeChangedDelegate::CreateSP(ActActionSequenceEditorRef, &FActActionSequenceEditor::SetPlaybackRange);
+	TimeSliderArgs.PlaybackRange = TAttribute<TRange<FFrameNumber>>(ActActionSequenceEditorRef, &FNovaActEditor::GetPlaybackRange);
+	TimeSliderArgs.DisplayRate = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FNovaActEditor::GetTickResolution);
+	TimeSliderArgs.TickResolution = TAttribute<FFrameRate>(ActActionSequenceEditorRef, &FNovaActEditor::GetTickResolution);
+	TimeSliderArgs.SelectionRange = TAttribute<TRange<FFrameNumber>>(ActActionSequenceEditorRef, &FNovaActEditor::GetSelectionRange);
+	TimeSliderArgs.OnPlaybackRangeChanged = ActActionSequence::OnFrameRangeChangedDelegate::CreateSP(ActActionSequenceEditorRef, &FNovaActEditor::SetPlaybackRange);
 	TimeSliderArgs.ScrubPosition = TAttribute<FFrameTime>(this, &FActEventTimelineBrain::GetLocalFrameTime);
 	TimeSliderArgs.ScrubPositionText = TAttribute<FString>(this, &FActEventTimelineBrain::GetFrameTimeText);
 	TimeSliderArgs.OnBeginScrubberMovement = FSimpleDelegate::CreateSP(this, &FActEventTimelineBrain::OnBeginScrubbing);
@@ -124,7 +121,7 @@ void FActEventTimelineBrain::AddAnimSequenceTrack(UAnimSequence* InAnimSequence)
 	if (ActActionSequenceEditor.IsValid())
 	{
 		UE_LOG(LogActAction, Log, TEXT("AnimMontage : %s"), *InAnimSequence->GetName());
-		const TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
+		const TSharedRef<FNovaActEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
 		ActActionSequenceEditorRef->SetAnimSequence(InAnimSequence);
 		if (ActActionTimeSliderController.IsValid())
 		{
@@ -180,7 +177,7 @@ FFrameTime FActEventTimelineBrain::GetLocalFrameTime() const
 {
 	if (ActActionSequenceEditor.IsValid())
 	{
-		const TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
+		const TSharedRef<FNovaActEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
 		const FFrameRate TickResolution = ActActionSequenceEditorRef->GetTickResolution();
 		const float CurrentPosition = ActActionSequenceEditorRef->GetActActionPreviewSceneController()->GetCurrentPosition();
 		return TickResolution.AsFrameTime(CurrentPosition);;
@@ -212,7 +209,7 @@ void FActEventTimelineBrain::SetGlobalTime(FFrameTime InFrameTime) const
 {
 	if (ActActionSequenceEditor.IsValid())
 	{
-		const TSharedRef<FActActionSequenceEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
+		const TSharedRef<FNovaActEditor> ActActionSequenceEditorRef = ActActionSequenceEditor.Pin().ToSharedRef();
 		const FFrameRate TickResolution = ActActionSequenceEditorRef->GetTickResolution();
 		// Don't update the sequence if the time hasn't changed as this will cause duplicate events and the like to fire.
 		// If we need to reevaluate the sequence at the same time for whatever reason, we should call ForceEvaluate()

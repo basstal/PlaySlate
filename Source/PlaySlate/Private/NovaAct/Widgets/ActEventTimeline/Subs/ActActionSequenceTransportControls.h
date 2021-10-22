@@ -3,7 +3,7 @@
 #include "ITransportControl.h"
 
 class FActEventTimelineBrain;
-class FActActionSequenceEditor;
+class FNovaActEditor;
 
 class SActActionSequenceTransportControls : public SCompoundWidget
 {
@@ -44,5 +44,5 @@ SLATE_BEGIN_ARGS(SActActionSequenceTransportControls)
 	EPlaybackMode::Type GetPlaybackMode() const;
 protected:
 	/** 对Editor的引用，以获取控制播放的对象 */
-	TWeakPtr<FActActionSequenceEditor> ActActionSequenceEditor;
+	TWeakPtr<FNovaActEditor> ActActionSequenceEditor;
 };

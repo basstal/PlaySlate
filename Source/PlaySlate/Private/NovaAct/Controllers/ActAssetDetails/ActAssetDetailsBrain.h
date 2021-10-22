@@ -1,19 +1,19 @@
 ﻿#pragma once
 
 class SActActionDetailsViewWidget;
-class FActActionSequenceEditor;
+class FNovaActEditor;
 
 class FActAssetDetailsBrain : public TSharedFromThis<FActAssetDetailsBrain>
 {
 public:
-	FActAssetDetailsBrain(const TSharedRef<FActActionSequenceEditor>& InActActionSequenceEditor);
+	FActAssetDetailsBrain(const TSharedRef<FNovaActEditor>& InActActionSequenceEditor);
 	~FActAssetDetailsBrain();
 
 	/** 构造Widget */
 	void MakeDetailsViewWidget();
 protected:
 	/** Sequence Editor */
-	TWeakPtr<FActActionSequenceEditor> ActActionSequenceEditor;
+	TWeakPtr<FNovaActEditor> ActActionSequenceEditor;
 	/** Widget */
 	TSharedPtr<SActActionDetailsViewWidget> ActActionDetailsViewWidget;
 public:

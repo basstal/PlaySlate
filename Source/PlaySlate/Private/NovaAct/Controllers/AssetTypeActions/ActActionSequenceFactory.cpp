@@ -1,6 +1,6 @@
 ﻿#include "ActActionSequenceFactory.h"
 
-#include "NovaAct/Assets/ActActionSequence.h"
+#include "NovaAct/Assets/ActAnimation.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
@@ -8,7 +8,7 @@ UActActionSequenceFactory::UActActionSequenceFactory()
 {
 	bCreateNew = true;
 	bEditAfterNew = true;
-	SupportedClass = UActActionSequence::StaticClass();
+	SupportedClass = UActAnimation::StaticClass();
 }
 
 bool UActActionSequenceFactory::ConfigureProperties()
@@ -23,7 +23,7 @@ UObject* UActActionSequenceFactory::FactoryCreateNew(UClass* InClass, UObject* I
 
 UObject* UActActionSequenceFactory::FactoryCreateNew(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn, FName CallingContext)
 {
-	UActActionSequence* ActActionSequence = NewObject<UActActionSequence>(InParent, InName, Flags);
+	UActAnimation* ActActionSequence = NewObject<UActAnimation>(InParent, InName, Flags);
 	return ActActionSequence;
 }
 

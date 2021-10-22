@@ -3,8 +3,8 @@
 #include "ActActionSequenceTreeViewNode.h"
 #include "PlaySlate.h"
 #include "Common/NovaConst.h"
-#include "NovaAct/ActActionSequenceEditor.h"
-#include "NovaAct/Assets/ActActionSequence.h"
+#include "NovaAct/NovaActEditor.h"
+#include "NovaAct/Assets/ActAnimation.h"
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/Subs/ActActionSequenceTrackLane.h"
 #include "Widgets/SWeakWidget.h"
 
@@ -41,7 +41,7 @@ FText FActActionTrackAreaSlot::GetNodeTooltip()
 float FActActionTrackAreaSlot::GetPlayLength()
 {
 	FPlaySlateModule& PlaySlateModule = FModuleManager::GetModuleChecked<FPlaySlateModule>("PlaySlate");
-	return PlaySlateModule.ActActionSequenceEditor.Pin()->GetActActionSequence()->AnimSequence->GetPlayLength();
+	return PlaySlateModule.NovaActEditor.Pin()->GetActActionSequence()->AnimSequence->GetPlayLength();
 }
 
 FName FActActionTrackAreaSlot::GetName()
@@ -53,6 +53,7 @@ FLinearColor FActActionTrackAreaSlot::GetEditorColor()
 {
 	return FLinearColor(1, 1, 0.5f);
 }
+
 //
 // void FActActionTrackAreaSlot::GetTime(float& OutTime, int& OutFrame)
 // {

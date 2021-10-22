@@ -1,8 +1,8 @@
-﻿#include "ActActionSequenceEditor.h"
+﻿#include "NovaActEditor.h"
 
 #include "PlaySlate.h"
 #include "Common/NovaConst.h"
-#include "NovaAct/Assets/ActActionSequence.h"
+#include "NovaAct/Assets/ActAnimation.h"
 #include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
 #include "NovaAct/Controllers/ActViewport/ActActionPreviewSceneController.h"
 // ReSharper disable once CppUnusedIncludeDirective
@@ -17,43 +17,48 @@
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
-FActActionSequenceEditor::FActActionSequenceEditor(UActActionSequence* InActActionSequence)
-	: ActActionSequence(InActActionSequence),
+FNovaActEditor::FNovaActEditor(UActAnimation* InActAnimation)
+	: ActAnimation(InActAnimation),
 	  PlaybackRange(0, 0),
 	  SelectionRange(0, 0)
 {
-	check(InActActionSequence);
+	check(InActAnimation);
+	NovaDB::GetOrCreate<UActAnimation>("ActAnimation", InActAnimation);
 }
 
-FActActionSequenceEditor::~FActActionSequenceEditor()
+FNovaActEditor::~FNovaActEditor()
 {
-	UE_LOG(LogActAction, Log, TEXT("FActActionSequenceEditor::~FActActionSequenceEditor"));
+	UE_LOG(LogActAction, Log, TEXT("FNovaActEditor::~FNovaActEditor"));
 	ActActionPreviewSceneController.Reset();
 	ActActionSequenceController.Reset();
 }
 
-void FActActionSequenceEditor::InitActActionSequenceEditor(const TSharedPtr<IToolkitHost>& InitToolkitHost)
+void FNovaActEditor::CreateEditorWindow(const TSharedPtr<IToolkitHost>& InIToolkitHost)
 {
 	/**
 	 * Editor（大页签）内的每个窗口由一个个Tab组成，这里载入这些Tab和对应的Layout信息，
 	 * 注意：AddTab必须是已经注册过的TabId，注册的过程是通过重载RegisterTabSpawners
 	 * 这个默认的Layout只在恢复默认Layout时有效，其他时候都是读取Layout在ini中的缓存信息，即加载之前保存的Layout
 	 */
-	const TSharedRef<FTabManager::FLayout> StandaloneDefaultLayout = FTabManager::NewLayout("Standalone_ActActionSequenceEditor");
-	StandaloneDefaultLayout->AddArea(
-		FTabManager::NewPrimaryArea()
-		->SetOrientation(Orient_Vertical)
-		->Split(
-			FTabManager::NewStack()
-			->AddTab(NovaConst::ActActionViewportTabId, ETabState::OpenedTab)
-			->SetHideTabWell(true))
-		->Split(
-			FTabManager::NewStack()
-			->AddTab(NovaConst::ActActionSequenceTabId, ETabState::OpenedTab)
-			->SetHideTabWell(true))
-	);
+	const static TSharedRef<FTabManager::FLayout> StandaloneDefaultLayout = FTabManager::NewLayout("Standalone_ActActionSequenceEditor");
+	StandaloneDefaultLayout->AddArea(FTabManager::NewPrimaryArea()
+	                                 ->SetOrientation(Orient_Horizontal)
+	                                 ->Split(
+		                                 FTabManager::NewStack()
+		                                 ->AddTab(NovaConst::ActAssetDetailsTabId, ETabState::OpenedTab)
+		                                 ->SetSizeCoefficient(0.3f))
+	                                 ->Split(FTabManager::NewSplitter()->SetOrientation(Orient_Vertical)
+	                                                                   ->Split(
+		                                                                   FTabManager::NewStack()
+		                                                                   ->AddTab(NovaConst::ActViewportTabId, ETabState::OpenedTab)
+		                                                                   ->SetHideTabWell(true))
+	                                                                   ->Split(
+		                                                                   FTabManager::NewStack()
+		                                                                   ->AddTab(NovaConst::ActEventTimelineTabId, ETabState::OpenedTab)
+		                                                                   ->SetHideTabWell(true))));
+
 	// Initialize the asset editor
-	InitAssetEditor(EToolkitMode::Standalone, InitToolkitHost, FName("ActAction_AppIdentifier"), StandaloneDefaultLayout, true, true, ActActionSequence);
+	InitAssetEditor(EToolkitMode::Standalone, InIToolkitHost, NovaConst::NovaActAppName, StandaloneDefaultLayout, true, true, ActAnimation);
 
 	// ** 通过对应Widget的Controller，填充Tab的实际内容Widget，并保留对Controller的引用
 	// ** ActActionSequenceController
@@ -80,18 +85,18 @@ void FActActionSequenceEditor::InitActActionSequenceEditor(const TSharedPtr<IToo
 	}
 
 	// ** Init by resource
-	ResetAssetProperties(ActActionSequence);
+	ResetAssetProperties(ActAnimation);
 
 	// ** 添加属性修改的回调，使其他Controller能接收到Details面板的属性修改事件
-	OnAssetPropertiesModified.AddSP(this, &FActActionSequenceEditor::ResetAssetProperties);
+	OnAssetPropertiesModified.AddSP(this, &FNovaActEditor::ResetAssetProperties);
 
 	// When undo occurs, get a notification so we can make sure our view is up to date
 	GEditor->RegisterForUndo(this);
 }
 
-void FActActionSequenceEditor::ResetAssetProperties(UObject* InObject)
+void FNovaActEditor::ResetAssetProperties(UObject* InObject)
 {
-	UActActionSequence* ActActionSequencePtr = Cast<UActActionSequence>(InObject);
+	UActAnimation* ActActionSequencePtr = Cast<UActAnimation>(InObject);
 	InitAnimBlueprint(ActActionSequencePtr->AnimBlueprint);
 	ActActionSequenceController->AddAnimSequenceTrack(ActActionSequencePtr->AnimSequence);
 	if (OnHitBoxesChanged.IsBound())
@@ -100,33 +105,33 @@ void FActActionSequenceEditor::ResetAssetProperties(UObject* InObject)
 	}
 }
 
-void FActActionSequenceEditor::AddReferencedObjects(FReferenceCollector& Collector)
+void FNovaActEditor::AddReferencedObjects(FReferenceCollector& Collector)
 {
-	Collector.AddReferencedObject(ActActionSequence);
+	Collector.AddReferencedObject(ActAnimation);
 }
 
-FString FActActionSequenceEditor::GetReferencerName() const
+FString FNovaActEditor::GetReferencerName() const
 {
 	return "ActActionSequenceEditor";
 }
 
-FName FActActionSequenceEditor::GetToolkitFName() const
+FName FNovaActEditor::GetToolkitFName() const
 {
 	return FName("ActActionSequenceEditor");
 }
 
-FText FActActionSequenceEditor::GetBaseToolkitName() const
+FText FNovaActEditor::GetBaseToolkitName() const
 {
 	return LOCTEXT("AppLabel", "ActAction Sequence Editor");
 }
 
-void FActActionSequenceEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
+void FNovaActEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
 {
 	// ** NOTE:记得反注册中也要添加对应方法
 	FAssetEditorToolkit::RegisterTabSpawners(InTabManager);
 
 	FTabSpawnerEntry& TabSpawnerEntryViewport = InTabManager->RegisterTabSpawner(
-		NovaConst::ActActionViewportTabId,
+		NovaConst::ActViewportTabId,
 		FOnSpawnTab::CreateLambda([this](const FSpawnTabArgs& Args)-> TSharedRef<SDockTab>
 		{
 			ActActionViewportWidgetParent = SNew(SDockTab)
@@ -139,7 +144,7 @@ void FActActionSequenceEditor::RegisterTabSpawners(const TSharedRef<FTabManager>
 	TabSpawnerEntryViewport.SetDisplayName(LOCTEXT("SequencerMainTab", "Viewport"));
 
 	FTabSpawnerEntry& TabSpawnerEntrySequence = InTabManager->RegisterTabSpawner(
-		NovaConst::ActActionSequenceTabId,
+		NovaConst::ActEventTimelineTabId,
 		FOnSpawnTab::CreateLambda([this](const FSpawnTabArgs& Args)-> TSharedRef<SDockTab>
 		{
 			ActActionSequenceWidgetParent = SNew(SDockTab)
@@ -152,7 +157,7 @@ void FActActionSequenceEditor::RegisterTabSpawners(const TSharedRef<FTabManager>
 	TabSpawnerEntrySequence.SetDisplayName(LOCTEXT("SequencerMainTab", "Sequence"));
 
 	FTabSpawnerEntry& TabSpawnerEntryDetailsView = InTabManager->RegisterTabSpawner(
-		NovaConst::ActActionDetailsViewTabId,
+		NovaConst::ActAssetDetailsTabId,
 		FOnSpawnTab::CreateLambda([this](const FSpawnTabArgs& Args)-> TSharedRef<SDockTab>
 		{
 			ActActionDetailsViewWidgetParent = SNew(SDockTab)
@@ -169,68 +174,68 @@ void FActActionSequenceEditor::RegisterTabSpawners(const TSharedRef<FTabManager>
 	TabSpawnerEntryDetailsView.SetDisplayName(LOCTEXT("SequencerMainTab", "DetailsView"));
 }
 
-void FActActionSequenceEditor::UnregisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
+void FNovaActEditor::UnregisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
 {
-	InTabManager->UnregisterTabSpawner(NovaConst::ActActionSequenceTabId);
-	InTabManager->UnregisterTabSpawner(NovaConst::ActActionViewportTabId);
-	InTabManager->UnregisterTabSpawner(NovaConst::ActActionDetailsViewTabId);
+	InTabManager->UnregisterTabSpawner(NovaConst::ActEventTimelineTabId);
+	InTabManager->UnregisterTabSpawner(NovaConst::ActViewportTabId);
+	InTabManager->UnregisterTabSpawner(NovaConst::ActAssetDetailsTabId);
 
 	FAssetEditorToolkit::UnregisterTabSpawners(InTabManager);
 }
 
-FLinearColor FActActionSequenceEditor::GetWorldCentricTabColorScale() const
+FLinearColor FNovaActEditor::GetWorldCentricTabColorScale() const
 {
 	return FLinearColor(0.7f, 0.0f, 0.0f, 0.5f);
 }
 
-FString FActActionSequenceEditor::GetWorldCentricTabPrefix() const
+FString FNovaActEditor::GetWorldCentricTabPrefix() const
 {
 	return LOCTEXT("WorldCentricTabPrefix", "Sequencer ").ToString();
 }
 
-void FActActionSequenceEditor::NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, FProperty* PropertyThatChanged)
+void FNovaActEditor::NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, FProperty* PropertyThatChanged)
 {
 	UE_LOG(LogActAction, Log, TEXT("PropertyChangedEvent : %s"), *PropertyChangedEvent.GetPropertyName().ToString());
-	OnAssetPropertiesModified.Broadcast(ActActionSequence);
+	OnAssetPropertiesModified.Broadcast(ActAnimation);
 }
 
-void FActActionSequenceEditor::InitAnimBlueprint(UAnimBlueprint* AnimBlueprint)
+void FNovaActEditor::InitAnimBlueprint(UAnimBlueprint* AnimBlueprint)
 {
 	if (!AnimBlueprint || !AnimBlueprint->TargetSkeleton)
 	{
-		UE_LOG(LogActAction, Log, TEXT("FActActionSequenceEditor::InitAnimBlueprint with nullptr AnimBlueprint or AnimBlueprint->TargetSkeleton is nullptr"));
+		UE_LOG(LogActAction, Log, TEXT("FNovaActEditor::InitAnimBlueprint with nullptr AnimBlueprint or AnimBlueprint->TargetSkeleton is nullptr"));
 		return;
 	}
 
-	if (ActActionSequence)
+	if (ActAnimation)
 	{
-		if (ActActionSequence->AnimBlueprint != AnimBlueprint)
+		if (ActAnimation->AnimBlueprint != AnimBlueprint)
 		{
 			UE_LOG(LogActAction, Log, TEXT("AssignAsEditAnim PreviewActor : %s"), *AnimBlueprint->GetName());
-			ActActionSequence->AnimBlueprint = AnimBlueprint;
+			ActAnimation->AnimBlueprint = AnimBlueprint;
 		}
 		ActActionPreviewSceneController->SpawnActorInViewport(ASkeletalMeshActor::StaticClass(), AnimBlueprint);
 	}
 }
 
-FFrameRate FActActionSequenceEditor::GetTickResolution() const
+FFrameRate FNovaActEditor::GetTickResolution() const
 {
-	return ActActionSequence->TickResolution;
+	return ActAnimation->TickResolution;
 }
 
-void FActActionSequenceEditor::SetAnimSequence(UAnimSequence* InAnimSequence) const
+void FNovaActEditor::SetAnimSequence(UAnimSequence* InAnimSequence) const
 {
-	ActActionSequence->AnimSequence = InAnimSequence;
+	ActAnimation->AnimSequence = InAnimSequence;
 }
 
-void FActActionSequenceEditor::AddHitBox() const
+void FNovaActEditor::AddHitBox() const
 {
-	if (ActActionSequence)
+	if (ActAnimation)
 	{
-		ActActionSequence->ActActionHitBoxes.AddDefaulted();
+		ActAnimation->ActActionHitBoxes.AddDefaulted();
 		if (OnHitBoxesChanged.IsBound())
 		{
-			OnHitBoxesChanged.Broadcast(ActActionSequence->ActActionHitBoxes);
+			OnHitBoxesChanged.Broadcast(ActAnimation->ActActionHitBoxes);
 		}
 	}
 }

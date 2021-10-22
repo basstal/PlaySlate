@@ -1,6 +1,6 @@
 ﻿#include "ActActionHitBoxTrack.h"
 
-#include "NovaAct/ActActionSequenceEditor.h"
+#include "NovaAct/NovaActEditor.h"
 #include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"

@@ -1,10 +1,11 @@
 ﻿#pragma once
 
 #include "IAnimationEditor.h"
+#include "Common/NovaDataBinding.h"
 #include "Common/NovaDelegate.h"
 
 class FActActionPreviewSceneController;
-class UActActionSequence;
+class UActAnimation;
 class FActActionViewportClient;
 class FActEventTimelineBrain;
 class FActAssetDetailsBrain;
@@ -14,19 +15,18 @@ class FActAssetDetailsBrain;
  * 该对象会与编辑器的主页签一同释放
  * 其他子Controller（例如ActActionSequenceController）保存的都是WeakPtr
  */
-class FActActionSequenceEditor : public FWorkflowCentricApplication, public FGCObject, public FEditorUndoClient, public FNotifyHook
+class FNovaActEditor : public FWorkflowCentricApplication, public FGCObject, public FEditorUndoClient, public FNotifyHook
 {
 public:
-	FActActionSequenceEditor(UActActionSequence* InActActionSequence);
-
-	virtual ~FActActionSequenceEditor() override;
+	FNovaActEditor(UActAnimation* InActAnimation);
+	virtual ~FNovaActEditor() override;
 
 	/**
-	* 初始化编辑器，设置当前编辑的资源实例及相关参数
+	* 构造编辑器窗口，设置当前编辑的资源实例及相关参数
 	*
-	* @param InitToolkitHost 仅透传到对应接口，无实际作用
+	* @param InIToolkitHost 仅透传到对应接口，无实际作用
 	*/
-	void InitActActionSequenceEditor(const TSharedPtr<IToolkitHost>& InitToolkitHost);
+	void CreateEditorWindow(const TSharedPtr<IToolkitHost>& InIToolkitHost);
 
 	/**
 	 * 根据资源重置所有资源属性的对应显示状态
@@ -75,7 +75,7 @@ public:
 
 protected:
 	/** 当前编辑的资源实例 */
-	UActActionSequence* ActActionSequence;
+	UActAnimation* ActAnimation;
 
 	/** Viewport Controller，Editor没有销毁的情况下不会为空 */
 	TSharedPtr<FActActionPreviewSceneController> ActActionPreviewSceneController;
@@ -112,9 +112,9 @@ public:
 		return ActActionPreviewSceneController.ToSharedRef();
 	}
 
-	UActActionSequence* GetActActionSequence() const
+	UActAnimation* GetActActionSequence() const
 	{
-		return ActActionSequence;
+		return ActAnimation;
 	}
 
 	TRange<FFrameNumber> GetSelectionRange() const

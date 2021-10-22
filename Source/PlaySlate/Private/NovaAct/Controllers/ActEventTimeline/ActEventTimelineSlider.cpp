@@ -4,7 +4,7 @@
 #include "PlaySlate.h"
 #include "Common/NovaStaticFunction.h"
 #include "Common/NovaStruct.h"
-#include "NovaAct/ActActionSequenceEditor.h"
+#include "NovaAct/NovaActEditor.h"
 #include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
 #include "NovaAct/Widgets/ActEventTimeline/Image/Subs/ActActionTimeRangeSlider.h"
 #include "NovaAct/Widgets/ActEventTimeline/Image/ActActionTimeSliderWidget.h"

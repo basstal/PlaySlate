@@ -1,8 +1,8 @@
 ﻿#include "AssetTypeActions_ActActionSequence.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/ActActionSequenceEditor.h"
-#include "NovaAct/Assets/ActActionSequence.h"
+#include "NovaAct/NovaActEditor.h"
+#include "NovaAct/Assets/ActAnimation.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
@@ -18,24 +18,24 @@ FColor FAssetTypeActions_ActActionSequence::GetTypeColor() const
 
 UClass* FAssetTypeActions_ActActionSequence::GetSupportedClass() const
 {
-	return UActActionSequence::StaticClass();
+	return UActAnimation::StaticClass();
 }
 
 void FAssetTypeActions_ActActionSequence::OpenAssetEditor(const TArray<UObject*>& InObjects, TSharedPtr<IToolkitHost> EditWithinLevelEditor)
 {
 	for (auto ObjIt = InObjects.CreateConstIterator(); ObjIt; ++ObjIt)
 	{
-		UActActionSequence* ActActionSequence = Cast<UActActionSequence>(*ObjIt);
+		UActAnimation* ActAnimation = Cast<UActAnimation>(*ObjIt);
 
-		if (ActActionSequence)
+		if (ActAnimation)
 		{
 			/**
 			 * TODO:这里是否允许多开？目前不允许
 			 */
-			TSharedRef<FActActionSequenceEditor> SequenceEditor(new FActActionSequenceEditor(ActActionSequence));
-			SequenceEditor->InitActActionSequenceEditor(EditWithinLevelEditor);
+			TSharedRef<FNovaActEditor> NovaActEditor(new FNovaActEditor(ActAnimation));
+			NovaActEditor->CreateEditorWindow(EditWithinLevelEditor);
 			FPlaySlateModule& PlaySlateModule = FModuleManager::GetModuleChecked<FPlaySlateModule>("PlaySlate");
-			PlaySlateModule.ActActionSequenceEditor = SequenceEditor;
+			PlaySlateModule.NovaActEditor = NovaActEditor;
 			return;
 		}
 	}
