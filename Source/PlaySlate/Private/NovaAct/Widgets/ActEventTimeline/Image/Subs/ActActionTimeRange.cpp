@@ -1,7 +1,7 @@
 ﻿#include "ActActionTimeRange.h"
 
 #include "ActActionTimeRangeSlider.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineSlider.h"
+#include "NovaAct/ActEventTimeline/ActEventTimelineSlider.h"
 #include "Widgets/Input/SSpinBox.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
@@ -10,6 +10,8 @@ void SActActionTimeRange::Construct(const FArguments& InArgs, const TSharedRef<F
 {
 	TimeSliderController = InTimeSliderController;
 
+	auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	const TSharedRef<SWidget> ViewRangeStart = SNew(SSpinBox<double>)
 	.Value(this, &SActActionTimeRange::ViewStartTime)
 	.ToolTipText(LOCTEXT("ViewStartTimeTooltip", "View Range Start Time"))
@@ -21,7 +23,7 @@ void SActActionTimeRange::Construct(const FArguments& InArgs, const TSharedRef<F
 	.MinValue(TOptional<double>())
 	.MaxValue(TOptional<double>())
 	.Style(&FEditorStyle::Get().GetWidgetStyle<FSpinBoxStyle>("Sequencer.HyperlinkSpinBox"))
-	.TypeInterface(InTimeSliderController->GetTimeSliderArgs().NumericTypeInterface)
+	.TypeInterface(ActEventTimelineArgs->NumericTypeInterface)
 	.ClearKeyboardFocusOnCommit(true)
 	.Delta(this, &SActActionTimeRange::GetSpinboxDelta)
 	.LinearDeltaSensitivity(25);
@@ -38,7 +40,7 @@ void SActActionTimeRange::Construct(const FArguments& InArgs, const TSharedRef<F
 	.MinValue(TOptional<double>())
 	.MaxValue(TOptional<double>())
 	.Style(&FEditorStyle::Get().GetWidgetStyle<FSpinBoxStyle>("Sequencer.HyperlinkSpinBox"))
-	.TypeInterface(InTimeSliderController->GetTimeSliderArgs().NumericTypeInterface)
+	.TypeInterface(ActEventTimelineArgs->NumericTypeInterface)
 	.ClearKeyboardFocusOnCommit(true)
 	.Delta(this, &SActActionTimeRange::GetSpinboxDelta)
 	.LinearDeltaSensitivity(25);
@@ -87,10 +89,11 @@ void SActActionTimeRange::Construct(const FArguments& InArgs, const TSharedRef<F
 
 double SActActionTimeRange::ViewStartTime() const
 {
-	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = TimeSliderController.Pin()->GetTimeSliderArgs();
-	const FFrameRate TickResolution = TimeSliderArgs.TickResolution.Get();
+	auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
+	const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
 	// View range is in seconds so we convert it to tick resolution
-	const FFrameTime Time = TimeSliderArgs.ViewRange.Get().GetLowerBoundValue() * TickResolution;
+	const FFrameTime Time = ActEventTimelineArgs->ViewRange.GetLowerBoundValue() * TickResolution;
 	return Time.GetFrame().Value;
 }
 
@@ -105,11 +108,12 @@ void SActActionTimeRange::OnViewTimeChanged(double NewValue, bool bIsEndValue) c
 	{
 		return;
 	}
-	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = TimeSliderController.Pin()->GetTimeSliderArgs();
-	const FFrameRate TickResolution = TimeSliderArgs.TickResolution.Get();
+	auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
+	const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
 	const double Time = TickResolution.AsSeconds(FFrameTime::FromDecimal(NewValue));
-	const double ViewStartTime = TimeSliderArgs.ViewRange.Get().GetLowerBoundValue();
-	double ViewEndTime = TimeSliderArgs.ViewRange.Get().GetUpperBoundValue();
+	const double ViewStartTime = ActEventTimelineArgs->ViewRange.GetLowerBoundValue();
+	double ViewEndTime = ActEventTimelineArgs->ViewRange.GetUpperBoundValue();
 
 	if (Time >= ViewEndTime)
 	{
@@ -128,16 +132,18 @@ void SActActionTimeRange::OnViewTimeChanged(double NewValue, bool bIsEndValue) c
 
 double SActActionTimeRange::GetSpinboxDelta() const
 {
-	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = TimeSliderController.Pin()->GetTimeSliderArgs();
-	return TimeSliderArgs.TickResolution.Get().AsDecimal() * TimeSliderArgs.DisplayRate.Get().AsInterval();
+	auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
+	return ActEventTimelineArgs->TickResolution.AsDecimal() * ActEventTimelineArgs->TickResolution.AsInterval();
 }
 
 double SActActionTimeRange::ViewEndTime() const
 {
-	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = TimeSliderController.Pin()->GetTimeSliderArgs();
-	const FFrameRate TickResolution = TimeSliderArgs.TickResolution.Get();
+	auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
+	const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
 	// View range is in seconds so we convert it to tick resolution
-	const FFrameTime Time = TimeSliderArgs.ViewRange.Get().GetUpperBoundValue() * TickResolution;
+	const FFrameTime Time = ActEventTimelineArgs->ViewRange.GetUpperBoundValue() * TickResolution;
 	return Time.GetFrame().Value;
 }
 

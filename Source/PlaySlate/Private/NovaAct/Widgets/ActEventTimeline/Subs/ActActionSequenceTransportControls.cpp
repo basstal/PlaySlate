@@ -4,15 +4,15 @@
 #include "EditorWidgetsModule.h"
 #include "ITransportControl.h"
 #include "NovaAct/NovaActEditor.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
-#include "NovaAct/Controllers/ActViewport/ActActionPreviewSceneController.h"
+#include "NovaAct/ActEventTimeline/ActEventTimeline.h"
+#include "NovaAct/ActViewport/ActViewport.h"
 
 SActActionSequenceTransportControls::~SActActionSequenceTransportControls()
 {
 	UE_LOG(LogActAction, Log, TEXT("SActActionSequenceTransportControls::~SActActionSequenceTransportControls"));
 }
 
-void SActActionSequenceTransportControls::Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineBrain>& InActActionSequenceController)
+void SActActionSequenceTransportControls::Construct(const FArguments& InArgs, const TSharedRef<FActEventTimeline>& InActActionSequenceController)
 {
 	ActActionSequenceEditor = InActActionSequenceController->GetActActionSequenceEditor();
 
@@ -61,7 +61,7 @@ FReply SActActionSequenceTransportControls::OnClick_Backward_End() const
 
 FReply SActActionSequenceTransportControls::OnClick_Forward() const
 {
-	const TSharedRef<FActActionPreviewSceneController> ActActionPreviewSceneController = ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController();
+	const TSharedRef<FActViewport> ActActionPreviewSceneController = ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController();
 	const EPlaybackMode::Type PlaybackMode = ActActionPreviewSceneController->GetPlaybackMode();
 	if (PlaybackMode == EPlaybackMode::Stopped || PlaybackMode == EPlaybackMode::PlayingReverse)
 	{
@@ -76,7 +76,7 @@ FReply SActActionSequenceTransportControls::OnClick_Forward() const
 
 FReply SActActionSequenceTransportControls::OnClick_Backward() const
 {
-	const TSharedRef<FActActionPreviewSceneController> ActActionPreviewSceneController = ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController();
+	const TSharedRef<FActViewport> ActActionPreviewSceneController = ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController();
 	const EPlaybackMode::Type PlaybackMode = ActActionPreviewSceneController->GetPlaybackMode();
 	if (PlaybackMode == EPlaybackMode::Stopped || PlaybackMode == EPlaybackMode::PlayingForward)
 	{

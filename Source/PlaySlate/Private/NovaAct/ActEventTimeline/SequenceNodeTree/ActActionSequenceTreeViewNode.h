@@ -11,6 +11,8 @@ class SActActionSequenceTrackArea;
 class FActActionTrackAreaSlot;
 class SActActionSequenceTrackLane;
 
+using namespace NovaEnum;
+using namespace NovaStruct;
 /**
  * 基础的Sequence Node
  */
@@ -26,7 +28,7 @@ public:
 	 * @param InNodeName 节点名称
 	 * @param InNodeType 节点类型
 	 */
-	FActActionSequenceTreeViewNode(const TSharedRef<FActEventTimelineBrain>& InActActionSequenceController, FName InNodeName = NAME_None, ENovaSequenceNodeType InNodeType = ENovaSequenceNodeType::Root);
+	FActActionSequenceTreeViewNode(const TSharedRef<FActEventTimeline>& InActActionSequenceController, FName InNodeName = NAME_None, ENovaSequenceNodeType InNodeType = ENovaSequenceNodeType::Root);
 
 	virtual ~FActActionSequenceTreeViewNode();
 
@@ -191,7 +193,7 @@ protected:
 	/**
 	 * 当前编辑的Sequence，即所有NodeTree所属的Sequence
 	 */
-	TWeakPtr<FActEventTimelineBrain> ActActionSequenceController;
+	TWeakPtr<FActEventTimeline> ActActionSequenceController;
 	/**
 	 * 该节点的父节点，如果没有父节点则认为是树的根节点
 	 */
@@ -237,11 +239,11 @@ protected:
 	/** TrackAreaSlot Controller */
 	TSharedPtr<FActActionTrackAreaSlot> ActActionTrackAreaSlot;
 	/** TrackArea所使用的参数 */
-	ActActionSequence::FActActionTrackAreaArgs ActActionTrackAreaArgs;
+	FActActionTrackAreaArgs ActActionTrackAreaArgs;
 	/** TODO:临时存这里 */
 	FActActionHitBoxData* CachedHitBox;
 	/** TrackAreaSlot 对应到 Geometry 信息 */
-	TMap<TSharedRef<FActActionTrackAreaSlot>, ActActionSequence::FActActionCachedGeometry> CachedTrackGeometry;
+	TMap<TSharedRef<FActActionTrackAreaSlot>, FActActionCachedGeometry> CachedTrackGeometry;
 public:
 	/** TODO:临时放到这里 */
 	void SetHitBoxBegin(int InBegin)
@@ -260,7 +262,7 @@ public:
 		}
 	}
 
-	ActActionSequence::FActActionTrackAreaArgs& GetActActionTrackAreaArgs()
+	FActActionTrackAreaArgs& GetActActionTrackAreaArgs()
 	{
 		return ActActionTrackAreaArgs;
 	}
@@ -317,7 +319,7 @@ public:
 		return TrackArea.ToSharedRef();
 	}
 
-	TSharedRef<FActEventTimelineBrain> GetSequenceController() const
+	TSharedRef<FActEventTimeline> GetSequenceController() const
 	{
 		return ActActionSequenceController.Pin().ToSharedRef();
 	}

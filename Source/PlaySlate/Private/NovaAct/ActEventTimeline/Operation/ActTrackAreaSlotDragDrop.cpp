@@ -2,7 +2,7 @@
 
 #include "SCurveEditor.h"
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/Subs/ActActionSequenceNotifyNode.h"
-#include "NovaAct/Controllers/ActEventTimeline/SequenceNodeTree/ActActionTrackAreaSlot.h"
+#include "NovaAct/ActEventTimeline/SequenceNodeTree/ActActionTrackAreaSlot.h"
 
 
 #define LOCTEXT_NAMESPACE "NovaAct"
@@ -71,7 +71,7 @@ void FActTrackAreaSlotDragDrop::OnDragged(const FDragDropEvent& DragDropEvent)
 	// 	SelectionPositionClampInfo = &ClampInfos[ClampInfos.Num() - TrackSpan - 1];
 	// }
 	const FGeometry& TrackGeometry = SelectedNode->CachedTrackGeometry;
-	ActActionSequence::FActActionTrackAreaArgs& TrackAreaArgs = SelectedNode->GetActActionTrackAreaSlot()->GetActActionTrackAreaArgs();
+	FActActionTrackAreaArgs& TrackAreaArgs = SelectedNode->GetActActionTrackAreaSlot()->GetActActionTrackAreaArgs();
 	float PlayLength = TrackAreaArgs.GetPlayLength();
 	const FTrackScaleInfo& TrackScaleInfo = FTrackScaleInfo(TrackAreaArgs.ViewInputMin.Get(), TrackAreaArgs.ViewInputMax.Get(), 0.f, 0.f, SelectedNode->CachedTrackGeometry.GetLocalSize());
 
@@ -252,7 +252,7 @@ TSharedRef<FActTrackAreaSlotDragDrop> FActTrackAreaSlotDragDrop::New(TSharedRef<
 	Operation->TrackSpan = 0;
 
 	// Calculate offsets for the selected nodes
-	const ActActionSequence::FActActionTrackAreaArgs& TrackAreaArgs = NotifyNode->GetActActionTrackAreaSlot()->GetActActionTrackAreaArgs();
+	const FActActionTrackAreaArgs& TrackAreaArgs = NotifyNode->GetActActionTrackAreaSlot()->GetActActionTrackAreaArgs();
 	float BeginTime = TrackAreaArgs.GetBeginTime();
 	float EndTime = TrackAreaArgs.GetEndTime();
 

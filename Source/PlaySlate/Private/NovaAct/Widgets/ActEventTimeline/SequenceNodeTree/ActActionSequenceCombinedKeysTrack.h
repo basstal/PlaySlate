@@ -10,7 +10,7 @@ SLATE_BEGIN_ARGS(SActActionSequenceCombinedKeysTrack)
 		}
 
 		/** The view range of the section area */
-		SLATE_ATTRIBUTE(TRange<double>, ViewRange)
+		SLATE_ATTRIBUTE(TRange<float>, ViewRange)
 		/** The tick resolution of the current sequence*/
 		SLATE_ATTRIBUTE(FFrameRate, TickResolution)
 	SLATE_END_ARGS()
@@ -23,7 +23,7 @@ protected:
 	//~End SWidget interface
 protected:
 	TSharedPtr<FActActionSequenceTreeViewNode> RootNode;
-	TAttribute<TRange<double>> ViewRange;
+	TAttribute<TRange<float>> ViewRange;
 	TAttribute<FFrameRate> TickResolution;
 	/** Cached pixel positions for all keys in the current view range */
 	TArray<float> KeyDrawPositions;

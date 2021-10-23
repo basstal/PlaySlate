@@ -1,14 +1,14 @@
 ﻿#include "ActActionHitBoxTrack.h"
 
 #include "NovaAct/NovaActEditor.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
+#include "NovaAct/ActEventTimeline/ActEventTimeline.h"
+#include "NovaAct/Assets/ActAnimation.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
-FActActionHitBoxTrack::FActActionHitBoxTrack(const TSharedRef<FActEventTimelineBrain>& ActActionSequenceController)
+FActActionHitBoxTrack::FActActionHitBoxTrack(const TSharedRef<FActEventTimeline>& ActActionSequenceController)
 	: FActActionTrackEditorBase(ActActionSequenceController)
-{
-}
+{}
 
 void FActActionHitBoxTrack::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 {
@@ -20,14 +20,17 @@ void FActActionHitBoxTrack::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 	);
 }
 
-TSharedRef<FActActionTrackEditorBase> FActActionHitBoxTrack::CreateTrackEditor(TSharedRef<FActEventTimelineBrain> InSequenceController)
+TSharedRef<FActActionTrackEditorBase> FActActionHitBoxTrack::CreateTrackEditor(TSharedRef<FActEventTimeline> InSequenceController)
 {
 	return MakeShareable(new FActActionHitBoxTrack(InSequenceController));
 }
 
 void FActActionHitBoxTrack::AssignHitBox() const
 {
-	ActActionSequenceController.Pin()->GetActActionSequenceEditor()->AddHitBox();
+	auto DB = NovaDB::GetOrCreate<UActAnimation*>("ActAnimation");
+	UActAnimation* ActAnimation = DB->GetData();
+	ActAnimation->ActActionHitBoxes.AddDefaulted();
+	DB->Trigger();
 }
 
 #undef LOCTEXT_NAMESPACE

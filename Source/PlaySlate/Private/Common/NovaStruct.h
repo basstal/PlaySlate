@@ -2,14 +2,46 @@
 
 #include "Common/NovaDelegate.h"
 
-class FActEventTimelineBrain;
+class FActEventTimeline;
 class FActActionTrackAreaSlot;
 class FActActionTrackEditorBase;
 class FActActionSequenceTreeViewNode;
 class SActActionSequenceTreeViewRow;
 
-namespace ActActionSequence
+namespace NovaStruct
 {
+	using namespace NovaEnum;
+	using namespace NovaDelegate;
+
+	/** EventTimeline 所有Widget可能需要共享的一些参数，使用数据绑定以避免参数透传 */
+	struct FActEventTimelineArgs
+	{
+		FActEventTimelineArgs()
+			: ViewRange(TRange<float>(0.0f, 1.0f)),
+			  ClampRange(TRange<float>(0.0f, 1.0f)),
+			  TickResolution(60, 1),
+			  CurrentTime(0),
+			  PlaybackStatus(ENovaPlaybackType::Stopped),
+			  AllowZoom(true) {}
+
+
+		TRange<float> ViewRange;         // 当前可见的区域，这个值可以比动画播放区间小，例如放大显示时
+		TRange<float> ClampRange;        // 最大可调整的区域，与AnimSequence动画的播放时长相同，范围[0, PlayLength] 
+		FFrameRate TickResolution;       // 当前使用的帧率
+		FFrameTime CurrentTime;          // 当前动画所在的时间节点
+		ENovaPlaybackType PlaybackStatus;// 当前的播放状态 
+
+		bool AllowZoom;                                                // If we are allowed to zoom
+		TSharedPtr<INumericTypeInterface<double>> NumericTypeInterface;// Numeric Type interface for converting between frame numbers and display formats.
+	};
+
+	struct FActEventTimelineEvents
+	{
+		OnScrubPositionChangedDelegate OnScrubPositionChanged;// Called when the scrub position changes 
+		FSimpleDelegate OnBeginScrubberMovement;    // Called right before the scrubber begins to move 
+		FSimpleDelegate OnEndScrubberMovement;      // Called right after the scrubber handle is released by the user 
+	};
+
 	/** Utility struct for converting between scrub range space and local/absolute screen space */
 	struct FActActionScrubRangeToScreen
 	{
@@ -17,7 +49,7 @@ namespace ActActionSequence
 
 		float PixelsPerInput;
 
-		FActActionScrubRangeToScreen(const TRange<double>& InViewInput, const FVector2D& InWidgetSize)
+		FActActionScrubRangeToScreen(const TRange<float>& InViewInput, const FVector2D& InWidgetSize)
 		{
 			const float ViewInputRange = InViewInput.Size<double>();
 
@@ -38,155 +70,6 @@ namespace ActActionSequence
 		}
 	};
 
-	/** Structure used to wrap up a range, and an optional animation target */
-	struct FActActionAnimatedRange : public TRange<double>
-	{
-		FActActionAnimatedRange()
-			: TRange() { }
-
-		FActActionAnimatedRange(double LowerBound, double UpperBound)
-			: TRange(LowerBound, UpperBound) { }
-
-		FActActionAnimatedRange(const TRange<double>& InRange)
-			: TRange(InRange) { }
-
-		/** Helper function to wrap an attribute to an animated range with a non-animated one */
-		static TAttribute<TRange<double>> WrapAttribute(const TAttribute<FActActionAnimatedRange>& InAttribute)
-		{
-			return TAttribute<TRange<double>>::Create(TAttribute<TRange<double>>::FGetter::CreateLambda([=]() { return InAttribute.Get(); }));
-		}
-
-		/** Helper function to wrap an attribute to a non-animated range with an animated one */
-		static TAttribute<FActActionAnimatedRange> WrapAttribute(const TAttribute<TRange<double>>& InAttribute)
-		{
-			return TAttribute<FActActionAnimatedRange>::Create(TAttribute<FActActionAnimatedRange>::FGetter::CreateLambda([=]() { return InAttribute.Get(); }));
-		}
-
-		/** Get the current animation target, or the whole view range when not animating */
-		const TRange<double>& GetAnimationTarget() const
-		{
-			return AnimationTarget.IsSet() ? AnimationTarget.GetValue() : *this;
-		}
-
-		/** The animation target, if animating */
-		TOptional<TRange<double>> AnimationTarget;
-	};
-
-	struct FActActionTimeSliderArgs
-	{
-		FActActionTimeSliderArgs()
-			: ScrubPosition(0),
-			  ViewRange(FActActionAnimatedRange(0.0f, 5.0f)),
-			  ClampRange(FActActionAnimatedRange(0.0f, 5.0f)),
-			  AllowZoom(true) { }
-
-		/** The scrub position */
-		TAttribute<FFrameTime> ScrubPosition;
-
-		/** The scrub position text */
-		TAttribute<FString> ScrubPositionText;
-
-		/** TimeSlider当前可见的区域 */
-		TAttribute<FActActionAnimatedRange> ViewRange;
-
-		/** TimeSlider可见区域的最大可调整的区域，与AnimSequence动画的播放区域相同 */
-		TAttribute<FActActionAnimatedRange> ClampRange;
-
-		/** Called when the scrub position changes */
-		OnScrubPositionChangedDelegate OnScrubPositionChanged;
-
-		/** Called right before the scrubber begins to move */
-		FSimpleDelegate OnBeginScrubberMovement;
-
-		/** Called right after the scrubber handle is released by the user */
-		FSimpleDelegate OnEndScrubberMovement;
-
-		/** Called when the view range changes */
-		OnViewRangeChangedDelegate OnViewRangeChanged;
-
-		// /** Called when the clamp range changes */
-		// OnTimeRangeChangedDelegate OnClampRangeChanged;
-
-		/** Delegate that is called when getting the nearest key */
-		OnGetNearestKeyDelegate OnGetNearestKey;
-
-		/** Attribute defining the active sub-sequence range for this controller */
-		TAttribute<TOptional<TRange<FFrameNumber>>> SubSequenceRange;
-
-		/** Attribute defining the playback range for this controller */
-		TAttribute<TRange<FFrameNumber>> PlaybackRange;
-
-		/** Attribute for the current sequence's display rate */
-		TAttribute<FFrameRate> DisplayRate;
-
-		/** Attribute for the current sequence's tick resolution */
-		TAttribute<FFrameRate> TickResolution;
-
-		/**
-		 * 动画播放区间改变的回调，将数据写入到Model中保存
-		 * Delegate that is called when the playback range wants to change
-		 */
-		OnFrameRangeChangedDelegate OnPlaybackRangeChanged;
-
-		/** Called right before the playback range starts to be dragged */
-		FSimpleDelegate OnPlaybackRangeBeginDrag;
-
-		/** Called right after the playback range has finished being dragged */
-		FSimpleDelegate OnPlaybackRangeEndDrag;
-
-		/** Attribute defining the selection range for this controller */
-		TAttribute<TRange<FFrameNumber>> SelectionRange;
-
-		/** Delegate that is called when the selection range wants to change */
-		OnFrameRangeChangedDelegate OnSelectionRangeChanged;
-
-		/** Called right before the selection range starts to be dragged */
-		FSimpleDelegate OnSelectionRangeBeginDrag;
-
-		/** Called right after the selection range has finished being dragged */
-		FSimpleDelegate OnSelectionRangeEndDrag;
-
-		/** Called right before a mark starts to be dragged */
-		FSimpleDelegate OnMarkBeginDrag;
-
-		/** Called right after a mark has finished being dragged */
-		FSimpleDelegate OnMarkEndDrag;
-
-		// /** Attribute for the current sequence's vertical frames */
-		// TAttribute<TSet<FFrameNumber>> VerticalFrames;
-
-		/** Called when the marked frame needs to be set */
-		// OnSetMarkedFrameDelegate OnSetMarkedFrame;
-
-		/** Called when a marked frame is added */
-		// OnAddMarkedFrameDelegate OnAddMarkedFrame;
-
-		/** Called when a marked frame is deleted */
-		OnDeleteMarkedFrameDelegate OnDeleteMarkedFrame;
-
-		/** Called when all marked frames should be deleted */
-		FSimpleDelegate OnDeleteAllMarkedFrames;
-
-		/** Round the scrub position to an integer during playback */
-		TAttribute<ENovaPlaybackType> PlaybackStatus;
-
-		/** Attribute defining whether the playback range is locked */
-		TAttribute<bool> IsPlaybackRangeLocked;
-
-		/** Attribute defining the time snap interval */
-		TAttribute<float> TimeSnapInterval;
-
-		/** Called when toggling the playback range lock */
-		FSimpleDelegate OnTogglePlaybackRangeLocked;
-
-		/** If we are allowed to zoom */
-		bool AllowZoom;
-
-		/** Numeric Type interface for converting between frame numbers and display formats. */
-		TSharedPtr<INumericTypeInterface<double>> NumericTypeInterface;
-
-		int32 DBTestValue;
-	};
 
 	struct FActActionDrawTickArgs
 	{
@@ -423,8 +306,8 @@ namespace ActActionSequence
 			  Height(InHeight) { }
 
 		TSharedRef<FActActionTrackAreaSlot> Track;
-		float                               Top;
-		float                               Height;
+		float Top;
+		float Height;
 	};
 
 	/** ActActionSequence evaluation context. Should remain bitwise copyable, and contain no external state since this has the potential to be used on a thread */
@@ -682,7 +565,7 @@ namespace ActActionSequence
 
 		FFrameTime DestinationTime;
 		FFrameTime SourceTime;
-		double     StartTime;
+		double StartTime;
 	};
 
 	struct FActActionTrackAreaArgs
@@ -718,6 +601,4 @@ namespace ActActionSequence
 			return ViewInputMax.Get() - ViewInputMin.Get();
 		}
 	};
-
-	
 }

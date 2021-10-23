@@ -1,7 +1,10 @@
 ﻿#pragma once
 
-#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineImage.h"
+#include "NovaAct/ActEventTimeline/ActEventTimelineImage.h"
 #include "Common/NovaStruct.h"
+
+using namespace NovaDelegate;
+using namespace NovaStruct;
 
 class FActEventTimelineSlider;
 
@@ -9,13 +12,12 @@ class SActActionSequenceSectionOverlayWidget : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SActActionSequenceSectionOverlayWidget)
-		{
-		}
+		{ }
 
 		SLATE_ATTRIBUTE(bool, DisplayTickLines)
 		SLATE_ATTRIBUTE(bool, DisplayScrubPosition)
 		SLATE_ATTRIBUTE(bool, DisplayMarkedFrames)
-		SLATE_ATTRIBUTE(ActActionSequence::FActActionPaintPlaybackRangeArgs, PaintPlaybackRangeArgs)
+		SLATE_ATTRIBUTE(FActActionPaintPlaybackRangeArgs, PaintPlaybackRangeArgs)
 
 	SLATE_END_ARGS()
 
@@ -32,7 +34,7 @@ protected:
 	/**
 	 * TODO:
 	 */
-	TAttribute<ActActionSequence::FActActionPaintPlaybackRangeArgs> PaintPlaybackRangeArgs;
+	TAttribute<FActActionPaintPlaybackRangeArgs> PaintPlaybackRangeArgs;
 	/**
 	 * TODO:
 	 */

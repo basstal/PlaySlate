@@ -3,34 +3,35 @@
 #include "PlaySlate.h"
 #include "Common/NovaConst.h"
 #include "NovaAct/Assets/ActAnimation.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
-#include "NovaAct/Controllers/ActViewport/ActActionPreviewSceneController.h"
+#include "NovaAct/ActEventTimeline/ActEventTimeline.h"
+#include "NovaAct/ActViewport/ActViewport.h"
 // ReSharper disable once CppUnusedIncludeDirective
 #include "NovaAct/Widgets/ActViewport/ActActionViewportWidget.h"
 // ReSharper disable once CppUnusedIncludeDirective
 #include "NovaAct/Widgets/ActEventTimeline/ActActionSequenceWidget.h"
 #include "NovaAct/Widgets/ActAssetDetails/ActActionDetailsViewWidget.h"
-#include "NovaAct/Controllers/ActAssetDetails/ActAssetDetailsBrain.h"
+#include "NovaAct/ActAssetDetails/ActAssetDetailsBrain.h"
 
 #include "Animation/AnimBlueprint.h"
-#include "Animation/SkeletalMeshActor.h"
+#include "Common/NovaDataBinding.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
+using namespace NovaStruct;
+
 FNovaActEditor::FNovaActEditor(UActAnimation* InActAnimation)
-	: ActAnimation(InActAnimation),
-	  PlaybackRange(0, 0),
-	  SelectionRange(0, 0)
 {
 	check(InActAnimation);
-	NovaDB::GetOrCreate<UActAnimation>("ActAnimation", InActAnimation);
+	ActAnimationDB = NovaDB::GetOrCreate("ActAnimation", InActAnimation);
 }
 
 FNovaActEditor::~FNovaActEditor()
 {
 	UE_LOG(LogActAction, Log, TEXT("FNovaActEditor::~FNovaActEditor"));
-	ActActionPreviewSceneController.Reset();
-	ActActionSequenceController.Reset();
+	ActViewport.Reset();
+	ActEventTimeline.Reset();
+	NovaDB::Delete<UActAnimation*>("ActAnimation");
+	ActAnimationDB.Reset();
 }
 
 void FNovaActEditor::CreateEditorWindow(const TSharedPtr<IToolkitHost>& InIToolkitHost)
@@ -58,71 +59,59 @@ void FNovaActEditor::CreateEditorWindow(const TSharedPtr<IToolkitHost>& InIToolk
 		                                                                   ->SetHideTabWell(true))));
 
 	// Initialize the asset editor
-	InitAssetEditor(EToolkitMode::Standalone, InIToolkitHost, NovaConst::NovaActAppName, StandaloneDefaultLayout, true, true, ActAnimation);
+	InitAssetEditor(EToolkitMode::Standalone, InIToolkitHost, NovaConst::NovaActAppName, StandaloneDefaultLayout, true, true, ActAnimationDB->GetData());
 
 	// ** 通过对应Widget的Controller，填充Tab的实际内容Widget，并保留对Controller的引用
 	// ** ActActionSequenceController
-	ActActionSequenceController = MakeShareable(new FActEventTimelineBrain(SharedThis(this)));
-	ActActionSequenceController->ExecuteTrackEditorCreateDelegate();
-	const ActActionSequence::FActActionSequenceViewParams ViewParams = ActActionSequence::FActActionSequenceViewParams();
-	ActActionSequenceController->MakeSequenceWidget(ViewParams);
-	ActActionSequenceWidgetParent->SetContent(ActActionSequenceController->GetActActionSequenceWidget());
+	ActEventTimeline = MakeShareable(new FActEventTimeline(SharedThis(this)));
+	ActEventTimeline->Init();
+	if (ActEventTimelineWidgetParent)
+	{
+		ActEventTimelineWidgetParent->SetContent(ActEventTimeline->GetActActionSequenceWidget());
+	}
 
-	// ** PreviewScene(Viewport)Controller
-	const FPreviewScene::ConstructionValues ConstructionValues = FPreviewScene::ConstructionValues()
-	                                                             .AllowAudioPlayback(true)
-	                                                             .ShouldSimulatePhysics(true);
-	ActActionPreviewSceneController = MakeShareable(new FActActionPreviewSceneController(ConstructionValues, SharedThis(this)));
-	ActActionPreviewSceneController->MakeViewportWidget();
-	ActActionViewportWidgetParent->SetContent(ActActionPreviewSceneController->GetActActionViewportWidget());
+	const FPreviewScene::ConstructionValues CSV = FPreviewScene::ConstructionValues().AllowAudioPlayback(true).ShouldSimulatePhysics(true);
+	ActViewport = MakeShareable(new FActViewport(CSV, SharedThis(this)));
+	ActViewport->Init();
+	if (ActViewportWidgetParent)
+	{
+		ActViewportWidgetParent->SetContent(ActViewport->GetActActionViewportWidget());
+	}
 
 	// ** DetailsView Controller
-	ActActionDetailsViewController = MakeShareable(new FActAssetDetailsBrain(SharedThis(this)));
-	ActActionDetailsViewController->MakeDetailsViewWidget();
-	if (ActActionDetailsViewWidgetParent)
+	ActAssetDetails = MakeShareable(new FActAssetDetails(SharedThis(this)));
+	ActAssetDetails->Init();
+	if (ActAssetDetailsWidgetParent)
 	{
-		ActActionDetailsViewWidgetParent->SetContent(ActActionDetailsViewController->GetActActionDetailsViewWidget());
+		ActAssetDetailsWidgetParent->SetContent(ActAssetDetails->GetActActionDetailsViewWidget());
 	}
 
 	// ** Init by resource
-	ResetAssetProperties(ActAnimation);
-
-	// ** 添加属性修改的回调，使其他Controller能接收到Details面板的属性修改事件
-	OnAssetPropertiesModified.AddSP(this, &FNovaActEditor::ResetAssetProperties);
+	ActAnimationDB->Trigger();
 
 	// When undo occurs, get a notification so we can make sure our view is up to date
 	GEditor->RegisterForUndo(this);
 }
 
-void FNovaActEditor::ResetAssetProperties(UObject* InObject)
-{
-	UActAnimation* ActActionSequencePtr = Cast<UActAnimation>(InObject);
-	InitAnimBlueprint(ActActionSequencePtr->AnimBlueprint);
-	ActActionSequenceController->AddAnimSequenceTrack(ActActionSequencePtr->AnimSequence);
-	if (OnHitBoxesChanged.IsBound())
-	{
-		OnHitBoxesChanged.Broadcast(ActActionSequencePtr->ActActionHitBoxes);
-	}
-}
-
 void FNovaActEditor::AddReferencedObjects(FReferenceCollector& Collector)
 {
-	Collector.AddReferencedObject(ActAnimation);
+	UActAnimation* Data = ActAnimationDB->GetData();
+	Collector.AddReferencedObject(Data);
 }
 
 FString FNovaActEditor::GetReferencerName() const
 {
-	return "ActActionSequenceEditor";
+	return "NovaActEditor";
 }
 
 FName FNovaActEditor::GetToolkitFName() const
 {
-	return FName("ActActionSequenceEditor");
+	return FName("NovaActEditor");
 }
 
 FText FNovaActEditor::GetBaseToolkitName() const
 {
-	return LOCTEXT("AppLabel", "ActAction Sequence Editor");
+	return LOCTEXT("ActEditor", "BaseToolkitName");
 }
 
 void FNovaActEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
@@ -130,48 +119,12 @@ void FNovaActEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabMan
 	// ** NOTE:记得反注册中也要添加对应方法
 	FAssetEditorToolkit::RegisterTabSpawners(InTabManager);
 
-	FTabSpawnerEntry& TabSpawnerEntryViewport = InTabManager->RegisterTabSpawner(
-		NovaConst::ActViewportTabId,
-		FOnSpawnTab::CreateLambda([this](const FSpawnTabArgs& Args)-> TSharedRef<SDockTab>
-		{
-			ActActionViewportWidgetParent = SNew(SDockTab)
-				.Label(LOCTEXT("ActActionSequenceMainTitle", "ActActionViewport"))
-				.TabColorScale(GetTabColorScale())
-				.TabRole(ETabRole::PanelTab)
-				.Icon(FEditorStyle::GetBrush("LevelEditor.Tabs.Viewports"));
-			return ActActionViewportWidgetParent.ToSharedRef();
-		}));
-	TabSpawnerEntryViewport.SetDisplayName(LOCTEXT("SequencerMainTab", "Viewport"));
-
-	FTabSpawnerEntry& TabSpawnerEntrySequence = InTabManager->RegisterTabSpawner(
-		NovaConst::ActEventTimelineTabId,
-		FOnSpawnTab::CreateLambda([this](const FSpawnTabArgs& Args)-> TSharedRef<SDockTab>
-		{
-			ActActionSequenceWidgetParent = SNew(SDockTab)
-				.Label(LOCTEXT("ActActionSequenceMainTitle", "ActActionSequence"))
-				.TabColorScale(GetTabColorScale())
-				.TabRole(ETabRole::PanelTab)
-				.Icon(FEditorStyle::GetBrush("LevelEditor.Tabs.Viewports"));
-			return ActActionSequenceWidgetParent.ToSharedRef();
-		}));
-	TabSpawnerEntrySequence.SetDisplayName(LOCTEXT("SequencerMainTab", "Sequence"));
-
-	FTabSpawnerEntry& TabSpawnerEntryDetailsView = InTabManager->RegisterTabSpawner(
-		NovaConst::ActAssetDetailsTabId,
-		FOnSpawnTab::CreateLambda([this](const FSpawnTabArgs& Args)-> TSharedRef<SDockTab>
-		{
-			ActActionDetailsViewWidgetParent = SNew(SDockTab)
-				.Label(LOCTEXT("ActActionSequenceMainTitle", "ActActionDetailsView"))
-				.TabColorScale(GetTabColorScale())
-				.TabRole(ETabRole::PanelTab)
-				.Icon(FEditorStyle::GetBrush("LevelEditor.Tabs.Viewports"));
-			if (ActActionDetailsViewController.IsValid())
-			{
-				ActActionDetailsViewWidgetParent->SetContent(ActActionDetailsViewController->GetActActionDetailsViewWidget());
-			}
-			return ActActionDetailsViewWidgetParent.ToSharedRef();
-		}));
-	TabSpawnerEntryDetailsView.SetDisplayName(LOCTEXT("SequencerMainTab", "DetailsView"));
+	FTabSpawnerEntry& ViewportEntry = InTabManager->RegisterTabSpawner(NovaConst::ActViewportTabId, FOnSpawnTab::CreateRaw(this, &FNovaActEditor::OnActViewportTabSpawn));
+	ViewportEntry.SetDisplayName(LOCTEXT("ActEditor", "ActViewport"));
+	FTabSpawnerEntry& EventTimelineEntry = InTabManager->RegisterTabSpawner(NovaConst::ActEventTimelineTabId, FOnSpawnTab::CreateRaw(this, &FNovaActEditor::OnActEventTimelineTabSpawn));
+	EventTimelineEntry.SetDisplayName(LOCTEXT("ActEditor", "ActEventTimeline"));
+	FTabSpawnerEntry& AssetDetailsEntry = InTabManager->RegisterTabSpawner(NovaConst::ActAssetDetailsTabId, FOnSpawnTab::CreateRaw(this, &FNovaActEditor::OnActAssetDetailsTabSpawn));
+	AssetDetailsEntry.SetDisplayName(LOCTEXT("ActEditor", "ActAssetDetails"));
 }
 
 void FNovaActEditor::UnregisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
@@ -190,54 +143,47 @@ FLinearColor FNovaActEditor::GetWorldCentricTabColorScale() const
 
 FString FNovaActEditor::GetWorldCentricTabPrefix() const
 {
-	return LOCTEXT("WorldCentricTabPrefix", "Sequencer ").ToString();
+	return LOCTEXT("ActEditor", "WorldCentricTabPrefix").ToString();
 }
 
 void FNovaActEditor::NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, FProperty* PropertyThatChanged)
 {
 	UE_LOG(LogActAction, Log, TEXT("PropertyChangedEvent : %s"), *PropertyChangedEvent.GetPropertyName().ToString());
-	OnAssetPropertiesModified.Broadcast(ActAnimation);
+	auto DB = NovaDB::GetOrCreate<UActAnimation*>("ActAnimation");
+	DB->Trigger();
 }
 
-void FNovaActEditor::InitAnimBlueprint(UAnimBlueprint* AnimBlueprint)
+TSharedRef<SDockTab> FNovaActEditor::OnActViewportTabSpawn(const FSpawnTabArgs& SpawnTabArgs)
 {
-	if (!AnimBlueprint || !AnimBlueprint->TargetSkeleton)
+	ActViewportWidgetParent = SNew(SDockTab)
+		.Label(LOCTEXT("ActEditor", "ActViewport"))
+		.TabColorScale(GetTabColorScale())
+		.TabRole(ETabRole::PanelTab)
+		.Icon(FEditorStyle::GetBrush("LevelEditor.Tabs.Viewports"));
+	return ActViewportWidgetParent.ToSharedRef();
+}
+
+
+TSharedRef<SDockTab> FNovaActEditor::OnActEventTimelineTabSpawn(const FSpawnTabArgs& SpawnTabArgs)
+{
+	ActEventTimelineWidgetParent = SNew(SDockTab)
+		.Label(LOCTEXT("ActEditor", "ActEventTimeline"))
+		.TabColorScale(GetTabColorScale())
+		.TabRole(ETabRole::PanelTab);
+	return ActEventTimelineWidgetParent.ToSharedRef();
+}
+
+TSharedRef<SDockTab> FNovaActEditor::OnActAssetDetailsTabSpawn(const FSpawnTabArgs& SpawnTabArgs)
+{
+	ActAssetDetailsWidgetParent = SNew(SDockTab)
+		.Label(LOCTEXT("ActEditor", "ActAssetDetails"))
+		.TabColorScale(GetTabColorScale())
+		.TabRole(ETabRole::PanelTab);
+	if (ActAssetDetails.IsValid())
 	{
-		UE_LOG(LogActAction, Log, TEXT("FNovaActEditor::InitAnimBlueprint with nullptr AnimBlueprint or AnimBlueprint->TargetSkeleton is nullptr"));
-		return;
+		ActAssetDetailsWidgetParent->SetContent(ActAssetDetails->GetActActionDetailsViewWidget());
 	}
-
-	if (ActAnimation)
-	{
-		if (ActAnimation->AnimBlueprint != AnimBlueprint)
-		{
-			UE_LOG(LogActAction, Log, TEXT("AssignAsEditAnim PreviewActor : %s"), *AnimBlueprint->GetName());
-			ActAnimation->AnimBlueprint = AnimBlueprint;
-		}
-		ActActionPreviewSceneController->SpawnActorInViewport(ASkeletalMeshActor::StaticClass(), AnimBlueprint);
-	}
-}
-
-FFrameRate FNovaActEditor::GetTickResolution() const
-{
-	return ActAnimation->TickResolution;
-}
-
-void FNovaActEditor::SetAnimSequence(UAnimSequence* InAnimSequence) const
-{
-	ActAnimation->AnimSequence = InAnimSequence;
-}
-
-void FNovaActEditor::AddHitBox() const
-{
-	if (ActAnimation)
-	{
-		ActAnimation->ActActionHitBoxes.AddDefaulted();
-		if (OnHitBoxesChanged.IsBound())
-		{
-			OnHitBoxesChanged.Broadcast(ActAnimation->ActActionHitBoxes);
-		}
-	}
+	return ActAssetDetailsWidgetParent.ToSharedRef();
 }
 
 #undef LOCTEXT_NAMESPACE

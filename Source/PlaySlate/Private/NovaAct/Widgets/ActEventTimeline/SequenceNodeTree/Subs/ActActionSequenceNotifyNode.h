@@ -4,18 +4,20 @@
 
 class FActActionTrackAreaSlot;
 
+using namespace NovaDelegate;
+
 class SActActionSequenceNotifyNode : public SLeafWidget
 {
 	friend class FActTrackAreaSlotDragDrop;
 public:
 	SLATE_BEGIN_ARGS(SActActionSequenceNotifyNode) { }
 
-		SLATE_EVENT(ActActionSequence::OnNotifyNodeDragStartedDelegate, OnNodeDragStarted)
-		SLATE_EVENT(ActActionSequence::OnNotifyStateHandleBeingDraggedDelegate, OnNotifyStateHandleBeingDragged)
+		SLATE_EVENT(OnNotifyNodeDragStartedDelegate, OnNodeDragStarted)
+		SLATE_EVENT(OnNotifyStateHandleBeingDraggedDelegate, OnNotifyStateHandleBeingDragged)
 		SLATE_EVENT(FSimpleDelegate, OnUpdatePanel)
-		SLATE_EVENT(ActActionSequence::OnPanTrackRequestDelegate, PanTrackRequest)
+		SLATE_EVENT(OnPanTrackRequestDelegate, PanTrackRequest)
 		SLATE_EVENT(FSimpleDelegate, OnSelectionChanged)
-		SLATE_EVENT(ActActionSequence::OnSnapPositionDelegate, OnSnapPosition)
+		SLATE_EVENT(OnSnapPositionDelegate, OnSnapPosition)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs, const TSharedRef<FActActionTrackAreaSlot>& InTrackAreaSlot);
@@ -71,15 +73,15 @@ protected:
 	/** Delegate that is called when the user initiates dragging */
 	// ActActionSequence::OnNotifyNodeDragStartedDelegate OnNodeDragStarted;
 	/** Delegate that is called when a notify state handle is being dragged */
-	ActActionSequence::OnNotifyStateHandleBeingDraggedDelegate OnNotifyStateHandleBeingDragged;
+	OnNotifyStateHandleBeingDraggedDelegate OnNotifyStateHandleBeingDragged;
 	/** Delegate to redraw the notify panel */
 	FSimpleDelegate OnUpdatePanel;
 	/** Delegate to pan the track, needed if the markers are dragged out of the track */
-	ActActionSequence::OnPanTrackRequestDelegate PanTrackRequest;
+	OnPanTrackRequestDelegate PanTrackRequest;
 	/** Delegate to signal selection changing */
 	FSimpleDelegate OnSelectionChanged;
 	/** Delegate used to snap when dragging */
-	ActActionSequence::OnSnapPositionDelegate OnSnapPosition;
+	OnSnapPositionDelegate OnSnapPosition;
 	/** 缓存的已分配大小 */
 	FVector2D CachedAllottedGeometrySize;
 	/** TODO: */

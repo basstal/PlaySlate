@@ -1,8 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 #include "PlaySlate.h"
 
-#include "Common/NovaDataBinding.h"
-#include "Common/NovaStruct.h"
 #include "NovaAct/Assets/AssetTypeActions/AssetTypeActions_ActActionSequence.h"
 #include "NovaBlueprint/Assets/AssetTypeActions/AssetTypeActions_ActActionBlueprint.h"
 
@@ -21,8 +19,6 @@ void FPlaySlateModule::StartupModule()
 	RegisterAssetTypeActions(MakeShareable(new FAssetTypeActions_ActActionBlueprint));
 	// ** 用AssetTools注册FAssetTypeActions_ActActionSequence工厂类型
 	RegisterAssetTypeActions(MakeShareable(new FAssetTypeActions_ActActionSequence));
-
-	
 }
 
 void FPlaySlateModule::ShutdownModule()
@@ -45,6 +41,5 @@ void FPlaySlateModule::RegisterAssetTypeActions(const TSharedRef<IAssetTypeActio
 	AssetTools.RegisterAssetTypeActions(InAssetTypeActions);
 	RegisteredAssetTypeActions.Add(InAssetTypeActions);
 }
-
 
 #undef LOCTEXT_NAMESPACE

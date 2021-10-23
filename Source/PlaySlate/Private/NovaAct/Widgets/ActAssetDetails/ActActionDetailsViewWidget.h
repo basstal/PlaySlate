@@ -5,14 +5,16 @@
 
 class FNovaActEditor;
 
+using namespace NovaDelegate;
+
 class SActActionDetailsViewWidget : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SActActionDetailsViewWidget)
 		{ }
 
-		SLATE_ARGUMENT(ActActionSequence::OnGetAssetDelegate, OnGetAsset)
-		SLATE_ARGUMENT(ActActionSequence::OnDetailsCreatedDelegate, OnDetailsCreated)
+		SLATE_ARGUMENT(OnGetAssetDelegate, OnGetAsset)
+		SLATE_ARGUMENT(OnDetailsCreatedDelegate, OnDetailsCreated)
 		SLATE_ARGUMENT(TSharedPtr<class FUICommandList>, HostCommandList)
 		SLATE_ARGUMENT(TSharedPtr<class FTabManager>, HostTabManager)
 	SLATE_END_ARGS()
@@ -40,5 +42,5 @@ protected:
 	// Cached object view
 	TWeakObjectPtr<UObject> LastObservedObject;
 
-	ActActionSequence::OnGetAssetDelegate OnGetAsset;
+	OnGetAssetDelegate OnGetAsset;
 };

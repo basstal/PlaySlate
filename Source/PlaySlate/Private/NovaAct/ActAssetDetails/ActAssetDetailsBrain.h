@@ -3,14 +3,14 @@
 class SActActionDetailsViewWidget;
 class FNovaActEditor;
 
-class FActAssetDetailsBrain : public TSharedFromThis<FActAssetDetailsBrain>
+class FActAssetDetails : public TSharedFromThis<FActAssetDetails>
 {
 public:
-	FActAssetDetailsBrain(const TSharedRef<FNovaActEditor>& InActActionSequenceEditor);
-	~FActAssetDetailsBrain();
+	FActAssetDetails(const TSharedRef<FNovaActEditor>& InActActionSequenceEditor);
+	~FActAssetDetails();
 
 	/** 构造Widget */
-	void MakeDetailsViewWidget();
+	void Init();
 protected:
 	/** Sequence Editor */
 	TWeakPtr<FNovaActEditor> ActActionSequenceEditor;

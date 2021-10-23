@@ -1,6 +1,6 @@
 ﻿#include "Common/NovaStruct.h"
 
-namespace ActActionSequence
+namespace NovaStruct
 {
 	TRange<FFrameTime> FActActionEvaluationRange::CalculateEvaluationRange(FFrameTime CurrentTime, FFrameTime PreviousTime, bool bInclusivePreviousTime)
 	{

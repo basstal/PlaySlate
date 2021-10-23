@@ -41,7 +41,9 @@ FText FActActionTrackAreaSlot::GetNodeTooltip()
 float FActActionTrackAreaSlot::GetPlayLength()
 {
 	FPlaySlateModule& PlaySlateModule = FModuleManager::GetModuleChecked<FPlaySlateModule>("PlaySlate");
-	return PlaySlateModule.NovaActEditor.Pin()->GetActActionSequence()->AnimSequence->GetPlayLength();
+	// ** TODO;
+	// return PlaySlateModule.NovaActEditor.Pin()->GetActActionSequence()->AnimSequence->GetPlayLength();
+	return 0;
 }
 
 FName FActActionTrackAreaSlot::GetName()

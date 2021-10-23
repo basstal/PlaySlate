@@ -4,8 +4,8 @@
 #include "Common/NovaEnum.h"
 #include "Common/NovaConst.h"
 #include "Fonts/FontMeasure.h"
-#include "NovaAct/Controllers/ActEventTimeline/Operation/ActTrackAreaSlotDragDrop.h"
-#include "NovaAct/Controllers/ActEventTimeline/SequenceNodeTree/ActActionTrackAreaSlot.h"
+#include "NovaAct/ActEventTimeline/Operation/ActTrackAreaSlotDragDrop.h"
+#include "NovaAct/ActEventTimeline/SequenceNodeTree/ActActionTrackAreaSlot.h"
 
 void SActActionSequenceNotifyNode::Construct(const FArguments& InArgs, const TSharedRef<FActActionTrackAreaSlot>& InTrackAreaSlot)
 {
@@ -32,7 +32,7 @@ void SActActionSequenceNotifyNode::Construct(const FArguments& InArgs, const TSh
 
 int32 SActActionSequenceNotifyNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
-	const ActActionSequence::FActActionTrackAreaArgs& TrackAreaArgs = ActActionTrackAreaSlot.Pin()->GetActActionTrackAreaArgs();
+	const FActActionTrackAreaArgs& TrackAreaArgs = ActActionTrackAreaSlot.Pin()->GetActActionTrackAreaArgs();
 	int32 MarkerLayer = LayerId + 1;
 	int32 ScrubHandleID = MarkerLayer + 1;
 	int32 TextLayerID = ScrubHandleID + 1;
@@ -207,7 +207,7 @@ FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, co
 		FSlateApplication::Get().ReleaseAllPointerCapture();
 		return FReply::Unhandled();
 	}
-	const ActActionSequence::FActActionTrackAreaArgs& TrackAreaArgs = ActActionTrackAreaSlot.Pin()->GetActActionTrackAreaArgs();
+	const FActActionTrackAreaArgs& TrackAreaArgs = ActActionTrackAreaSlot.Pin()->GetActActionTrackAreaArgs();
 	FTrackScaleInfo ScaleInfo(TrackAreaArgs.ViewInputMin.Get(), TrackAreaArgs.ViewInputMax.Get(), 0, 0, CachedAllottedGeometrySize);
 	float PlayLength = ActActionTrackAreaSlot.Pin()->GetPlayLength();
 	float XPositionInTrack = MyGeometry.AbsolutePosition.X - CachedTrackGeometry.AbsolutePosition.X;
@@ -388,7 +388,7 @@ FLinearColor SActActionSequenceNotifyNode::GetNotifyColor() const
 
 void SActActionSequenceNotifyNode::UpdateSizeAndPosition(const FGeometry& AllottedGeometry)
 {
-	ActActionSequence::FActActionTrackAreaArgs& ActActionTrackAreaArgs = ActActionTrackAreaSlot.Pin()->GetActActionTrackAreaArgs();
+	FActActionTrackAreaArgs& ActActionTrackAreaArgs = ActActionTrackAreaSlot.Pin()->GetActActionTrackAreaArgs();
 	FTrackScaleInfo ScaleInfo(ActActionTrackAreaArgs.ViewInputMin.Get(), ActActionTrackAreaArgs.ViewInputMax.Get(), 0, 0, AllottedGeometry.Size);
 	float TickResolutionInterval = (float)ActActionTrackAreaArgs.TickResolution.Get().AsInterval();
 	// Cache the geometry information, the allotted geometry is the same size as the track.

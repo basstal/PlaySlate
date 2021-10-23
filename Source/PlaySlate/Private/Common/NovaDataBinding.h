@@ -1,46 +1,27 @@
 ﻿#pragma once
 
 /**
- * Usage:
-	TSharedRef<TDataBinding<ActActionSequence::FActActionTimeSliderArgs>> TimeSliderArgsModel = NovaDataBinding::Create<ActActionSequence::FActActionTimeSliderArgs>("TimeSliderArgs");
-	TSharedPtr<ActActionSequence::FActActionTimeSliderArgs> TimeSliderArgs = MakeShareable(new ActActionSequence::FActActionTimeSliderArgs());
-	TimeSliderArgsModel->SetData(TimeSliderArgs);
-	auto BindFunc = DBCreateLambda(ActActionSequence::FActActionTimeSliderArgs,
-								   InData,
-								   {
-								   UE_LOG(LogActAction, Log, TEXT("DataChanged Data->PlaybackRange 11 : %d"), InData->DBTestValue)
-								   });
-
-	auto Handler = TimeSliderArgsModel->Bind(BindFunc);
-	TimeSliderArgsModel->Trigger();
-	TimeSliderArgs->DBTestValue = 999;
-	auto DelegateFunc1 = DBCreateRaw(ActActionSequence::FActActionTimeSliderArgs, this, &FActActionSequenceEditor::MyDelegateImpl);
-	TimeSliderArgsModel->UnBind(Handler);
-	TimeSliderArgsModel->Bind(DelegateFunc1);
-	TimeSliderArgsModel->Trigger();
-	TSharedRef<TDataBinding<ActActionSequence::FActActionTimeSliderArgs>> ModelAgain = NovaDataBinding::GetOrCreate<ActActionSequence::FActActionTimeSliderArgs>("TimeSliderArgs");
-	UE_LOG(LogActAction, Log, TEXT("TimeSliderArgsModel equal ModelAgain : %d"), ModelAgain == TimeSliderArgsModel);
-	ModelAgain = NovaDataBinding::GetOrCreate<ActActionSequence::FActActionTimeSliderArgs>("TimeSliderArgs1");
-	UE_LOG(LogActAction, Log, TEXT("TimeSliderArgsModel equal ModelAgain next : %d"), ModelAgain == TimeSliderArgsModel);
+ * Usage: TODO
  */
 /**
  * @param AbstractData 数据原型的类型
  * @param FieldName 自定义字段名
  * @param InLambda 自定义Lambda函数，其中自定义字段名会作为这个Lambda函数的首参数
  */
-#define DBCreateLambda(AbstractData, FieldName, InLambda) TDataBinding<AbstractData>::DelegateType::CreateLambda([](TSharedPtr<AbstractData> FieldName)InLambda)
+#define CreateLambdaBind(AbstractData, FieldName, InLambda) TDataBinding<AbstractData>::DelegateType::CreateLambda([](AbstractData FieldName)InLambda)
 /**
  * @param AbstractData 数据原型的类型
  * @param InUserObject 对象实例，可参考TDelegate的CreateRaw
  * @param InFunc 对实例方法的引用，可参考TDelegate的CreateRaw
  */
-#define DBCreateRaw(AbstractData, InUserObject, InFunc) TDataBinding<AbstractData>::DelegateType::CreateRaw(InUserObject, InFunc)
+#define CreateRawBind(InUserObject, InFunc, AbstractData) TDataBinding<AbstractData>::DelegateType::CreateRaw(InUserObject, InFunc)
 /**
  * @param AbstractData 数据原型的类型，必须派生自UObject
  * @param InUserObject 对象实例，可参考TDelegate的CreateRaw
  * @param InFunc 对实例方法的引用，可参考TDelegate的CreateRaw
  */
-#define DBCreateUObject(AbstractData, InUserObject, InFunc) TDataBinding<AbstractData>::DelegateTypeUObject::CreateUObject(InUserObject, InFunc)
+#define CreateUObjectBind(InUserObject, InFunc, AbstractData) TDataBinding<AbstractData>::DelegateType::CreateUObject(InUserObject, InFunc)
+#include "PlaySlate.h"
 
 
 class IDataBinding
@@ -57,15 +38,14 @@ class TDataBinding : public IDataBinding
 {
 	friend class NovaDataBinding;
 public:
-	typedef TDelegate<void (TSharedPtr<AbstractData>)> DelegateType;// 用于创建绑定函数的TDelegate签名
-	typedef TDelegate<void (AbstractData*)> DelegateTypeUObject;    // 用于创建绑定函数的TDelegate签名，供UObject使用
+	typedef TDelegate<void (AbstractData)> DelegateType;// 用于创建绑定函数的TDelegate签名
 	/**
 	 * 添加数据的绑定函数
 	 *
-	 * @param InDelegate 外部构造的绑定函数，推荐使用相关宏构造：DBCreateLambda、DBCreateRaw
+	 * @param InDelegate 外部构造的绑定函数，推荐使用相关宏构造：CreateLambdaBind、CreateRawBind
 	 * @return 绑定函数FDelegate的Handle，用于解绑时作为参数传入
 	 */
-	FDelegateHandle Bind(TDelegateBase<FDefaultDelegateUserPolicy> InDelegate);
+	FDelegateHandle Bind(DelegateType InDelegate);
 	/**
 	 * 解绑函数
 	 *
@@ -75,42 +55,25 @@ public:
 	/**
 	 * 获得数据原型
 	 *
-	 * @return 内部的数据原型SP
+	 * @return 内部的数据原型
 	 */
-	TSharedPtr<AbstractData> GetData();
+	AbstractData GetData();
 	/**
 	 * 设置数据原型，触发绑定函数，如果与内部的数据原型相同则不触发
 	 *
-	 * @param InData 待设置的数据原型SP
+	 * @param InData 待设置的数据原型
 	 */
-	void SetData(TSharedPtr<AbstractData> InData);
-	/**
-	 * 获得数据原型
-	 *
-	 * @return 内部的数据原型，原型类型必须派生自UObject
-	 */
-	AbstractData* GetUObject();
-	/**
-	 * 设置数据原型，触发绑定函数，如果与内部的数据原型相同则不触发
-	 *
-	 * @param InUObject 待设置的数据原型，原型类型必须派生自UObject
-	 */
-	void SetUObject(AbstractData* InUObject);
+	void SetData(AbstractData InData);
 	/** 触发绑定函数 */
 	void Trigger();
 	/** 解除对数据原型、绑定函数等相关资源的引用 */
 	void Release();
-	/** 数据绑定是否为UObject */
-	bool IsUObject();
 protected:
-	TDataBinding(FName InName, TSharedPtr<AbstractData> InData = nullptr);
-	TDataBinding(FName InName, UObject* InUObject = nullptr);
+	TDataBinding(FName InName, AbstractData InData = nullptr);
 
-	bool bIsUObject;                                     // 数据原型是否为UObject
-	UObject* UData;                                      // 数据原型UObject
-	TSharedPtr<AbstractData> Data;                       // 数据原型SP
-	TMap<FDelegateHandle, int32> DelegateHandleToSlotMap;// 保存FDelegateHandle到Slots下标的对应关系，用于解绑时查找绑定函数在数组中的下标，并删除元素
-	TArray<DelegateType> Slots;                          // 保存绑定函数
+	AbstractData Data;                      // 数据原型
+	TSet<FDelegateHandle> DelegateHandleSet;// 保存所有存在于Slots中的Handle
+	TArray<DelegateType> Slots;             // 保存绑定函数
 };
 
 class NovaDataBinding
@@ -118,16 +81,14 @@ class NovaDataBinding
 public:
 	/**
 	 * 获得指定名称的数据绑定，如果不存在则构造一个
+	 * 推荐UObject及其子类模板加裸指针，其他类型结构模板加TSharedPtr，基本数据类型可直接使用
 	 *
 	 * @param InName 数据绑定对象自定义名称，同时查找用
 	 * @param InData 数据绑定待设置的数据原型
-	 * @return 数据绑定SP
+	 * @return 数据绑定
 	 */
 	template <typename AbstractData>
-	static TSharedRef<TDataBinding<AbstractData>> GetOrCreate(FName InName, TSharedPtr<AbstractData> InData = nullptr);
-
-	template <typename AbstractData>
-	static TSharedRef<TDataBinding<AbstractData>> GetOrCreate(FName InName, UObject* InUObject = nullptr);
+	static TSharedRef<TDataBinding<AbstractData>> GetOrCreate(FName InName, AbstractData InData = nullptr);
 
 	/**
 	 * 清除指定名称的数据绑定
@@ -144,27 +105,18 @@ protected:
 typedef NovaDataBinding NovaDB;
 
 template <typename AbstractData>
-TDataBinding<AbstractData>::TDataBinding(FName InName, TSharedPtr<AbstractData> InData)
+TDataBinding<AbstractData>::TDataBinding(FName InName, AbstractData InData)
 	: IDataBinding(InName),
-	  bIsUObject(false),
-	  UData(nullptr),
 	  Data(InData) {}
 
 template <typename AbstractData>
-TDataBinding<AbstractData>::TDataBinding(FName InName, UObject* InUObject)
-	: IDataBinding(InName),
-	  bIsUObject(true),
-	  UData(InUObject),
-	  Data(nullptr) {}
-
-template <typename AbstractData>
-FDelegateHandle TDataBinding<AbstractData>::Bind(TDelegateBase<FDefaultDelegateUserPolicy> InDelegate)
+FDelegateHandle TDataBinding<AbstractData>::Bind(DelegateType InDelegate)
 {
 	FDelegateHandle DelegateHandle = InDelegate.GetHandle();
-	if (!DelegateHandleToSlotMap.Contains(DelegateHandle))
+	if (!DelegateHandleSet.Contains(DelegateHandle))
 	{
-		int32 Index = Slots.Add(InDelegate);
-		DelegateHandleToSlotMap.Add(DelegateHandle, Index);
+		Slots.Add(InDelegate);
+		DelegateHandleSet.Add(DelegateHandle);
 	}
 	return DelegateHandle;
 }
@@ -172,35 +124,31 @@ FDelegateHandle TDataBinding<AbstractData>::Bind(TDelegateBase<FDefaultDelegateU
 template <typename AbstractData>
 bool TDataBinding<AbstractData>::UnBind(FDelegateHandle InDelegateHandle)
 {
-	if (DelegateHandleToSlotMap.Contains(InDelegateHandle))
+	if (DelegateHandleSet.Contains(InDelegateHandle))
 	{
-		int32 Index;
-		DelegateHandleToSlotMap.RemoveAndCopyValue(InDelegateHandle, Index);
-		Slots.RemoveAt(Index);
-		return true;
+		DelegateHandleSet.Remove(InDelegateHandle);
+		int32 Index = 0;
+		for (auto Item = Slots.begin(); Item != Slots.end(); ++Index, ++Item)
+		{
+			if (StaticCast<DelegateType>(*Item).GetHandle() == InDelegateHandle)
+			{
+				Slots.RemoveAt(Index);
+				return true;
+			}
+		}
+		UE_LOG(LogActAction, Error, TEXT("UnBind in DelegateHandleSet, but not in Slots??"))
 	}
 	return false;
 }
 
 template <typename AbstractData>
-TSharedPtr<AbstractData> TDataBinding<AbstractData>::GetData()
+AbstractData TDataBinding<AbstractData>::GetData()
 {
 	return Data;
 }
 
 template <typename AbstractData>
-void TDataBinding<AbstractData>::SetUObject(AbstractData* InUObject)
-{
-	// ** TODO:可置空
-	if (InUObject && InUObject != UData)
-	{
-		UData = InUObject;
-		Trigger();
-	}
-}
-
-template <typename AbstractData>
-void TDataBinding<AbstractData>::SetData(TSharedPtr<AbstractData> InData)
+void TDataBinding<AbstractData>::SetData(AbstractData InData)
 {
 	// ** TODO:可置空
 	if (InData && InData != Data)
@@ -211,21 +159,11 @@ void TDataBinding<AbstractData>::SetData(TSharedPtr<AbstractData> InData)
 }
 
 template <typename AbstractData>
-AbstractData* TDataBinding<AbstractData>::GetUObject()
-{
-	return StaticCast<AbstractData>(UData);
-}
-
-template <typename AbstractData>
 void TDataBinding<AbstractData>::Trigger()
 {
-	if (!Data.IsValid())
-	{
-		return;
-	}
 	for (DelegateType& Slot : Slots)
 	{
-		Slot.ExecuteIfBound(bIsUObject ? UData : Data);
+		Slot.ExecuteIfBound(Data);
 	}
 }
 
@@ -233,19 +171,12 @@ template <typename AbstractData>
 void TDataBinding<AbstractData>::Release()
 {
 	Data = nullptr;
-	UData = nullptr;
-	DelegateHandleToSlotMap.Empty();
+	DelegateHandleSet.Empty();
 	Slots.Empty();
 }
 
 template <typename AbstractData>
-bool TDataBinding<AbstractData>::IsUObject()
-{
-	return bIsUObject;
-}
-
-template <typename AbstractData>
-TSharedRef<TDataBinding<AbstractData>> NovaDataBinding::GetOrCreate(FName InName, TSharedPtr<AbstractData> InData)
+TSharedRef<TDataBinding<AbstractData>> NovaDataBinding::GetOrCreate(FName InName, AbstractData InData)
 {
 	auto ValueTypePtr = NovaDataBinding::DataBindingMap.Find(InName);
 	if (ValueTypePtr)
@@ -253,19 +184,6 @@ TSharedRef<TDataBinding<AbstractData>> NovaDataBinding::GetOrCreate(FName InName
 		return StaticCastSharedRef<TDataBinding<AbstractData>>(*ValueTypePtr);
 	}
 	TSharedRef<TDataBinding<AbstractData>> CreatedDataBinding = MakeShareable(new TDataBinding<AbstractData>(InName, InData));
-	NovaDataBinding::DataBindingMap.Add(InName, CreatedDataBinding);
-	return CreatedDataBinding;
-}
-
-template <typename AbstractData>
-TSharedRef<TDataBinding<AbstractData>> NovaDataBinding::GetOrCreate(FName InName, UObject* InUObject)
-{
-	auto ValueTypePtr = NovaDataBinding::DataBindingMap.Find(InName);
-	if (ValueTypePtr)
-	{
-		return StaticCastSharedRef<TDataBinding<AbstractData>>(*ValueTypePtr);
-	}
-	TSharedRef<TDataBinding<AbstractData>> CreatedDataBinding = MakeShareable(new TDataBinding<AbstractData>(InName, InUObject));
 	NovaDataBinding::DataBindingMap.Add(InName, CreatedDataBinding);
 	return CreatedDataBinding;
 }

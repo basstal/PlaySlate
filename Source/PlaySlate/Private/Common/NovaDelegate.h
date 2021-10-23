@@ -5,17 +5,18 @@
 struct FPointerEvent;
 struct FActActionHitBoxData;
 class FActActionTrackEditorBase;
-class FActEventTimelineBrain;
+class FActEventTimeline;
 class FActActionSequenceTreeViewNode;
 class SActActionSequenceTreeViewRow;
 class SActActionSequenceNotifyNode;
 
-namespace ActActionSequence
+namespace NovaDelegate
 {
+	using namespace NovaEnum;
 	// Called to get an object (used by the asset details panel)
 	DECLARE_DELEGATE_RetVal(UObject*, OnGetAssetDelegate);
 	DECLARE_DELEGATE_RetVal(float, OnGetDraggedNodePosDelegate);
-	DECLARE_DELEGATE_RetVal_OneParam(TSharedRef<FActActionTrackEditorBase>, OnCreateTrackEditorDelegate, TSharedRef<FActEventTimelineBrain>);
+	DECLARE_DELEGATE_RetVal_OneParam(TSharedRef<FActActionTrackEditorBase>, OnCreateTrackEditorDelegate, TSharedRef<FActEventTimeline>);
 	/** A delegate which will create an auto-key handler. */
 	DECLARE_DELEGATE_RetVal_TwoParams(FFrameNumber, OnGetNearestKeyDelegate, FFrameTime, bool)
 	DECLARE_DELEGATE_RetVal_ThreeParams(TSharedRef<SWidget>, OnGenerateWidgetForColumnDelegate, const TSharedRef<FActActionSequenceTreeViewNode>&, const FName&, const TSharedRef<SActActionSequenceTreeViewRow>&);
@@ -24,7 +25,7 @@ namespace ActActionSequence
 
 	/** Called back when a details panel is created */
 	DECLARE_DELEGATE_OneParam(OnDetailsCreatedDelegate, const TSharedRef<class IDetailsView>&);
-	DECLARE_DELEGATE_OneParam(OnTimeRangeChangedDelegate, TRange<double>)
+	DECLARE_DELEGATE_OneParam(OnTimeRangeChangedDelegate, TRange<float>)
 	DECLARE_DELEGATE_OneParam(OnFrameRangeChangedDelegate, TRange<FFrameNumber>)
 	DECLARE_DELEGATE_OneParam(OnAddMarkedFrameDelegate, FFrameNumber)
 	DECLARE_DELEGATE_OneParam(OnDeleteMarkedFrameDelegate, int32)
@@ -36,9 +37,9 @@ namespace ActActionSequence
 	/** A delegate that is executed when menu object is clicked. Unlike FExtender delegates we pass in the FGuid which exists even for deleted objects. */
 	DECLARE_DELEGATE_TwoParams(OnBuildCustomContextMenuForGuidDelegate, FMenuBuilder&, FGuid);
 	DECLARE_DELEGATE_TwoParams(OnScrubPositionChangedDelegate, FFrameTime, bool)
-	DECLARE_DELEGATE_TwoParams(OnViewRangeChangedDelegate, TRange<double>, ENovaViewRangeInterpolation)
+	DECLARE_DELEGATE_TwoParams(OnViewRangeChangedDelegate, TRange<float>, ENovaViewRangeInterpolation)
 	/** A delegate that is executed when adding menu content. */
-	DECLARE_DELEGATE_TwoParams(OnGetAddMenuContentDelegate, FMenuBuilder& /*MenuBuilder*/, TSharedRef<FActEventTimelineBrain>);
+	DECLARE_DELEGATE_TwoParams(OnGetAddMenuContentDelegate, FMenuBuilder& /*MenuBuilder*/, TSharedRef<FActEventTimeline>);
 	DECLARE_DELEGATE_TwoParams(OnSetMarkedFrameDelegate, int32, FFrameNumber)
 	DECLARE_DELEGATE_TwoParams(OnPanTrackRequestDelegate, int32, FVector2D)
 	DECLARE_DELEGATE_FourParams(OnNotifyStateHandleBeingDraggedDelegate, TSharedPtr<SActActionSequenceNotifyNode> /*NotifyNode*/, const FPointerEvent& /*PointerEvent*/, ENovaNotifyStateHandleHit /*Handle*/, float /*Time*/)

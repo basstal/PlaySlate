@@ -1,8 +1,8 @@
 ﻿#include "ActActionSequenceSection.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/Controllers/ActEventTimeline/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
-#include "NovaAct/Controllers/ActEventTimeline/SequenceNodeTree/ActActionSequenceSectionBase.h"
+#include "NovaAct/ActEventTimeline/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
+#include "NovaAct/ActEventTimeline/SequenceNodeTree/ActActionSequenceSectionBase.h"
 
 SActActionSequenceSection::SActActionSequenceSection()
 	: SectionIndex(0)

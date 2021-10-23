@@ -3,24 +3,27 @@
 
 #include "AdvancedPreviewScene.h"
 #include "ITransportControl.h"
+#include "Common/NovaDataBinding.h"
 #include "Common/NovaStruct.h"
+#include "NovaAct/Assets/ActAnimation.h"
 
 class FActActionViewportClient;
 class SActActionViewportWidget;
 class FNovaActEditor;
 struct FActActionHitBoxData;
 
-class FActActionPreviewSceneController : public TSharedFromThis<FActActionPreviewSceneController>, public FAdvancedPreviewScene
+using namespace NovaStruct;
+
+class FActViewport : public TSharedFromThis<FActViewport>, public FAdvancedPreviewScene
 {
 public:
-	FActActionPreviewSceneController(const ConstructionValues& CVS, const TSharedRef<FNovaActEditor>& InActActionSequenceEditor);
-
-	virtual ~FActActionPreviewSceneController() override;
+	FActViewport(const ConstructionValues& CVS, const TSharedRef<FNovaActEditor>& InActActionSequenceEditor);
+	virtual ~FActViewport() override;
 
 	/**
 	* 构造Sequence的Widget为SActActionViewportWidget
 	*/
-	void MakeViewportWidget();
+	void Init();
 
 	/**
 	* Widget Make Client回调方法
@@ -31,12 +34,10 @@ public:
 
 	//~Begin FPreviewScene interface
 	virtual void AddComponent(UActorComponent* Component, const FTransform& LocalToWorld, bool bAttachToRoot) override;
-
 	//~End FPreviewScene interface
 
 	//~Begin FTickableObjectBase interface
 	virtual void Tick(float DeltaTime) override;
-
 	//~End FTickableObjectBase interface
 
 	/**
@@ -53,9 +54,9 @@ public:
 	/**
 	 * 根据EvaluationRange结构来设置当前动画的预览位置
 	 *
-	 * @param InRange 传入的Range
+	 * @param InArgs
 	 */
-	void EvaluateInternal(ActActionSequence::FActActionEvaluationRange InRange);
+	void EvaluateInternal(TSharedPtr<FActEventTimelineArgs> InArgs);
 
 	/**
 	 * 设置到动画的一端，开始或结尾
@@ -93,6 +94,9 @@ public:
 	/** @return 获得AnimInstance */
 	UAnimSingleNodeInstance* GetAnimSingleNodeInstance() const;
 
+	/** 监听 AnimInstance 的 CurrentTime 是否已修改 */
+	void TickCurrentTimeChanged();
+	void OnAnimBlueprintChanged(UActAnimation* InActAnimation);
 protected:
 	/**
 	* 对Editor的引用，调用编辑器资源和相关工具方法
@@ -113,10 +117,15 @@ protected:
 	 */
 	TSharedPtr<SActActionViewportWidget> ActActionViewportWidget;
 
-	/**
-	 * 当前预览动画的定格时间，单位秒
-	 */
-	double PreviewScrubTime;
+	// /**
+	//  * 当前预览动画的定格时间，单位秒
+	//  */
+	// double PreviewScrubTime;
+
+	float LastCurrentTime;                       // ** 用于检测CurrentTime是否改变
+	FDelegateHandle OnCurrentTimeChangedHandle;  // ** 数据绑定
+	FDelegateHandle OnAnimBlueprintChangedHandle;// ** 数据绑定
+
 
 public:
 	TSharedRef<SActActionViewportWidget> GetActActionViewportWidget() const

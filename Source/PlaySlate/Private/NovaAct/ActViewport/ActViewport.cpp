@@ -1,4 +1,4 @@
-﻿#include "ActActionPreviewSceneController.h"
+﻿#include "ActViewport.h"
 
 #include "Common/NovaStaticFunction.h"
 #include "PlaySlate.h"
@@ -11,30 +11,41 @@
 #include "Animation/AnimBlueprint.h"
 #include "Animation/AnimSingleNodeInstance.h"
 #include "AnimPreviewInstance.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
+#include "Animation/SkeletalMeshActor.h"
+#include "NovaAct/ActEventTimeline/ActEventTimeline.h"
+#include "NovaAct/Assets/ActAnimation.h"
 
-FActActionPreviewSceneController::FActActionPreviewSceneController(const ConstructionValues& CVS, const TSharedRef<FNovaActEditor>& InActActionSequenceEditor)
+FActViewport::FActViewport(const ConstructionValues& CVS, const TSharedRef<FNovaActEditor>& InActActionSequenceEditor)
 	: FAdvancedPreviewScene(CVS),
 	  ActActionSequenceEditor(InActActionSequenceEditor),
 	  ActActionActor(nullptr),
 	  ActActionSkeletalMesh(nullptr),
-	  PreviewScrubTime(0)
-{
-}
+	  LastCurrentTime(0)
+{ }
 
-FActActionPreviewSceneController::~FActActionPreviewSceneController()
+FActViewport::~FActViewport()
 {
 	UE_LOG(LogActAction, Log, TEXT("FActActionPreviewSceneController::~FActActionPreviewSceneController"));
 	ActActionViewportWidget.Reset();
+	auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+	ActEventTimelineArgsDB->UnBind(OnCurrentTimeChangedHandle);
+	auto ActAnimationDB = NovaDB::GetOrCreate<UActAnimation*>("ActAnimation");
+	ActAnimationDB->UnBind(OnAnimBlueprintChangedHandle);
 }
 
-void FActActionPreviewSceneController::MakeViewportWidget()
+void FActViewport::Init()
 {
 	// ** NOTE:合理不能用SNew的原因是在构造时会调用到FActActionPreviewSceneController::MakeViewportClient，需要先设置好ActActionViewportWidget指针
 	SAssignNew(ActActionViewportWidget, SActActionViewportWidget, SharedThis(this));
+
+	auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+	OnCurrentTimeChangedHandle = ActEventTimelineArgsDB->Bind(CreateRawBind(this, &FActViewport::EvaluateInternal, TSharedPtr<FActEventTimelineArgs>));
+
+	auto ActAnimationDB = NovaDB::GetOrCreate<UActAnimation*>("ActAnimation");
+	OnAnimBlueprintChangedHandle = ActAnimationDB->Bind(CreateRawBind(this, &FActViewport::OnAnimBlueprintChanged, UActAnimation*));
 }
 
-TSharedPtr<FActActionViewportClient> FActActionPreviewSceneController::MakeViewportClient()
+TSharedPtr<FActActionViewportClient> FActViewport::MakeViewportClient()
 {
 	return MakeShareable(new FActActionViewportClient(
 		SharedThis(this),
@@ -42,7 +53,7 @@ TSharedPtr<FActActionViewportClient> FActActionPreviewSceneController::MakeViewp
 		ActActionSequenceEditor.Pin()->GetEditorModeManager()));
 }
 
-void FActActionPreviewSceneController::AddComponent(UActorComponent* Component, const FTransform& LocalToWorld, bool bAttachToRoot)
+void FActViewport::AddComponent(UActorComponent* Component, const FTransform& LocalToWorld, bool bAttachToRoot)
 {
 	if (bAttachToRoot)
 	{
@@ -55,7 +66,7 @@ void FActActionPreviewSceneController::AddComponent(UActorComponent* Component, 
 	FAdvancedPreviewScene::AddComponent(Component, LocalToWorld, bAttachToRoot);
 }
 
-void FActActionPreviewSceneController::Tick(float DeltaTime)
+void FActViewport::Tick(float DeltaTime)
 {
 	FAdvancedPreviewScene::Tick(DeltaTime);
 	if (!GIntraFrameDebuggingGameThread)
@@ -67,9 +78,10 @@ void FActActionPreviewSceneController::Tick(float DeltaTime)
 		// Handle updating the preview component to represent the effects of root motion
 		ActActionSkeletalMesh->ConsumeRootMotion(FloorBounds.GetBox().Min, FloorBounds.GetBox().Max);
 	}
+	TickCurrentTimeChanged();
 }
 
-void FActActionPreviewSceneController::SpawnActorInViewport(UClass* ActorType, const UAnimBlueprint* AnimBlueprint)
+void FActViewport::SpawnActorInViewport(UClass* ActorType, const UAnimBlueprint* AnimBlueprint)
 {
 	if (ActActionActor)
 	{
@@ -105,7 +117,7 @@ void FActActionPreviewSceneController::SpawnActorInViewport(UClass* ActorType, c
 	ActActionSkeletalMesh->RecreateRenderState_Concurrent();
 }
 
-void FActActionPreviewSceneController::InitAnimation(UAnimSequence* InAnimSequence) const
+void FActViewport::InitAnimation(UAnimSequence* InAnimSequence) const
 {
 	USkeleton* Skeleton = nullptr;
 	if (InAnimSequence)
@@ -123,11 +135,6 @@ void FActActionPreviewSceneController::InitAnimation(UAnimSequence* InAnimSequen
 				ActActionSkeletalMesh->SetSkeletalMeshWithoutResettingAnimation(PreviewMesh);
 				ActActionSkeletalMesh->EnablePreview(true, InAnimSequence);
 				ActActionSkeletalMesh->PreviewInstance->SetLooping(true);
-				// TODO:
-				// float CalculateSequenceLength = AnimMontage->CalculateSequenceLength();
-				// TSharedRef<FActEventTimelineBrain> ActActionSequenceController = ActActionSequenceEditor.Pin()->GetActActionSequenceController();
-				// float PlayRate = CalculateSequenceLength / ActActionSequenceController->GetTargetViewRange().GetUpperBoundValue();
-				// UE_LOG(LogActAction, Log, TEXT("PlayRate : %f"), PlayRate);
 				ActActionSkeletalMesh->SetPlayRate(2.0f);
 
 				//Place the camera at a good viewer position
@@ -140,7 +147,7 @@ void FActActionPreviewSceneController::InitAnimation(UAnimSequence* InAnimSequen
 	}
 }
 
-void FActActionPreviewSceneController::EvaluateInternal(ActActionSequence::FActActionEvaluationRange InRange)
+void FActViewport::EvaluateInternal(TSharedPtr<FActEventTimelineArgs> InArgs)
 {
 	if (ActActionSkeletalMesh && ActActionSkeletalMesh->IsPreviewOn())
 	{
@@ -148,30 +155,32 @@ void FActActionPreviewSceneController::EvaluateInternal(ActActionSequence::FActA
 		{
 			ActActionSkeletalMesh->PreviewInstance->SetPlaying(false);
 		}
-		const FFrameTime CurrentPosition = InRange.GetTime();
-		const FFrameRate TickResolution = ActActionSequenceEditor.Pin()->GetTickResolution();
-		PreviewScrubTime = TickResolution.AsSeconds(CurrentPosition);
+
+		const FFrameTime CurrentPosition = InArgs->CurrentTime;
+		const FFrameRate TickResolution = InArgs->TickResolution;
+		float PreviewScrubTime = TickResolution.AsSeconds(CurrentPosition);
 		ActActionSkeletalMesh->PreviewInstance->SetPosition(PreviewScrubTime);
 		ActActionSkeletalMesh->PreviewInstance->UpdateAnimation(PreviewScrubTime, false);
 	}
 }
 
-void FActActionPreviewSceneController::EvaluateToOneEnd(bool bIsEndEnd)
+void FActViewport::EvaluateToOneEnd(bool bIsEndEnd)
 {
 	if (ActActionSkeletalMesh && ActActionSkeletalMesh->IsPreviewOn())
 	{
-		float PreviewLength = 0;
+		auto DB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+		TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = DB->GetData();
+		const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
+		ActEventTimelineArgs->CurrentTime = FFrameTime(0);
 		if (bIsEndEnd)
 		{
-			PreviewLength = ActActionSkeletalMesh->PreviewInstance->GetLength();
+			ActEventTimelineArgs->CurrentTime = TickResolution.AsFrameTime(ActEventTimelineArgs->ClampRange.GetUpperBoundValue());
 		}
-		const FFrameRate TickResolution = ActActionSequenceEditor.Pin()->GetTickResolution();
-		const ActActionSequence::FActActionEvaluationRange InRange(TickResolution.AsFrameTime(PreviewLength), TickResolution);
-		EvaluateInternal(InRange);
+		DB->Trigger();
 	}
 }
 
-void FActActionPreviewSceneController::TogglePlay(const EPlaybackMode::Type& InPlaybackMode) const
+void FActViewport::TogglePlay(const EPlaybackMode::Type& InPlaybackMode) const
 {
 	if (UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 	{
@@ -212,7 +221,7 @@ void FActActionPreviewSceneController::TogglePlay(const EPlaybackMode::Type& InP
 	}
 }
 
-void FActActionPreviewSceneController::ToggleLoop() const
+void FActViewport::ToggleLoop() const
 {
 	if (UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 	{
@@ -221,7 +230,7 @@ void FActActionPreviewSceneController::ToggleLoop() const
 	}
 }
 
-bool FActActionPreviewSceneController::IsLoopStatusOn() const
+bool FActViewport::IsLoopStatusOn() const
 {
 	if (ActActionSkeletalMesh && ActActionSkeletalMesh->PreviewInstance)
 	{
@@ -230,7 +239,7 @@ bool FActActionPreviewSceneController::IsLoopStatusOn() const
 	return false;
 }
 
-void FActActionPreviewSceneController::PlayStep(bool bForward) const
+void FActViewport::PlayStep(bool bForward) const
 {
 	if (UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 	{
@@ -251,7 +260,9 @@ void FActActionPreviewSceneController::PlayStep(bool bForward) const
 	}
 	else if (ActActionSkeletalMesh && bForward)
 	{
-		const FFrameRate TickResolution = ActActionSequenceEditor.Pin()->GetTickResolution();
+		auto DB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+		TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = DB->GetData();
+		const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
 		// Advance a single frame, leaving it paused afterwards
 		ActActionSkeletalMesh->GlobalAnimRateScale = 1.0f;
 		ActActionSkeletalMesh->TickAnimation(TickResolution.AsInterval(), false);
@@ -259,7 +270,7 @@ void FActActionPreviewSceneController::PlayStep(bool bForward) const
 	}
 }
 
-EPlaybackMode::Type FActActionPreviewSceneController::GetPlaybackMode() const
+EPlaybackMode::Type FActViewport::GetPlaybackMode() const
 {
 	if (const UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 	{
@@ -276,7 +287,7 @@ EPlaybackMode::Type FActActionPreviewSceneController::GetPlaybackMode() const
 	return EPlaybackMode::Stopped;
 }
 
-float FActActionPreviewSceneController::GetCurrentPosition() const
+float FActViewport::GetCurrentPosition() const
 {
 	if (const UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 	{
@@ -285,11 +296,42 @@ float FActActionPreviewSceneController::GetCurrentPosition() const
 	return 0.0f;
 }
 
-UAnimSingleNodeInstance* FActActionPreviewSceneController::GetAnimSingleNodeInstance() const
+UAnimSingleNodeInstance* FActViewport::GetAnimSingleNodeInstance() const
 {
 	if (ActActionSkeletalMesh)
 	{
 		return Cast<UAnimSingleNodeInstance>(ActActionSkeletalMesh->PreviewInstance);
 	}
 	return nullptr;
+}
+
+void FActViewport::TickCurrentTimeChanged()
+{
+	if (const UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
+	{
+		float CurrentTime = PreviewInstance->GetCurrentTime();
+		if (CurrentTime != LastCurrentTime)
+		{
+			LastCurrentTime = CurrentTime;
+			auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+			TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
+			ActEventTimelineArgs->CurrentTime = ActEventTimelineArgs->TickResolution.AsFrameTime(CurrentTime);
+			ActEventTimelineArgsDB->SetData(ActEventTimelineArgs);
+		}
+	}
+}
+
+void FActViewport::OnAnimBlueprintChanged(UActAnimation* InActAnimation)
+{
+	if (!InActAnimation)
+	{
+		return;
+	}
+	UAnimBlueprint* AnimBlueprint = InActAnimation->AnimBlueprint;
+	if (!AnimBlueprint || !AnimBlueprint->TargetSkeleton)
+	{
+		UE_LOG(LogActAction, Log, TEXT("FNovaActEditor::OnAnimBlueprintChanged with nullptr AnimBlueprint or AnimBlueprint->TargetSkeleton is nullptr"));
+		return;
+	}
+	SpawnActorInViewport(ASkeletalMeshActor::StaticClass(), AnimBlueprint);
 }

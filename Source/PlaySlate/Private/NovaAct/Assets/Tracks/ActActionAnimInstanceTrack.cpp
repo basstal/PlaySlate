@@ -1,7 +1,7 @@
 ﻿#include "ActActionAnimInstanceTrack.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
+#include "NovaAct/ActEventTimeline/ActEventTimeline.h"
 
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"
@@ -12,7 +12,7 @@
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
-FActActionAnimInstanceTrack::FActActionAnimInstanceTrack(const TSharedRef<FActEventTimelineBrain>& InSequenceController)
+FActActionAnimInstanceTrack::FActActionAnimInstanceTrack(const TSharedRef<FActEventTimeline>& InSequenceController)
 	: FActActionTrackEditorBase(InSequenceController)
 {
 }
@@ -27,7 +27,7 @@ void FActActionAnimInstanceTrack::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 	);
 }
 
-TSharedRef<FActActionTrackEditorBase> FActActionAnimInstanceTrack::CreateTrackEditor(TSharedRef<FActEventTimelineBrain> InSequenceController)
+TSharedRef<FActActionTrackEditorBase> FActActionAnimInstanceTrack::CreateTrackEditor(TSharedRef<FActEventTimeline> InSequenceController)
 {
 	return MakeShareable(new FActActionAnimInstanceTrack(InSequenceController));
 }
@@ -39,8 +39,8 @@ void FActActionAnimInstanceTrack::AssignAnimInstance()
 		AnimInstanceSelectionDialog->DestroyWindowImmediately();
 	}
 	FAssetPickerConfig AssetPickerConfig;
-	AssetPickerConfig.OnAssetSelected = ActActionSequence::OnAssetSelectedDelegate::CreateSP(this, &FActActionAnimInstanceTrack::OnAssetSelected);
-	AssetPickerConfig.OnAssetEnterPressed = ActActionSequence::OnAssetEnterPressedDelegate::CreateSP(this, &FActActionAnimInstanceTrack::OnAssetEnterPressed);
+	AssetPickerConfig.OnAssetSelected = OnAssetSelectedDelegate::CreateSP(this, &FActActionAnimInstanceTrack::OnAssetSelected);
+	AssetPickerConfig.OnAssetEnterPressed = OnAssetEnterPressedDelegate::CreateSP(this, &FActActionAnimInstanceTrack::OnAssetEnterPressed);
 	AssetPickerConfig.bAllowNullSelection = false;
 	AssetPickerConfig.InitialAssetViewType = EAssetViewType::List;
 	AssetPickerConfig.Filter.bRecursiveClasses = true;

@@ -13,7 +13,7 @@ public:
 
 		SLATE_DEFAULT_SLOT(FArguments, Content)
 
-		SLATE_EVENT(ActActionSequence::OnGetDraggedNodePosDelegate, OnGetDraggedNodePos)
+		SLATE_EVENT(OnGetDraggedNodePosDelegate, OnGetDraggedNodePos)
 		SLATE_ARGUMENT(int32, TrackIndex)
 		SLATE_ARGUMENT(FLinearColor, TrackColor)
 	SLATE_END_ARGS()
@@ -53,7 +53,7 @@ protected:
 	/** TODO: */
 	int32 TrackIndex;
 	/** TODO: */
-	ActActionSequence::OnGetDraggedNodePosDelegate OnGetDraggedNodePos;
+	OnGetDraggedNodePosDelegate OnGetDraggedNodePos;
 	/** Cached for drag drop handling code */
 	FGeometry CachedGeometry;
 };

@@ -74,7 +74,7 @@ public:
 		return TrackLane.ToSharedRef();
 	}
 
-	ActActionSequence::FActActionTrackAreaArgs& GetActActionTrackAreaArgs() const
+	FActActionTrackAreaArgs& GetActActionTrackAreaArgs() const
 	{
 		return SequenceTreeViewNode.Pin()->GetActActionTrackAreaArgs();
 	}

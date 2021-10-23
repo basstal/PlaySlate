@@ -12,7 +12,7 @@ SLATE_BEGIN_ARGS(SActActionSequenceSectionArea)
 		}
 
 		/** The view range of the section area */
-		SLATE_ATTRIBUTE(TRange<double>, ViewRange)
+		SLATE_ATTRIBUTE(TRange<float>, ViewRange)
 	SLATE_END_ARGS()
 
 	SActActionSequenceSectionArea(): Children(this)

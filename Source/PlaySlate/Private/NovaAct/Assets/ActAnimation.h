@@ -18,9 +18,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	UAnimSequence* AnimSequence;
 
-	/** The resolution at which all frame numbers within this data are stored */
-	UPROPERTY(EditAnywhere)
-	FFrameRate TickResolution;
+	// /** The resolution at which all frame numbers within this data are stored */
+	// UPROPERTY(EditAnywhere)
+	// FFrameRate TickResolution;
 
 	UPROPERTY(EditAnywhere)
 	TArray<FActActionHitBoxData> ActActionHitBoxes;

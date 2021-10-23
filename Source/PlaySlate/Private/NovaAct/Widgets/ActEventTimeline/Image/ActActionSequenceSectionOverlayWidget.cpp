@@ -1,5 +1,6 @@
 ﻿#include "ActActionSequenceSectionOverlayWidget.h"
 
+#include "Common/NovaDataBinding.h"
 #include "Common/NovaStaticFunction.h"
 
 void SActActionSequenceSectionOverlayWidget::Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineImage>& InActActionSequenceSectionOverlayController)
@@ -12,19 +13,20 @@ void SActActionSequenceSectionOverlayWidget::Construct(const FArguments& InArgs,
 
 int32 SActActionSequenceSectionOverlayWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
-	ActActionSequence::FActActionPaintViewAreaArgs PaintArgs;
+	auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
+	FActActionPaintViewAreaArgs PaintArgs;
 	PaintArgs.bDisplayTickLines = bDisplayTickLines.Get();
 	PaintArgs.bDisplayScrubPosition = bDisplayScrubPosition.Get();
 	PaintArgs.bDisplayMarkedFrames = bDisplayMarkedFrames.Get();
-	const ActActionSequence::FActActionTimeSliderArgs& TimeSliderArgs = ActActionSequenceSectionOverlayController.Pin()->GetTimeSliderArgs();
 	const ESlateDrawEffect DrawEffects = ShouldBeEnabled(bParentEnabled) ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
-	TRange<double> LocalViewRange = TimeSliderArgs.ViewRange.Get();
-	const ActActionSequence::FActActionScrubRangeToScreen RangeToScreen(LocalViewRange, AllottedGeometry.Size);
+	TRange<float> LocalViewRange = ActEventTimelineArgs->ViewRange;
+	const FActActionScrubRangeToScreen RangeToScreen(LocalViewRange, AllottedGeometry.Size);
 	if (PaintArgs.bDisplayTickLines)
 	{
 		static FLinearColor TickColor(0.0f, 0.0f, 0.0f, 0.3f);
 		// Draw major tick lines in the section area
-		ActActionSequence::FActActionDrawTickArgs DrawTickArgs;
+		FActActionDrawTickArgs DrawTickArgs;
 		DrawTickArgs.AllottedGeometry = AllottedGeometry;
 		DrawTickArgs.bMirrorLabels = false;
 		DrawTickArgs.bOnlyDrawMajorTicks = true;
@@ -41,9 +43,9 @@ int32 SActActionSequenceSectionOverlayWidget::OnPaint(const FPaintArgs& Args, co
 
 	if (PaintArgs.bDisplayScrubPosition)
 	{
-		FQualifiedFrameTime ScrubPosition = FQualifiedFrameTime(TimeSliderArgs.ScrubPosition.Get(), TimeSliderArgs.TickResolution.Get());
-		const FFrameRate DisplayRate = TimeSliderArgs.DisplayRate.Get();
-		ActActionSequence::FActActionScrubberMetrics ScrubMetrics = NovaStaticFunction::GetScrubPixelMetrics(DisplayRate, ScrubPosition, RangeToScreen);
+		FQualifiedFrameTime ScrubPosition = FQualifiedFrameTime(ActEventTimelineArgs->CurrentTime, ActEventTimelineArgs->TickResolution);
+		const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
+		FActActionScrubberMetrics ScrubMetrics = NovaStaticFunction::GetScrubPixelMetrics(TickResolution, ScrubPosition, RangeToScreen);
 		if (ScrubMetrics.bDrawExtents)
 		{
 			// Draw a box for the scrub position

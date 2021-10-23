@@ -1,14 +1,17 @@
 ﻿#pragma once
 
 #include "IAnimationEditor.h"
-#include "Common/NovaDataBinding.h"
 #include "Common/NovaDelegate.h"
+#include "Common/NovaDataBinding.h"
 
-class FActActionPreviewSceneController;
+class FActAssetDetails;
+class FActViewport;
 class UActAnimation;
 class FActActionViewportClient;
-class FActEventTimelineBrain;
+class FActEventTimeline;
 class FActAssetDetailsBrain;
+
+using namespace NovaDelegate;
 
 /**
  * ActActionSequence资源编辑器的入口和管理者，提供一些工具方法和资源对象指针
@@ -28,16 +31,9 @@ public:
 	*/
 	void CreateEditorWindow(const TSharedPtr<IToolkitHost>& InIToolkitHost);
 
-	/**
-	 * 根据资源重置所有资源属性的对应显示状态
-	 */
-	void ResetAssetProperties(UObject* InObject);
-
 	//~Begin FGCObject interface
 	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
-
 	virtual FString GetReferencerName() const override;
-
 	//~End FGCObject interface
 
 	//~Begin FAssetEditorToolkit interface
@@ -54,89 +50,45 @@ public:
 	//~End FNotifyHook interface
 
 	/**
-	 * 根据AnimBlueprint初始化Viewport显示内容
+	 * 生成 Viewport Tab
 	 *
-	 * @param AnimBlueprint 被初始化的AnimBlueprint资源
+	 * @param SpawnTabArgs
+	 * @return 生成的 Widget
 	 */
-	void InitAnimBlueprint(UAnimBlueprint* AnimBlueprint);
-
+	TSharedRef<SDockTab> OnActViewportTabSpawn(const FSpawnTabArgs& SpawnTabArgs);
 	/**
-	 * @return 获得当前资源使用的Tick帧率
+	 * 生成 EventTimeline Tab
+	 *
+	 * @param SpawnTabArgs
+	 * @return 生成的 Widget
 	 */
-	FFrameRate GetTickResolution() const;
-
-	/** @param InAnimSequence 设置当前资源的AnimSequence实例 */
-	void SetAnimSequence(UAnimSequence* InAnimSequence) const;
-
+	TSharedRef<SDockTab> OnActEventTimelineTabSpawn(const FSpawnTabArgs& SpawnTabArgs);
 	/**
-	 * 添加一个攻击盒到数据中
+	 * 生成 AssetDetails Tab
+	 *
+	 * @param SpawnTabArgs
+	 * @return 生成的 Widget
 	 */
-	void AddHitBox() const;
+	TSharedRef<SDockTab> OnActAssetDetailsTabSpawn(const FSpawnTabArgs& SpawnTabArgs);
 
 protected:
-	/** 当前编辑的资源实例 */
-	UActAnimation* ActAnimation;
+	TSharedPtr<TDataBinding<UActAnimation*>> ActAnimationDB;// 当前资源实例的数据绑定
 
-	/** Viewport Controller，Editor没有销毁的情况下不会为空 */
-	TSharedPtr<FActActionPreviewSceneController> ActActionPreviewSceneController;
+	TSharedPtr<FActViewport> ActViewport;          /** Viewport Controller，Editor没有销毁的情况下不会为空 */
+	TSharedPtr<FActEventTimeline> ActEventTimeline;/** Sequence Controller，Editor没有销毁的情况下不会为空 */
+	TSharedPtr<FActAssetDetails> ActAssetDetails;  /** Details View Controller */
 
-	/** Sequence Controller，Editor没有销毁的情况下不会为空 */
-	TSharedPtr<FActEventTimelineBrain> ActActionSequenceController;
-
-	/** Details View Controller */
-	TSharedPtr<FActAssetDetailsBrain> ActActionDetailsViewController;
-
-	/** Sequence Widget Container */
-	TSharedPtr<SDockTab> ActActionSequenceWidgetParent;
-
-	/** Viewport Widget Container */
-	TSharedPtr<SDockTab> ActActionViewportWidgetParent;
-
-	/** Details Widget Container */
-	TSharedPtr<SDockTab> ActActionDetailsViewWidgetParent;
-
-	/** 动画播放的帧区间 */
-	TRange<FFrameNumber> PlaybackRange;
-
-	/** User-defined selection range. */
-	TRange<FFrameNumber> SelectionRange;
-
+	TSharedPtr<SDockTab> ActEventTimelineWidgetParent;/** Sequence Widget Container */
+	TSharedPtr<SDockTab> ActViewportWidgetParent;     /** Viewport Widget Container */
+	TSharedPtr<SDockTab> ActAssetDetailsWidgetParent; /** Details Widget Container */
 public:
-	TSharedRef<FActEventTimelineBrain> GetActActionSequenceController() const
+	TSharedRef<FActEventTimeline> GetActActionSequenceController() const
 	{
-		return ActActionSequenceController.ToSharedRef();
+		return ActEventTimeline.ToSharedRef();
 	}
 
-	TSharedRef<FActActionPreviewSceneController> GetActActionPreviewSceneController() const
+	TSharedRef<FActViewport> GetActActionPreviewSceneController() const
 	{
-		return ActActionPreviewSceneController.ToSharedRef();
+		return ActViewport.ToSharedRef();
 	}
-
-	UActAnimation* GetActActionSequence() const
-	{
-		return ActAnimation;
-	}
-
-	TRange<FFrameNumber> GetSelectionRange() const
-	{
-		return SelectionRange;
-	}
-
-	TRange<FFrameNumber> GetPlaybackRange() const
-	{
-		return PlaybackRange;
-	}
-
-	void SetPlaybackRange(TRange<FFrameNumber> InRange)
-	{
-		if (ensure(InRange.HasLowerBound() && InRange.HasUpperBound()))
-		{
-			PlaybackRange = InRange;
-		}
-	}
-
-	/** 资源属性修改的多播事件 */
-	ActActionSequence::OnAssetPropertiesModifiedMulticastDelegate OnAssetPropertiesModified;
-	/** 攻击盒修改的多播事件 */
-	ActActionSequence::OnHitBoxesChangedMulticastDelegate OnHitBoxesChanged;
 };

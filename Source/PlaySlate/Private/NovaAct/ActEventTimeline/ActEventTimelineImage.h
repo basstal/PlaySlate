@@ -5,6 +5,9 @@
 class SActActionSequenceSectionOverlayWidget;
 class FActEventTimelineSlider;
 
+using namespace NovaDelegate;
+using namespace NovaStruct;
+
 class FActEventTimelineImage : public TSharedFromThis<FActEventTimelineImage>
 {
 public:
@@ -27,12 +30,12 @@ public:
 	 * @param RangeToScreen
 	 * @param InArgs
 	 */
-	void DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<double>& ViewRange, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionDrawTickArgs& InArgs) const;
+	void DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<float>& ViewRange, const FActActionScrubRangeToScreen& RangeToScreen, const FActActionDrawTickArgs& InArgs) const;
 
-	/**
-	 * @return 获得TimeSlider相关参数
-	 */
-	ActActionSequence::FActActionTimeSliderArgs& GetTimeSliderArgs() const;
+	// /**
+	//  * @return 获得TimeSlider相关参数
+	//  */
+	// FActEventTimelineArgs& GetTimeSliderArgs() const;
 
 protected:
 	/**

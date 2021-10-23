@@ -2,13 +2,13 @@
 
 #include "PlaySlate.h"
 #include "NovaAct/Widgets/ActViewport/ActActionViewportWidget.h"
-#include "ActActionPreviewSceneController.h"
+#include "ActViewport.h"
 
 #include "AssetEditorModeManager.h"
 #include "EditorModeManager.h"
 #include "UnrealWidget.h"
 
-FActActionViewportClient::FActActionViewportClient(const TSharedRef<FActActionPreviewSceneController>& InActActionPreviewSceneController, const TSharedRef<SActActionViewportWidget>& InActActionViewportWidget, FEditorModeTools& InEditorModeTools)
+FActActionViewportClient::FActActionViewportClient(const TSharedRef<FActViewport>& InActActionPreviewSceneController, const TSharedRef<SActActionViewportWidget>& InActActionViewportWidget, FEditorModeTools& InEditorModeTools)
 	: FEditorViewportClient(&InEditorModeTools, StaticCast<FPreviewScene*>(&InActActionPreviewSceneController.Get()), StaticCastSharedRef<SEditorViewport>(InActActionViewportWidget))
 {
 	FAssetEditorModeManager* ModeManager = StaticCast<FAssetEditorModeManager*>(ModeTools.Get());

@@ -40,7 +40,7 @@ protected:
 	/** Controller */
 	TWeakPtr<FActEventTimelineSlider> TimeSliderController;
 	/** TimeSlider ViewRange记录 */
-	ActActionSequence::FActActionAnimatedRange LastViewRange;
+	// TRange<float> LastViewRange;
 	/** 拖拽中 */
 	bool bHandleDragged;
 	/** 左侧拖拽中 */
@@ -56,7 +56,7 @@ protected:
 	/* The position of the mouse on mouse down */
 	FVector2D MouseDownPosition;
 	/* The in/out view range on mouse down */
-	TRange<double> MouseDownViewRange;
+	TRange<float> MouseDownViewRange;
 	/** 拖拽按钮单个的宽度 */
 	float HandleSize = 14.0f;
 };

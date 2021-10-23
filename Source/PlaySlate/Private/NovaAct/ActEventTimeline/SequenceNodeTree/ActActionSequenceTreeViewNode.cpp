@@ -4,7 +4,7 @@
 #include "ActActionSequenceSectionBase.h"
 #include "NovaAct/NovaActEditor.h"
 #include "NovaAct/Assets/ActActionSequenceStructs.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
+#include "NovaAct/ActEventTimeline/ActEventTimeline.h"
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/ActActionOutlinerTreeNode.h"
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/ActActionSequenceCombinedKeysTrack.h"
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/ActActionSequenceTreeView.h"
@@ -12,7 +12,7 @@
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
-FActActionSequenceTreeViewNode::FActActionSequenceTreeViewNode(const TSharedRef<FActEventTimelineBrain>& InActActionSequenceController, FName InNodeName, ENovaSequenceNodeType InNodeType)
+FActActionSequenceTreeViewNode::FActActionSequenceTreeViewNode(const TSharedRef<FActEventTimeline>& InActActionSequenceController, FName InNodeName, ENovaSequenceNodeType InNodeType)
 	: ActActionSequenceController(InActActionSequenceController),
 	  NodeName(InNodeName),
 	  NodeType(InNodeType),
@@ -92,19 +92,26 @@ void FActActionSequenceTreeViewNode::MakeWidgetForSectionArea()
 {
 	ActActionTrackAreaArgs.ViewInputMin.Bind(TAttribute<float>::FGetter::CreateLambda([this]()
 	{
-		return ActActionSequenceController.Pin()->GetViewRange().GetLowerBoundValue();
+		auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+		TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
+		return ActEventTimelineArgs->ViewRange.GetLowerBoundValue();
 	}));
 	ActActionTrackAreaArgs.ViewInputMax.Bind(TAttribute<float>::FGetter::CreateLambda([this]()
 	{
-		return ActActionSequenceController.Pin()->GetViewRange().GetUpperBoundValue();
+		auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+		TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
+		return ActEventTimelineArgs->ViewRange.GetUpperBoundValue();
 	}));
-	ActActionTrackAreaArgs.TickResolution.Bind(TAttribute<FFrameRate>::FGetter::CreateLambda([this]()
+	auto TickResolutionLambda = TAttribute<FFrameRate>::FGetter::CreateLambda([this]()
 	{
-		return ActActionSequenceController.Pin()->GetActActionSequenceEditor()->GetTickResolution();
-	}));
+		auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+		TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
+		return ActEventTimelineArgs->TickResolution;
+	});
+	ActActionTrackAreaArgs.TickResolution.Bind(TickResolutionLambda);
 	ActActionSectionWidget = SNew(SActActionSequenceCombinedKeysTrack, SharedThis(this))
 		.Visibility(EVisibility::Visible)
-		.TickResolution(ActActionSequenceController.Pin()->GetActActionSequenceEditor(), &FNovaActEditor::GetTickResolution);
+		.TickResolution(ActActionTrackAreaArgs.TickResolution);
 	ActActionTrackAreaSlot = MakeShareable(new FActActionTrackAreaSlot(SharedThis(this)));
 	ActActionTrackAreaSlot->MakeTrackLane();
 }

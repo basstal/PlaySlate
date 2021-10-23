@@ -2,7 +2,7 @@
 
 #include "SCurveEditor.h"
 #include "Common/NovaConst.h"
-#include "NovaAct/Controllers/ActEventTimeline/SequenceNodeTree/ActActionTrackAreaSlot.h"
+#include "NovaAct/ActEventTimeline/SequenceNodeTree/ActActionTrackAreaSlot.h"
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/Subs/ActActionSequenceNotifyNode.h"
 
 

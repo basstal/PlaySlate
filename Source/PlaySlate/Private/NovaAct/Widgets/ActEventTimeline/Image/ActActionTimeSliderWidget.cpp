@@ -1,6 +1,7 @@
 ﻿#include "ActActionTimeSliderWidget.h"
 
-#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineSlider.h"
+#include "Common/NovaDataBinding.h"
+#include "NovaAct/ActEventTimeline/ActEventTimelineSlider.h"
 
 #include "Fonts/FontMeasure.h"
 #include "Common/NovaStaticFunction.h"
@@ -12,8 +13,9 @@ void SActActionTimeSliderWidget::Construct(const FArguments& InArgs, const TShar
 
 int32 SActActionTimeSliderWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
-	ActActionSequence::FActActionTimeSliderArgs TimeSliderArgs = TimeSliderController.Pin()->GetTimeSliderArgs();
-	const TRange<double> LocalViewRange = TimeSliderArgs.ViewRange.Get();
+	auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData(); 
+	const TRange<float> LocalViewRange = ActEventTimelineArgs->ViewRange;
 	const float LocalViewRangeMin = LocalViewRange.GetLowerBoundValue();
 	const float LocalViewRangeMax = LocalViewRange.GetUpperBoundValue();
 	const float LocalSequenceLength = LocalViewRangeMax - LocalViewRangeMin;
@@ -22,13 +24,13 @@ int32 SActActionTimeSliderWidget::OnPaint(const FPaintArgs& Args, const FGeometr
 		return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
 	}
 
-	ActActionSequence::FActActionScrubRangeToScreen RangeToScreen(LocalViewRange, AllottedGeometry.Size);
+	FActActionScrubRangeToScreen RangeToScreen(LocalViewRange, AllottedGeometry.Size);
 
 	// ** draw tick marks
 	constexpr float MajorTickHeight = 9.0f;
 	const ESlateDrawEffect DrawEffects = bParentEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 	const bool bMirrorLabels = TimeSliderController.Pin()->bMirrorLabels;
-	ActActionSequence::FActActionDrawTickArgs DrawTickArgs;
+	FActActionDrawTickArgs DrawTickArgs;
 	DrawTickArgs.AllottedGeometry = AllottedGeometry;
 	DrawTickArgs.bMirrorLabels = bMirrorLabels;
 	DrawTickArgs.bOnlyDrawMajorTicks = false;
@@ -43,9 +45,9 @@ int32 SActActionTimeSliderWidget::OnPaint(const FPaintArgs& Args, const FGeometr
 	TimeSliderController.Pin()->DrawTicks(OutDrawElements, LocalViewRange, RangeToScreen, DrawTickArgs);
 
 	// Draw the scrub handle
-	FQualifiedFrameTime ScrubPosition = FQualifiedFrameTime(TimeSliderArgs.ScrubPosition.Get(), TimeSliderArgs.TickResolution.Get());
-	const FFrameRate DisplayRate = TimeSliderArgs.DisplayRate.Get();
-	ActActionSequence::FActActionScrubberMetrics ScrubberMetrics = NovaStaticFunction::GetScrubPixelMetrics(DisplayRate, ScrubPosition, RangeToScreen);
+	FQualifiedFrameTime ScrubPosition = FQualifiedFrameTime(ActEventTimelineArgs->CurrentTime, ActEventTimelineArgs->TickResolution);
+	const FFrameRate DisplayRate = ActEventTimelineArgs->TickResolution;
+	FActActionScrubberMetrics ScrubberMetrics = NovaStaticFunction::GetScrubPixelMetrics(DisplayRate, ScrubPosition, RangeToScreen);
 	const float HandleStart = ScrubberMetrics.HandleRangePx.GetLowerBoundValue();
 	const float HandleEnd = ScrubberMetrics.HandleRangePx.GetUpperBoundValue();
 
@@ -73,11 +75,11 @@ int32 SActActionTimeSliderWidget::OnPaint(const FPaintArgs& Args, const FGeometr
 
 	// Draw the current time next to the scrub handle
 	FLinearColor TextColor = FLinearColor::Yellow;
-	FString FrameString = TimeSliderArgs.ScrubPositionText.Get();
-	if (!TimeSliderArgs.ScrubPositionText.IsSet())
-	{
-		FrameString = TimeSliderArgs.NumericTypeInterface->ToString(TimeSliderArgs.ScrubPosition.Get().GetFrame().Value);
-	}
+	// FString FrameString = TimeSliderArgs.ScrubPositionText.Get();
+	// if (!TimeSliderArgs.ScrubPositionText.IsSet())
+	// {
+	// }
+	FString FrameString = ActEventTimelineArgs->NumericTypeInterface->ToString(ActEventTimelineArgs->CurrentTime.GetFrame().Value);
 	FSlateFontInfo SmallLayoutFont = FCoreStyle::GetDefaultFontStyle("Regular", 10);
 	const TSharedRef<FSlateFontMeasure> SlateFontMeasureService = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
 	FVector2D TextSize = SlateFontMeasureService->Measure(FrameString, SmallLayoutFont);
@@ -100,10 +102,10 @@ int32 SActActionTimeSliderWidget::OnPaint(const FPaintArgs& Args, const FGeometr
 	if (TimeSliderController.IsValid() && TimeSliderController.Pin()->MouseDragType == ENovaDragType::DRAG_SETTING_RANGE)
 	{
 		TSharedRef<FActEventTimelineSlider> TimeSliderControllerRef = TimeSliderController.Pin().ToSharedRef();
-		FFrameRate TickResolution = TimeSliderArgs.TickResolution.Get();
-		ActActionSequence::FActActionAnimatedRange AnimatedRange = TimeSliderArgs.ViewRange.Get();
+		FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
+		TRange<float> AnimatedRange = ActEventTimelineArgs->ViewRange;
 		FFrameTime MouseDownTime[2];
-		ActActionSequence::FActActionScrubRangeToScreen MouseDownRange(AnimatedRange, TimeSliderControllerRef->MouseDownGeometry.Size);
+		FActActionScrubRangeToScreen MouseDownRange(AnimatedRange, TimeSliderControllerRef->MouseDownGeometry.Size);
 		MouseDownTime[0] = TimeSliderControllerRef->ComputeFrameTimeFromMouse(TimeSliderControllerRef->MouseDownGeometry, TimeSliderControllerRef->MouseDownPosition[0], MouseDownRange);
 		MouseDownTime[1] = TimeSliderControllerRef->ComputeFrameTimeFromMouse(TimeSliderControllerRef->MouseDownGeometry, TimeSliderControllerRef->MouseDownPosition[1], MouseDownRange);
 		float MouseStartPosX = RangeToScreen.InputToLocalX(MouseDownTime[0] / TickResolution);

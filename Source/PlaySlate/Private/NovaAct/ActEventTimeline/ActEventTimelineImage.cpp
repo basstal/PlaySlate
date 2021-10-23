@@ -2,7 +2,7 @@
 
 #include "ActEventTimelineSlider.h"
 #include "PlaySlate.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
+#include "NovaAct/ActEventTimeline/ActEventTimeline.h"
 #include "NovaAct/Widgets/ActEventTimeline/Image/ActActionSequenceSectionOverlayWidget.h"
 
 FActEventTimelineImage::FActEventTimelineImage(const TSharedRef<FActEventTimelineSlider>& InActActionTimeSliderController)
@@ -25,7 +25,7 @@ void FActEventTimelineImage::MakeSequenceSectionOverlayWidget(ENovaSectionOverla
 			.Clipping(EWidgetClipping::ClipToBounds);
 }
 
-void FActEventTimelineImage::DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<double>& ViewRange, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, const ActActionSequence::FActActionDrawTickArgs& InArgs) const
+void FActEventTimelineImage::DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<float>& ViewRange, const FActActionScrubRangeToScreen& RangeToScreen, const FActActionDrawTickArgs& InArgs) const
 {
 	if (ActActionTimeSliderController.IsValid())
 	{
@@ -33,7 +33,7 @@ void FActEventTimelineImage::DrawTicks(FSlateWindowElementList& OutDrawElements,
 	}
 }
 
-ActActionSequence::FActActionTimeSliderArgs& FActEventTimelineImage::GetTimeSliderArgs() const
-{
-	return ActActionTimeSliderController.Pin()->GetTimeSliderArgs();
-}
+// FActEventTimelineArgs& FActEventTimelineImage::GetTimeSliderArgs() const
+// {
+// 	return ActActionTimeSliderController.Pin()->GetTimeSliderArgs();
+// }

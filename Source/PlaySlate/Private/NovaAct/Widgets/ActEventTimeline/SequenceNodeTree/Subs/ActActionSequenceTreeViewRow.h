@@ -5,13 +5,14 @@
 class FActActionSequenceTreeViewNode;
 class SActActionSequenceTrackLane;
 
+using namespace NovaDelegate;
 
 class SActActionSequenceTreeViewRow : public SMultiColumnTableRow<TSharedRef<FActActionSequenceTreeViewNode>>
 {
 public:
 	SLATE_BEGIN_ARGS(SActActionSequenceTreeViewRow) { }
 		/** Delegate to invoke to create a new column for this row */
-		SLATE_EVENT(ActActionSequence::OnGenerateWidgetForColumnDelegate, OnGenerateWidgetForColumn)
+		SLATE_EVENT(OnGenerateWidgetForColumnDelegate, OnGenerateWidgetForColumn)
 	SLATE_END_ARGS()
 
 
@@ -36,7 +37,7 @@ protected:
 	TWeakPtr<FActActionSequenceTreeViewNode> Node;
 
 	/** Delegate to call to create a new widget for a particular column. */
-	ActActionSequence::OnGenerateWidgetForColumnDelegate OnGenerateWidgetForColumn;
+	OnGenerateWidgetForColumnDelegate OnGenerateWidgetForColumn;
 
 	/** 对应的TrackLane Widget */
 	TWeakPtr<SActActionSequenceTrackLane> TargetTrackLane;

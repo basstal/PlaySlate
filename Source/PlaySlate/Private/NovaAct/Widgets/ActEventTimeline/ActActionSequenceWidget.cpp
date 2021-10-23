@@ -1,8 +1,8 @@
 ﻿#include "ActActionSequenceWidget.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineBrain.h"
-#include "NovaAct/Controllers/ActEventTimeline/ActEventTimelineSlider.h"
+#include "NovaAct/ActEventTimeline/ActEventTimeline.h"
+#include "NovaAct/ActEventTimeline/ActEventTimelineSlider.h"
 #include "NovaAct/Widgets/ActViewport/ActActionViewportWidget.h"
 // ReSharper disable once CppUnusedIncludeDirective
 #include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/ActActionSequenceTrackArea.h"
@@ -21,7 +21,7 @@
 #include "Widgets/Input/SSearchBox.h"
 #include "Widgets/Layout/SGridPanel.h"
 #include "Widgets/Layout/SScrollBorder.h"
-#include "NovaAct/Controllers/ActEventTimeline/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
+#include "NovaAct/ActEventTimeline/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
@@ -35,7 +35,7 @@ SActActionSequenceWidget::~SActActionSequenceWidget()
 	UE_LOG(LogActAction, Log, TEXT("SActActionSequenceWidget::~SActActionSequenceWidget"));
 }
 
-void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineBrain>& InActActionSequenceController)
+void SActActionSequenceWidget::Construct(const FArguments& InArgs, const TSharedRef<FActEventTimeline>& InActActionSequenceController)
 {
 	ColumnFillCoefficients[0] = 0.4f;
 	ColumnFillCoefficients[1] = 0.6f;

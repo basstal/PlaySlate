@@ -34,8 +34,6 @@ void FAssetTypeActions_ActActionSequence::OpenAssetEditor(const TArray<UObject*>
 			 */
 			TSharedRef<FNovaActEditor> NovaActEditor(new FNovaActEditor(ActAnimation));
 			NovaActEditor->CreateEditorWindow(EditWithinLevelEditor);
-			FPlaySlateModule& PlaySlateModule = FModuleManager::GetModuleChecked<FPlaySlateModule>("PlaySlate");
-			PlaySlateModule.NovaActEditor = NovaActEditor;
 			return;
 		}
 	}

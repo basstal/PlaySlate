@@ -2,6 +2,8 @@
 #include "Common/NovaStruct.h"
 #include "Fonts/FontMeasure.h"
 
+using namespace NovaStruct;
+
 class NovaStaticFunction
 {
 public:
@@ -40,9 +42,9 @@ public:
 	 * @param DilationPixels		Number of pixels to dilate the handle by
 	 * @return FActActionScrubberMetrics
 	 */
-	static ActActionSequence::FActActionScrubberMetrics GetScrubPixelMetrics(const FFrameRate& DisplayRate, const FQualifiedFrameTime& ScrubTime, const ActActionSequence::FActActionScrubRangeToScreen& RangeToScreen, float DilationPixels = 0.0f, const ENovaSequencerScrubberStyle& ScrubberStyle = ENovaSequencerScrubberStyle())
+	static NovaStruct::FActActionScrubberMetrics GetScrubPixelMetrics(const FFrameRate& DisplayRate, const FQualifiedFrameTime& ScrubTime, const NovaStruct::FActActionScrubRangeToScreen& RangeToScreen, float DilationPixels = 0.0f, const ENovaSequencerScrubberStyle& ScrubberStyle = ENovaSequencerScrubberStyle())
 	{
-		ActActionSequence::FActActionScrubberMetrics Metrics;
+		NovaStruct::FActActionScrubberMetrics Metrics;
 
 		const FFrameNumber Frame = ScrubTime.ConvertTo(DisplayRate).FloorToFrame();
 

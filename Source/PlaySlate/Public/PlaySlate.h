@@ -23,7 +23,4 @@ public:
 protected:
 	/** 所有已注册的资源类型，登记在这里以便在模块关闭时反注册 */
 	TArray<TSharedRef<IAssetTypeActions>> RegisteredAssetTypeActions;
-public:
-	/** 对Editor的弱引用 */
-	TWeakPtr<FNovaActEditor> NovaActEditor;
 };
