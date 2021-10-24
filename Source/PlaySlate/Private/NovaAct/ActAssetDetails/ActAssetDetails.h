@@ -3,17 +3,19 @@
 class SActActionDetailsViewWidget;
 class FNovaActEditor;
 
-class FActAssetDetails : public TSharedFromThis<FActAssetDetails>
+class FActAssetDetails : public TSharedFromThis<FActAssetDetails>, public FNotifyHook
 {
 public:
-	FActAssetDetails(const TSharedRef<FNovaActEditor>& InActActionSequenceEditor);
-	~FActAssetDetails();
+	FActAssetDetails();
+	virtual ~FActAssetDetails();
 
 	/** 构造Widget */
 	void Init();
+
+	//~Begin FNotifyHook interface
+	virtual void NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, FProperty* PropertyThatChanged) override;
+	//~End FNotifyHook interface
 protected:
-	/** Sequence Editor */
-	TWeakPtr<FNovaActEditor> ActActionSequenceEditor;
 	/** Widget */
 	TSharedPtr<SActActionDetailsViewWidget> ActActionDetailsViewWidget;
 public:

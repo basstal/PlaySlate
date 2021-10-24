@@ -174,10 +174,10 @@ protected:
 	// /** Sequence TimeSlider 的最大显示范围，单位秒 */
 	// TRange<float> TargetClampRange;
 
-	TSharedPtr<TDataBinding<TSharedPtr<FActEventTimelineArgs>>> ActEventTimelineArgsDB;    // EventTimeline 参数的数据绑定
-	TSharedPtr<TDataBinding<TSharedPtr<FActEventTimelineEvents>>> ActEventTimelineEventsDB;// EventTimeline 事件的数据绑定 TODO:这里也可以拆成参数
-	FDelegateHandle OnHitBoxesChangedHandle;                                               // 攻击盒数据改变数据绑定的解绑凭证
-	FDelegateHandle OnAnimSequenceChangedHandle;                                           // 数据绑定解绑
+	TSharedPtr<TDataBindingSP<FActEventTimelineArgs>> ActEventTimelineArgsDB;    // EventTimeline 参数的数据绑定
+	TSharedPtr<TDataBindingSP<FActEventTimelineEvents>> ActEventTimelineEventsDB;// EventTimeline 事件的数据绑定 TODO:这里也可以拆成参数
+	FDelegateHandle OnHitBoxesChangedHandle;                                     // 攻击盒数据改变数据绑定的解绑凭证
+	FDelegateHandle OnAnimSequenceChangedHandle;                                 // 数据绑定解绑
 
 public:
 	// ENovaPlaybackType GetPlaybackStatus() const

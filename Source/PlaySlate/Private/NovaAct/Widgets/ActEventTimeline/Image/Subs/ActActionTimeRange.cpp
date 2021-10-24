@@ -10,7 +10,7 @@ void SActActionTimeRange::Construct(const FArguments& InArgs, const TSharedRef<F
 {
 	TimeSliderController = InTimeSliderController;
 
-	auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	const TSharedRef<SWidget> ViewRangeStart = SNew(SSpinBox<double>)
 	.Value(this, &SActActionTimeRange::ViewStartTime)
@@ -89,7 +89,7 @@ void SActActionTimeRange::Construct(const FArguments& InArgs, const TSharedRef<F
 
 double SActActionTimeRange::ViewStartTime() const
 {
-	auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
 	// View range is in seconds so we convert it to tick resolution
@@ -108,7 +108,7 @@ void SActActionTimeRange::OnViewTimeChanged(double NewValue, bool bIsEndValue) c
 	{
 		return;
 	}
-	auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
 	const double Time = TickResolution.AsSeconds(FFrameTime::FromDecimal(NewValue));
@@ -132,14 +132,14 @@ void SActActionTimeRange::OnViewTimeChanged(double NewValue, bool bIsEndValue) c
 
 double SActActionTimeRange::GetSpinboxDelta() const
 {
-	auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	return ActEventTimelineArgs->TickResolution.AsDecimal() * ActEventTimelineArgs->TickResolution.AsInterval();
 }
 
 double SActActionTimeRange::ViewEndTime() const
 {
-	auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
 	// View range is in seconds so we convert it to tick resolution

@@ -10,7 +10,7 @@
 // ReSharper disable once CppUnusedIncludeDirective
 #include "NovaAct/Widgets/ActEventTimeline/ActActionSequenceWidget.h"
 #include "NovaAct/Widgets/ActAssetDetails/ActActionDetailsViewWidget.h"
-#include "NovaAct/ActAssetDetails/ActAssetDetailsBrain.h"
+#include "NovaAct/ActAssetDetails/ActAssetDetails.h"
 
 #include "Animation/AnimBlueprint.h"
 #include "Common/NovaDataBinding.h"
@@ -22,7 +22,7 @@ using namespace NovaStruct;
 FNovaActEditor::FNovaActEditor(UActAnimation* InActAnimation)
 {
 	check(InActAnimation);
-	ActAnimationDB = NovaDB::GetOrCreate("ActAnimation", InActAnimation);
+	ActAnimationDB = NovaDB::CreateUObject("ActAnimation", InActAnimation);
 }
 
 FNovaActEditor::~FNovaActEditor()
@@ -79,7 +79,7 @@ void FNovaActEditor::CreateEditorWindow(const TSharedPtr<IToolkitHost>& InIToolk
 	}
 
 	// ** DetailsView Controller
-	ActAssetDetails = MakeShareable(new FActAssetDetails(SharedThis(this)));
+	ActAssetDetails = MakeShareable(new FActAssetDetails());
 	ActAssetDetails->Init();
 	if (ActAssetDetailsWidgetParent)
 	{
@@ -144,13 +144,6 @@ FLinearColor FNovaActEditor::GetWorldCentricTabColorScale() const
 FString FNovaActEditor::GetWorldCentricTabPrefix() const
 {
 	return LOCTEXT("ActEditor", "WorldCentricTabPrefix").ToString();
-}
-
-void FNovaActEditor::NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, FProperty* PropertyThatChanged)
-{
-	UE_LOG(LogActAction, Log, TEXT("PropertyChangedEvent : %s"), *PropertyChangedEvent.GetPropertyName().ToString());
-	auto DB = NovaDB::GetOrCreate<UActAnimation*>("ActAnimation");
-	DB->Trigger();
 }
 
 TSharedRef<SDockTab> FNovaActEditor::OnActViewportTabSpawn(const FSpawnTabArgs& SpawnTabArgs)

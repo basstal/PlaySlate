@@ -2,6 +2,7 @@
 
 #include "PlaySlate.h"
 #include "NovaAct/NovaActEditor.h"
+#include "NovaAct/Assets/ActAnimation.h"
 #include "NovaAct/Assets/Tracks/ActActionTrackEditorBase.h"
 #include "NovaAct/ActEventTimeline/ActEventTimelineSlider.h"
 #include "NovaAct/ActViewport/ActViewport.h"
@@ -9,8 +10,6 @@
 #include "NovaAct/Widgets/ActEventTimeline/ActActionSequenceWidget.h"
 // ReSharper disable once CppUnusedIncludeDirective
 #include "NovaAct/ActEventTimeline/ActEventTimeline.h"
-
-#include <NovaAct/Assets/ActAnimation.h>
 
 #include "IContentBrowserSingleton.h"
 #include "LevelEditorViewport.h"
@@ -41,7 +40,7 @@ FActEventTimeline::~FActEventTimeline()
 	NovaDB::Delete<TSharedPtr<FActEventTimelineEvents>>("ActEventTimelineEvents");
 	ActEventTimelineArgsDB.Reset();
 	ActEventTimelineEventsDB.Reset();
-	auto ActAnimationDB = NovaDB::GetOrCreate<UActAnimation*>("ActAnimation");
+	auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
 	ActAnimationDB->UnBind(OnHitBoxesChangedHandle);
 	ActAnimationDB->UnBind(OnAnimSequenceChangedHandle);
 }
@@ -53,7 +52,7 @@ void FActEventTimeline::Init()
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = MakeShareable(new FActEventTimelineArgs());
 	auto TickResolutionAttrLambda = MakeAttributeLambda([]()
 	{
-		auto DB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+		auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 		TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = DB->GetData();
 		return ActEventTimelineArgs->TickResolution;
 	});
@@ -64,17 +63,17 @@ void FActEventTimeline::Init()
 	                                                                                     0,
 	                                                                                     TickResolutionAttrLambda,
 	                                                                                     TickResolutionAttrLambda));
-	ActEventTimelineArgsDB = NovaDB::GetOrCreate("ActEventTimelineArgs", ActEventTimelineArgs);
+	ActEventTimelineArgsDB = StaticCastSharedPtr<TDataBindingSP<FActEventTimelineArgs>>(NovaDB::CreateSP("ActEventTimelineArgs", ActEventTimelineArgs));
 	// ** EventTimeline 事件的初始化
 	TSharedPtr<FActEventTimelineEvents> ActEventTimelineEventsPtr = MakeShareable(new FActEventTimelineEvents());
 	ActEventTimelineEventsPtr->OnBeginScrubberMovement = FSimpleDelegate::CreateSP(this, &FActEventTimeline::OnBeginScrubberMovement);
 	ActEventTimelineEventsPtr->OnEndScrubberMovement = FSimpleDelegate::CreateSP(this, &FActEventTimeline::OnEndScrubberMovement);
 	ActEventTimelineEventsPtr->OnScrubPositionChanged = OnScrubPositionChangedDelegate::CreateSP(this, &FActEventTimeline::OnScrubPositionChanged);
-	ActEventTimelineEventsDB = NovaDB::GetOrCreate("ActEventTimelineEvents", ActEventTimelineEventsPtr);
+	ActEventTimelineEventsDB = StaticCastSharedPtr<TDataBindingSP<FActEventTimelineEvents>>(NovaDB::CreateSP("ActEventTimelineEvents", ActEventTimelineEventsPtr));
 
-	auto ActAnimationDB = NovaDB::GetOrCreate<UActAnimation*>("ActAnimation");
-	OnHitBoxesChangedHandle = ActAnimationDB->Bind(CreateRawBind(this, &FActEventTimeline::OnHitBoxesChanged, UActAnimation*));
-	OnAnimSequenceChangedHandle = ActAnimationDB->Bind(CreateRawBind(this, &FActEventTimeline::OnAnimSequenceChanged, UActAnimation*));
+	auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
+	OnHitBoxesChangedHandle = ActAnimationDB->Bind(TDataBindingUObject<UActAnimation>::DelegateType::CreateRaw(this, &FActEventTimeline::OnHitBoxesChanged));
+	OnAnimSequenceChangedHandle = ActAnimationDB->Bind(TDataBindingUObject<UActAnimation>::DelegateType::CreateRaw(this, &FActEventTimeline::OnAnimSequenceChanged));
 
 	// ** 构造所有显示节点的根节点
 	ActActionSequenceTreeViewNode = MakeShareable(new FActActionSequenceTreeViewNode(SharedThis(this)));
@@ -102,12 +101,6 @@ TStatId FActEventTimeline::GetStatId() const
 	RETURN_QUICK_DECLARE_CYCLE_STAT(FActActionSequenceController, STATGROUP_Tickables);
 }
 
-//
-// void FActEventTimeline::ExecuteTrackEditorCreateDelegate()
-// {
-// 	
-// }
-
 void FActEventTimeline::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 {
 	for (int32 i = 0; i < TrackEditors.Num(); ++i)
@@ -119,33 +112,28 @@ void FActEventTimeline::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 // TODO:这个接口改到Editor中，资源调用Editor接口再调用Controller
 void FActEventTimeline::OnAnimSequenceChanged(UActAnimation* InActAnimation)
 {
+	if (!InActAnimation)
+	{
+		return;
+	}
 	UAnimSequence* InAnimSequence = InActAnimation->AnimSequence;
 	if (!InAnimSequence)
 	{
 		UE_LOG(LogActAction, Log, TEXT("FActEventTimeline::AddAnimMontageTrack with nullptr AnimMontage"))
 		return;
 	}
-	if (NovaActEditor.IsValid())
+	UE_LOG(LogActAction, Log, TEXT("AnimMontage : %s"), *InAnimSequence->GetName());
+	if (ActActionTimeSliderController.IsValid())
 	{
-		UE_LOG(LogActAction, Log, TEXT("AnimMontage : %s"), *InAnimSequence->GetName());
-		const TSharedRef<FNovaActEditor> ActActionSequenceEditorRef = NovaActEditor.Pin().ToSharedRef();
-		if (ActActionTimeSliderController.IsValid())
-		{
-			const float CalculateSequenceLength = InAnimSequence->GetPlayLength();
-			// const FFrameRate SamplingFrameRate = InAnimSequence->GetSamplingFrameRate();
-			UE_LOG(LogActAction, Log, TEXT("InTotalLength : %f"), CalculateSequenceLength);
-			// ** 限制显示的最大长度为当前的Sequence总时长
-			auto ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
-			ActEventTimelineArgs->ViewRange = TRange<float>(0, CalculateSequenceLength);
-			ActEventTimelineArgs->ClampRange = TRange<float>(0, CalculateSequenceLength);
-			ActEventTimelineArgs->TickResolution = InAnimSequence->GetSamplingFrameRate();;
-			// ActActionTimeSliderController->SetPlaybackRangeEnd(SamplingFrameRate.AsFrameNumber(CalculateSequenceLength));
-		}
-
-		if (NovaActEditor.IsValid())
-		{
-			NovaActEditor.Pin()->GetActActionPreviewSceneController()->InitAnimation(InAnimSequence);
-		}
+		const float CalculateSequenceLength = InAnimSequence->GetPlayLength();
+		// const FFrameRate SamplingFrameRate = InAnimSequence->GetSamplingFrameRate();
+		UE_LOG(LogActAction, Log, TEXT("InTotalLength : %f"), CalculateSequenceLength);
+		// ** 限制显示的最大长度为当前的Sequence总时长
+		auto ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
+		ActEventTimelineArgs->ViewRange = TRange<float>(0, CalculateSequenceLength);
+		ActEventTimelineArgs->ClampRange = TRange<float>(0, CalculateSequenceLength);
+		ActEventTimelineArgs->TickResolution = InAnimSequence->GetSamplingFrameRate();;
+		// ActActionTimeSliderController->SetPlaybackRangeEnd(SamplingFrameRate.AsFrameNumber(CalculateSequenceLength));
 	}
 }
 
@@ -229,7 +217,7 @@ void FActEventTimeline::OnEndScrubberMovement()
 // 		if (CurrentFrameTime != InFrameTime)
 // 		{
 // 			const FActActionEvaluationRange InRange(InFrameTime, TickResolution);
-// 			ActActionPreviewSceneController->EvaluateInternal(InRange);
+// 			ActActionPreviewSceneController->OnCurrentTimeChanged(InRange);
 // 		}
 // 	}
 // }

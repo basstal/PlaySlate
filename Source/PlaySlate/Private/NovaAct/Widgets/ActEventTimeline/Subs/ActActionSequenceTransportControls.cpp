@@ -19,13 +19,13 @@ void SActActionSequenceTransportControls::Construct(const FArguments& InArgs, co
 	FEditorWidgetsModule& EditorWidgetsModule = FModuleManager::LoadModuleChecked<FEditorWidgetsModule>("EditorWidgets");
 
 	FTransportControlArgs TransportControlArgs;
-	TransportControlArgs.OnForwardPlay = FOnClicked::CreateSP(this, &SActActionSequenceTransportControls::OnClick_Forward);
-	TransportControlArgs.OnBackwardPlay = FOnClicked::CreateSP(this, &SActActionSequenceTransportControls::OnClick_Backward);
-	TransportControlArgs.OnForwardStep = FOnClicked::CreateSP(this, &SActActionSequenceTransportControls::OnClick_Forward_Step);
-	TransportControlArgs.OnBackwardStep = FOnClicked::CreateSP(this, &SActActionSequenceTransportControls::OnClick_Backward_Step);
-	TransportControlArgs.OnForwardEnd = FOnClicked::CreateSP(this, &SActActionSequenceTransportControls::OnClick_Forward_End);
-	TransportControlArgs.OnBackwardEnd = FOnClicked::CreateSP(this, &SActActionSequenceTransportControls::OnClick_Backward_End);
-	TransportControlArgs.OnToggleLooping = FOnClicked::CreateSP(this, &SActActionSequenceTransportControls::OnClick_ToggleLoop);
+	TransportControlArgs.OnForwardPlay = FOnClicked::CreateSP(this, &SActActionSequenceTransportControls::OnClickForwardPlay);
+	TransportControlArgs.OnBackwardPlay = FOnClicked::CreateSP(this, &SActActionSequenceTransportControls::OnClickBackwardPlay);
+	TransportControlArgs.OnForwardStep = FOnClicked::CreateSP(this, &SActActionSequenceTransportControls::OnClickForwardStep);
+	TransportControlArgs.OnBackwardStep = FOnClicked::CreateSP(this, &SActActionSequenceTransportControls::OnClickBackwardStep);
+	TransportControlArgs.OnForwardEnd = FOnClicked::CreateSP(this, &SActActionSequenceTransportControls::OnClickForwardEnd);
+	TransportControlArgs.OnBackwardEnd = FOnClicked::CreateSP(this, &SActActionSequenceTransportControls::OnClickBackwardEnd);
+	TransportControlArgs.OnToggleLooping = FOnClicked::CreateSP(this, &SActActionSequenceTransportControls::OnClickToggleLooping);
 	TransportControlArgs.OnGetLooping = FOnGetLooping::CreateSP(this, &SActActionSequenceTransportControls::IsLoopStatusOn);
 	TransportControlArgs.OnGetPlaybackMode = FOnGetPlaybackMode::CreateSP(this, &SActActionSequenceTransportControls::GetPlaybackMode);
 
@@ -35,72 +35,63 @@ void SActActionSequenceTransportControls::Construct(const FArguments& InArgs, co
 	];
 }
 
-FReply SActActionSequenceTransportControls::OnClick_Forward_Step() const
+FReply SActActionSequenceTransportControls::OnClickForwardStep() const
 {
-	ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController()->PlayStep(true);
+	auto DB = GetDataBinding(ENovaTransportControls, "TransportControlsState");
+	DB->SetData(ENovaTransportControls::ForwardStep);
 	return FReply::Handled();
 }
 
-FReply SActActionSequenceTransportControls::OnClick_Forward_End() const
+FReply SActActionSequenceTransportControls::OnClickForwardEnd() const
 {
-	ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController()->EvaluateToOneEnd(true);
+	auto DB = GetDataBinding(ENovaTransportControls, "TransportControlsState");
+	DB->SetData(ENovaTransportControls::ForwardEnd);
 	return FReply::Handled();
 }
 
-FReply SActActionSequenceTransportControls::OnClick_Backward_Step() const
+FReply SActActionSequenceTransportControls::OnClickBackwardStep() const
 {
-	ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController()->PlayStep(false);
+	auto DB = GetDataBinding(ENovaTransportControls, "TransportControlsState");
+	DB->SetData(ENovaTransportControls::BackwardStep);
 	return FReply::Handled();
 }
 
-FReply SActActionSequenceTransportControls::OnClick_Backward_End() const
+FReply SActActionSequenceTransportControls::OnClickBackwardEnd() const
 {
-	ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController()->EvaluateToOneEnd(false);
+	auto DB = GetDataBinding(ENovaTransportControls, "TransportControlsState");
+	DB->SetData(ENovaTransportControls::BackwardEnd);
 	return FReply::Handled();
 }
 
-FReply SActActionSequenceTransportControls::OnClick_Forward() const
+FReply SActActionSequenceTransportControls::OnClickForwardPlay() const
 {
-	const TSharedRef<FActViewport> ActActionPreviewSceneController = ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController();
-	const EPlaybackMode::Type PlaybackMode = ActActionPreviewSceneController->GetPlaybackMode();
-	if (PlaybackMode == EPlaybackMode::Stopped || PlaybackMode == EPlaybackMode::PlayingReverse)
-	{
-		ActActionPreviewSceneController->TogglePlay(EPlaybackMode::PlayingForward);
-	}
-	else
-	{
-		ActActionPreviewSceneController->TogglePlay(EPlaybackMode::Stopped);
-	}
+	auto DB = GetDataBinding(ENovaTransportControls, "TransportControlsState");
+	DB->SetData(ENovaTransportControls::ForwardPlay);
 	return FReply::Handled();
 }
 
-FReply SActActionSequenceTransportControls::OnClick_Backward() const
+FReply SActActionSequenceTransportControls::OnClickBackwardPlay() const
 {
-	const TSharedRef<FActViewport> ActActionPreviewSceneController = ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController();
-	const EPlaybackMode::Type PlaybackMode = ActActionPreviewSceneController->GetPlaybackMode();
-	if (PlaybackMode == EPlaybackMode::Stopped || PlaybackMode == EPlaybackMode::PlayingForward)
-	{
-		ActActionPreviewSceneController->TogglePlay(EPlaybackMode::PlayingReverse);
-	}
-	else
-	{
-		ActActionPreviewSceneController->TogglePlay(EPlaybackMode::Stopped);
-	}
+	auto DB = GetDataBinding(ENovaTransportControls, "TransportControlsState");
+	DB->SetData(ENovaTransportControls::BackwardPlay);
 	return FReply::Handled();
 }
 
-FReply SActActionSequenceTransportControls::OnClick_ToggleLoop() const
+FReply SActActionSequenceTransportControls::OnClickToggleLooping() const
 {
-	ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController()->ToggleLoop();
+	auto DB = GetDataBinding(ENovaTransportControls, "TransportControlsState");
+	DB->SetData(ENovaTransportControls::ToggleLooping);
 	return FReply::Handled();
 }
 
 bool SActActionSequenceTransportControls::IsLoopStatusOn() const
 {
-	return ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController()->IsLoopStatusOn();
+	auto DB = GetDataBinding(bool, "PreviewInstanceLooping");
+	return DB->GetData();
 }
 
 EPlaybackMode::Type SActActionSequenceTransportControls::GetPlaybackMode() const
 {
-	return ActActionSequenceEditor.Pin()->GetActActionPreviewSceneController()->GetPlaybackMode();
+	auto DB = GetDataBinding(EPlaybackMode::Type, "PreviewInstancePlaybackMode");
+	return DB->GetData();
 }

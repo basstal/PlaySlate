@@ -1,7 +1,7 @@
 ﻿#include "ActActionDetailsViewWidget.h"
 #include "NovaAct/NovaActEditor.h"
 
-void SActActionDetailsViewWidget::Construct(const FArguments& InArgs, const TSharedRef<FNovaActEditor>& InActActionSequenceEditor)
+void SActActionDetailsViewWidget::Construct(const FArguments& InArgs, const TSharedRef<FActAssetDetails>& InActAssetDetails)
 {
 	OnGetAsset = InArgs._OnGetAsset;
 
@@ -13,7 +13,7 @@ void SActActionDetailsViewWidget::Construct(const FArguments& InArgs, const TSha
 	DetailsViewArgs.bHideSelectionTip = true;
 	DetailsViewArgs.HostCommandList = InArgs._HostCommandList;
 	DetailsViewArgs.HostTabManager = InArgs._HostTabManager;
-	DetailsViewArgs.NotifyHook = &InActActionSequenceEditor.Get();
+	DetailsViewArgs.NotifyHook = &InActAssetDetails.Get();
 	PropertyView = EditModule.CreateDetailView(DetailsViewArgs);
 	InArgs._OnDetailsCreated.ExecuteIfBound(PropertyView.ToSharedRef());
 

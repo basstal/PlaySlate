@@ -79,7 +79,7 @@ int32 SActActionTimeRangeSlider::OnPaint(const FPaintArgs& Args, const FGeometry
 
 FReply SActActionTimeRangeSlider::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
-	auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	MouseDownPosition = MouseEvent.GetScreenSpacePosition();
 	MouseDownViewRange = TRange<float>(ActEventTimelineArgs->ViewRange);
@@ -123,7 +123,7 @@ FReply SActActionTimeRangeSlider::OnMouseMove(const FGeometry& MyGeometry, const
 
 		if (bHandleDragged)
 		{
-			auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+			auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 			TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 			double NewIn = MouseDownViewRange.GetLowerBoundValue() + DragDelta;
 			double NewOut = MouseDownViewRange.GetUpperBoundValue() + DragDelta;
@@ -235,7 +235,7 @@ FReply SActActionTimeRangeSlider::OnMouseButtonDoubleClick(const FGeometry& InMy
 
 void SActActionTimeRangeSlider::ComputeHandleOffsets(float& LeftHandleOffset, float& RightHandleOffset, float& HandleOffset, int32 GeometryWidth) const
 {
-	auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	float InTime = ActEventTimelineArgs->ViewRange.GetLowerBoundValue();
 	float OutTime = ActEventTimelineArgs->ViewRange.GetUpperBoundValue();
@@ -262,7 +262,7 @@ void SActActionTimeRangeSlider::ComputeHandleOffsets(float& LeftHandleOffset, fl
 
 float SActActionTimeRangeSlider::ComputeDragDelta(const FPointerEvent& MouseEvent, int32 GeometryWidth) const
 {
-	auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	float BeginTime = ActEventTimelineArgs->ClampRange.GetLowerBoundValue();
 	float EndTime = ActEventTimelineArgs->ClampRange.GetUpperBoundValue();

@@ -1,7 +1,9 @@
 ﻿#pragma once
 
-#include "SSingleObjectDetailsPanel.h"
 #include "Common/NovaDelegate.h"
+#include "NovaAct/ActAssetDetails/ActAssetDetails.h"
+
+#include "SSingleObjectDetailsPanel.h"
 
 class FNovaActEditor;
 
@@ -20,7 +22,7 @@ public:
 	SLATE_END_ARGS()
 
 
-	void Construct(const FArguments& InArgs, const TSharedRef<FNovaActEditor>& InActActionSequenceEditor);
+	void Construct(const FArguments& InArgs, const TSharedRef<FActAssetDetails>& InActAssetDetails);
 
 	//~Begin SWidget interface
 	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;

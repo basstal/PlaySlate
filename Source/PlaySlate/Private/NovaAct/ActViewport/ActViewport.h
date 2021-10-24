@@ -48,15 +48,12 @@ public:
 	 */
 	void SpawnActorInViewport(UClass* ActorType, const UAnimBlueprint* AnimBlueprint);
 
-	/** @param InAnimSequence 初始化动画使用的Montage实例 */
-	void InitAnimation(UAnimSequence* InAnimSequence) const;
-
 	/**
 	 * 根据EvaluationRange结构来设置当前动画的预览位置
 	 *
-	 * @param InArgs
+	 * @param InCurrentTime
 	 */
-	void EvaluateInternal(TSharedPtr<FActEventTimelineArgs> InArgs);
+	void OnCurrentTimeChanged(TSharedPtr<FFrameTime> InCurrentTime);
 
 	/**
 	 * 设置到动画的一端，开始或结尾
@@ -70,10 +67,10 @@ public:
 	 *
 	 * @param InPlaybackMode 当前播放状态
 	 */
-	void TogglePlay(const EPlaybackMode::Type& InPlaybackMode) const;
+	void OnPlaybackModeChanged(EPlaybackMode::Type InPlaybackMode) const;
 
 	/** 控制循环播放 */
-	void ToggleLoop() const;
+	void ToggleLooping() const;
 
 	/** @return 是否在循环播放 */
 	bool IsLoopStatusOn() const;
@@ -86,7 +83,7 @@ public:
 	void PlayStep(bool bForward) const;
 
 	/** @retrun 获得当前播放状态 */
-	EPlaybackMode::Type GetPlaybackMode() const;
+	// EPlaybackMode::Type GetPlaybackMode() const;
 
 	/** @return 当前动画播放的时间位置，单位秒 */
 	float GetCurrentPosition() const;
@@ -96,7 +93,16 @@ public:
 
 	/** 监听 AnimInstance 的 CurrentTime 是否已修改 */
 	void TickCurrentTimeChanged();
+	/** 监听 AnimSequence 的播放状态是否已停止*/
+	void TickPlayingStopped();
+	/** UActAnimation 的数据绑定，监听AnimBlueprint数据改变 */
 	void OnAnimBlueprintChanged(UActAnimation* InActAnimation);
+	/** UActAnimation 的数据绑定，监听AnimSequence数据改变 */
+	void OnAnimSequenceChanged(UActAnimation* InActAnimation);
+	/** ENovaTransportControls 的数据绑定，监听ENovaTransportControls数据改变，控制Viewport的动画播放 */
+	void OnTransportControlsStateChanged(ENovaTransportControls InNovaTransportControls);
+
+
 protected:
 	/**
 	* 对Editor的引用，调用编辑器资源和相关工具方法
@@ -125,8 +131,16 @@ protected:
 	float LastCurrentTime;                       // ** 用于检测CurrentTime是否改变
 	FDelegateHandle OnCurrentTimeChangedHandle;  // ** 数据绑定
 	FDelegateHandle OnAnimBlueprintChangedHandle;// ** 数据绑定
+	FDelegateHandle OnAnimSequenceChangedHandle;
 
 
+	TSharedPtr<TDataBinding<ENovaTransportControls>> TransportControlsState;// ** 当前Viewport transport controls 状态的数据绑定
+	FDelegateHandle OnTransportControlsStateChangedHandle;
+
+	TSharedPtr<TDataBinding<bool>> PreviewInstanceLooping;                    // ** 当前 Viewport 动画实例播放是否为 Lopping 状态
+	TSharedPtr<TDataBinding<EPlaybackMode::Type>> PreviewInstancePlaybackMode;//** 当前 Viewport 动画实例播放 PlaybackMode 状态
+	FDelegateHandle OnPlaybackModeChangedHandle;
+	TSharedPtr<TDataBindingSP<FFrameTime>> CurrentTimeDB;// ** 当前 Viewport 动画实例的实际时间点
 public:
 	TSharedRef<SActActionViewportWidget> GetActActionViewportWidget() const
 	{

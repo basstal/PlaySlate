@@ -27,7 +27,7 @@ TSharedRef<FActActionTrackEditorBase> FActActionHitBoxTrack::CreateTrackEditor(T
 
 void FActActionHitBoxTrack::AssignHitBox() const
 {
-	auto DB = NovaDB::GetOrCreate<UActAnimation*>("ActAnimation");
+	auto DB = GetDataBindingUObject(UActAnimation, "ActAnimation");
 	UActAnimation* ActAnimation = DB->GetData();
 	ActAnimation->ActActionHitBoxes.AddDefaulted();
 	DB->Trigger();

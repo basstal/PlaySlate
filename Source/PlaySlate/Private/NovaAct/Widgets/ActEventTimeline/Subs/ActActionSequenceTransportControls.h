@@ -19,25 +19,25 @@ SLATE_BEGIN_ARGS(SActActionSequenceTransportControls)
 	void Construct(const FArguments& InArgs, const TSharedRef<FActEventTimeline>& InActActionSequenceController);
 
 	/** 点击逐帧前进的回调 */
-	FReply OnClick_Forward_Step() const;
+	FReply OnClickForwardStep() const;
 
 	/** 点击到动画结尾的回调 */
-	FReply OnClick_Forward_End() const;
+	FReply OnClickForwardEnd() const;
 
 	/** 点击逐帧退后的回调 */
-	FReply OnClick_Backward_Step() const;
+	FReply OnClickBackwardStep() const;
 
 	/** 点击到动画开始的回调 */
-	FReply OnClick_Backward_End() const;
+	FReply OnClickBackwardEnd() const;
 
 	/** 点击动画前进播放的回调 */
-	FReply OnClick_Forward() const;
+	FReply OnClickForwardPlay() const;
 
 	/** 点击动画倒退播放的回调 */
-	FReply OnClick_Backward() const;
+	FReply OnClickBackwardPlay() const;
 
 	/** 点击循环的回调 */
-	FReply OnClick_ToggleLoop() const;
+	FReply OnClickToggleLooping() const;
 	/** 是否在循环播放 */
 	bool IsLoopStatusOn() const;
 	/** 获得当前播放状态 */

@@ -13,7 +13,7 @@ void SActActionTimeSliderWidget::Construct(const FArguments& InArgs, const TShar
 
 int32 SActActionTimeSliderWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
-	auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData(); 
 	const TRange<float> LocalViewRange = ActEventTimelineArgs->ViewRange;
 	const float LocalViewRangeMin = LocalViewRange.GetLowerBoundValue();

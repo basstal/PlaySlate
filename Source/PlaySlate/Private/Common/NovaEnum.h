@@ -77,4 +77,16 @@ namespace NovaEnum
 		End,
 		None
 	};
+
+	enum class ENovaTransportControls : uint8
+	{
+		ForwardStep,
+		BackwardStep,
+		ForwardEnd,
+		BackwardEnd,
+		ForwardPlay,
+		BackwardPlay,
+		ToggleLooping,
+		Pause
+	};
 }

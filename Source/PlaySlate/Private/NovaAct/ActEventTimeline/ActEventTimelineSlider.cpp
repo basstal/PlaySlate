@@ -408,6 +408,8 @@ FReply FActEventTimelineSlider::OnMouseMove(const FGeometry& MyGeometry, const F
 				else if (bMouseDownInRegion)
 				{
 					MouseDragType = ENovaDragType::DRAG_SCRUBBING_TIME;
+					auto DB = GetDataBinding(ENovaTransportControls, "TransportControlsState");
+					DB->SetData(ENovaTransportControls::Pause);
 					ActEventTimelineEvents->OnBeginScrubberMovement.ExecuteIfBound();
 				}
 			}
@@ -525,14 +527,14 @@ void FActEventTimelineSlider::DrawTicks(FSlateWindowElementList& OutDrawElements
 
 		// Draw each tick mark
 		FSlateDrawElement::MakeLines(
-		                             OutDrawElements,
-		                             InArgs.StartLayer,
-		                             PaintGeometry,
-		                             LinePoints,
-		                             InArgs.DrawEffects,
-		                             InArgs.TickColor,
-		                             false
-		                            );
+			OutDrawElements,
+			InArgs.StartLayer,
+			PaintGeometry,
+			LinePoints,
+			InArgs.DrawEffects,
+			InArgs.TickColor,
+			false
+		);
 
 		if (!InArgs.bOnlyDrawMajorTicks && !FMath::IsNearlyEqual(MajorLinePx, FlooredScrubPx, 3.f))
 		{
@@ -541,14 +543,14 @@ void FActEventTimelineSlider::DrawTicks(FSlateWindowElementList& OutDrawElements
 			// Space the text between the tick mark but slightly above
 			FVector2D TextOffset(MajorLinePx + 5.f, InArgs.bMirrorLabels ? 1.f : FMath::Abs(InArgs.AllottedGeometry.Size.Y - (InArgs.MajorTickHeight + 3.f)));
 			FSlateDrawElement::MakeText(
-			                            OutDrawElements,
-			                            InArgs.StartLayer + 1,
-			                            InArgs.AllottedGeometry.ToPaintGeometry(TextOffset, InArgs.AllottedGeometry.Size),
-			                            FrameString,
-			                            SmallLayoutFont,
-			                            InArgs.DrawEffects,
-			                            InArgs.TickColor * 0.65f
-			                           );
+				OutDrawElements,
+				InArgs.StartLayer + 1,
+				InArgs.AllottedGeometry.ToPaintGeometry(TextOffset, InArgs.AllottedGeometry.Size),
+				FrameString,
+				SmallLayoutFont,
+				InArgs.DrawEffects,
+				InArgs.TickColor * 0.65f
+			);
 		}
 
 		for (int32 Step = 1; Step < MinorDivisions; ++Step)
@@ -562,28 +564,28 @@ void FActEventTimelineSlider::DrawTicks(FSlateWindowElementList& OutDrawElements
 
 			// Draw each sub mark
 			FSlateDrawElement::MakeLines(
-			                             OutDrawElements,
-			                             InArgs.StartLayer,
-			                             PaintGeometry,
-			                             LinePoints,
-			                             InArgs.DrawEffects,
-			                             InArgs.TickColor,
-			                             false
-			                            );
+				OutDrawElements,
+				InArgs.StartLayer,
+				PaintGeometry,
+				LinePoints,
+				InArgs.DrawEffects,
+				InArgs.TickColor,
+				false
+			);
 		}
 	}
 }
 
 TSharedRef<FActEventTimelineArgs> FActEventTimelineSlider::GetActEventTimelineArgs() const
 {
-	auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	return ActEventTimelineArgs.ToSharedRef();
 }
 
 TSharedRef<FActEventTimelineEvents> FActEventTimelineSlider::GetActEventTimelineEvents() const
 {
-	auto ActEventTimelineEventsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineEvents>>("ActEventTimelineEvents");
+	auto ActEventTimelineEventsDB = GetDataBindingSP(FActEventTimelineEvents, "ActEventTimelineEvents");
 	TSharedPtr<FActEventTimelineEvents> ActEventTimelineEvents = ActEventTimelineEventsDB->GetData();
 	return ActEventTimelineEvents.ToSharedRef();
 }

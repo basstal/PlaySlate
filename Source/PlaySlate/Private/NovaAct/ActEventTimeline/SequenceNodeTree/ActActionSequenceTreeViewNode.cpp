@@ -92,19 +92,19 @@ void FActActionSequenceTreeViewNode::MakeWidgetForSectionArea()
 {
 	ActActionTrackAreaArgs.ViewInputMin.Bind(TAttribute<float>::FGetter::CreateLambda([this]()
 	{
-		auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+		auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 		TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 		return ActEventTimelineArgs->ViewRange.GetLowerBoundValue();
 	}));
 	ActActionTrackAreaArgs.ViewInputMax.Bind(TAttribute<float>::FGetter::CreateLambda([this]()
 	{
-		auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+		auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 		TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 		return ActEventTimelineArgs->ViewRange.GetUpperBoundValue();
 	}));
 	auto TickResolutionLambda = TAttribute<FFrameRate>::FGetter::CreateLambda([this]()
 	{
-		auto ActEventTimelineArgsDB = NovaDB::GetOrCreate<TSharedPtr<FActEventTimelineArgs>>("ActEventTimelineArgs");
+		auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 		TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 		return ActEventTimelineArgs->TickResolution;
 	});

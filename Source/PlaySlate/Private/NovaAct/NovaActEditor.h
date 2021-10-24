@@ -18,7 +18,7 @@ using namespace NovaDelegate;
  * 该对象会与编辑器的主页签一同释放
  * 其他子Controller（例如ActActionSequenceController）保存的都是WeakPtr
  */
-class FNovaActEditor : public FWorkflowCentricApplication, public FGCObject, public FEditorUndoClient, public FNotifyHook
+class FNovaActEditor : public FWorkflowCentricApplication, public FGCObject, public FEditorUndoClient
 {
 public:
 	FNovaActEditor(UActAnimation* InActAnimation);
@@ -45,10 +45,6 @@ public:
 	virtual FString GetWorldCentricTabPrefix() const override;
 	//~End FAssetEditorToolkit interfaced
 
-	//~Begin FNotifyHook interface
-	virtual void NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, FProperty* PropertyThatChanged) override;
-	//~End FNotifyHook interface
-
 	/**
 	 * 生成 Viewport Tab
 	 *
@@ -72,7 +68,7 @@ public:
 	TSharedRef<SDockTab> OnActAssetDetailsTabSpawn(const FSpawnTabArgs& SpawnTabArgs);
 
 protected:
-	TSharedPtr<TDataBinding<UActAnimation*>> ActAnimationDB;// 当前资源实例的数据绑定
+	TSharedPtr<TDataBindingUObject<UActAnimation>> ActAnimationDB;// 当前资源实例的数据绑定
 
 	TSharedPtr<FActViewport> ActViewport;          /** Viewport Controller，Editor没有销毁的情况下不会为空 */
 	TSharedPtr<FActEventTimeline> ActEventTimeline;/** Sequence Controller，Editor没有销毁的情况下不会为空 */
@@ -81,14 +77,4 @@ protected:
 	TSharedPtr<SDockTab> ActEventTimelineWidgetParent;/** Sequence Widget Container */
 	TSharedPtr<SDockTab> ActViewportWidgetParent;     /** Viewport Widget Container */
 	TSharedPtr<SDockTab> ActAssetDetailsWidgetParent; /** Details Widget Container */
-public:
-	TSharedRef<FActEventTimeline> GetActActionSequenceController() const
-	{
-		return ActEventTimeline.ToSharedRef();
-	}
-
-	TSharedRef<FActViewport> GetActActionPreviewSceneController() const
-	{
-		return ActViewport.ToSharedRef();
-	}
 };
