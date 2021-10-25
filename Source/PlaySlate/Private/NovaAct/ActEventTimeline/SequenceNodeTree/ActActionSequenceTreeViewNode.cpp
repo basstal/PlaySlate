@@ -113,11 +113,11 @@ TSharedRef<SActTrackPanel> FActActionSequenceTreeViewNode::GetActTrackPanel()
 
 		ActTrackPanel = SNew(SActTrackPanel)
 			// .IsEnabled(!bChildAnimMontage)
-			.Sequence(ActAnimationDB->GetData()->AnimSequence)
-			.InputMin(this, &FAnimTimelineTrack_NotifiesPanel::GetMinInput)
-			.InputMax(this, &FAnimTimelineTrack_NotifiesPanel::GetMaxInput)
-			.ViewInputMin(this, &FAnimTimelineTrack_NotifiesPanel::GetViewMinInput)
-			.ViewInputMax(this, &FAnimTimelineTrack_NotifiesPanel::GetViewMaxInput);
+			.Sequence(ActAnimationDB->GetData()->AnimSequence);
+			// .InputMin(this, &FAnimTimelineTrack_NotifiesPanel::GetMinInput)
+			// .InputMax(this, &FAnimTimelineTrack_NotifiesPanel::GetMaxInput)
+			// .ViewInputMin(this, &FAnimTimelineTrack_NotifiesPanel::GetViewMinInput)
+			// .ViewInputMax(this, &FAnimTimelineTrack_NotifiesPanel::GetViewMaxInput);
 		// .OnGetScrubValue(this, &FAnimTimelineTrack_NotifiesPanel::GetScrubValue)
 		// .OnSelectionChanged(this, &FAnimTimelineTrack_NotifiesPanel::SelectObjects)
 		// .OnSetInputViewRange(this, &FAnimTimelineTrack_NotifiesPanel::OnSetInputViewRange)
@@ -173,7 +173,7 @@ TSharedRef<SActTrackPanel> FActActionSequenceTreeViewNode::GetActTrackPanel()
 		//                                     }
 		//                                    });
 
-		GetModel()->GetAnimSequenceBase()->RegisterOnNotifyChanged(UAnimSequenceBase::FOnNotifyChanged::CreateSP(this, &FAnimTimelineTrack_NotifiesPanel::HandleNotifyChanged));
+		// GetModel()->GetAnimSequenceBase()->RegisterOnNotifyChanged(UAnimSequenceBase::FOnNotifyChanged::CreateSP(this, &FAnimTimelineTrack_NotifiesPanel::HandleNotifyChanged));
 	}
 
 	return ActTrackPanel.ToSharedRef();
@@ -231,18 +231,18 @@ void FActActionSequenceTreeViewNode::RefreshOutlinerWidget()
 			]
 		);
 
-		UAnimMontage* AnimMontage = Cast<UAnimMontage>(GetModel()->GetAnimSequenceBase());
-		if (!(AnimMontage && AnimMontage->HasParentAsset()))
-		{
-			HorizontalBox->AddSlot()
-			             .AutoWidth()
-			             .VAlign(VAlign_Center)
-			             .HAlign(HAlign_Right)
-			             .Padding(NovaConst::OutlinerRightPadding, 1.0f)
-			[
-				NovaStaticFunction::MakeTrackButton(LOCTEXT("AddTrackButtonText", "Track"), FOnGetContent::CreateSP(this, &FActActionSequenceTreeViewNode::BuildNotifiesPanelSubMenu, TrackIndex), MakeAttributeSP(SlotBox.Get(), &SWidget::IsHovered))
-			];
-		}
+		// UAnimMontage* AnimMontage = Cast<UAnimMontage>(GetModel()->GetAnimSequenceBase());
+		// if (!(AnimMontage && AnimMontage->HasParentAsset()))
+		// {
+		// 	HorizontalBox->AddSlot()
+		// 	             .AutoWidth()
+		// 	             .VAlign(VAlign_Center)
+		// 	             .HAlign(HAlign_Right)
+		// 	             .Padding(NovaConst::OutlinerRightPadding, 1.0f)
+		// 	[
+		// 		NovaStaticFunction::MakeTrackButton(LOCTEXT("AddTrackButtonText", "Track"), FOnGetContent::CreateSP(this, &FActActionSequenceTreeViewNode::BuildNotifiesPanelSubMenu, TrackIndex), MakeAttributeSP(SlotBox.Get(), &SWidget::IsHovered))
+		// 	];
+		// }
 
 		if (PendingRenameTrackIndex == TrackIndex)
 		{

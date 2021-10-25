@@ -50,6 +50,8 @@ public:
 	 * @return 输出包装用Outliner Widget
 	 */
 	TSharedRef<SWidget> MakeOutlinerWidget(const TSharedRef<SActActionSequenceTreeViewRow>& InRow);
+	TSharedRef<SActTrackPanel> GetActTrackPanel();
+
 	/** 当Notify节点有改变时触发的回调 */
 	void HandleNotifyChanged();
 	void RefreshOutlinerWidget();
