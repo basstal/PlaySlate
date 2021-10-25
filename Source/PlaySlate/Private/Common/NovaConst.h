@@ -14,4 +14,7 @@ namespace NovaConst
 	const float NotifyHeightOffset = 0.f;
 	/** Notify 高度 */
 	const float NotifyHeight = 24.0f;
+	/** Outliner 右侧 间隔距离 */
+	const float OutlinerRightPadding = 8.0f;
+
 }
