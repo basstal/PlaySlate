@@ -108,4 +108,64 @@ public:
 
 		return false;
 	}
+
+	static TSharedRef<SWidget> MakeTrackButton(FText HoverText, FOnGetContent MenuContent, const TAttribute<bool>& HoverState)
+	{
+		FSlateFontInfo SmallLayoutFont = FCoreStyle::GetDefaultFontStyle("Regular", 8);
+
+		TSharedRef<STextBlock> ComboButtonText = SNew(STextBlock)
+			.Text(HoverText)
+			.Font(SmallLayoutFont)
+			.ColorAndOpacity(FSlateColor::UseForeground());
+
+		TSharedRef<SComboButton> ComboButton =
+
+			SNew(SComboButton)
+			.HasDownArrow(false)
+			.ButtonStyle(FEditorStyle::Get(), "HoverHintOnly")
+			.ForegroundColor(FSlateColor::UseForeground())
+			.OnGetMenuContent(MenuContent)
+			.ContentPadding(FMargin(5, 2))
+			.HAlign(HAlign_Center)
+			.VAlign(VAlign_Center)
+			.ButtonContent()
+			[
+				SNew(SHorizontalBox)
+
+				+ SHorizontalBox::Slot()
+				  .AutoWidth()
+				  .VAlign(VAlign_Center)
+				  .Padding(FMargin(0, 0, 2, 0))
+				[
+					SNew(SImage)
+					.ColorAndOpacity(FSlateColor::UseForeground())
+					.Image(FEditorStyle::GetBrush("ComboButton.Arrow"))
+				]
+
+				+ SHorizontalBox::Slot()
+				  .VAlign(VAlign_Center)
+				  .AutoWidth()
+				[
+					ComboButtonText
+				]
+			];
+
+		auto GetRolloverVisibility = [WeakComboButton = TWeakPtr<SComboButton>(ComboButton), HoverState]()
+		{
+			TSharedPtr<SComboButton> ComboButton = WeakComboButton.Pin();
+			if (HoverState.Get() || ComboButton->IsOpen())
+			{
+				return EVisibility::SelfHitTestInvisible;
+			}
+			else
+			{
+				return EVisibility::Collapsed;
+			}
+		};
+
+		TAttribute<EVisibility> Visibility = TAttribute<EVisibility>::Create(TAttribute<EVisibility>::FGetter::CreateLambda(GetRolloverVisibility));
+		ComboButtonText->SetVisibility(Visibility);
+
+		return ComboButton;
+	}
 };

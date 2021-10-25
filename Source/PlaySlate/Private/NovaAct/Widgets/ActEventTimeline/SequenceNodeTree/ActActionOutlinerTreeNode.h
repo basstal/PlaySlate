@@ -4,12 +4,10 @@ class SActActionSequenceTreeViewRow;
 
 class FActActionSequenceTreeViewNode;
 
-class SActActionOutlinerTreeNode : public SCompoundWidget
+class SActActionOutlinerTreeNode : public SMultiColumnTableRow<TSharedRef<FActActionSequenceTreeViewNode>>
 {
 public:
-	SLATE_BEGIN_ARGS(SActActionOutlinerTreeNode)
-		{
-		}
+	SLATE_BEGIN_ARGS(SActActionOutlinerTreeNode) { }
 
 		SLATE_ATTRIBUTE(const FSlateBrush*, IconBrush)
 		SLATE_ATTRIBUTE(const FSlateBrush*, IconOverlayBrush)

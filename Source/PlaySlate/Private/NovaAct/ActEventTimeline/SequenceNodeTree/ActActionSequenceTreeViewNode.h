@@ -2,6 +2,7 @@
 
 #include "Common/NovaStruct.h"
 #include "NovaAct/Assets/ActActionSequenceStructs.h"
+#include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/ActTrackPanel.h"
 
 class FActActionSequenceSectionBase;
 class SActActionSequenceTreeViewRow;
@@ -48,12 +49,20 @@ public:
 	 * @param InRow 传入的内容Widget
 	 * @return 输出包装用Outliner Widget
 	 */
-	TSharedRef<SActActionOutlinerTreeNode> MakeOutlinerWidget(const TSharedRef<SActActionSequenceTreeViewRow>& InRow);
+	TSharedRef<SWidget> MakeOutlinerWidget(const TSharedRef<SActActionSequenceTreeViewRow>& InRow);
+	/** 当Notify节点有改变时触发的回调 */
+	void HandleNotifyChanged();
+	void RefreshOutlinerWidget();
+	void OnCommitTrackName(const FText& InText, ETextCommit::Type CommitInfo, int32 TrackIndexToName);
+	TSharedRef<SWidget> BuildNotifiesPanelSubMenu(int32 InTrackIndex);
+	EActiveTimerReturnType HandlePendingRenameTimer(double InCurrentTime, float InDeltaTime, TWeakPtr<SInlineEditableTextBlock> InInlineEditableTextBlock);
 
+	/** TODO: */
+	TSharedRef<SActTrackPanel> GetAnimNotifyPanel();
 	/**
 	 * Generates a widget for display in the section area portion of the track area
 	 */
-	void MakeWidgetForSectionArea();
+	TSharedRef<SActTrackPanel> MakeWidgetForTrackArea();
 
 	/**
 	 * @return 是否为树的根节点
@@ -244,6 +253,13 @@ protected:
 	FActActionHitBoxData* CachedHitBox;
 	/** TrackAreaSlot 对应到 Geometry 信息 */
 	TMap<TSharedRef<FActActionTrackAreaSlot>, FActActionCachedGeometry> CachedTrackGeometry;
+	/** 代表一行Track区域 */
+	TSharedPtr<SActTrackPanel> ActTrackPanel;
+	/** The height of the track */
+	float Height;
+	/** The outliner widget to allow for dynamic refresh */
+	TSharedPtr<SVerticalBox> OutlinerWidget;
+	int32 PendingRenameTrackIndex;
 public:
 	/** TODO:临时放到这里 */
 	void SetHitBoxBegin(int InBegin)
@@ -322,5 +338,10 @@ public:
 	TSharedRef<FActEventTimeline> GetSequenceController() const
 	{
 		return ActActionSequenceController.Pin().ToSharedRef();
+	}
+
+	void SetHeight(float InHeight)
+	{
+		Height = InHeight;
 	}
 };
