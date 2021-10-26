@@ -4,7 +4,7 @@
 #include "Common/NovaStaticFunction.h"
 #include "PlaySlate.h"
 #include "ActActionViewportClient.h"
-#include "NovaAct/Widgets/ActViewport/ActActionViewportWidget.h"
+#include "NovaAct/ActViewport/ActActionViewportWidget.h"
 #include "NovaAct/NovaActEditor.h"
 
 #include "Animation/DebugSkelMeshComponent.h"
@@ -13,7 +13,7 @@
 #include "Animation/AnimSingleNodeInstance.h"
 #include "AnimPreviewInstance.h"
 #include "Animation/SkeletalMeshActor.h"
-#include "NovaAct/ActEventTimeline/ActEventTimeline.h"
+
 #include "NovaAct/Assets/ActAnimation.h"
 
 FActViewport::FActViewport(const ConstructionValues& CVS, const TSharedRef<FNovaActEditor>& InActActionSequenceEditor)

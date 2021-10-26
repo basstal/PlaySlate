@@ -1,17 +1,15 @@
 ﻿#pragma once
 
 #include "Common/NovaStruct.h"
-#include "NovaAct/Assets/ActActionSequenceStructs.h"
-
 
 class UActAnimation;
 class FActActionSequenceSectionBase;
 class SActActionSequenceTreeViewRow;
 class SActActionOutlinerTreeNode;
-class SActActionSequenceTreeView;
-class SActActionSequenceTrackArea;
-class FActActionTrackAreaSlot;
-class SActActionSequenceTrackLane;
+class SActTreeView;
+class SActTreeViewTrackAreaPanel;
+class SActTreeViewTrackLaneWidget;
+class SActTreeViewTrackCarWidget;
 class SActTrackPanel;
 
 using namespace NovaEnum;
@@ -26,11 +24,16 @@ public:
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
-protected:
-	TSharedPtr<SActActionSequenceTreeView> TreeView;        // ** 这个Controller的Widget
-	TSharedPtr<SActActionSequenceTreeView> TreeViewPinned;  // ** (Pinned)这个Controller的Widget
-	TSharedPtr<SActActionSequenceTrackArea> TrackArea;      // ** Widget TreeView 对应的TrackArea，
-	TSharedPtr<SActActionSequenceTrackArea> TrackAreaPinned;// ** (Pinned)Widget TreeView 对应的TrackArea
 
-	TSharedPtr<SActTrackPanel> ActTrackPanel;// ** 代表一行Track区域
+	/**
+	 * 依据特定的数据生成一行 TableRow，供TreeView回调使用，同时在TrackAreaPanel也生成一个对应的TrackLaneWidget 
+	 * @param InDisplayNode
+	 * @param OwnerTable
+	 * @return 
+	 */
+	TSharedRef<ITableRow> OnGenerateRow(TSharedRef<SActTreeViewNode> InDisplayNode, const TSharedRef<STableViewBase>& OwnerTable);
+
+protected:
+	TMap<TSharedPtr<SActTreeViewNode>, TWeakPtr<SActTreeViewTrackLaneWidget>> TreeViewNode2TrackLane;// ** A map of child slot content that exist in our view.
+
 };

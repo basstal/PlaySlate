@@ -2,7 +2,7 @@
 
 #include "NovaBlueprint/Assets/ActActionBlueprint.h"
 #include "NovaBlueprint/Assets/ActActionLogic.h"
-#include "NovaBlueprint/Widgets/ActActionBlueprintCreateDialog.h"
+#include "NovaBlueprint/ActActionBlueprintCreateDialog.h"
 #include "NovaBlueprint/Controllers/BlueprintGraph/ActActionBlueprintGraph.h"
 #include "NovaBlueprint/Controllers/BlueprintGraph/ActActionBlueprintGraphSchema.h"
 

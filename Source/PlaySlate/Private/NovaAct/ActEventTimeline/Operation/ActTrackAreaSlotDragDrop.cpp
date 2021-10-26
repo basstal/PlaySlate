@@ -2,8 +2,8 @@
 
 #include "SCurveEditor.h"
 #include "Common/NovaDataBinding.h"
-#include "NovaAct/Widgets/ActEventTimeline/TreeView/Subs/ActActionSequenceNotifyNode.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActActionTrackAreaSlot.h"
+#include "NovaAct/ActEventTimeline/TreeView/Subs/ActActionSequenceNotifyNode.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActTreeViewTrackLaneWidget.h"
 
 
 #define LOCTEXT_NAMESPACE "NovaAct"

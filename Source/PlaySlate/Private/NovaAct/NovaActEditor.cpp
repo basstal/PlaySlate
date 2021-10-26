@@ -2,19 +2,14 @@
 
 #include "PlaySlate.h"
 #include "Common/NovaConst.h"
-#include "NovaAct/Assets/ActAnimation.h"
-#include "NovaAct/ActEventTimeline/ActEventTimeline.h"
-#include "NovaAct/ActViewport/ActViewport.h"
-// ReSharper disable once CppUnusedIncludeDirective
-#include "NovaAct/Widgets/ActViewport/ActActionViewportWidget.h"
-// ReSharper disable once CppUnusedIncludeDirective
-#include "FrameNumberNumericInterface.h"
-#include "NovaAct/Widgets/ActEventTimeline/ActEventTimelineWidget.h"
-#include "NovaAct/Widgets/ActAssetDetails/ActAssetDetailsWidget.h"
-// #include "NovaAct/ActAssetDetails/ActAssetDetailsNotifyHook.h"
-
-// #include "Animation/AnimBlueprint.h"
 #include "Common/NovaDataBinding.h"
+#include "NovaAct/Assets/ActAnimation.h"
+
+#include "NovaAct/ActViewport/ActViewport.h"
+#include "NovaAct/ActEventTimeline/ActEventTimelineWidget.h"
+#include "NovaAct/ActAssetDetails/ActAssetDetailsWidget.h"
+
+#include "FrameNumberNumericInterface.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 

@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include "IAnimationEditor.h"
-#include "Common/NovaDelegate.h"
 #include "Common/NovaDataBinding.h"
 #include "Common/NovaStruct.h"
 

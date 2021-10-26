@@ -3,9 +3,9 @@
 #include "Common/NovaDelegate.h"
 
 
-class FActActionTrackAreaSlot;
+class SActTreeViewTrackLaneWidget;
 class FActActionTrackEditorBase;
-class FActActionSequenceTreeViewNode;
+class SActTreeViewNode;
 class SActActionSequenceTreeViewRow;
 
 namespace NovaStruct
@@ -307,7 +307,7 @@ namespace NovaStruct
 	/** Structure used to define a column in the tree view */
 	struct FActActionSequenceTreeViewColumn
 	{
-		typedef TFunction<TSharedRef<SWidget>(const TSharedRef<FActActionSequenceTreeViewNode>&, const TSharedRef<SActActionSequenceTreeViewRow>&)> FOnGenerate;
+		typedef TFunction<TSharedRef<SWidget>(const TSharedRef<SActTreeViewNode>&, const TSharedRef<SActActionSequenceTreeViewRow>&)> FOnGenerate;
 
 		FActActionSequenceTreeViewColumn(const FOnGenerate& InOnGenerate, const TAttribute<float>& InWidth)
 			: Generator(InOnGenerate),
@@ -327,12 +327,12 @@ namespace NovaStruct
 	/** Structure used to cache physical geometry for a particular track */
 	struct FActActionCachedGeometry
 	{
-		FActActionCachedGeometry(TSharedRef<FActActionTrackAreaSlot> InTrack, float InTop, float InHeight)
+		FActActionCachedGeometry(TSharedRef<SActTreeViewTrackLaneWidget> InTrack, float InTop, float InHeight)
 			: Track(MoveTemp(InTrack)),
 			  Top(InTop),
 			  Height(InHeight) { }
 
-		TSharedRef<FActActionTrackAreaSlot> Track;
+		TSharedRef<SActTreeViewTrackLaneWidget> Track;
 		float Top;
 		float Height;
 	};

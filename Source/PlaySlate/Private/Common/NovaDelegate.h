@@ -6,7 +6,7 @@ struct FPointerEvent;
 struct FActActionHitBoxData;
 class FActActionTrackEditorBase;
 
-class FActActionSequenceTreeViewNode;
+class SActTreeViewNode;
 class SActActionSequenceTreeViewRow;
 class SActActionSequenceNotifyNode;
 class SActEventTimelineWidget;
@@ -24,7 +24,7 @@ namespace NovaDelegate
 	DECLARE_DELEGATE_RetVal_OneParam(TSharedRef<FActActionTrackEditorBase>, OnCreateTrackEditorDelegate, TSharedRef<SActEventTimelineWidget>);
 	/** A delegate which will create an auto-key handler. */
 	DECLARE_DELEGATE_RetVal_TwoParams(FFrameNumber, OnGetNearestKeyDelegate, FFrameTime, bool)
-	DECLARE_DELEGATE_RetVal_ThreeParams(TSharedRef<SWidget>, OnGenerateWidgetForColumnDelegate, const TSharedRef<FActActionSequenceTreeViewNode>&, const FName&, const TSharedRef<SActActionSequenceTreeViewRow>&);
+	DECLARE_DELEGATE_RetVal_ThreeParams(TSharedRef<SWidget>, OnGenerateWidgetForColumnDelegate, const TSharedRef<SActTreeViewNode>&, const FName&, const TSharedRef<SActActionSequenceTreeViewRow>&);
 	DECLARE_DELEGATE_RetVal_ThreeParams(bool, OnSnapPositionDelegate, float& /*InOutTimeToSnap*/, float /*InSnapMargin*/, TArrayView<const FName> /*InSkippedSnapTypes*/)
 	DECLARE_DELEGATE_RetVal_FourParams(FReply, OnNotifyNodeDragStartedDelegate, TSharedRef<SActActionSequenceNotifyNode>, const FPointerEvent&, const FVector2D&, const bool)
 

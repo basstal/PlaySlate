@@ -1,7 +1,7 @@
 ﻿#include "ActActionViewportClient.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/Widgets/ActViewport/ActActionViewportWidget.h"
+#include "NovaAct/ActViewport/ActActionViewportWidget.h"
 #include "ActViewport.h"
 
 #include "AssetEditorModeManager.h"

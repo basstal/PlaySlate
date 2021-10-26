@@ -6,14 +6,14 @@
 #include "Common/NovaStaticFunction.h"
 #include "Common/NovaStruct.h"
 #include "NovaAct/NovaActEditor.h"
-#include "NovaAct/ActEventTimeline/ActEventTimeline.h"
-#include "NovaAct/Widgets/ActEventTimeline/Image/Subs/ActActionTimeRangeSlider.h"
+
+#include "NovaAct/ActEventTimeline/Image/Subs/ActActionTimeRangeSlider.h"
 // ReSharper disable once CppUnusedIncludeDirective
 #include "LevelEditorViewport.h"
 // ReSharper disable once CppUnusedIncludeDirective
-#include "NovaAct/Widgets/ActEventTimeline/Image/ActActionSequenceSectionOverlayWidget.h"
-#include "NovaAct/Widgets/ActEventTimeline/Image/ActActionTimeSliderWidget.h"
-#include "NovaAct/Widgets/ActEventTimeline/Image/Subs/ActActionTimeRange.h"
+#include "NovaAct/ActEventTimeline/Image/ActActionSequenceSectionOverlayWidget.h"
+#include "NovaAct/ActEventTimeline/Image/ActActionTimeSliderWidget.h"
+#include "NovaAct/ActEventTimeline/Image/Subs/ActActionTimeRange.h"
 #include "Widgets/Layout/SGridPanel.h"
 
 FActEventTimelineSlider::FActEventTimelineSlider()

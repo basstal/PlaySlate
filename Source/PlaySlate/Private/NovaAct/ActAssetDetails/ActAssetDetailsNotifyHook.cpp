@@ -1,10 +1,8 @@
 ﻿#include "ActAssetDetailsNotifyHook.h"
 
 #include "PlaySlate.h"
-// ReSharper disable once CppUnusedIncludeDirective
 #include "NovaAct/Assets/ActAnimation.h"
 #include "NovaAct/NovaActEditor.h"
-// #include "NovaAct/Widgets/ActAssetDetails/ActAssetDetailsWidget.h"
 
 FActAssetDetailsNotifyHook::~FActAssetDetailsNotifyHook()
 {
