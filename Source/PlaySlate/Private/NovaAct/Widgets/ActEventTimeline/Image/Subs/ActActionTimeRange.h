@@ -6,9 +6,7 @@ class SActActionTimeRangeSlider;
 class SActActionTimeRange : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SActActionTimeRange)
-		{
-		}
+	SLATE_BEGIN_ARGS(SActActionTimeRange) { }
 
 	SLATE_END_ARGS()
 

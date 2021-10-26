@@ -1,7 +1,7 @@
 ﻿#include "ActActionOutlinerTreeNode.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/ActEventTimeline/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActActionSequenceTreeViewNode.h"
 #include "NovaAct/ActEventTimeline/ActEventTimeline.h"
 #include "Styling/StyleColors.h"
 #include "Subs/ActActionSequenceTreeViewRow.h"
@@ -17,7 +17,7 @@ SActActionOutlinerTreeNode::SActActionOutlinerTreeNode()
 
 SActActionOutlinerTreeNode::~SActActionOutlinerTreeNode()
 {
-	UE_LOG(LogActAction, Log, TEXT("SActActionOutlinerTreeNode::~SActActionOutlinerTreeNode"));
+	UE_LOG(LogNovaAct, Log, TEXT("SActActionOutlinerTreeNode::~SActActionOutlinerTreeNode"));
 }
 
 void SActActionOutlinerTreeNode::Construct(const FArguments& InArgs, const TSharedRef<FActActionSequenceTreeViewNode>& Node, const TSharedRef<SActActionSequenceTreeViewRow>& InTableRow)

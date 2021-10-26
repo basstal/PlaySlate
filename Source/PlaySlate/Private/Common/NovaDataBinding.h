@@ -9,17 +9,17 @@
  * @param AbstractData
  * @param InName
  */
-#define GetDataBindingSP(AbstractData, InName) StaticCastSharedPtr<TDataBindingSP<AbstractData>>(NovaDB::Get<AbstractData>(InName))
+#define GetDataBindingSP(AbstractData, InName) StaticCastSharedPtr<TDataBindingSP<AbstractData>>(NovaDB::Get(InName))
 /**
  * @param AbstractData
  * @param InName
  */
-#define GetDataBindingUObject(AbstractData, InName) StaticCastSharedPtr<TDataBindingUObject<AbstractData>>(NovaDB::Get<AbstractData>(InName))
+#define GetDataBindingUObject(AbstractData, InName) StaticCastSharedPtr<TDataBindingUObject<AbstractData>>(NovaDB::Get(InName))
 /**
  * @param AbstractData
  * @param InName
  */
-#define GetDataBinding(AbstractData, InName) StaticCastSharedPtr<TDataBinding<AbstractData>>(NovaDB::Get<AbstractData>(InName))
+#define GetDataBinding(AbstractData, InName) StaticCastSharedPtr<TDataBinding<AbstractData>>(NovaDB::Get(InName))
 // /**
 //  * @param AbstractData 数据原型的类型
 //  * @param FieldName 自定义字段名
@@ -195,17 +195,16 @@ class NovaDataBinding
 {
 public:
 	/**
-	 * 获得指定名称的数据绑定
+	 * 获得指定名称的数据绑定，
 	 * 推荐UObject及其子类模板加裸指针，其他类型结构模板加TSharedPtr，基本数据类型可直接使用
 	 *
 	 * @param InName 数据绑定对象自定义名称，同时查找用
 	 * @return 数据绑定
 	 */
-	template <typename AbstractData>
 	static TSharedPtr<IDataBinding> Get(FName InName);
 
 	/**
-	 * 构造指定名称的数据绑定，并传入数据原型
+	 * 构造指定名称的数据绑定，并传入数据原型，
 	 * 推荐UObject及其子类模板加裸指针，其他类型结构模板加TSharedPtr，基本数据类型可直接使用
 	 *
 	 * @param InName 数据绑定对象自定义名称，同时查找用
@@ -227,8 +226,14 @@ public:
 	 * @param InName 数据绑定对象自定义名称
 	 * @return 是否成功删除
 	 */
-	template <typename AbstractData>
 	static bool Delete(FName InName);
+
+	/**
+	 * 触发指定名称的数据绑定的所有绑定函数
+	 *
+	 * @param InName 指定名称的数据绑定
+	 */
+	static void Trigger(FName InName);
 protected:
 	static TMap<FName, TSharedRef<IDataBinding>> DataBindingMap;// 名称到数据绑定的映射
 };
@@ -323,7 +328,7 @@ bool TDataBindingSP<AbstractData>::UnBind(FDelegateHandle InDelegateHandle)
 				return true;
 			}
 		}
-		UE_LOG(LogActAction, Error, TEXT("UnBind in DelegateHandleSet, but not in Slots??"))
+		UE_LOG(LogNovaAct, Error, TEXT("UnBind in DelegateHandleSet, but not in Slots??"))
 	}
 	return false;
 }
@@ -344,7 +349,7 @@ bool TDataBindingUObject<AbstractData>::UnBind(FDelegateHandle InDelegateHandle)
 				return true;
 			}
 		}
-		UE_LOG(LogActAction, Error, TEXT("UnBind in DelegateHandleSet, but not in Slots??"))
+		UE_LOG(LogNovaAct, Error, TEXT("UnBind in DelegateHandleSet, but not in Slots??"))
 	}
 	return false;
 }
@@ -364,7 +369,7 @@ bool TDataBinding<AbstractData>::UnBind(FDelegateHandle InDelegateHandle)
 				return true;
 			}
 		}
-		UE_LOG(LogActAction, Error, TEXT("UnBind in DelegateHandleSet, but not in Slots??"))
+		UE_LOG(LogNovaAct, Error, TEXT("UnBind in DelegateHandleSet, but not in Slots??"))
 	}
 	return false;
 }
@@ -463,17 +468,6 @@ void TDataBinding<AbstractData>::Release()
 }
 
 template <typename AbstractData>
-TSharedPtr<IDataBinding> NovaDataBinding::Get(FName InName)
-{
-	auto ValueTypePtr = NovaDataBinding::DataBindingMap.Find(InName);
-	if (ValueTypePtr)
-	{
-		return *ValueTypePtr;
-	}
-	return nullptr;
-}
-
-template <typename AbstractData>
 TSharedPtr<TDataBinding<AbstractData>> NovaDataBinding::Create(FName InName, AbstractData InData)
 {
 	TSharedPtr<TDataBinding<AbstractData>> CreatedDataBinding = MakeShareable(new TDataBinding<AbstractData>(InName, InData));
@@ -495,18 +489,4 @@ TSharedPtr<TDataBindingSP<AbstractData>> NovaDataBinding::CreateSP(FName InName,
 	TSharedPtr<TDataBindingSP<AbstractData>> CreatedDataBinding = MakeShareable(new TDataBindingSP<AbstractData>(InName, InData));
 	NovaDataBinding::DataBindingMap.Add(InName, CreatedDataBinding.ToSharedRef());
 	return CreatedDataBinding;
-}
-
-template <typename AbstractData>
-bool NovaDataBinding::Delete(FName InName)
-{
-	auto ValueTypePtr = NovaDataBinding::DataBindingMap.Find(InName);
-	if (ValueTypePtr)
-	{
-		TSharedRef<IDataBinding> DataBindingRef = *ValueTypePtr;
-		DataBindingRef->Release();
-		NovaDataBinding::DataBindingMap.FindAndRemoveChecked(InName);
-		return true;
-	}
-	return false;
 }

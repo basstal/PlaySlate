@@ -5,10 +5,11 @@
 struct FPointerEvent;
 struct FActActionHitBoxData;
 class FActActionTrackEditorBase;
-class FActEventTimeline;
+
 class FActActionSequenceTreeViewNode;
 class SActActionSequenceTreeViewRow;
 class SActActionSequenceNotifyNode;
+class SActEventTimelineWidget;
 
 namespace NovaDelegate
 {
@@ -16,7 +17,11 @@ namespace NovaDelegate
 	// Called to get an object (used by the asset details panel)
 	DECLARE_DELEGATE_RetVal(UObject*, OnGetAssetDelegate);
 	DECLARE_DELEGATE_RetVal(float, OnGetDraggedNodePosDelegate);
-	DECLARE_DELEGATE_RetVal_OneParam(TSharedRef<FActActionTrackEditorBase>, OnCreateTrackEditorDelegate, TSharedRef<FActEventTimeline>);
+
+	// Replaced by FOnGetContent
+	// DECLARE_DELEGATE_RetVal(TSharedRef<SWidget>, OnBuildAddTrackMenuWidgetDelegate);
+	
+	DECLARE_DELEGATE_RetVal_OneParam(TSharedRef<FActActionTrackEditorBase>, OnCreateTrackEditorDelegate, TSharedRef<SActEventTimelineWidget>);
 	/** A delegate which will create an auto-key handler. */
 	DECLARE_DELEGATE_RetVal_TwoParams(FFrameNumber, OnGetNearestKeyDelegate, FFrameTime, bool)
 	DECLARE_DELEGATE_RetVal_ThreeParams(TSharedRef<SWidget>, OnGenerateWidgetForColumnDelegate, const TSharedRef<FActActionSequenceTreeViewNode>&, const FName&, const TSharedRef<SActActionSequenceTreeViewRow>&);
@@ -39,7 +44,7 @@ namespace NovaDelegate
 	DECLARE_DELEGATE_TwoParams(OnScrubPositionChangedDelegate, FFrameTime, bool)
 	DECLARE_DELEGATE_TwoParams(OnViewRangeChangedDelegate, TRange<float>, ENovaViewRangeInterpolation)
 	/** A delegate that is executed when adding menu content. */
-	DECLARE_DELEGATE_TwoParams(OnGetAddMenuContentDelegate, FMenuBuilder& /*MenuBuilder*/, TSharedRef<FActEventTimeline>);
+	// DECLARE_DELEGATE_TwoParams(OnGetAddMenuContentDelegate, FMenuBuilder& /*MenuBuilder*/, TSharedRef<FActEventTimeline>);
 	DECLARE_DELEGATE_TwoParams(OnSetMarkedFrameDelegate, int32, FFrameNumber)
 	DECLARE_DELEGATE_TwoParams(OnPanTrackRequestDelegate, int32, FVector2D)
 	DECLARE_DELEGATE_FourParams(OnNotifyStateHandleBeingDraggedDelegate, TSharedPtr<SActActionSequenceNotifyNode> /*NotifyNode*/, const FPointerEvent& /*PointerEvent*/, ENovaNotifyStateHandleHit /*Handle*/, float /*Time*/)

@@ -15,7 +15,7 @@ SActActionTimeRangeSlider::SActActionTimeRangeSlider()
 
 SActActionTimeRangeSlider::~SActActionTimeRangeSlider()
 {
-	UE_LOG(LogActAction, Log, TEXT("SActActionTimeRangeSlider::~SActActionTimeRangeSlider"));
+	UE_LOG(LogNovaAct, Log, TEXT("SActActionTimeRangeSlider::~SActActionTimeRangeSlider"));
 }
 
 void SActActionTimeRangeSlider::Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineSlider>& InTimeSliderController)
@@ -269,7 +269,7 @@ float SActActionTimeRangeSlider::ComputeDragDelta(const FPointerEvent& MouseEven
 	const float DragDistance = (MouseEvent.GetScreenSpacePosition() - MouseDownPosition).X;
 	const float PixelToUnits = (EndTime - BeginTime) / (GeometryWidth - HandleSize * 2);
 	const float DragDelta = DragDistance * PixelToUnits;
-	UE_LOG(LogActAction, Log, TEXT("DragDelta : %f"), DragDelta);
+	UE_LOG(LogNovaAct, Log, TEXT("DragDelta : %f"), DragDelta);
 	return DragDelta;
 }
 

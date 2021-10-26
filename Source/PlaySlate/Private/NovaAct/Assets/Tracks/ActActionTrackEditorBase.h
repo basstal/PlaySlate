@@ -1,12 +1,12 @@
 ﻿#pragma once
 
-class FActEventTimeline;
+
+class SActEventTimelineWidget;
 
 class FActActionTrackEditorBase : public TSharedFromThis<FActActionTrackEditorBase>
 {
 public:
-	FActActionTrackEditorBase(const TSharedRef<FActEventTimeline>& InSequenceController);
-
+	FActActionTrackEditorBase(const TSharedRef<SActEventTimelineWidget>& InActEventTimelineWidget);
 	virtual ~FActActionTrackEditorBase();
 
 	/**
@@ -17,5 +17,5 @@ public:
 	virtual void BuildAddTrackMenu(FMenuBuilder& MenuBuilder) = 0;
 
 protected:
-	TWeakPtr<FActEventTimeline> ActActionSequenceController;
+	TWeakPtr<SActEventTimelineWidget> ActEventTimelineWidget;
 };

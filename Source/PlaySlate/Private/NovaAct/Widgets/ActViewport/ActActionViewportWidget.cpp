@@ -46,7 +46,7 @@ void SActActionViewportWidget::Construct(const FArguments& InArgs, const TShared
 
 SActActionViewportWidget::~SActActionViewportWidget()
 {
-	UE_LOG(LogActAction, Log, TEXT("SActActionViewportWidget::~SActActionViewportWidget"));
+	UE_LOG(LogNovaAct, Log, TEXT("SActActionViewportWidget::~SActActionViewportWidget"));
 }
 
 TSharedRef<FEditorViewportClient> SActActionViewportWidget::MakeEditorViewportClient()

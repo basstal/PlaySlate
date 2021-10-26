@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "NovaAct/ActEventTimeline/SequenceNodeTree/ActActionTrackAreaSlot.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActActionTrackAreaSlot.h"
 
 class SActActionSequenceTrackLane;
 class FActActionSequenceTreeViewNode;
@@ -9,9 +9,7 @@ class FActActionSequenceTreeViewNode;
 class SActActionSequenceTrackArea : public SPanel
 {
 public:
-	SLATE_BEGIN_ARGS(SActActionSequenceTrackArea)
-		{
-		}
+	SLATE_BEGIN_ARGS(SActActionSequenceTrackArea) { }
 
 	SLATE_END_ARGS()
 
@@ -33,4 +31,5 @@ protected:
 	TPanelChildren<FActActionTrackAreaSlot> Children;
 	/** A map of child slot content that exist in our view. */
 	TMap<TSharedPtr<FActActionSequenceTreeViewNode>, TWeakPtr<SActActionSequenceTrackLane>> TrackSlots;
+
 };

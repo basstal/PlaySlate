@@ -2,12 +2,12 @@
 
 #include "PlaySlate.h"
 
-FActActionTrackEditorBase::FActActionTrackEditorBase(const TSharedRef<FActEventTimeline>& InSequenceController)
-	: ActActionSequenceController(InSequenceController)
+FActActionTrackEditorBase::FActActionTrackEditorBase(const TSharedRef<SActEventTimelineWidget>& InActEventTimelineWidget)
+	: ActEventTimelineWidget(InActEventTimelineWidget)
 {
 }
 
 FActActionTrackEditorBase::~FActActionTrackEditorBase()
 {
-	UE_LOG(LogActAction, Log, TEXT("FActActionTrackEditorBase::~FActActionTrackEditorBase"));
+	UE_LOG(LogNovaAct, Log, TEXT("FActActionTrackEditorBase::~FActActionTrackEditorBase"));
 }

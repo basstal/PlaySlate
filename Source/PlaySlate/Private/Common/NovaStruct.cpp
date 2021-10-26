@@ -61,9 +61,7 @@ namespace NovaStruct
 			const FFrameNumber FrameNumber = InFrameTimeRange.GetLowerBoundValue();
 
 			FrameTimeRange.SetLowerBound(
-				InFrameTimeRange.GetLowerBound().IsExclusive()
-					? TRangeBound<FFrameTime>::Exclusive(FrameNumber)
-					: TRangeBound<FFrameTime>::Inclusive(FrameNumber)
+				InFrameTimeRange.GetLowerBound().IsExclusive() ? TRangeBound<FFrameTime>::Exclusive(FrameNumber) : TRangeBound<FFrameTime>::Inclusive(FrameNumber)
 			);
 		}
 
@@ -72,9 +70,7 @@ namespace NovaStruct
 			const FFrameNumber FrameNumber = InFrameTimeRange.GetUpperBoundValue();
 
 			FrameTimeRange.SetUpperBound(
-				InFrameTimeRange.GetUpperBound().IsExclusive()
-					? TRangeBound<FFrameTime>::Exclusive(FrameNumber)
-					: TRangeBound<FFrameTime>::Inclusive(FrameNumber)
+				InFrameTimeRange.GetUpperBound().IsExclusive() ? TRangeBound<FFrameTime>::Exclusive(FrameNumber) : TRangeBound<FFrameTime>::Inclusive(FrameNumber)
 			);
 		}
 

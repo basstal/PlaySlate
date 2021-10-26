@@ -7,24 +7,24 @@ class SActActionTimeSliderWidget;
 class SActActionTimeRangeSlider;
 class SActActionTimeRange;
 class FActEventTimelineImage;
+class SGridPanel;
 
 using namespace NovaStruct;
-/**
- * Sequence的时间滑块控制器，管理Sequence的时间轴相关数据
- * 对应的View模块为SActActionSequenceTimeSliderWidget
- */
+
+
+
 class FActEventTimelineSlider : public TSharedFromThis<FActEventTimelineSlider>
 {
 	friend class SActActionTimeSliderWidget;
 
 public:
-	FActEventTimelineSlider(const TSharedRef<FActEventTimeline>& InSequenceController);
+	FActEventTimelineSlider();
 	~FActEventTimelineSlider();
 
 	/**
 	* 构造TimeSlider的Widget
 	*/
-	void Init();
+	void Init(const TSharedRef<SGridPanel>& InParentGridPanel);
 
 	/**
 	 * TODO:
@@ -42,7 +42,28 @@ public:
 	 * @param NewValue				Value resulting from the user's interaction
 	 * @param bIsScrubbing			True if done via scrubbing, false if just releasing scrubbing
 	 */
-	void CommitScrubPosition(FFrameTime NewValue, bool bIsScrubbing) const;
+	void CommitScrubPosition(FFrameTime NewValue, bool bIsScrubbing);
+	/**
+	 * 设置Viewport的回放状态
+	 *
+	 * @param InPlaybackStatus 当前外部传入的播放状态
+	 */
+	void SetPlaybackStatus(ENovaPlaybackType InPlaybackStatus);
+
+	/**
+	 * 时间轴拖拽器开始拖拽的回调
+	 */
+	void OnBeginScrubberMovement();
+
+	/**
+	 * 时间轴拖拽器结束拖拽的回调
+	 */
+	void OnEndScrubberMovement();
+
+	/**
+	 * 时间轴拖拽器位置改变的回调
+	 */
+	void OnScrubPositionChanged(FFrameTime NewScrubPosition, bool bScrubbing);
 
 	/**
 	 * Set a new range based on a min, max and an interpolation mode
@@ -146,14 +167,10 @@ public:
 
 	/** 获得共享参数 */
 	TSharedRef<FActEventTimelineArgs> GetActEventTimelineArgs() const;
-	/** 获得相关事件绑定 */
-	TSharedRef<FActEventTimelineEvents> GetActEventTimelineEvents() const;
+	// /** 获得相关事件绑定 */
+	// TSharedRef<FActEventTimelineEvents> GetActEventTimelineEvents() const;
 
 protected:
-	/**
-	 * 隶属的Controller
-	 */
-	TWeakPtr<FActEventTimeline> ActActionSequenceController;
 
 	/** 对应控制的Widget */
 	TSharedPtr<SActActionTimeSliderWidget> ActActionTimeSliderWidget;

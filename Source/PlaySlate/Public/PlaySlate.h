@@ -4,7 +4,7 @@
 class IAssetTypeActions;
 class FNovaActEditor;
 
-DECLARE_LOG_CATEGORY_EXTERN(LogActAction, Log, All)
+DECLARE_LOG_CATEGORY_EXTERN(LogNovaAct, Log, All)
 
 class FPlaySlateModule : public IModuleInterface
 {
@@ -21,6 +21,5 @@ public:
 	 */
 	void RegisterAssetTypeActions(const TSharedRef<IAssetTypeActions>& InAssetTypeActions);
 protected:
-	/** 所有已注册的资源类型，登记在这里以便在模块关闭时反注册 */
-	TArray<TSharedRef<IAssetTypeActions>> RegisteredAssetTypeActions;
+	TArray<TSharedRef<IAssetTypeActions>> RegisteredAssetTypeActions;/** 所有已注册的资源类型，登记在这里以便在模块关闭时反注册 */
 };

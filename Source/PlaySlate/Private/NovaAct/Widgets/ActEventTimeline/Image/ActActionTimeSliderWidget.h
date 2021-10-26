@@ -5,9 +5,7 @@ class FActEventTimelineSlider;
 class SActActionTimeSliderWidget : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SActActionTimeSliderWidget)
-		{
-		}
+	SLATE_BEGIN_ARGS(SActActionTimeSliderWidget) { }
 
 	SLATE_END_ARGS()
 

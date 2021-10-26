@@ -2,21 +2,19 @@
 
 #include "ITransportControl.h"
 
-class FActEventTimeline;
+
 class FNovaActEditor;
 
 class SActActionSequenceTransportControls : public SCompoundWidget
 {
 public:
-SLATE_BEGIN_ARGS(SActActionSequenceTransportControls)
-		{
-		}
+	SLATE_BEGIN_ARGS(SActActionSequenceTransportControls) { }
 
 	SLATE_END_ARGS()
 
 	virtual ~SActActionSequenceTransportControls() override;
 
-	void Construct(const FArguments& InArgs, const TSharedRef<FActEventTimeline>& InActActionSequenceController);
+	void Construct(const FArguments& InArgs);
 
 	/** 点击逐帧前进的回调 */
 	FReply OnClickForwardStep() const;
@@ -42,7 +40,4 @@ SLATE_BEGIN_ARGS(SActActionSequenceTransportControls)
 	bool IsLoopStatusOn() const;
 	/** 获得当前播放状态 */
 	EPlaybackMode::Type GetPlaybackMode() const;
-protected:
-	/** 对Editor的引用，以获取控制播放的对象 */
-	TWeakPtr<FNovaActEditor> ActActionSequenceEditor;
 };

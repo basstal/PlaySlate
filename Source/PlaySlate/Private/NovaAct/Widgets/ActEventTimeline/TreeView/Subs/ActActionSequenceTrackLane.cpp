@@ -2,8 +2,8 @@
 
 #include "SCurveEditor.h"
 #include "Common/NovaConst.h"
-#include "NovaAct/ActEventTimeline/SequenceNodeTree/ActActionTrackAreaSlot.h"
-#include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/Subs/ActActionSequenceNotifyNode.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActActionTrackAreaSlot.h"
+#include "NovaAct/Widgets/ActEventTimeline/TreeView/Subs/ActActionSequenceNotifyNode.h"
 
 
 void SActActionSequenceTrackLane::Construct(const FArguments& InArgs, const TSharedRef<FActActionTrackAreaSlot>& InTrackAreaSlot)

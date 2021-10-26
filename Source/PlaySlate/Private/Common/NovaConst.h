@@ -16,5 +16,7 @@ namespace NovaConst
 	const float NotifyHeight = 24.0f;
 	/** Outliner 右侧 间隔距离 */
 	const float OutlinerRightPadding = 8.0f;
+	
+	const FMargin ResizeBarPadding(4.0f, 0, 0, 0);
 
 }

@@ -6,9 +6,8 @@
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
-FActActionHitBoxTrack::FActActionHitBoxTrack(const TSharedRef<FActEventTimeline>& ActActionSequenceController)
-	: FActActionTrackEditorBase(ActActionSequenceController)
-{}
+FActActionHitBoxTrack::FActActionHitBoxTrack(const TSharedRef<SActEventTimelineWidget>& InActEventTimelineWidget)
+	: FActActionTrackEditorBase(InActEventTimelineWidget) {}
 
 void FActActionHitBoxTrack::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 {
@@ -20,9 +19,9 @@ void FActActionHitBoxTrack::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 	);
 }
 
-TSharedRef<FActActionTrackEditorBase> FActActionHitBoxTrack::CreateTrackEditor(TSharedRef<FActEventTimeline> InSequenceController)
+TSharedRef<FActActionTrackEditorBase> FActActionHitBoxTrack::CreateTrackEditor(TSharedRef<SActEventTimelineWidget> InActEventTimelineWidget)
 {
-	return MakeShareable(new FActActionHitBoxTrack(InSequenceController));
+	return MakeShareable(new FActActionHitBoxTrack(InActEventTimelineWidget));
 }
 
 void FActActionHitBoxTrack::AssignHitBox() const

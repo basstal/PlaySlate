@@ -35,5 +35,5 @@ FActActionViewportClient::FActActionViewportClient(const TSharedRef<FActViewport
 
 FActActionViewportClient::~FActActionViewportClient()
 {
-	UE_LOG(LogActAction, Log, TEXT("FActActionViewportClient::~FActActionViewportClient"));
+	UE_LOG(LogNovaAct, Log, TEXT("FActActionViewportClient::~FActActionViewportClient"));
 }

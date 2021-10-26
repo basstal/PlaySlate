@@ -2,7 +2,7 @@
 
 #include "Common/NovaStruct.h"
 #include "NovaAct/Assets/ActActionSequenceStructs.h"
-#include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/ActTrackPanel.h"
+#include "NovaAct/Widgets/ActEventTimeline/TreeView/ActTrackPanel.h"
 
 class FActActionSequenceSectionBase;
 class SActActionSequenceTreeViewRow;
@@ -25,23 +25,22 @@ public:
 	/**
 	 * 构造一个树节点
 	 *
-	 * @param InActActionSequenceController 
 	 * @param InNodeName 节点名称
 	 * @param InNodeType 节点类型
 	 */
-	FActActionSequenceTreeViewNode(const TSharedRef<FActEventTimeline>& InActActionSequenceController, FName InNodeName = NAME_None, ENovaSequenceNodeType InNodeType = ENovaSequenceNodeType::Root);
+	FActActionSequenceTreeViewNode(FName InNodeName = NAME_None, ENovaSequenceNodeType InNodeType = ENovaSequenceNodeType::Root);
 
 	virtual ~FActActionSequenceTreeViewNode();
 
-	/**
-	 * 构造节点的Widget
-	 */
-	void MakeActActionSequenceTreeView(const TSharedRef<SScrollBar>& ScrollBar);
-
-	/**
-	 * 构造Pinned节点的Widget
-	 */
-	void MakeActActionSequenceTreeViewPinned(const TSharedRef<SScrollBar>& ScrollBar);
+	// /**
+	//  * 构造节点的Widget
+	//  */
+	// void MakeActActionSequenceTreeView(const TSharedRef<SScrollBar>& ScrollBar);
+	//
+	// /**
+	//  * 构造Pinned节点的Widget
+	//  */
+	// void MakeActActionSequenceTreeViewPinned(const TSharedRef<SScrollBar>& ScrollBar);
 
 	/**
 	 * 构造节点的Outliner的Widget
@@ -202,10 +201,6 @@ public:
 	// EVisibility GetVisibility() const;
 protected:
 	/**
-	 * 当前编辑的Sequence，即所有NodeTree所属的Sequence
-	 */
-	TWeakPtr<FActEventTimeline> ActActionSequenceController;
-	/**
 	 * 该节点的父节点，如果没有父节点则认为是树的根节点
 	 */
 	TSharedPtr<FActActionSequenceTreeViewNode> ParentNode;
@@ -337,10 +332,10 @@ public:
 		return TrackArea.ToSharedRef();
 	}
 
-	TSharedRef<FActEventTimeline> GetSequenceController() const
-	{
-		return ActActionSequenceController.Pin().ToSharedRef();
-	}
+	// TSharedRef<FActEventTimeline> GetSequenceController() const
+	// {
+	// 	return ActActionSequenceController.Pin().ToSharedRef();
+	// }
 
 	void SetHeight(float InHeight)
 	{

@@ -1,5 +1,6 @@
 ﻿#include "ActViewport.h"
 
+#include "PlaySlate.h"
 #include "Common/NovaStaticFunction.h"
 #include "PlaySlate.h"
 #include "ActActionViewportClient.h"
@@ -26,31 +27,28 @@ FActViewport::FActViewport(const ConstructionValues& CVS, const TSharedRef<FNova
 	PreviewInstanceLooping = NovaDB::Create("PreviewInstanceLooping", false);
 	PreviewInstancePlaybackMode = NovaDB::Create("PreviewInstancePlaybackMode", EPlaybackMode::Stopped);
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
-	TSharedPtr<FFrameTime> CurrentTimePtr = MakeShared<FFrameTime>(ActEventTimelineArgsDB->GetData()->CurrentTime);
-	CurrentTimeDB = NovaDB::CreateSP("ActEventTimelineArgs/CurrentTime", CurrentTimePtr);
+	CurrentTimeDB = NovaDB::CreateSP("ActEventTimelineArgs/CurrentTime", ActEventTimelineArgsDB->GetData()->CurrentTime);
 }
 
 FActViewport::~FActViewport()
 {
-	UE_LOG(LogActAction, Log, TEXT("FActActionPreviewSceneController::~FActActionPreviewSceneController"));
+	UE_LOG(LogNovaAct, Log, TEXT("FActActionPreviewSceneController::~FActActionPreviewSceneController"));
 	ActActionViewportWidget.Reset();
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	ActEventTimelineArgsDB->UnBind(OnCurrentTimeChangedHandle);
 	auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
 	ActAnimationDB->UnBind(OnAnimBlueprintChangedHandle);
 	ActAnimationDB->UnBind(OnAnimSequenceChangedHandle);
-	TransportControlsState->UnBind(OnTransportControlsStateChangedHandle);
-	NovaDB::Delete<ENovaTransportControls>("TransportControlsState");
-	NovaDB::Delete<bool>("PreviewInstanceLooping");
-	PreviewInstancePlaybackMode->UnBind(OnPlaybackModeChangedHandle);
-	NovaDB::Delete<EPlaybackMode::Type>("PreviewInstancePlaybackMode");
-	NovaDB::Delete<FFrameTime>("ActEventTimelineArgs/CurrentTime");
+	NovaDB::Delete("TransportControlsState");
+	NovaDB::Delete("PreviewInstanceLooping");
+	NovaDB::Delete("PreviewInstancePlaybackMode");
+	NovaDB::Delete("ActEventTimelineArgs/CurrentTime");
 }
 
-void FActViewport::Init()
+void FActViewport::Init(const TSharedRef<SDockTab>& InParentDockTab)
 {
 	// ** NOTE:合理不能用SNew的原因是在构造时会调用到FActActionPreviewSceneController::MakeViewportClient，需要先设置好ActActionViewportWidget指针
-	SAssignNew(ActActionViewportWidget, SActActionViewportWidget, SharedThis(this));
+	InParentDockTab->SetContent(SAssignNew(ActActionViewportWidget, SActActionViewportWidget, SharedThis(this)));
 
 	OnCurrentTimeChangedHandle = CurrentTimeDB->Bind(TDataBindingSP<FFrameTime>::DelegateType::CreateRaw(this, &FActViewport::OnCurrentTimeChanged));
 
@@ -58,8 +56,8 @@ void FActViewport::Init()
 	OnAnimBlueprintChangedHandle = ActAnimationDB->Bind(TDataBindingUObject<UActAnimation>::DelegateType::CreateRaw(this, &FActViewport::OnAnimBlueprintChanged));
 	OnAnimSequenceChangedHandle = ActAnimationDB->Bind(TDataBindingUObject<UActAnimation>::DelegateType::CreateRaw(this, &FActViewport::OnAnimSequenceChanged));
 
-	OnTransportControlsStateChangedHandle = TransportControlsState->Bind(TDataBinding<ENovaTransportControls>::DelegateType::CreateRaw(this, &FActViewport::OnTransportControlsStateChanged));
-	OnPlaybackModeChangedHandle = PreviewInstancePlaybackMode->Bind(TDataBinding<EPlaybackMode::Type>::DelegateType::CreateRaw(this, &FActViewport::OnPlaybackModeChanged));
+	TransportControlsState->Bind(TDataBinding<ENovaTransportControls>::DelegateType::CreateRaw(this, &FActViewport::OnTransportControlsStateChanged));
+	PreviewInstancePlaybackMode->Bind(TDataBinding<EPlaybackMode::Type>::DelegateType::CreateRaw(this, &FActViewport::OnPlaybackModeChanged));
 }
 
 TSharedPtr<FActActionViewportClient> FActViewport::MakeViewportClient()
@@ -109,7 +107,7 @@ void FActViewport::SpawnActorInViewport(UClass* ActorType, const UAnimBlueprint*
 	AActor* SpawnedActor = GetWorld()->SpawnActor(ActorType);
 	check(SpawnedActor)
 	ActActionActor = SpawnedActor;
-	UE_LOG(LogActAction, Log, TEXT("SpawnActorInViewport ActActionActor : %s"), *ActActionActor->GetName());
+	UE_LOG(LogNovaAct, Log, TEXT("SpawnActorInViewport ActActionActor : %s"), *ActActionActor->GetName());
 
 	// Create the preview component
 	UDebugSkelMeshComponent* SkeletalMeshComponent = NewObject<UDebugSkelMeshComponent>(ActActionActor);
@@ -155,12 +153,12 @@ void FActViewport::EvaluateToOneEnd(bool bIsEndEnd)
 		auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 		TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = DB->GetData();
 		const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
-		ActEventTimelineArgs->CurrentTime = FFrameTime(0);
+		ActEventTimelineArgs->CurrentTime->FrameNumber = 0;
 		if (bIsEndEnd)
 		{
-			ActEventTimelineArgs->CurrentTime = TickResolution.AsFrameTime(ActEventTimelineArgs->ClampRange.GetUpperBoundValue());
+			*ActEventTimelineArgs->CurrentTime = TickResolution.AsFrameTime(ActEventTimelineArgs->ClampRange.GetUpperBoundValue());
 		}
-		DB->Trigger();
+		CurrentTimeDB->Trigger();
 	}
 }
 
@@ -301,7 +299,7 @@ void FActViewport::TickCurrentTimeChanged()
 			LastCurrentTime = CurrentTime;
 			auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 			TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
-			ActEventTimelineArgs->CurrentTime = ActEventTimelineArgs->TickResolution.AsFrameTime(CurrentTime);
+			*ActEventTimelineArgs->CurrentTime = ActEventTimelineArgs->TickResolution.AsFrameTime(CurrentTime);
 			ActEventTimelineArgsDB->SetData(ActEventTimelineArgs);
 		}
 	}
@@ -327,7 +325,7 @@ void FActViewport::OnAnimBlueprintChanged(UActAnimation* InActAnimation)
 	UAnimBlueprint* AnimBlueprint = InActAnimation->AnimBlueprint;
 	if (!AnimBlueprint || !AnimBlueprint->TargetSkeleton)
 	{
-		UE_LOG(LogActAction, Log, TEXT("FNovaActEditor::OnAnimBlueprintChanged with nullptr AnimBlueprint or AnimBlueprint->TargetSkeleton is nullptr"));
+		UE_LOG(LogNovaAct, Log, TEXT("FNovaActEditor::OnAnimBlueprintChanged with nullptr AnimBlueprint or AnimBlueprint->TargetSkeleton is nullptr"));
 		return;
 	}
 	SpawnActorInViewport(ASkeletalMeshActor::StaticClass(), AnimBlueprint);

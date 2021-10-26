@@ -12,7 +12,7 @@ FActEventTimelineImage::FActEventTimelineImage(const TSharedRef<FActEventTimelin
 
 FActEventTimelineImage::~FActEventTimelineImage()
 {
-	UE_LOG(LogActAction, Log, TEXT("FActEventTimelineImage::~FActEventTimelineImage"));
+	UE_LOG(LogNovaAct, Log, TEXT("FActEventTimelineImage::~FActEventTimelineImage"));
 }
 
 void FActEventTimelineImage::MakeSequenceSectionOverlayWidget(ENovaSectionOverlayWidgetType InOverlayWidgetType)
@@ -35,5 +35,5 @@ void FActEventTimelineImage::DrawTicks(FSlateWindowElementList& OutDrawElements,
 
 // FActEventTimelineArgs& FActEventTimelineImage::GetTimeSliderArgs() const
 // {
-// 	return ActActionTimeSliderController.Pin()->GetTimeSliderArgs();
+// 	return ActEventTimelineSlider.Pin()->GetTimeSliderArgs();
 // }

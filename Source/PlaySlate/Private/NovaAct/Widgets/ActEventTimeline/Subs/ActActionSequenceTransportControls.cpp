@@ -9,13 +9,11 @@
 
 SActActionSequenceTransportControls::~SActActionSequenceTransportControls()
 {
-	UE_LOG(LogActAction, Log, TEXT("SActActionSequenceTransportControls::~SActActionSequenceTransportControls"));
+	UE_LOG(LogNovaAct, Log, TEXT("SActActionSequenceTransportControls::~SActActionSequenceTransportControls"));
 }
 
-void SActActionSequenceTransportControls::Construct(const FArguments& InArgs, const TSharedRef<FActEventTimeline>& InActActionSequenceController)
+void SActActionSequenceTransportControls::Construct(const FArguments& InArgs)
 {
-	ActActionSequenceEditor = InActActionSequenceController->GetActActionSequenceEditor();
-
 	FEditorWidgetsModule& EditorWidgetsModule = FModuleManager::LoadModuleChecked<FEditorWidgetsModule>("EditorWidgets");
 
 	FTransportControlArgs TransportControlArgs;

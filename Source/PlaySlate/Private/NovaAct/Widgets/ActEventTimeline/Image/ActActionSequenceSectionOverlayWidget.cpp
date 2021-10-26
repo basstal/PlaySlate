@@ -43,7 +43,7 @@ int32 SActActionSequenceSectionOverlayWidget::OnPaint(const FPaintArgs& Args, co
 
 	if (PaintArgs.bDisplayScrubPosition)
 	{
-		FQualifiedFrameTime ScrubPosition = FQualifiedFrameTime(ActEventTimelineArgs->CurrentTime, ActEventTimelineArgs->TickResolution);
+		FQualifiedFrameTime ScrubPosition = FQualifiedFrameTime(*ActEventTimelineArgs->CurrentTime, ActEventTimelineArgs->TickResolution);
 		const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
 		FActActionScrubberMetrics ScrubMetrics = NovaStaticFunction::GetScrubPixelMetrics(TickResolution, ScrubPosition, RangeToScreen);
 		if (ScrubMetrics.bDrawExtents)

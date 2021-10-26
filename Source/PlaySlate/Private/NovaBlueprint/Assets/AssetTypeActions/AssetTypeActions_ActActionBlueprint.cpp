@@ -31,7 +31,7 @@ UClass* FAssetTypeActions_ActActionBlueprint::GetSupportedClass() const
 void FAssetTypeActions_ActActionBlueprint::OpenAssetEditor(const TArray<UObject*>& InObjects, TSharedPtr<IToolkitHost> EditWithinLevelEditor)
 {
 	const EToolkitMode::Type Mode = EditWithinLevelEditor.IsValid() ? EToolkitMode::WorldCentric : EToolkitMode::Standalone;
-	UE_LOG(LogActAction, Log, TEXT("Mode : %d"), Mode);
+	UE_LOG(LogNovaAct, Log, TEXT("Mode : %d"), Mode);
 	for (auto ObjIt = InObjects.CreateConstIterator(); ObjIt; ++ObjIt)
 	{
 		UActActionBlueprint* ActActionBlueprint = Cast<UActActionBlueprint>(*ObjIt);

@@ -3,9 +3,10 @@
 #include "SCurveEditor.h"
 #include "Common/NovaEnum.h"
 #include "Common/NovaConst.h"
+#include "Common/NovaDataBinding.h"
 #include "Fonts/FontMeasure.h"
 #include "NovaAct/ActEventTimeline/Operation/ActTrackAreaSlotDragDrop.h"
-#include "NovaAct/ActEventTimeline/SequenceNodeTree/ActActionTrackAreaSlot.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActActionTrackAreaSlot.h"
 
 void SActActionSequenceNotifyNode::Construct(const FArguments& InArgs, const TSharedRef<FActActionTrackAreaSlot>& InTrackAreaSlot)
 {
@@ -32,6 +33,8 @@ void SActActionSequenceNotifyNode::Construct(const FArguments& InArgs, const TSh
 
 int32 SActActionSequenceNotifyNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
+	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = DB->GetData();
 	const FActActionTrackAreaArgs& TrackAreaArgs = ActActionTrackAreaSlot.Pin()->GetActActionTrackAreaArgs();
 	int32 MarkerLayer = LayerId + 1;
 	int32 ScrubHandleID = MarkerLayer + 1;
@@ -41,7 +44,7 @@ int32 SActActionSequenceNotifyNode::OnPaint(const FPaintArgs& Args, const FGeome
 	FText Text = GetNotifyText();
 	FLinearColor NodeColor = GetNotifyColor();
 	FLinearColor BoxColor = bSelected ? FEditorStyle::GetSlateColor("SelectionColor").GetSpecifiedColor() : GetNotifyColor();
-	float TickResolutionInterval = (float)TrackAreaArgs.TickResolution.Get().AsInterval();
+	// float TickResolutionInterval = (float)ActEventTimelineArgs->TickResolution.AsInterval();
 	float HalfScrubHandleWidth = ScrubHandleSize.X / 2.0f;
 	// Show duration of AnimNotifyState
 	if (NotifyDurationSizeX > 0.f)
@@ -58,7 +61,7 @@ int32 SActActionSequenceNotifyNode::OnPaint(const FPaintArgs& Args, const FGeome
 
 		DrawScrubHandle(DurationBoxPosition.X + DurationBoxSize.X, OutDrawElements, ScrubHandleID, AllottedGeometry, MyCullingRect, NodeColor);
 
-		float EndTime = TrackAreaArgs.End.Get() * (float)TickResolutionInterval;
+		float EndTime = TrackAreaArgs.GetEndTime();
 		if (EndTime != ActActionTrackAreaSlot.Pin()->GetPlayLength())//Don't render offset when we are at the end of the sequence, doesnt help the user
 		{
 			// ScrubHandle
@@ -140,7 +143,7 @@ int32 SActActionSequenceNotifyNode::OnPaint(const FPaintArgs& Args, const FGeome
 
 	DrawScrubHandle(NotifyScrubHandleCentre, OutDrawElements, ScrubHandleID, AllottedGeometry, MyCullingRect, NodeColor);
 
-	float BeginTime = TrackAreaArgs.Begin.Get() * (float)TickResolutionInterval;
+	float BeginTime = TrackAreaArgs.BeginTime;
 	if (BeginTime > 0.f && BeginTime != ActActionTrackAreaSlot.Pin()->GetPlayLength())//Don't render offset when we are at the start/end of the sequence, doesn't help the user
 	{
 		DrawHandleOffset(0.5f, NotifyScrubHandleCentre, OutDrawElements, MarkerLayer, AllottedGeometry, MyCullingRect, NodeColor);
@@ -207,20 +210,24 @@ FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, co
 		FSlateApplication::Get().ReleaseAllPointerCapture();
 		return FReply::Unhandled();
 	}
+	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = DB->GetData();
 	const FActActionTrackAreaArgs& TrackAreaArgs = ActActionTrackAreaSlot.Pin()->GetActActionTrackAreaArgs();
-	FTrackScaleInfo ScaleInfo(TrackAreaArgs.ViewInputMin.Get(), TrackAreaArgs.ViewInputMax.Get(), 0, 0, CachedAllottedGeometrySize);
+	float ViewMinInput = ActEventTimelineArgs->ClampRange.GetLowerBoundValue();
+	float ViewMaxInput = ActEventTimelineArgs->ClampRange.GetUpperBoundValue();
+	FTrackScaleInfo ScaleInfo(ViewMinInput, ViewMaxInput, 0, 0, CachedAllottedGeometrySize);
 	float PlayLength = ActActionTrackAreaSlot.Pin()->GetPlayLength();
 	float XPositionInTrack = MyGeometry.AbsolutePosition.X - CachedTrackGeometry.AbsolutePosition.X;
 	float TrackScreenSpaceXPosition = MyGeometry.AbsolutePosition.X - XPositionInTrack;
 	// float TrackScreenSpaceOrigin = CachedTrackGeometry.LocalToAbsolute(FVector2D(ScaleInfo.InputToLocalX(0.0f), 0.0f)).X;
 	// float TrackScreenSpaceLimit = CachedTrackGeometry.LocalToAbsolute(FVector2D(ScaleInfo.InputToLocalX(PlayLength), 0.0f)).X;
-	float TickResolutionInterval = (float)TrackAreaArgs.TickResolution.Get().AsInterval();
+	float TickResolutionInterval = (float)ActEventTimelineArgs->TickResolution.AsInterval();
 	TSharedRef<FActActionSequenceTreeViewNode> ActActionSequenceTreeViewNode = ActActionTrackAreaSlot.Pin()->GetActActionSequenceTreeViewNode();
 	if (CurrentDragHandle == ENovaNotifyStateHandleHit::Start)
 	{
 		// Check track bounds
-		float OldDisplayTime = TrackAreaArgs.Begin.Get() * TickResolutionInterval;
-		float DurationTime = (TrackAreaArgs.End.Get() - TrackAreaArgs.Begin.Get()) * TickResolutionInterval;
+		float OldDisplayTime = TrackAreaArgs.BeginTime;
+		float DurationTime = TrackAreaArgs.Duration;
 		if (MouseEvent.GetScreenSpacePosition().X >= TrackScreenSpaceXPosition && MouseEvent.GetScreenSpacePosition().X <= TrackScreenSpaceXPosition + CachedAllottedGeometrySize.X)
 		{
 			float NewDisplayTime = ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X);
@@ -239,8 +246,8 @@ FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, co
 		{
 			// float Overflow = HandleOverflowPan(MouseEvent.GetScreenSpacePosition(), TrackScreenSpaceXPosition, TrackScreenSpaceOrigin, TrackScreenSpaceLimit);
 			// Update scale info to the new view inputs after panning
-			ScaleInfo.ViewMinInput = TrackAreaArgs.ViewInputMin.Get();
-			ScaleInfo.ViewMaxInput = TrackAreaArgs.ViewInputMax.Get();
+			ScaleInfo.ViewMinInput = ViewMinInput;
+			ScaleInfo.ViewMaxInput = ViewMaxInput;
 
 			float NewDisplayTime = FMath::Max(0.0f, ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X));
 			ActActionSequenceTreeViewNode->SetHitBoxBegin((int)(NewDisplayTime / TickResolutionInterval));
@@ -278,12 +285,12 @@ FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, co
 		// 		AnimNotifyEvent->TriggerTimeOffset = GetTriggerTimeOffsetForType(EAnimEventTriggerOffsets::NoOffset);
 		// 	}
 		// }
-		OnNotifyStateHandleBeingDragged.ExecuteIfBound(SharedThis(this), MouseEvent, CurrentDragHandle, TrackAreaArgs.Begin.Get() * (float)TrackAreaArgs.TickResolution.Get().AsInterval());
+		OnNotifyStateHandleBeingDragged.ExecuteIfBound(SharedThis(this), MouseEvent, CurrentDragHandle, TrackAreaArgs.BeginTime);
 	}
 	else
 	{
-		float BeginTime = TrackAreaArgs.Begin.Get() * TickResolutionInterval;
-		float DurationTime = (TrackAreaArgs.End.Get() - TrackAreaArgs.Begin.Get()) * TickResolutionInterval;
+		float BeginTime = TrackAreaArgs.BeginTime;
+		float DurationTime = TrackAreaArgs.Duration;
 		if (MouseEvent.GetScreenSpacePosition().X >= TrackScreenSpaceXPosition && MouseEvent.GetScreenSpacePosition().X <= TrackScreenSpaceXPosition + CachedAllottedGeometrySize.X)
 		{
 			float NewDurationTime = ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X) - BeginTime;
@@ -294,8 +301,8 @@ FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, co
 		{
 			// float Overflow = HandleOverflowPan(MouseEvent.GetScreenSpacePosition(), TrackScreenSpaceXPosition, TrackScreenSpaceOrigin, TrackScreenSpaceLimit);
 			// Update scale info to the new view inputs after panning
-			ScaleInfo.ViewMinInput = TrackAreaArgs.ViewInputMin.Get();
-			ScaleInfo.ViewMaxInput = TrackAreaArgs.ViewInputMax.Get();
+			ScaleInfo.ViewMinInput = ViewMinInput;
+			ScaleInfo.ViewMaxInput = ViewMaxInput;
 
 			float NewDurationTime = ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X) - BeginTime;
 			NewDurationTime = FMath::Max(NewDurationTime, (float)(NovaConst::ActMinimumNotifyStateFrame * TickResolutionInterval));
@@ -388,14 +395,16 @@ FLinearColor SActActionSequenceNotifyNode::GetNotifyColor() const
 
 void SActActionSequenceNotifyNode::UpdateSizeAndPosition(const FGeometry& AllottedGeometry)
 {
+	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = DB->GetData();
 	FActActionTrackAreaArgs& ActActionTrackAreaArgs = ActActionTrackAreaSlot.Pin()->GetActActionTrackAreaArgs();
-	FTrackScaleInfo ScaleInfo(ActActionTrackAreaArgs.ViewInputMin.Get(), ActActionTrackAreaArgs.ViewInputMax.Get(), 0, 0, AllottedGeometry.Size);
-	float TickResolutionInterval = (float)ActActionTrackAreaArgs.TickResolution.Get().AsInterval();
+	FTrackScaleInfo ScaleInfo(ActEventTimelineArgs->ClampRange.GetLowerBoundValue(), ActEventTimelineArgs->ClampRange.GetUpperBoundValue(), 0, 0, AllottedGeometry.Size);
+	// float TickResolutionInterval = (float)ActEventTimelineArgs->TickResolution.AsInterval();
 	// Cache the geometry information, the allotted geometry is the same size as the track.
 	CachedAllottedGeometrySize = AllottedGeometry.Size * AllottedGeometry.Scale;
 
-	float BeginTime = ActActionTrackAreaArgs.Begin.Get() * TickResolutionInterval;
-	float DurationTime = (ActActionTrackAreaArgs.End.Get() - ActActionTrackAreaArgs.Begin.Get()) * TickResolutionInterval;
+	float BeginTime = ActActionTrackAreaArgs.BeginTime;
+	float DurationTime = ActActionTrackAreaArgs.Duration;
 	NotifyTimePositionX = ScaleInfo.InputToLocalX(BeginTime);
 	NotifyDurationSizeX = ScaleInfo.PixelsPerInput * DurationTime;
 

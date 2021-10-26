@@ -2,7 +2,7 @@
 
 #include "Common/NovaDelegate.h"
 
-class FActEventTimeline;
+
 class FActActionTrackAreaSlot;
 class FActActionTrackEditorBase;
 class FActActionSequenceTreeViewNode;
@@ -20,27 +20,27 @@ namespace NovaStruct
 			: ViewRange(TRange<float>(0.0f, 1.0f)),
 			  ClampRange(TRange<float>(0.0f, 1.0f)),
 			  TickResolution(60, 1),
-			  CurrentTime(0),
+			  CurrentTime(MakeShareable(new FFrameTime(0))),
 			  PlaybackStatus(ENovaPlaybackType::Stopped),
 			  AllowZoom(true) {}
 
+		TRange<float> ViewRange; // 当前可见的区域，这个值可以比动画播放区间小，例如放大显示时
+		TRange<float> ClampRange;// 最大可调整的区域，与AnimSequence动画的播放时长相同，范围[0, PlayLength]
 
-		TRange<float> ViewRange;         // 当前可见的区域，这个值可以比动画播放区间小，例如放大显示时
-		TRange<float> ClampRange;        // 最大可调整的区域，与AnimSequence动画的播放时长相同，范围[0, PlayLength] 
-		FFrameRate TickResolution;       // 当前使用的帧率
-		FFrameTime CurrentTime;          // 当前动画所在的时间节点
-		ENovaPlaybackType PlaybackStatus;// 当前的播放状态 
+		FFrameRate TickResolution;         // 当前使用的帧率
+		TSharedPtr<FFrameTime> CurrentTime;// 当前动画所在的时间节点
+		ENovaPlaybackType PlaybackStatus;  // 当前的播放状态
 
 		bool AllowZoom;                                                // If we are allowed to zoom
 		TSharedPtr<INumericTypeInterface<double>> NumericTypeInterface;// Numeric Type interface for converting between frame numbers and display formats.
 	};
 
-	struct FActEventTimelineEvents
-	{
-		OnScrubPositionChangedDelegate OnScrubPositionChanged;// Called when the scrub position changes 
-		FSimpleDelegate OnBeginScrubberMovement;    // Called right before the scrubber begins to move 
-		FSimpleDelegate OnEndScrubberMovement;      // Called right after the scrubber handle is released by the user 
-	};
+	// struct FActEventTimelineEvents
+	// {
+	// 	OnScrubPositionChangedDelegate OnScrubPositionChanged;// Called when the scrub position changes 
+	// 	FSimpleDelegate OnBeginScrubberMovement;              // Called right before the scrubber begins to move 
+	// 	FSimpleDelegate OnEndScrubberMovement;                // Called right after the scrubber handle is released by the user 
+	// };
 
 	/** Utility struct for converting between scrub range space and local/absolute screen space */
 	struct FActActionScrubRangeToScreen
@@ -68,6 +68,33 @@ namespace NovaStruct
 		{
 			return (Input - ViewStart) * PixelsPerInput;
 		}
+	};
+
+
+	struct FActActionTrackAreaArgs
+	{
+		int BeginTime; // ** 开始时间
+		float Duration;// ** 时间长度
+
+		// float GetBeginTime() const
+		// {
+		// 	return Begin.Get() * TickResolution.Get().AsInterval();
+		// }
+		//
+		float GetEndTime() const
+		{
+			return BeginTime + Duration;
+		}
+		//
+		// float GetDurationTime() const
+		// {
+		// 	return (End.Get() - Begin.Get()) * TickResolution.Get().AsInterval();
+		// }
+		//
+		// float GetPlayLength() const
+		// {
+		// 	return ViewInputMax.Get() - ViewInputMin.Get();
+		// }
 	};
 
 
@@ -249,7 +276,7 @@ namespace NovaStruct
 	*/
 	struct FActActionSequenceViewParams
 	{
-		OnGetAddMenuContentDelegate OnGetAddMenuContent;
+		// OnGetAddMenuContentDelegate OnGetAddMenuContent;
 
 		OnBuildCustomContextMenuForGuidDelegate OnBuildCustomContextMenuForGuid;
 
@@ -566,39 +593,5 @@ namespace NovaStruct
 		FFrameTime DestinationTime;
 		FFrameTime SourceTime;
 		double StartTime;
-	};
-
-	struct FActActionTrackAreaArgs
-	{
-		/** 可调整的时间范围最小值 */
-		TAttribute<float> ViewInputMin;
-		/** 可调整的时间范围最大值 */
-		TAttribute<float> ViewInputMax;
-		/** 开始帧 */
-		TAttribute<int> Begin;
-		/** 结束帧 */
-		TAttribute<int> End;
-		/** 目标帧率 */
-		TAttribute<FFrameRate> TickResolution;
-
-		float GetBeginTime() const
-		{
-			return Begin.Get() * TickResolution.Get().AsInterval();
-		}
-
-		float GetEndTime() const
-		{
-			return End.Get() * TickResolution.Get().AsInterval();
-		}
-
-		float GetDurationTime() const
-		{
-			return (End.Get() - Begin.Get()) * TickResolution.Get().AsInterval();
-		}
-
-		float GetPlayLength() const
-		{
-			return ViewInputMax.Get() - ViewInputMin.Get();
-		}
 	};
 }

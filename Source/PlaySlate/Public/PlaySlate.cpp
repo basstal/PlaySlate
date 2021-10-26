@@ -6,7 +6,7 @@
 
 #include "AssetToolsModule.h"
 
-DEFINE_LOG_CATEGORY(LogActAction)
+DEFINE_LOG_CATEGORY(LogNovaAct)
 
 IMPLEMENT_MODULE(FPlaySlateModule, PlaySlate);
 

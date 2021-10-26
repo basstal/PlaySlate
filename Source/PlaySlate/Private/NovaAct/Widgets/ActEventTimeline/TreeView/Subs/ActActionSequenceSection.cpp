@@ -1,8 +1,8 @@
 ﻿#include "ActActionSequenceSection.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/ActEventTimeline/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
-#include "NovaAct/ActEventTimeline/SequenceNodeTree/ActActionSequenceSectionBase.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActActionSequenceTreeViewNode.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActActionSequenceSectionBase.h"
 
 SActActionSequenceSection::SActActionSequenceSection()
 	: SectionIndex(0)
@@ -11,7 +11,7 @@ SActActionSequenceSection::SActActionSequenceSection()
 
 SActActionSequenceSection::~SActActionSequenceSection()
 {
-	UE_LOG(LogActAction, Log, TEXT("SActActionSequenceSection::~SActActionSequenceSection"));
+	UE_LOG(LogNovaAct, Log, TEXT("SActActionSequenceSection::~SActActionSequenceSection"));
 }
 
 void SActActionSequenceSection::Construct(const FArguments& InArgs, TSharedRef<FActActionSequenceTreeViewNode> SectionNode, int32 InSectionIndex)

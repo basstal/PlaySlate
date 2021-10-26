@@ -14,7 +14,7 @@ void SActActionTimeSliderWidget::Construct(const FArguments& InArgs, const TShar
 int32 SActActionTimeSliderWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
-	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData(); 
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	const TRange<float> LocalViewRange = ActEventTimelineArgs->ViewRange;
 	const float LocalViewRangeMin = LocalViewRange.GetLowerBoundValue();
 	const float LocalViewRangeMax = LocalViewRange.GetUpperBoundValue();
@@ -45,7 +45,7 @@ int32 SActActionTimeSliderWidget::OnPaint(const FPaintArgs& Args, const FGeometr
 	TimeSliderController.Pin()->DrawTicks(OutDrawElements, LocalViewRange, RangeToScreen, DrawTickArgs);
 
 	// Draw the scrub handle
-	FQualifiedFrameTime ScrubPosition = FQualifiedFrameTime(ActEventTimelineArgs->CurrentTime, ActEventTimelineArgs->TickResolution);
+	FQualifiedFrameTime ScrubPosition = FQualifiedFrameTime(*ActEventTimelineArgs->CurrentTime, ActEventTimelineArgs->TickResolution);
 	const FFrameRate DisplayRate = ActEventTimelineArgs->TickResolution;
 	FActActionScrubberMetrics ScrubberMetrics = NovaStaticFunction::GetScrubPixelMetrics(DisplayRate, ScrubPosition, RangeToScreen);
 	const float HandleStart = ScrubberMetrics.HandleRangePx.GetLowerBoundValue();
@@ -79,7 +79,7 @@ int32 SActActionTimeSliderWidget::OnPaint(const FPaintArgs& Args, const FGeometr
 	// if (!TimeSliderArgs.ScrubPositionText.IsSet())
 	// {
 	// }
-	FString FrameString = ActEventTimelineArgs->NumericTypeInterface->ToString(ActEventTimelineArgs->CurrentTime.GetFrame().Value);
+	FString FrameString = ActEventTimelineArgs->NumericTypeInterface->ToString(ActEventTimelineArgs->CurrentTime->GetFrame().Value);
 	FSlateFontInfo SmallLayoutFont = FCoreStyle::GetDefaultFontStyle("Regular", 10);
 	const TSharedRef<FSlateFontMeasure> SlateFontMeasureService = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
 	FVector2D TextSize = SlateFontMeasureService->Measure(FrameString, SmallLayoutFont);

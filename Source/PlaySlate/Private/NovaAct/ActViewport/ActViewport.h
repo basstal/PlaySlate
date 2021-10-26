@@ -21,9 +21,9 @@ public:
 	virtual ~FActViewport() override;
 
 	/**
-	* 构造Sequence的Widget为SActActionViewportWidget
+	* @param InParentDockTab 子Widget所附着的DockTab
 	*/
-	void Init();
+	void Init(const TSharedRef<SDockTab>& InParentDockTab);
 
 	/**
 	* Widget Make Client回调方法
@@ -134,16 +134,13 @@ protected:
 	FDelegateHandle OnAnimSequenceChangedHandle;
 
 
-	TSharedPtr<TDataBinding<ENovaTransportControls>> TransportControlsState;// ** 当前Viewport transport controls 状态的数据绑定
-	FDelegateHandle OnTransportControlsStateChangedHandle;
-
+	TSharedPtr<TDataBinding<ENovaTransportControls>> TransportControlsState;  // ** 当前Viewport transport controls 状态的数据绑定
 	TSharedPtr<TDataBinding<bool>> PreviewInstanceLooping;                    // ** 当前 Viewport 动画实例播放是否为 Lopping 状态
 	TSharedPtr<TDataBinding<EPlaybackMode::Type>> PreviewInstancePlaybackMode;//** 当前 Viewport 动画实例播放 PlaybackMode 状态
-	FDelegateHandle OnPlaybackModeChangedHandle;
-	TSharedPtr<TDataBindingSP<FFrameTime>> CurrentTimeDB;// ** 当前 Viewport 动画实例的实际时间点
-public:
-	TSharedRef<SActActionViewportWidget> GetActActionViewportWidget() const
-	{
-		return ActActionViewportWidget.ToSharedRef();
-	}
+	TSharedPtr<TDataBindingSP<FFrameTime>> CurrentTimeDB;                     // ** 当前 Viewport 动画实例的实际时间点
+// public:
+// 	TSharedRef<SActActionViewportWidget> GetActActionViewportWidget() const
+// 	{
+// 		return ActActionViewportWidget.ToSharedRef();
+// 	}
 };

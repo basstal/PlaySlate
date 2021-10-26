@@ -2,29 +2,33 @@
 
 #include "ActEventTimelineImage.h"
 #include "PlaySlate.h"
+#include "Common/NovaConst.h"
 #include "Common/NovaStaticFunction.h"
 #include "Common/NovaStruct.h"
 #include "NovaAct/NovaActEditor.h"
 #include "NovaAct/ActEventTimeline/ActEventTimeline.h"
 #include "NovaAct/Widgets/ActEventTimeline/Image/Subs/ActActionTimeRangeSlider.h"
+// ReSharper disable once CppUnusedIncludeDirective
+#include "LevelEditorViewport.h"
+// ReSharper disable once CppUnusedIncludeDirective
+#include "NovaAct/Widgets/ActEventTimeline/Image/ActActionSequenceSectionOverlayWidget.h"
 #include "NovaAct/Widgets/ActEventTimeline/Image/ActActionTimeSliderWidget.h"
 #include "NovaAct/Widgets/ActEventTimeline/Image/Subs/ActActionTimeRange.h"
+#include "Widgets/Layout/SGridPanel.h"
 
-FActEventTimelineSlider::FActEventTimelineSlider(const TSharedRef<FActEventTimeline>& InSequenceController)
-	: ActActionSequenceController(InSequenceController),
-	  DistanceDragged(0),
+FActEventTimelineSlider::FActEventTimelineSlider()
+	: DistanceDragged(0),
 	  MouseDragType(ENovaDragType::DRAG_NONE),
 	  bMouseDownInRegion(false),
 	  bPanning(false),
-	  bMirrorLabels(false)
-{}
+	  bMirrorLabels(false) {}
 
 FActEventTimelineSlider::~FActEventTimelineSlider()
 {
-	UE_LOG(LogActAction, Log, TEXT("FActEventTimelineSlider::~FActEventTimelineSlider"));
+	UE_LOG(LogNovaAct, Log, TEXT("FActEventTimelineSlider::~FActEventTimelineSlider"));
 }
 
-void FActEventTimelineSlider::Init()
+void FActEventTimelineSlider::Init(const TSharedRef<SGridPanel>& InParentGridPanel)
 {
 	// Create the top and bottom sliders
 	ActActionTimeSliderWidget = SNew(SActActionTimeSliderWidget, SharedThis(this));
@@ -34,6 +38,47 @@ void FActEventTimelineSlider::Init()
 	TickLinesSequenceSectionOverlayController->MakeSequenceSectionOverlayWidget(ENovaSectionOverlayWidgetType::TickLines);
 	ScrubPosSequenceSectionOverlayController = MakeShareable(new FActEventTimelineImage(SharedThis(this)));
 	ScrubPosSequenceSectionOverlayController->MakeSequenceSectionOverlayWidget(ENovaSectionOverlayWidgetType::ScrubPosition);
+
+	InParentGridPanel->AddSlot(1, 0, SGridPanel::Layer(10))
+	                 .Padding(NovaConst::ResizeBarPadding)
+	[
+		SNew(SBorder)
+	.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
+	.BorderBackgroundColor(FLinearColor(.50f, .50f, .50f, 1.0f))
+	.Padding(0)
+	.Clipping(EWidgetClipping::ClipToBounds)
+		[
+			ActActionTimeSliderWidget.ToSharedRef()
+		]
+	];
+
+	// ** 第1列，第1行，Overlay that draws the tick lines
+	InParentGridPanel->AddSlot(1, 1, SGridPanel::Layer(10))
+	                 .Padding(NovaConst::ResizeBarPadding)
+	[
+		ScrubPosSequenceSectionOverlayController->GetActActionSequenceSectionOverlayWidget()
+	];
+
+	// ** 第1列，第1行，Overlay that draws the scrub position
+	InParentGridPanel->AddSlot(1, 1, SGridPanel::Layer(20))
+	                 .Padding(NovaConst::ResizeBarPadding)
+	[
+		TickLinesSequenceSectionOverlayController->GetActActionSequenceSectionOverlayWidget()
+	];
+
+	// play range slider
+	InParentGridPanel->AddSlot(1, 2, SGridPanel::Layer(10))
+	                 .Padding(NovaConst::ResizeBarPadding)
+	[
+		SNew(SBorder)
+		.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
+		.BorderBackgroundColor(FLinearColor(0.5f, 0.5f, 0.5f, 1.0f))
+		.Clipping(EWidgetClipping::ClipToBounds)
+		.Padding(0)
+		[
+			ActActionTimeRange.ToSharedRef()
+		]
+	];
 }
 
 FFrameTime FActEventTimelineSlider::ComputeFrameTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, FActActionScrubRangeToScreen RangeToScreen, bool CheckSnapping) const
@@ -53,10 +98,10 @@ FFrameTime FActEventTimelineSlider::ComputeScrubTimeFromMouse(const FGeometry& G
 	return ScrubTime;
 }
 
-void FActEventTimelineSlider::CommitScrubPosition(FFrameTime NewValue, bool bIsScrubbing) const
+void FActEventTimelineSlider::CommitScrubPosition(FFrameTime NewValue, bool bIsScrubbing)
 {
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
-	TSharedPtr<FActEventTimelineEvents> ActEventTimelineEvents = GetActEventTimelineEvents();
+	// TSharedPtr<FActEventTimelineEvents> ActEventTimelineEvents = GetActEventTimelineEvents();
 	// The user can scrub past the viewing range of the time slider controller, so we clamp it to the view range.
 	const TRange<float> ViewRange = ActEventTimelineArgs->ViewRange;
 	const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
@@ -68,7 +113,76 @@ void FActEventTimelineSlider::CommitScrubPosition(FFrameTime NewValue, bool bIsS
 	// {
 	// ActEventTimelineArgs->CurrentTime.Set(NewValue);
 	// }
-	ActEventTimelineEvents->OnScrubPositionChanged.ExecuteIfBound(NewValue, bIsScrubbing);
+	OnScrubPositionChanged(NewValue, bIsScrubbing);
+}
+
+
+void FActEventTimelineSlider::SetPlaybackStatus(ENovaPlaybackType InPlaybackStatus)
+{
+	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
+	DB->GetData()->PlaybackStatus = InPlaybackStatus;
+	ESequencerState State = ESS_None;
+	switch (InPlaybackStatus)
+	{
+	case ENovaPlaybackType::Playing:
+	case ENovaPlaybackType::Recording:
+		{
+			State = ESS_Playing;
+			break;
+		}
+	case ENovaPlaybackType::Stopped:
+	case ENovaPlaybackType::Scrubbing:
+	case ENovaPlaybackType::Stepping:
+		{
+			State = ESS_Paused;
+			break;
+		}
+	default: ;
+	}
+	for (FLevelEditorViewportClient* LevelVC : GEditor->GetLevelViewportClients())
+	{
+		if (LevelVC && LevelVC->AllowsCinematicControl())
+		{
+			LevelVC->ViewState.GetReference()->SetSequencerState(State);
+		}
+	}
+}
+
+void FActEventTimelineSlider::OnBeginScrubberMovement()
+{
+	// Pause first since there's no explicit evaluation in the stopped state when OnEndScrubberMovement() is called
+	SetPlaybackStatus(ENovaPlaybackType::Stopped);
+	SetPlaybackStatus(ENovaPlaybackType::Scrubbing);
+}
+
+void FActEventTimelineSlider::OnEndScrubberMovement()
+{
+	SetPlaybackStatus(ENovaPlaybackType::Stopped);
+}
+
+void FActEventTimelineSlider::OnScrubPositionChanged(FFrameTime NewScrubPosition, bool bScrubbing)
+{
+	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = DB->GetData();
+	if (ActEventTimelineArgs->PlaybackStatus == ENovaPlaybackType::Scrubbing && !bScrubbing)
+	{
+		OnEndScrubberMovement();
+	}
+	const TWeakPtr<SWidget> PreviousFocusedWidget = FSlateApplication::Get().GetKeyboardFocusedWidget();
+	// Clear focus before setting time in case there's a key editor value selected that gets committed to a newly selected key on UserMovedFocus
+	if (ActEventTimelineArgs->PlaybackStatus == ENovaPlaybackType::Stopped)
+	{
+		FSlateApplication::Get().ClearKeyboardFocus(EFocusCause::Cleared);
+	}
+	if (ActEventTimelineArgs->CurrentTime && NewScrubPosition != *ActEventTimelineArgs->CurrentTime)
+	{
+		*ActEventTimelineArgs->CurrentTime = NewScrubPosition;
+		NovaDB::Trigger("ActEventTimelineArgs/CurrentTime");
+	}
+	if (PreviousFocusedWidget.IsValid())
+	{
+		FSlateApplication::Get().SetKeyboardFocus(PreviousFocusedWidget.Pin());
+	}
 }
 
 void FActEventTimelineSlider::SetViewRange(double NewRangeMin, double NewRangeMax, ENovaViewRangeInterpolation Interpolation) const
@@ -92,7 +206,7 @@ void FActEventTimelineSlider::SetViewRange(double NewRangeMin, double NewRangeMa
 
 	// Clamp to the clamp range
 	// const TRange<float> NewRange = TRange<float>(NewRangeMin, NewRangeMax);
-	UE_LOG(LogActAction, Log, TEXT("NewRangeMin : %f, NewRangeMax : %f"), NewRangeMin, NewRangeMax);
+	UE_LOG(LogNovaAct, Log, TEXT("NewRangeMin : %f, NewRangeMax : %f"), NewRangeMin, NewRangeMax);
 
 	// ActEventTimelineArgs->OnViewRangeChanged.ExecuteIfBound(NewRange, Interpolation);
 }
@@ -223,7 +337,7 @@ FReply FActEventTimelineSlider::OnMouseButtonDown(const FGeometry& MyGeometry, c
 FReply FActEventTimelineSlider::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
-	TSharedPtr<FActEventTimelineEvents> ActEventTimelineEvents = GetActEventTimelineEvents();
+	// TSharedPtr<FActEventTimelineEvents> ActEventTimelineEvents = GetActEventTimelineEvents();
 	const bool bHandleLeftMouseButton = MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton && ActActionTimeSliderWidget->HasMouseCapture();
 	const bool bHandleRightMouseButton = MouseEvent.GetEffectingButton() == EKeys::RightMouseButton && ActActionTimeSliderWidget->HasMouseCapture() && ActEventTimelineArgs->AllowZoom;
 	const FActActionScrubRangeToScreen RangeToScreen = FActActionScrubRangeToScreen(ActEventTimelineArgs->ViewRange, MyGeometry.Size);
@@ -295,7 +409,7 @@ FReply FActEventTimelineSlider::OnMouseButtonUp(const FGeometry& MyGeometry, con
 		}
 		else if (bMouseDownInRegion)
 		{
-			ActEventTimelineEvents->OnEndScrubberMovement.ExecuteIfBound();
+			OnEndScrubberMovement();
 
 			FFrameTime ScrubTime = MouseTime;
 			const FVector2D CursorPos = MouseEvent.GetScreenSpacePosition();
@@ -322,7 +436,7 @@ FReply FActEventTimelineSlider::OnMouseButtonUp(const FGeometry& MyGeometry, con
 FReply FActEventTimelineSlider::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
-	TSharedPtr<FActEventTimelineEvents> ActEventTimelineEvents = GetActEventTimelineEvents();
+	// TSharedPtr<FActEventTimelineEvents> ActEventTimelineEvents = GetActEventTimelineEvents();
 	bool bHandleLeftMouseButton = MouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton);
 	bool bHandleRightMouseButton = MouseEvent.IsMouseButtonDown(EKeys::RightMouseButton) && ActEventTimelineArgs->AllowZoom;
 
@@ -410,7 +524,7 @@ FReply FActEventTimelineSlider::OnMouseMove(const FGeometry& MyGeometry, const F
 					MouseDragType = ENovaDragType::DRAG_SCRUBBING_TIME;
 					auto DB = GetDataBinding(ENovaTransportControls, "TransportControlsState");
 					DB->SetData(ENovaTransportControls::Pause);
-					ActEventTimelineEvents->OnBeginScrubberMovement.ExecuteIfBound();
+					OnBeginScrubberMovement();
 				}
 			}
 		}
@@ -516,7 +630,7 @@ void FActEventTimelineSlider::DrawTicks(FSlateWindowElementList& OutDrawElements
 
 	const double FirstMajorLine = FMath::FloorToDouble(ViewRange.GetLowerBoundValue() / MajorGridStep) * MajorGridStep;
 	const double LastMajorLine = FMath::CeilToDouble(ViewRange.GetUpperBoundValue() / MajorGridStep) * MajorGridStep;
-	const FFrameNumber FrameNumber = ConvertFrameTime(ActEventTimelineArgs->CurrentTime, TickResolution, TickResolution).FloorToFrame();
+	const FFrameNumber FrameNumber = ConvertFrameTime(*ActEventTimelineArgs->CurrentTime, TickResolution, TickResolution).FloorToFrame();
 	const float FlooredScrubPx = RangeToScreen.InputToLocalX(FrameNumber / TickResolution);
 	for (double CurrentMajorLine = FirstMajorLine; CurrentMajorLine < LastMajorLine; CurrentMajorLine += MajorGridStep)
 	{
@@ -583,9 +697,9 @@ TSharedRef<FActEventTimelineArgs> FActEventTimelineSlider::GetActEventTimelineAr
 	return ActEventTimelineArgs.ToSharedRef();
 }
 
-TSharedRef<FActEventTimelineEvents> FActEventTimelineSlider::GetActEventTimelineEvents() const
-{
-	auto ActEventTimelineEventsDB = GetDataBindingSP(FActEventTimelineEvents, "ActEventTimelineEvents");
-	TSharedPtr<FActEventTimelineEvents> ActEventTimelineEvents = ActEventTimelineEventsDB->GetData();
-	return ActEventTimelineEvents.ToSharedRef();
-}
+// TSharedRef<FActEventTimelineEvents> FActEventTimelineSlider::GetActEventTimelineEvents() const
+// {
+// 	auto ActEventTimelineEventsDB = GetDataBindingSP(FActEventTimelineEvents, "ActEventTimelineEvents");
+// 	TSharedPtr<FActEventTimelineEvents> ActEventTimelineEvents = ActEventTimelineEventsDB->GetData();
+// 	return ActEventTimelineEvents.ToSharedRef();
+// }

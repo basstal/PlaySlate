@@ -2,10 +2,14 @@
 
 #include "Common/NovaDataBinding.h"
 #include "Common/NovaStruct.h"
-#include "NovaAct/ActEventTimeline/SequenceNodeTree/ActActionTrackAreaSlot.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActActionTrackAreaSlot.h"
 
 using namespace NovaStruct;
 
+void SActTrackPanel::Construct(const FArguments& InArgs)
+{
+	
+}
 // void SActTrackPanel::MakeTrackSlot()
 // {
 // 	ActActionTrackAreaArgs.ViewInputMin.Bind(TAttribute<float>::FGetter::CreateLambda([this]()
@@ -33,3 +37,4 @@ using namespace NovaStruct;
 // 	ActActionTrackAreaSlot = MakeShareable(new FActActionTrackAreaSlot(SharedThis(this)));
 // 	ActActionTrackAreaSlot->MakeTrackLane();
 // }
+

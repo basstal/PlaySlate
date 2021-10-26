@@ -1,7 +1,7 @@
 ﻿#include "ActActionSequenceSectionArea.h"
 
-#include "NovaAct/ActEventTimeline/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
-#include "NovaAct/ActEventTimeline/SequenceNodeTree/ActActionSequenceSectionBase.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActActionSequenceTreeViewNode.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActActionSequenceSectionBase.h"
 #include "Subs/ActActionSequenceSection.h"
 
 
@@ -44,7 +44,7 @@ bool SActActionSequenceSectionArea::GetSectionEnabled(TSharedRef<FActActionSeque
 
 FText SActActionSequenceSectionArea::GetSectionToolTip(TSharedRef<FActActionSequenceSectionBase> InSequenceSection) const
 {
-	UE_LOG(LogActAction, Log, TEXT("GetSectionToolTip TODO"));
+	UE_LOG(LogNovaAct, Log, TEXT("GetSectionToolTip TODO"));
 	// const UMovieSceneSection* SectionObject = InSequenceSection->GetSectionObject();
 	// const UMovieScene* MovieScene = SectionObject ? SectionObject->GetTypedOuter<UMovieScene>() : nullptr;
 	//

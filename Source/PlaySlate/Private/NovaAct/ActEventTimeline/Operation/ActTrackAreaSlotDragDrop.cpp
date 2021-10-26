@@ -1,8 +1,9 @@
 ﻿#include "ActTrackAreaSlotDragDrop.h"
 
 #include "SCurveEditor.h"
-#include "NovaAct/Widgets/ActEventTimeline/SequenceNodeTree/Subs/ActActionSequenceNotifyNode.h"
-#include "NovaAct/ActEventTimeline/SequenceNodeTree/ActActionTrackAreaSlot.h"
+#include "Common/NovaDataBinding.h"
+#include "NovaAct/Widgets/ActEventTimeline/TreeView/Subs/ActActionSequenceNotifyNode.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActActionTrackAreaSlot.h"
 
 
 #define LOCTEXT_NAMESPACE "NovaAct"
@@ -70,10 +71,12 @@ void FActTrackAreaSlotDragDrop::OnDragged(const FDragDropEvent& DragDropEvent)
 	// 	// Our selection has moved off the bottom of the notify panel, adjust the clamping information to keep it on the panel
 	// 	SelectionPositionClampInfo = &ClampInfos[ClampInfos.Num() - TrackSpan - 1];
 	// }
+	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = DB->GetData();
 	const FGeometry& TrackGeometry = SelectedNode->CachedTrackGeometry;
-	FActActionTrackAreaArgs& TrackAreaArgs = SelectedNode->GetActActionTrackAreaSlot()->GetActActionTrackAreaArgs();
-	float PlayLength = TrackAreaArgs.GetPlayLength();
-	const FTrackScaleInfo& TrackScaleInfo = FTrackScaleInfo(TrackAreaArgs.ViewInputMin.Get(), TrackAreaArgs.ViewInputMax.Get(), 0.f, 0.f, SelectedNode->CachedTrackGeometry.GetLocalSize());
+	// FActActionTrackAreaArgs& TrackAreaArgs = SelectedNode->GetActActionTrackAreaSlot()->GetActActionTrackAreaArgs();
+	float PlayLength = ActEventTimelineArgs->ClampRange.Size<float>();
+	const FTrackScaleInfo& TrackScaleInfo = FTrackScaleInfo(ActEventTimelineArgs->ClampRange.GetLowerBoundValue(), ActEventTimelineArgs->ClampRange.GetUpperBoundValue(), 0.f, 0.f, SelectedNode->CachedTrackGeometry.GetLocalSize());
 
 	FVector2D LocalCoordinate = TrackGeometry.AbsoluteToLocal(NodeGroupPosition) + SelectedNode->GetNotifyPositionOffset();
 	FVector2D SelectionBeginPosition = TrackGeometry.LocalToAbsolute(LocalCoordinate);
@@ -253,7 +256,7 @@ TSharedRef<FActTrackAreaSlotDragDrop> FActTrackAreaSlotDragDrop::New(TSharedRef<
 
 	// Calculate offsets for the selected nodes
 	const FActActionTrackAreaArgs& TrackAreaArgs = NotifyNode->GetActActionTrackAreaSlot()->GetActActionTrackAreaArgs();
-	float BeginTime = TrackAreaArgs.GetBeginTime();
+	float BeginTime = TrackAreaArgs.BeginTime;
 	float EndTime = TrackAreaArgs.GetEndTime();
 
 	// Initialise node data

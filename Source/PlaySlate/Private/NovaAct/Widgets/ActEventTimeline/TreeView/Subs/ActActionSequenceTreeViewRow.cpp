@@ -1,6 +1,6 @@
 ﻿#include "ActActionSequenceTreeViewRow.h"
 
-#include "NovaAct/ActEventTimeline/SequenceNodeTree/ActActionSequenceTreeViewNode.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActActionSequenceTreeViewNode.h"
 
 
 void SActActionSequenceTreeViewRow::Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& OwnerTableView, const TSharedRef<FActActionSequenceTreeViewNode>& InNode)
