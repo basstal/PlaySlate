@@ -4,7 +4,9 @@
 #include "NovaAct/NovaActEditor.h"
 
 #include "NovaAct/ActEventTimeline/TreeView/ActTreeView.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActTreeViewNode.h"
 #include "NovaAct/ActEventTimeline/TreeView/ActTreeViewTrackAreaPanel.h"
+#include "NovaAct/ActEventTimeline/TreeView/Subs/ActActionSequenceTreeViewRow.h"
 
 #include "Widgets/Layout/SScrollBorder.h"
 
@@ -16,8 +18,8 @@ void SActTreeViewHorizontalBox::Construct(const FArguments& InArgs)
 		.Thickness(FVector2D(9.0f, 9.0f));
 	const TSharedRef<SScrollBar> PinnedAreaScrollBar = SNew(SScrollBar)
 		.Thickness(FVector2D(9.0f, 9.0f));
-	TSharedRef<SActTreeViewTrackAreaPanel> TrackArea = SNew(SActTreeViewTrackAreaPanel);
-	TSharedRef<SActTreeView> TreeView = SNew(SActTreeView, TrackArea)
+	ActTreeViewTrackAreaPanel = SNew(SActTreeViewTrackAreaPanel);
+	TSharedRef<SActTreeView> TreeView = SNew(SActTreeView, ActTreeViewTrackAreaPanel.ToSharedRef())
 		.ExternalScrollbar(ScrollBar)
 		.OnGenerateRow(this, &SActTreeViewHorizontalBox::OnGenerateRow);
 	TSharedRef<SActTreeViewTrackAreaPanel> TrackAreaPinned = SNew(SActTreeViewTrackAreaPanel);
@@ -64,7 +66,7 @@ void SActTreeViewHorizontalBox::Construct(const FArguments& InArgs)
 				.Padding(NovaConst::ResizeBarPadding)
 				.Clipping(EWidgetClipping::ClipToBounds)
 					[
-						TrackArea
+						ActTreeViewTrackAreaPanel.ToSharedRef()
 					]
 				]
 			]
@@ -81,8 +83,7 @@ void SActTreeViewHorizontalBox::Construct(const FArguments& InArgs)
 
 TSharedRef<ITableRow> SActTreeViewHorizontalBox::OnGenerateRow(TSharedRef<SActTreeViewNode> InDisplayNode, const TSharedRef<STableViewBase>& OwnerTable)
 {
-	TSharedRef<SActActionSequenceTreeViewRow> Row = SNew(SActActionSequenceTreeViewRow, OwnerTable, InDisplayNode)
-		.OnGenerateWidgetForColumn(this, &SActTreeView::GenerateWidgetFromColumn);
+	TSharedRef<SActTreeViewNode> Row = SNew(SActTreeViewNode, OwnerTable);
 
 	// Ensure the track area is kept up to date with the virtualized scroll of the tree view
 	const TSharedPtr<SActTreeViewNode> SectionAuthority = InDisplayNode->GetSectionAreaAuthority();

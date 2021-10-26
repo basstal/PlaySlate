@@ -1,9 +1,8 @@
 ﻿#pragma once
-#include "ActTreeViewNode.h"
 
-class SActTreeViewTrackCarWidget;
 class SActTreeViewNode;
-
+class SActTreeViewTrackCarWidget;
+class SActActionSequenceNotifyNode;
 
 class SActTreeViewTrackLaneWidget : public TSlotBase<SActTreeViewTrackLaneWidget>, public SCompoundWidget
 {
@@ -11,9 +10,9 @@ public:
 	SLATE_BEGIN_ARGS(SActTreeViewTrackLaneWidget) {}
 	SLATE_END_ARGS()
 
-
+	SActTreeViewTrackLaneWidget();
 	/** Construction from a track lane */
-	SActTreeViewTrackLaneWidget(const TSharedRef<SActTreeViewNode>& InSequenceTreeViewNode);
+	// SActTreeViewTrackLaneWidget(const TSharedRef<SActTreeViewNode>& InSequenceTreeViewNode);
 
 	void Construct(const FArguments& InArgs);
 
@@ -54,7 +53,7 @@ public:
 	 *
 	 * @param InVisibility
 	 */
-	void SetVisibility(EVisibility InVisibility);
+	// void SetVisibility(EVisibility InVisibility);
 	/** NOTE:必须是public的因为LayoutUtils.h在用这个字段，Horizontal alignment for the slot. */
 	EHorizontalAlignment HAlignment;
 	/** NOTE:必须是public的因为LayoutUtils.h在用这个字段，Vertical alignment for the slot. */
@@ -79,13 +78,27 @@ public:
 		return TrackLane.ToSharedRef();
 	}
 
-	FActActionTrackAreaArgs& GetActActionTrackAreaArgs() const
-	{
-		return SequenceTreeViewNode.Pin()->GetActActionTrackAreaArgs();
-	}
+	// FActActionTrackAreaArgs& GetActActionTrackAreaArgs() const
+	// {
+	// 	return SequenceTreeViewNode.Pin()->GetActActionTrackAreaArgs();
+	// }
 
 	// FAnimNotifyEvent* GetNotifyEvent() const
 	// {
 	// 	return AnimNotifyEvent;
 	// }
+};
+
+// ** TODO:这里无法放到NovaStruct中因为会导致 模糊的SActTreeViewTrackLaneWidget
+/** Structure used to cache physical geometry for a particular track */
+struct FActActionCachedGeometry
+{
+	FActActionCachedGeometry(TSharedRef<SActTreeViewTrackLaneWidget> InTrack, float InTop, float InHeight)
+		: Track(MoveTemp(InTrack)),
+		  Top(InTop),
+		  Height(InHeight) { }
+
+	TSharedRef<SActTreeViewTrackLaneWidget> Track;
+	float Top;
+	float Height;
 };

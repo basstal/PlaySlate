@@ -1,14 +1,17 @@
 ﻿#pragma once
 
 #include "Common/NovaStruct.h"
+#include "Common/NovaConst.h"
+#include "Common/NovaStaticFunction.h"
 #include "NovaAct/Assets/ActActionSequenceStructs.h"
+#include "ActTreeViewTrackLaneWidget.h"
 
 class FActActionSequenceSectionBase;
 class SActActionSequenceTreeViewRow;
 class SActActionOutlinerTreeNode;
 class SActTreeView;
 class SActTreeViewTrackAreaPanel;
-class SActTreeViewTrackLaneWidget;
+// class SActTreeViewTrackLaneWidget;
 class SActTreeViewTrackCarWidget;
 
 using namespace NovaEnum;
@@ -16,11 +19,12 @@ using namespace NovaStruct;
 /**
  * 基础的Sequence Node
  */
-class SActTreeViewNode : public SCompoundWidget
+class SActTreeViewNode : public SMultiColumnTableRow<TSharedRef<SActTreeViewNode>>
 {
 	friend class SActActionOutlinerTreeNode;
-
 public:
+	typedef SMultiColumnTableRow::FArguments FArguments;
+
 	/**
 	 * 构造一个树节点
 	 *
@@ -28,8 +32,9 @@ public:
 	 * @param InNodeType 节点类型
 	 */
 	SActTreeViewNode(FName InNodeName = NAME_None, ENovaSequenceNodeType InNodeType = ENovaSequenceNodeType::Root);
-
 	virtual ~SActTreeViewNode() override;
+
+	void Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& OwnerTableView);
 
 	// /**
 	//  * 构造节点的Widget
@@ -44,10 +49,9 @@ public:
 	/**
 	 * 构造节点的Outliner的Widget
 	 *
-	 * @param InRow 传入的内容Widget
 	 * @return 输出包装用Outliner Widget
 	 */
-	TSharedRef<SWidget> MakeOutlinerWidget(const TSharedRef<SActActionSequenceTreeViewRow>& InRow);
+	TSharedRef<SWidget> MakeOutlinerWidget();
 	// TSharedRef<SActTrackPanel> GetActTrackPanel();
 
 	/** 当Notify节点有改变时触发的回调 */
@@ -198,6 +202,20 @@ public:
 	// TSharedPtr<SActTreeViewNode> GetRoot();
 	/** 获得当前节点的可见性，节点可见性由Outliner的可见性决定 */
 	// EVisibility GetVisibility() const;
+	/**
+	 * 为特定节点和列生成Widget
+	 * @param InNode
+	 * @param ColumnId
+	 * @param Row
+	 * @return 
+	 */
+	// TSharedRef<SWidget> GenerateWidgetFromColumn(const TSharedRef<SActTreeViewNode>& InNode, const FName& ColumnId, const TSharedRef<SActActionSequenceTreeViewRow>& Row);
+
+	//~Begin SMultiColumnTableRow interface
+	virtual TSharedRef<SWidget> GenerateWidgetForColumn(const FName& InColumnName) override;
+	//~End SMultiColumnTableRow interface
+
+
 protected:
 	/**
 	 * 该节点的父节点，如果没有父节点则认为是树的根节点

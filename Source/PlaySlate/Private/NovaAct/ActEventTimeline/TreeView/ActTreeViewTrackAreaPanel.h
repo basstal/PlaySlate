@@ -1,9 +1,5 @@
 ﻿#pragma once
 
-class SActTreeViewTrackCarWidget;
-class SActTreeViewNode;
-class SActTreeViewTrackLaneWidget;
-
 class SActTreeViewTrackAreaPanel : public SPanel
 {
 public:
@@ -26,7 +22,7 @@ public:
 	 * @param InActTreeViewNode
 	 * @return
 	 */
-	TSharedRef<SActTreeViewTrackLaneWidget> MakeTrackLaneWithTreeViewNode(const TSharedRef<SActTreeViewNode>& InActTreeViewNode);
+	TSharedRef<class SActTreeViewTrackLaneWidget> MakeTrackLaneWithTreeViewNode(const TSharedRef<class SActTreeViewNode>& InActTreeViewNode);
 
 protected:
 	TPanelChildren<SActTreeViewTrackLaneWidget> Children;// ** The track area's children.

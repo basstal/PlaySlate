@@ -1,10 +1,13 @@
 ﻿#include "ActTrackAreaSlotDragDrop.h"
 
 #include "SCurveEditor.h"
+#include "Common/NovaStruct.h"
 #include "Common/NovaDataBinding.h"
 #include "NovaAct/ActEventTimeline/TreeView/Subs/ActActionSequenceNotifyNode.h"
 #include "NovaAct/ActEventTimeline/TreeView/ActTreeViewTrackLaneWidget.h"
 
+
+using namespace NovaStruct;
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
@@ -254,20 +257,21 @@ TSharedRef<FActTrackAreaSlotDragDrop> FActTrackAreaSlotDragDrop::New(TSharedRef<
 	Operation->SelectedNode = NotifyNode;
 	Operation->TrackSpan = 0;
 
+	// ** TODO:
 	// Calculate offsets for the selected nodes
-	const FActActionTrackAreaArgs& TrackAreaArgs = NotifyNode->GetActActionTrackAreaSlot()->GetActActionTrackAreaArgs();
-	float BeginTime = TrackAreaArgs.BeginTime;
-	float EndTime = TrackAreaArgs.GetEndTime();
+	// const FActActionTrackAreaArgs& TrackAreaArgs = NotifyNode->GetActActionTrackAreaSlot()->GetActActionTrackAreaArgs();
+	// float BeginTime = TrackAreaArgs.BeginTime;
+	// float EndTime = TrackAreaArgs.GetEndTime();
 
 	// Initialise node data
-	Operation->NodeTimeOffset = EndTime - BeginTime;
-	Operation->NodeTime = EndTime;
-	Operation->NodeXOffset = NotifyNode->GetNotifyPositionOffset().X;
-	// Calculate the time length of the selection. Because it is possible to have states
-	// with arbitrary durations we need to search all of the nodes and find the furthest
-	// possible point
-	Operation->SelectionTimeLength = FMath::Max(Operation->SelectionTimeLength, EndTime - BeginTime);
-	Operation->Construct();
+	// Operation->NodeTimeOffset = EndTime - BeginTime;
+	// Operation->NodeTime = EndTime;
+	// Operation->NodeXOffset = NotifyNode->GetNotifyPositionOffset().X;
+	// // Calculate the time length of the selection. Because it is possible to have states
+	// // with arbitrary durations we need to search all of the nodes and find the furthest
+	// // possible point
+	// Operation->SelectionTimeLength = FMath::Max(Operation->SelectionTimeLength, EndTime - BeginTime);
+	// Operation->Construct();
 
 	// for (int32 i = 0; i < NotifyTracks.Num(); ++i)
 	// {

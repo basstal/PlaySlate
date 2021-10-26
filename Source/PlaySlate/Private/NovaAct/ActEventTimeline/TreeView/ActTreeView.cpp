@@ -2,15 +2,15 @@
 
 #include "PlaySlate.h"
 #include "NovaAct/ActEventTimeline/TreeView/ActTreeViewTrackAreaPanel.h"
-#include "NovaAct/ActEventTimeline/TreeView/Subs/ActTreeViewTrackCarWidget.h"
+// #include "NovaAct/ActEventTimeline/TreeView/Subs/ActTreeViewTrackCarWidget.h"
 #include "NovaAct/ActEventTimeline/TreeView/ActTreeViewNode.h"
 
 #include "Common/NovaDataBinding.h"
 #include "NovaAct/Assets/ActAnimation.h"
-#include "Subs/ActActionSequenceTreeViewRow.h"
+#include "NovaAct/ActEventTimeline/TreeView/Subs/ActActionSequenceTreeViewRow.h"
 
 
-void SActTreeView::Construct(FArguments& InArgs, const TSharedRef<SActTreeViewTrackAreaPanel>& InTrackArea)
+void SActTreeView::Construct(const FArguments& InArgs, const TSharedRef<SActTreeViewTrackAreaPanel>& InTrackArea)
 {
 	ActTreeViewTrackAreaPanel = InTrackArea;
 
@@ -21,26 +21,16 @@ void SActTreeView::Construct(FArguments& InArgs, const TSharedRef<SActTreeViewTr
 		.Visibility(EVisibility::Collapsed)
 		+ SHeaderRow::Column(FName("Outliner"))
 		.FillWidth(1.0f);
-	InArgs._TreeItemsSource = &DisplayedRootNodes;
-	InArgs._SelectionMode = ESelectionMode::Single;
-	InArgs._HeaderRow = HeaderRow;
-	InArgs._HighlightParentNodesForSelection = true;
-	InArgs._AllowInvisibleItemSelection = true;
-	InArgs._Clipping = EWidgetClipping::ClipToBounds;
-	InArgs._OnGetChildren = FOnGetChildren::CreateRaw(this, &SActTreeView::OnGetChildren);
-	InArgs._OnExpansionChanged = FOnExpansionChanged::CreateRaw(this, &SActTreeView::OnExpansionChanged);
+	// InArgs._TreeItemsSource = &DisplayedRootNodes;
+	// InArgs._SelectionMode = ESelectionMode::Single;
+	// InArgs._HeaderRow = HeaderRow;
+	// InArgs._HighlightParentNodesForSelection = true;
+	// InArgs._AllowInvisibleItemSelection = true;
+	// InArgs._Clipping = EWidgetClipping::ClipToBounds;
+	// InArgs._OnGetChildren.BindRaw(this, &SActTreeView::OnGetChildren);
+	// InArgs._OnExpansionChanged.BindRaw(this, &SActTreeView::OnExpansionChanged);
 
 	STreeView::Construct(InArgs);
-}
-
-
-TSharedRef<SWidget> SActTreeView::GenerateWidgetFromColumn(const TSharedRef<SActTreeViewNode>& InNode, const FName& ColumnId, const TSharedRef<SActActionSequenceTreeViewRow>& Row) const
-{
-	if (ColumnId == "Outliner")
-	{
-		return InNode->MakeOutlinerWidget(Row);
-	}
-	return SNullWidget::NullWidget;
 }
 
 void SActTreeView::OnGetChildren(TSharedRef<SActTreeViewNode> InParent, TArray<TSharedRef<SActTreeViewNode>>& OutChildren) const
@@ -87,8 +77,9 @@ void SActTreeView::OnHitBoxesChanged(UActAnimation* InActAnimation)
 	{
 		for (int count = HitBoxTreeViewNodeCount; count < InHitBoxData.Num(); ++count)
 		{
-			TSharedRef<SActTreeViewNode> NewTreeViewNode = MakeShareable(new SActTreeViewNode("HitBox", ENovaSequenceNodeType::State));
-			NewTreeViewNode->SetParent(HitBoxesFolder);
+			// ** TODO:
+			// TSharedRef<SActTreeViewNode> NewTreeViewNode = MakeShareable(new SActTreeViewNode("HitBox", ENovaSequenceNodeType::State));
+			// NewTreeViewNode->SetParent(HitBoxesFolder);
 		}
 	}
 	int Index = 0;
@@ -109,8 +100,9 @@ TSharedRef<SActTreeViewNode> SActTreeView::FindOrCreateFolder(const FName& InNam
 	TSharedRef<SActTreeViewNode>* FindNode = ChildNodes.Find(InName);
 	if (!FindNode)
 	{
-		TSharedRef<SActTreeViewNode> Folder = MakeShareable(new SActTreeViewNode(InName, ENovaSequenceNodeType::Folder));
-		return Folder;
+		// ** TODO:
+		// TSharedRef<SActTreeViewNode> Folder = MakeShareable(new SActTreeViewNode(InName, ENovaSequenceNodeType::Folder));
+		// return Folder;
 	}
 	return *FindNode;
 }

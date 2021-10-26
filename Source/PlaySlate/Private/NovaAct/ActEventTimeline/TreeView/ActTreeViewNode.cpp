@@ -2,8 +2,7 @@
 
 #include "PlaySlate.h"
 #include "ActActionSequenceSectionBase.h"
-#include "Common/NovaConst.h"
-#include "Common/NovaStaticFunction.h"
+
 #include "NovaAct/NovaActEditor.h"
 #include "NovaAct/Assets/ActActionSequenceStructs.h"
 
@@ -15,6 +14,7 @@
 #include "Widgets/Text/SInlineEditableTextBlock.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
+
 
 SActTreeViewNode::SActTreeViewNode(FName InNodeName, ENovaSequenceNodeType InNodeType)
 	: NodeName(InNodeName),
@@ -59,7 +59,18 @@ SActTreeViewNode::~SActTreeViewNode()
 	UE_LOG(LogNovaAct, Log, TEXT("SActTreeViewNode::~SActTreeViewNode"));
 }
 
-TSharedRef<SWidget> SActTreeViewNode::MakeOutlinerWidget(const TSharedRef<SActActionSequenceTreeViewRow>& InRow)
+void SActTreeViewNode::Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& OwnerTableView)
+{
+	// InArgs._OnDragDetected.BindRaw(this, &SActActionSequenceTreeViewRow::OnDragDetected);
+	// InArgs._OnCanAcceptDrop.BindRaw(this, &SActActionSequenceTreeViewRow::OnCanAcceptDrop);
+	// InArgs._OnAcceptDrop.BindRaw(this, &SActActionSequenceTreeViewRow::OnAcceptDrop);
+	// InArgs._ShowSelection = IsSelectable();
+	// InArgs._Padding.BindRaw(this, &SActActionSequenceTreeViewRow::GetRowPadding);
+	SMultiColumnTableRow::Construct(InArgs, OwnerTableView);
+}
+
+
+TSharedRef<SWidget> SActTreeViewNode::MakeOutlinerWidget()
 {
 	TSharedRef<SWidget> Widget =
 		SNew(SHorizontalBox)
@@ -524,9 +535,10 @@ TSharedRef<SActTreeViewNode> SActTreeViewNode::FindOrCreateFolder(const FName& I
 	});
 	if (!FindNode)
 	{
-		TSharedRef<SActTreeViewNode> Folder = MakeShareable(new SActTreeViewNode(InName, ENovaSequenceNodeType::Folder));
-		Folder->SetParent(SharedThis(this), 0);
-		return Folder;
+		// ** TODO:
+		// TSharedRef<SActTreeViewNode> Folder = MakeShareable(new SActTreeViewNode(InName, ENovaSequenceNodeType::Folder));
+		// Folder->SetParent(SharedThis(this), 0);
+		// return Folder;
 	}
 	return *FindNode;
 }
@@ -569,6 +581,21 @@ float SActTreeViewNode::ComputeTrackPosition()
 	return 0;
 }
 
+TSharedRef<SWidget> SActTreeViewNode::GenerateWidgetForColumn(const FName& InColumnName)
+{
+	TSharedPtr<SWidget> ColumnWidget = SNullWidget::NullWidget;
+	if (InColumnName == "Outliner")
+	{
+		ColumnWidget =  MakeOutlinerWidget();
+	}
+
+	return SNew(SOverlay)
+		+ SOverlay::Slot()
+		[
+			ColumnWidget.ToSharedRef()
+		];
+}
+
 // TSharedPtr<SActTreeViewNode> SActTreeViewNode::GetRoot()
 // {
 // 	if (IsTreeViewRoot())
@@ -591,4 +618,12 @@ float SActTreeViewNode::ComputeTrackPosition()
 // 		return ActActionOutlinerTreeNode->GetVisibility();
 // 	}
 // }
+
+
+// TSharedRef<SWidget> SActTreeViewNode::GenerateWidgetFromColumn(const TSharedRef<SActTreeViewNode>& InNode, const FName& ColumnId, const TSharedRef<SActActionSequenceTreeViewRow>& Row)
+// {
+
+// }
+
+
 #undef LOCTEXT_NAMESPACE

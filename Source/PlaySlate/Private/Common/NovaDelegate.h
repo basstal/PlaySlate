@@ -2,10 +2,8 @@
 
 #include "Common/NovaEnum.h"
 
-struct FPointerEvent;
 struct FActActionHitBoxData;
 class FActActionTrackEditorBase;
-
 class SActTreeViewNode;
 class SActActionSequenceTreeViewRow;
 class SActActionSequenceNotifyNode;

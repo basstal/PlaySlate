@@ -6,16 +6,15 @@
 
 #include "Widgets/SWeakWidget.h"
 
-
-SActTreeViewTrackLaneWidget::SActTreeViewTrackLaneWidget(const TSharedRef<SActTreeViewNode>& InSequenceTreeViewNode)
+SActTreeViewTrackLaneWidget::SActTreeViewTrackLaneWidget()
 	: HAlignment(HAlign_Fill),
-	  VAlignment(VAlign_Top),
-	  SequenceTreeViewNode(InSequenceTreeViewNode)
-// AnimNotifyEvent(nullptr)
-{}
+	  VAlignment(VAlign_Top) { }
 
 void SActTreeViewTrackLaneWidget::Construct(const FArguments& InArgs)
-{ }
+{
+	HAlignment = HAlign_Fill;
+	VAlignment = VAlign_Top;
+}
 
 void SActTreeViewTrackLaneWidget::MakeTrackLane()
 {
@@ -95,7 +94,7 @@ bool SActTreeViewTrackLaneWidget::HasNotifyNode()
 	return NodeType != ENovaSequenceNodeType::Root && NodeType != ENovaSequenceNodeType::Folder;
 }
 
-void SActTreeViewTrackLaneWidget::SetVisibility(EVisibility InVisibility)
-{
-	TrackLane->SetVisibility(InVisibility);
-}
+// void SActTreeViewTrackLaneWidget::SetVisibility(EVisibility InVisibility)
+// {
+// 	TrackLane->SetVisibility(InVisibility);
+// }

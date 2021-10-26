@@ -3,11 +3,6 @@
 #include "Common/NovaDelegate.h"
 
 
-class SActTreeViewTrackLaneWidget;
-class FActActionTrackEditorBase;
-class SActTreeViewNode;
-class SActActionSequenceTreeViewRow;
-
 namespace NovaStruct
 {
 	using namespace NovaEnum;
@@ -322,19 +317,6 @@ namespace NovaStruct
 
 		/** Attribute specifying the width of this column */
 		TAttribute<float> Width;
-	};
-
-	/** Structure used to cache physical geometry for a particular track */
-	struct FActActionCachedGeometry
-	{
-		FActActionCachedGeometry(TSharedRef<SActTreeViewTrackLaneWidget> InTrack, float InTop, float InHeight)
-			: Track(MoveTemp(InTrack)),
-			  Top(InTop),
-			  Height(InHeight) { }
-
-		TSharedRef<SActTreeViewTrackLaneWidget> Track;
-		float Top;
-		float Height;
 	};
 
 	/** ActActionSequence evaluation context. Should remain bitwise copyable, and contain no external state since this has the potential to be used on a thread */

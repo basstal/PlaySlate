@@ -34,6 +34,7 @@ public:
 	TSharedRef<ITableRow> OnGenerateRow(TSharedRef<SActTreeViewNode> InDisplayNode, const TSharedRef<STableViewBase>& OwnerTable);
 
 protected:
-	TMap<TSharedPtr<SActTreeViewNode>, TWeakPtr<SActTreeViewTrackLaneWidget>> TreeViewNode2TrackLane;// ** A map of child slot content that exist in our view.
+	TSharedPtr<SActTreeViewTrackAreaPanel> ActTreeViewTrackAreaPanel;// ** Track 区域 Panel 面板，用于构建 TrackLaneWidget
 
+	TMap<TSharedPtr<SActTreeViewNode>, TWeakPtr<SActTreeViewTrackLaneWidget>> TreeViewNode2TrackLane;// ** A map of child slot content that exist in our view.
 };

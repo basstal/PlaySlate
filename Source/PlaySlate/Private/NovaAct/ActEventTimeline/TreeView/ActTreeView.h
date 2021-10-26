@@ -14,17 +14,9 @@ class SActTreeView : public STreeView<TSharedRef<SActTreeViewNode>>
 public:
 	typedef STreeView::FArguments FArguments;
 
-	void Construct(FArguments& InArgs, const TSharedRef<SActTreeViewTrackAreaPanel>& InTrackArea);
+	void Construct(const FArguments& InArgs, const TSharedRef<SActTreeViewTrackAreaPanel>& InTrackArea);
 
-	/**
-	 * 为特定节点和列生成Widget
-	 * @param InNode
-	 * @param ColumnId
-	 * @param Row
-	 * @return 
-	 */
-	TSharedRef<SWidget> GenerateWidgetFromColumn(const TSharedRef<SActTreeViewNode>& InNode, const FName& ColumnId, const TSharedRef<SActActionSequenceTreeViewRow>& Row) const;
-
+	
 	/**
 	 * 从InParent节点中获取所有的孩子节点，过滤掉隐藏的节点
 	 * @param InParent
