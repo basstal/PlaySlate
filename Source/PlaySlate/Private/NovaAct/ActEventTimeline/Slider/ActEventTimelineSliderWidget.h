@@ -4,27 +4,32 @@
 #include "Common/NovaStruct.h"
 
 class SActActionTimeSliderWidget;
-class SActActionTimeRangeSlider;
-class SActActionTimeRange;
+class SActEventTimelineViewRangeBarWidget;
+class SActEventTimelineViewRangeCommitWidget;
 class FActEventTimelineImage;
 class SGridPanel;
 
 using namespace NovaStruct;
 
 
-
-class FActEventTimelineSlider : public TSharedFromThis<FActEventTimelineSlider>
+class SActEventTimelineSliderWidget : public SCompoundWidget
 {
-	friend class SActActionTimeSliderWidget;
-
 public:
-	FActEventTimelineSlider();
-	~FActEventTimelineSlider();
+	SLATE_BEGIN_ARGS(SActEventTimelineSliderWidget) { }
+	SLATE_END_ARGS()
 
-	/**
-	* 构造TimeSlider的Widget
-	*/
-	void Init(const TSharedRef<SGridPanel>& InParentGridPanel);
+	SActEventTimelineSliderWidget();
+	virtual ~SActEventTimelineSliderWidget() override;
+
+	void Construct(const FArguments& InArgs, const TSharedRef<SGridPanel>& InParentGridPanel);
+
+	//~Begin SWidget interface
+	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
+	virtual FReply OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual FReply OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual FReply OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	//~End SWidget interface
 
 	/**
 	 * TODO:
@@ -68,11 +73,9 @@ public:
 	/**
 	 * Set a new range based on a min, max and an interpolation mode
 	 * 
-	 * @param NewRangeMin		The new lower bound of the range
-	 * @param NewRangeMax		The new upper bound of the range
-	 * @param Interpolation		How to set the new range (either immediately, or animated)
+	 * @param InViewRange
 	 */
-	void SetViewRange(double NewRangeMin, double NewRangeMax, ENovaViewRangeInterpolation Interpolation) const;
+	void OnViewRangeChanged(TSharedPtr<TRange<float>> InViewRange) const;
 
 	/**
 	 * Hit test the lower bound of a range
@@ -120,42 +123,6 @@ public:
 	void PanByDelta(float InDelta) const;
 
 	/**
-	 * Widget的OnMouseButtonDown回调
-	 * 
-	 * @param MyGeometry 当前点击的Geometry
-	 * @param MouseEvent 当前响应的鼠标事件
-	 */
-	FReply OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
-
-	/**
-	 * Widget的OnMouseButtonUp回调
-	 * 
-	 * @param MyGeometry 当前点击的Geometry
-	 * @param MouseEvent 当前响应的鼠标事件
-	 */
-	FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
-
-	/**
-	 * Widget的OnMouseMove回调
-	 * 
-	 * @param MyGeometry 当前点击的Geometry
-	 * @param MouseEvent 当前响应的鼠标事件
-	 */
-	FReply OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
-
-	/**
-	 * Widget的OnMouseWheel回调
-	 * 
-	 * @param MyGeometry 当前点击的Geometry
-	 * @param MouseEvent 当前响应的鼠标事件
-	 */
-	FReply OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) const;
-
-	/**
-	 * @return 获得TimeSlider相关参数
-	 */
-	// FActEventTimelineArgs& GetTimeSliderArgs() const;
-	/**
 	 * 绘制帧显示
 	 *
 	 * @param OutDrawElements 待绘制的元素列表
@@ -171,13 +138,6 @@ public:
 	// TSharedRef<FActEventTimelineEvents> GetActEventTimelineEvents() const;
 
 protected:
-
-	/** 对应控制的Widget */
-	TSharedPtr<SActActionTimeSliderWidget> ActActionTimeSliderWidget;
-
-	/** TimeRange Widget */
-	TSharedPtr<SActActionTimeRange> ActActionTimeRange;
-
 	/** Total mouse delta during dragging **/
 	float DistanceDragged;
 
@@ -213,18 +173,9 @@ protected:
 	* SectionOverlay的Controller，这个用来绘制Scrub位置
 	*/
 	TSharedPtr<FActEventTimelineImage> ScrubPosSequenceSectionOverlayController;
+	TSharedPtr<TDataBindingSP<TRange<float>>> ViewRangeDB; // ** 数据绑定
 
 public:
-	TSharedRef<SActActionTimeSliderWidget> GetActActionTimeSliderWidget() const
-	{
-		return ActActionTimeSliderWidget.ToSharedRef();
-	}
-
-	TSharedRef<SActActionTimeRange> GetActActionTimeRange() const
-	{
-		return ActActionTimeRange.ToSharedRef();
-	}
-
 	TSharedRef<FActEventTimelineImage> GetTickLinesSequenceSectionOverlayController() const
 	{
 		return TickLinesSequenceSectionOverlayController.ToSharedRef();

@@ -1,25 +1,38 @@
 ﻿#pragma once
 
-class SActTreeViewNode;
-class SActTreeViewTrackCarWidget;
+class SActImageTreeViewTableRow;
+class SActImageTrackCarWidget;
 class SActActionSequenceNotifyNode;
 
-class SActTreeViewTrackLaneWidget : public TSlotBase<SActTreeViewTrackLaneWidget>, public SCompoundWidget
+class SActImageTrackLaneWidget : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SActTreeViewTrackLaneWidget) {}
+	// ** 使用 TPanelChildren 必须有的结构
+	class Slot : public TSlotBase<Slot>
+	{
+	public:
+		Slot(const TSharedRef<SActImageTrackLaneWidget>& InSlotContent);
+
+		/** @return Get the vertical position of this slot inside its parent. */
+		float GetVerticalOffset() const;
+
+		EHorizontalAlignment HAlignment;// ** NOTE:必须是public的因为LayoutUtils.h在用这个字段，Horizontal alignment for the slot.
+		EVerticalAlignment VAlignment;  // ** NOTE:必须是public的因为LayoutUtils.h在用这个字段，Vertical alignment for the slot.
+
+	protected:
+		TWeakPtr<SActImageTrackLaneWidget> SlotContent;// ** Slot 的具体 Widget 内容，这里是WeakPtr是因为基类有对 Widget 的管理
+	};
+	SLATE_BEGIN_ARGS(SActImageTrackLaneWidget) {}
 	SLATE_END_ARGS()
 
-	SActTreeViewTrackLaneWidget();
 	/** Construction from a track lane */
-	// SActTreeViewTrackLaneWidget(const TSharedRef<SActTreeViewNode>& InSequenceTreeViewNode);
+	// SActImageTrackLaneWidget(const TSharedRef<SActImageTreeViewTableRow>& InSequenceTreeViewNode);
 
 	void Construct(const FArguments& InArgs);
 
 	/** 构造TrackLane Widget*/
-	void MakeTrackLane();
-	/** Get the vertical position of this slot inside its parent. */
-	float GetVerticalOffset() const;
+	// void MakeTrackLane();
+
 
 	/** 获得节点的Tooltip */
 	FText GetNodeTooltip();
@@ -48,32 +61,30 @@ public:
 	bool IsBranchingPoint();
 	/** 是否需要创建NotifyNode */
 	bool HasNotifyNode();
+	/** Get the desired physical vertical position of this track */
+	float GetPhysicalPosition() const;
 	/**
 	 * 设置该节点对应的Widget的可见性
 	 *
 	 * @param InVisibility
 	 */
 	// void SetVisibility(EVisibility InVisibility);
-	/** NOTE:必须是public的因为LayoutUtils.h在用这个字段，Horizontal alignment for the slot. */
-	EHorizontalAlignment HAlignment;
-	/** NOTE:必须是public的因为LayoutUtils.h在用这个字段，Vertical alignment for the slot. */
-	EVerticalAlignment VAlignment;
 protected:
 	/** TreeViewNode Controller */
-	TWeakPtr<SActTreeViewNode> SequenceTreeViewNode;
+	TWeakPtr<SActImageTreeViewTableRow> SequenceTreeViewNode;
 	/** The track lane that we represent. */
-	TSharedPtr<SActTreeViewTrackCarWidget> TrackLane;
+	TSharedPtr<SActImageTrackCarWidget> TrackLane;
 	/** Notify Node */
 	TSharedPtr<SActActionSequenceNotifyNode> NotifyNode;
 
 	// FAnimNotifyEvent* AnimNotifyEvent;
 public:
-	TSharedRef<SActTreeViewNode> GetActActionSequenceTreeViewNode() const
+	TSharedRef<SActImageTreeViewTableRow> GetActActionSequenceTreeViewNode() const
 	{
 		return SequenceTreeViewNode.Pin().ToSharedRef();
 	}
 
-	TSharedRef<SActTreeViewTrackCarWidget> GetActActionSequenceTrackLane() const
+	TSharedRef<SActImageTrackCarWidget> GetActActionSequenceTrackLane() const
 	{
 		return TrackLane.ToSharedRef();
 	}
@@ -93,12 +104,12 @@ public:
 /** Structure used to cache physical geometry for a particular track */
 struct FActActionCachedGeometry
 {
-	FActActionCachedGeometry(TSharedRef<SActTreeViewTrackLaneWidget> InTrack, float InTop, float InHeight)
+	FActActionCachedGeometry(TSharedRef<SActImageTrackLaneWidget> InTrack, float InTop, float InHeight)
 		: Track(MoveTemp(InTrack)),
 		  Top(InTop),
 		  Height(InHeight) { }
 
-	TSharedRef<SActTreeViewTrackLaneWidget> Track;
+	TSharedRef<SActImageTrackLaneWidget> Track;
 	float Top;
 	float Height;
 };

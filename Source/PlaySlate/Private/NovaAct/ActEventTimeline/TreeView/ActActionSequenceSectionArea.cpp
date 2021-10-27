@@ -1,13 +1,13 @@
 ﻿#include "ActActionSequenceSectionArea.h"
 
-#include "NovaAct/ActEventTimeline/TreeView/ActTreeViewNode.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActImageTreeViewTableRow.h"
 #include "NovaAct/ActEventTimeline/TreeView/ActActionSequenceSectionBase.h"
 #include "Subs/ActActionSequenceSection.h"
 
 
 #include "PlaySlate.h"
 
-void SActActionSequenceSectionArea::Construct(const FArguments& InArgs, TSharedRef<SActTreeViewNode> InNode)
+void SActActionSequenceSectionArea::Construct(const FArguments& InArgs, TSharedRef<SActImageTreeViewTableRow> InNode)
 {
 	SectionAreaNode = InNode;
 

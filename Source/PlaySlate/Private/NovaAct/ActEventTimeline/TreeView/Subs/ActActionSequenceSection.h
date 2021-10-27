@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-class SActTreeViewNode;
+class SActImageTreeViewTableRow;
 class FActActionSequenceSectionBase;
 
 class SActActionSequenceSection : public SCompoundWidget
@@ -15,10 +15,10 @@ SLATE_BEGIN_ARGS(SActActionSequenceSection)
 	SActActionSequenceSection();
 	virtual ~SActActionSequenceSection() override;
 
-	void Construct(const FArguments& InArgs, TSharedRef<SActTreeViewNode> SectionNode, int32 InSectionIndex);
+	void Construct(const FArguments& InArgs, TSharedRef<SActImageTreeViewTableRow> SectionNode, int32 InSectionIndex);
 protected:
 	TSharedPtr<FActActionSequenceSectionBase> Section;
 
 	int32 SectionIndex;
-	TSharedPtr<SActTreeViewNode> ParentSectionArea;
+	TSharedPtr<SActImageTreeViewTableRow> ParentSectionArea;
 };

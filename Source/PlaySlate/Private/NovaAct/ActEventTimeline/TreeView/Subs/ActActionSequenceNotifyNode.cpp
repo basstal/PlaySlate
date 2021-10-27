@@ -7,11 +7,11 @@
 #include "Common/NovaStruct.h"
 #include "Fonts/FontMeasure.h"
 #include "NovaAct/ActEventTimeline/Operation/ActTrackAreaSlotDragDrop.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActTreeViewTrackLaneWidget.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActImageTrackLaneWidget.h"
 
 using namespace NovaStruct;
 
-void SActActionSequenceNotifyNode::Construct(const FArguments& InArgs, const TSharedRef<SActTreeViewTrackLaneWidget>& InTrackAreaSlot)
+void SActActionSequenceNotifyNode::Construct(const FArguments& InArgs, const TSharedRef<SActImageTrackLaneWidget>& InTrackAreaSlot)
 {
 	ActActionTrackAreaSlot = InTrackAreaSlot;
 	// Font = FCoreStyle::GetDefaultFontStyle("Regular", 10);
@@ -227,7 +227,7 @@ FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, co
 	// float TrackScreenSpaceOrigin = CachedTrackGeometry.LocalToAbsolute(FVector2D(ScaleInfo.InputToLocalX(0.0f), 0.0f)).X;
 	// float TrackScreenSpaceLimit = CachedTrackGeometry.LocalToAbsolute(FVector2D(ScaleInfo.InputToLocalX(PlayLength), 0.0f)).X;
 	float TickResolutionInterval = (float)ActEventTimelineArgs->TickResolution.AsInterval();
-	TSharedRef<SActTreeViewNode> ActActionSequenceTreeViewNode = ActActionTrackAreaSlot.Pin()->GetActActionSequenceTreeViewNode();
+	TSharedRef<SActImageTreeViewTableRow> ActActionSequenceTreeViewNode = ActActionTrackAreaSlot.Pin()->GetActActionSequenceTreeViewNode();
 	if (CurrentDragHandle == ENovaNotifyStateHandleHit::Start)
 	{
 		// Check track bounds

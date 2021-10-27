@@ -4,7 +4,7 @@
 
 struct FActActionHitBoxData;
 class FActActionTrackEditorBase;
-class SActTreeViewNode;
+class SActImageTreeViewTableRow;
 class SActActionSequenceTreeViewRow;
 class SActActionSequenceNotifyNode;
 class SActEventTimelineWidget;
@@ -22,7 +22,7 @@ namespace NovaDelegate
 	DECLARE_DELEGATE_RetVal_OneParam(TSharedRef<FActActionTrackEditorBase>, OnCreateTrackEditorDelegate, TSharedRef<SActEventTimelineWidget>);
 	/** A delegate which will create an auto-key handler. */
 	DECLARE_DELEGATE_RetVal_TwoParams(FFrameNumber, OnGetNearestKeyDelegate, FFrameTime, bool)
-	DECLARE_DELEGATE_RetVal_ThreeParams(TSharedRef<SWidget>, OnGenerateWidgetForColumnDelegate, const TSharedRef<SActTreeViewNode>&, const FName&, const TSharedRef<SActActionSequenceTreeViewRow>&);
+	DECLARE_DELEGATE_RetVal_ThreeParams(TSharedRef<SWidget>, OnGenerateWidgetForColumnDelegate, const TSharedRef<SActImageTreeViewTableRow>&, const FName&, const TSharedRef<SActActionSequenceTreeViewRow>&);
 	DECLARE_DELEGATE_RetVal_ThreeParams(bool, OnSnapPositionDelegate, float& /*InOutTimeToSnap*/, float /*InSnapMargin*/, TArrayView<const FName> /*InSkippedSnapTypes*/)
 	DECLARE_DELEGATE_RetVal_FourParams(FReply, OnNotifyNodeDragStartedDelegate, TSharedRef<SActActionSequenceNotifyNode>, const FPointerEvent&, const FVector2D&, const bool)
 
@@ -40,7 +40,7 @@ namespace NovaDelegate
 	/** A delegate that is executed when menu object is clicked. Unlike FExtender delegates we pass in the FGuid which exists even for deleted objects. */
 	DECLARE_DELEGATE_TwoParams(OnBuildCustomContextMenuForGuidDelegate, FMenuBuilder&, FGuid);
 	DECLARE_DELEGATE_TwoParams(OnScrubPositionChangedDelegate, FFrameTime, bool)
-	DECLARE_DELEGATE_TwoParams(OnViewRangeChangedDelegate, TRange<float>, ENovaViewRangeInterpolation)
+	// DECLARE_DELEGATE_TwoParams(OnViewRangeChangedDelegate, TRange<float>, ENovaViewRangeInterpolation)
 	/** A delegate that is executed when adding menu content. */
 	// DECLARE_DELEGATE_TwoParams(OnGetAddMenuContentDelegate, FMenuBuilder& /*MenuBuilder*/, TSharedRef<FActEventTimeline>);
 	DECLARE_DELEGATE_TwoParams(OnSetMarkedFrameDelegate, int32, FFrameNumber)

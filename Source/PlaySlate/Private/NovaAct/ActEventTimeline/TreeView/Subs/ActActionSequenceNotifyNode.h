@@ -2,7 +2,7 @@
 #include "Common/NovaEnum.h"
 #include "Common/NovaDelegate.h"
 
-class SActTreeViewTrackLaneWidget;
+class SActImageTrackLaneWidget;
 
 using namespace NovaDelegate;
 
@@ -20,7 +20,7 @@ public:
 		SLATE_EVENT(OnSnapPositionDelegate, OnSnapPosition)
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, const TSharedRef<SActTreeViewTrackLaneWidget>& InTrackAreaSlot);
+	void Construct(const FArguments& InArgs, const TSharedRef<SActImageTrackLaneWidget>& InTrackAreaSlot);
 
 	//~Begin SWidget interface
 	virtual int32        OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
@@ -56,7 +56,7 @@ public:
 	FVector2D GetNotifyPosition() const;
 protected:
 	/** Controller 弱引用 */
-	TWeakPtr<SActTreeViewTrackLaneWidget> ActActionTrackAreaSlot;
+	TWeakPtr<SActImageTrackLaneWidget> ActActionTrackAreaSlot;
 
 	/** 是否正在拖拽 */
 	bool bBeingDragged;
@@ -116,7 +116,7 @@ public:
 		return bBeingDragged;
 	}
 
-	TSharedRef<SActTreeViewTrackLaneWidget> GetActActionTrackAreaSlot() const
+	TSharedRef<SActImageTrackLaneWidget> GetActActionTrackAreaSlot() const
 	{
 		return ActActionTrackAreaSlot.Pin().ToSharedRef();
 	}

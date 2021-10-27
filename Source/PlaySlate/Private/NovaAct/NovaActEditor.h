@@ -15,8 +15,7 @@ using namespace NovaDelegate;
 using namespace NovaStruct;
 
 /**
- * 资源编辑器的入口和管理者，提供一些工具方法和资源对象指针
- * 该对象会与编辑器的主页签一同释放
+ * 资源编辑器的入口和管理者，提供一些工具方法和资源对象指针，该对象会与编辑器的主页签一同释放
  */
 class FNovaActEditor : public FWorkflowCentricApplication, public FGCObject, public FEditorUndoClient
 {

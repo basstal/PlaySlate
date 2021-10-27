@@ -4,37 +4,28 @@
 #include "Common/NovaConst.h"
 #include "Common/NovaStaticFunction.h"
 #include "NovaAct/Assets/ActActionSequenceStructs.h"
-#include "ActTreeViewTrackLaneWidget.h"
+#include "ActImageTrackLaneWidget.h"
 
 class FActActionSequenceSectionBase;
 class SActActionSequenceTreeViewRow;
 class SActActionOutlinerTreeNode;
-class SActTreeView;
-class SActTreeViewTrackAreaPanel;
-// class SActTreeViewTrackLaneWidget;
-class SActTreeViewTrackCarWidget;
+class SActImageTreeView;
+class SActImageTrackAreaPanel;
+// class SActImageTrackLaneWidget;
+class SActImageTrackCarWidget;
 
 using namespace NovaEnum;
 using namespace NovaStruct;
 /**
  * 基础的Sequence Node
  */
-class SActTreeViewNode : public SMultiColumnTableRow<TSharedRef<SActTreeViewNode>>
+class SActImageTreeViewTableRow : public SMultiColumnTableRow<TSharedRef<SActImageTreeViewTableRow>>
 {
 	friend class SActActionOutlinerTreeNode;
 public:
 	typedef SMultiColumnTableRow::FArguments FArguments;
 
-	/**
-	 * 构造一个树节点
-	 *
-	 * @param InNodeName 节点名称
-	 * @param InNodeType 节点类型
-	 */
-	SActTreeViewNode(FName InNodeName = NAME_None, ENovaSequenceNodeType InNodeType = ENovaSequenceNodeType::Root);
-	virtual ~SActTreeViewNode() override;
-
-	void Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& OwnerTableView);
+	void Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& OwnerTableView, FName InNodeName = NAME_None, ENovaTreeViewNodeType InNodeType = ENovaTreeViewNodeType::Root);
 
 	// /**
 	//  * 构造节点的Widget
@@ -76,7 +67,7 @@ public:
 	/**
 	 * @return A List of all Child nodes belonging to this node
 	 */
-	const TArray<TSharedRef<SActTreeViewNode>>& GetChildNodes() const;
+	const TArray<TSharedRef<SActImageTreeViewTableRow>>& GetChildNodes() const;
 
 	/**
 	 * 根据Index顺序获取子节点
@@ -84,7 +75,7 @@ public:
 	 * @param Index 输入顺序值
 	 * @return 获取的子节点
 	 */
-	TSharedPtr<SActTreeViewNode> GetChildByIndex(int Index) const;
+	TSharedPtr<SActImageTreeViewTableRow> GetChildByIndex(int Index) const;
 
 	/**
 	 * @return 节点在树中的完整路径名
@@ -107,7 +98,7 @@ public:
 	/**
 	 * @return 当前节点的类型
 	 */
-	ENovaSequenceNodeType GetType() const;
+	ENovaTreeViewNodeType GetType() const;
 
 	/**
 	 * 重新挂载Parent并调整其在Parent中的节点顺序
@@ -115,13 +106,13 @@ public:
 	 * @param InParent 设置的Parent
 	 * @param DesiredChildIndex 期望的节点位置，如果不设置则自动添加到尾部
 	 */
-	void SetParent(TSharedPtr<SActTreeViewNode> InParent, int32 DesiredChildIndex = INDEX_NONE);
+	void SetParent(TSharedPtr<SActImageTreeViewTableRow> InParent, int32 DesiredChildIndex = INDEX_NONE);
 
 	/**
 	 * Get the display node that is ultimately responsible for constructing a section area widget for this node.
 	 * Could return this node itself, or a parent node
 	 */
-	TSharedPtr<SActTreeViewNode> GetSectionAreaAuthority();
+	TSharedPtr<SActImageTreeViewTableRow> GetSectionAreaAuthority();
 
 	/** TODO: */
 	TArray<TSharedRef<FActActionSequenceSectionBase>>& GetSections();
@@ -170,7 +161,7 @@ public:
 	/**
 	 * 将节点添加到显示中
 	 */
-	void AddDisplayNode(TSharedPtr<SActTreeViewNode> ChildTreeViewNode);
+	void AddDisplayNode(TSharedPtr<SActImageTreeViewTableRow> ChildTreeViewNode);
 
 	/** Refresh this tree as a result of the underlying tree data changing */
 	void Refresh();
@@ -181,7 +172,7 @@ public:
 	 * @param InName Folder名称
 	 * @return 查找或构造的子节点
 	 */
-	TSharedRef<SActTreeViewNode> FindOrCreateFolder(const FName& InName);
+	TSharedRef<SActImageTreeViewTableRow> FindOrCreateFolder(const FName& InName);
 
 	/**
 	 * 设置节点为HitBox显示节点
@@ -199,7 +190,7 @@ public:
 	/** 计算当前Track的纵向间距 */
 	float ComputeTrackPosition();
 	/** 获得根节点 */
-	// TSharedPtr<SActTreeViewNode> GetRoot();
+	// TSharedPtr<SActImageTreeViewTableRow> GetRoot();
 	/** 获得当前节点的可见性，节点可见性由Outliner的可见性决定 */
 	// EVisibility GetVisibility() const;
 	/**
@@ -209,7 +200,7 @@ public:
 	 * @param Row
 	 * @return 
 	 */
-	// TSharedRef<SWidget> GenerateWidgetFromColumn(const TSharedRef<SActTreeViewNode>& InNode, const FName& ColumnId, const TSharedRef<SActActionSequenceTreeViewRow>& Row);
+	// TSharedRef<SWidget> GenerateWidgetFromColumn(const TSharedRef<SActImageTreeViewTableRow>& InNode, const FName& ColumnId, const TSharedRef<SActActionSequenceTreeViewRow>& Row);
 
 	//~Begin SMultiColumnTableRow interface
 	virtual TSharedRef<SWidget> GenerateWidgetForColumn(const FName& InColumnName) override;
@@ -220,9 +211,9 @@ protected:
 	/**
 	 * 该节点的父节点，如果没有父节点则认为是树的根节点
 	 */
-	TSharedPtr<SActTreeViewNode> ParentNode;
+	TSharedPtr<SActImageTreeViewTableRow> ParentNode;
 	/** List of children belonging to this node */
-	TArray<TSharedRef<SActTreeViewNode>> ChildNodes;
+	TArray<TSharedRef<SActImageTreeViewTableRow>> ChildNodes;
 	/** All of the sequence sections in this node */
 	TArray<TSharedRef<FActActionSequenceSectionBase>> Sections;
 	/** The name identifier of this node */
@@ -238,35 +229,35 @@ protected:
 	/**
      * 这个Controller的Widget
      */
-	TSharedPtr<SActTreeView> TreeView;
+	TSharedPtr<SActImageTreeView> TreeView;
 	/**
 	 * Widget TreeView 对应的TrackArea，
 	 */
-	TSharedPtr<SActTreeViewTrackAreaPanel> TrackArea;
+	TSharedPtr<SActImageTrackAreaPanel> TrackArea;
 	/**
 	 * (Pinned)这个Controller的Widget
 	 */
-	TSharedPtr<SActTreeView> TreeViewPinned;
+	TSharedPtr<SActImageTreeView> TreeViewPinned;
 	/**
 	 * (Pinned)Widget TreeView 对应的TrackArea
 	 */
-	TSharedPtr<SActTreeViewTrackAreaPanel> TrackAreaPinned;
+	TSharedPtr<SActImageTrackAreaPanel> TrackAreaPinned;
 	/**
 	 * 从树的数据中复制和缓存的根节点信息
 	 */
-	TArray<TSharedRef<SActTreeViewNode>> DisplayedRootNodes;
+	TArray<TSharedRef<SActImageTreeViewTableRow>> DisplayedRootNodes;
 	/** 节点类型 */
-	ENovaSequenceNodeType NodeType;
+	ENovaTreeViewNodeType NodeType;
 	/** 当前节点的Outliner实际内容 */
 	TSharedPtr<SWidget> OutlinerContent;
 	/** TrackAreaSlot Controller */
-	// TSharedPtr<SActTreeViewTrackLaneWidget> ActActionTrackAreaSlot;
+	// TSharedPtr<SActImageTrackLaneWidget> ActActionTrackAreaSlot;
 	/** TrackArea所使用的参数 */
 	FActActionTrackAreaArgs ActActionTrackAreaArgs;
 	/** TODO:临时存这里 */
 	FActActionHitBoxData* CachedHitBox;
 	/** TrackAreaSlot 对应到 Geometry 信息 */
-	TMap<TSharedRef<SActTreeViewTrackLaneWidget>, FActActionCachedGeometry> CachedTrackGeometry;
+	TMap<TSharedRef<SActImageTrackLaneWidget>, FActActionCachedGeometry> CachedTrackGeometry;
 	// /** 代表一行Track区域 */
 	// TSharedPtr<SActTrackPanel> ActTrackPanel;
 	/** The height of the track */
@@ -275,6 +266,11 @@ protected:
 	TSharedPtr<SVerticalBox> OutlinerWidget;
 	int32 PendingRenameTrackIndex;
 public:
+	FName GetNodeName() const
+	{
+		return NodeName;
+	}
+
 	/** TODO:临时放到这里 */
 	void SetHitBoxBegin(int InBegin)
 	{
@@ -297,12 +293,12 @@ public:
 		return ActActionTrackAreaArgs;
 	}
 
-	// TSharedRef<SActTreeViewTrackLaneWidget> GetActActionTrackAreaSlot() const
+	// TSharedRef<SActImageTrackLaneWidget> GetActActionTrackAreaSlot() const
 	// {
 	// 	return ActActionTrackAreaSlot.ToSharedRef();
 	// }
 
-	TArray<TSharedRef<SActTreeViewNode>>& GetDisplayedRootNodes()
+	TArray<TSharedRef<SActImageTreeViewTableRow>>& GetDisplayedRootNodes()
 	{
 		if (IsTreeViewRoot())
 		{
@@ -314,7 +310,7 @@ public:
 		}
 	}
 
-	TSharedPtr<SActTreeViewNode> GetParentNode() const
+	TSharedPtr<SActImageTreeViewTableRow> GetParentNode() const
 	{
 		return ParentNode;
 	}
@@ -329,22 +325,22 @@ public:
 	// 	return ActActionOutlinerTreeNode.ToSharedRef();
 	// }
 
-	TSharedRef<SActTreeView> GetTreeView() const
+	TSharedRef<SActImageTreeView> GetTreeView() const
 	{
 		return TreeView.ToSharedRef();
 	}
 
-	TSharedRef<SActTreeView> GetTreeViewPinned() const
+	TSharedRef<SActImageTreeView> GetTreeViewPinned() const
 	{
 		return TreeViewPinned.ToSharedRef();
 	}
 
-	TSharedRef<SActTreeViewTrackAreaPanel> GetTrackAreaPinned() const
+	TSharedRef<SActImageTrackAreaPanel> GetTrackAreaPinned() const
 	{
 		return TrackAreaPinned.ToSharedRef();
 	}
 
-	TSharedRef<SActTreeViewTrackAreaPanel> GetTrackArea() const
+	TSharedRef<SActImageTrackAreaPanel> GetTrackArea() const
 	{
 		return TrackArea.ToSharedRef();
 	}

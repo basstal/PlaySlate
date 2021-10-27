@@ -3,8 +3,8 @@
 #include "PlaySlate.h"
 #include "Common/NovaConst.h"
 
-#include "NovaAct/ActEventTimeline/ActEventTimelineSlider.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActTreeViewHorizontalBox.h"
+#include "NovaAct/ActEventTimeline/Slider/ActEventTimelineSliderWidget.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActImageHorizontalBox.h"
 #include "NovaAct/ActViewport/ActActionViewportWidget.h"
 #include "NovaAct/ActEventTimeline/Components/ActTransportControlsWidget.h"
 #include "NovaAct/ActEventTimeline/Components/ActActionSequenceSplitterOverlay.h"
@@ -112,7 +112,7 @@ void SActEventTimelineWidget::Construct(const FArguments& InArgs)
 					+ SGridPanel::Slot(0, 1, SGridPanel::Layer(10))
 					.ColumnSpan(2)
 					[
-						SNew(SActTreeViewHorizontalBox)
+						SNew(SActImageHorizontalBox)
 					]
 
 					+ SGridPanel::Slot(0, 2, SGridPanel::Layer(10))
@@ -170,8 +170,7 @@ void SActEventTimelineWidget::Construct(const FArguments& InArgs)
 
 	if (GridPanel)
 	{
-		ActEventTimelineSlider = MakeShareable(new FActEventTimelineSlider());
-		ActEventTimelineSlider->Init(GridPanel.ToSharedRef());
+		ActEventTimelineSliderWidget = SNew(SActEventTimelineSliderWidget, GridPanel.ToSharedRef());
 	}
 
 	// 调用已注册的TrackEditor的Create代理，并收集创建的TrackEditor实例

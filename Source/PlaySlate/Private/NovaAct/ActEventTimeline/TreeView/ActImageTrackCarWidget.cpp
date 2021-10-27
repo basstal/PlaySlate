@@ -1,12 +1,12 @@
-﻿#include "ActTreeViewTrackCarWidget.h"
+﻿#include "ActImageTrackCarWidget.h"
 
 #include "SCurveEditor.h"
 #include "Common/NovaConst.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActTreeViewTrackLaneWidget.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActImageTrackLaneWidget.h"
 #include "NovaAct/ActEventTimeline/TreeView/Subs/ActActionSequenceNotifyNode.h"
 
 
-void SActTreeViewTrackCarWidget::Construct(const FArguments& InArgs)
+void SActImageTrackCarWidget::Construct(const FArguments& InArgs)
 {
 	SetClipping(EWidgetClipping::ClipToBounds);
 	TrackIndex = InArgs._TrackIndex;
@@ -24,7 +24,7 @@ void SActTreeViewTrackCarWidget::Construct(const FArguments& InArgs)
 	Update();
 }
 
-int32 SActTreeViewTrackCarWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+int32 SActImageTrackCarWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
 	FPaintGeometry MyGeometry = AllottedGeometry.ToPaintGeometry();
 	int32 CustomLayerId = LayerId + 1;
@@ -76,7 +76,7 @@ int32 SActTreeViewTrackCarWidget::OnPaint(const FPaintArgs& Args, const FGeometr
 	return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, CustomLayerId, InWidgetStyle, bParentEnabled);
 }
 
-FVector2D SActTreeViewTrackCarWidget::ComputeDesiredSize(float LayoutScaleMultiplier) const
+FVector2D SActImageTrackCarWidget::ComputeDesiredSize(float LayoutScaleMultiplier) const
 {
 	FVector2D Size;
 	Size.X = 200;
@@ -84,7 +84,7 @@ FVector2D SActTreeViewTrackCarWidget::ComputeDesiredSize(float LayoutScaleMultip
 	return Size;
 }
 
-void SActTreeViewTrackCarWidget::Update()
+void SActImageTrackCarWidget::Update()
 {
 	TrackArea->SetContent(
 		SAssignNew(NodeSlots, SOverlay)
@@ -94,7 +94,7 @@ void SActTreeViewTrackCarWidget::Update()
 	if (ActActionTrackAreaSlot.IsValid() && ActActionTrackAreaSlot.Pin()->HasNotifyNode())
 	{
 		NotifyNode = SNew(SActActionSequenceNotifyNode, ActActionTrackAreaSlot.Pin().ToSharedRef())
-			.OnNodeDragStarted(this, &SActTreeViewTrackCarWidget::OnNotifyNodeDragStarted);
+			.OnNodeDragStarted(this, &SActImageTrackCarWidget::OnNotifyNodeDragStarted);
 
 		// .OnNotifyStateHandleBeingDragged(OnNotifyStateHandleBeingDragged)
 		// .OnUpdatePanel(OnUpdatePanel)
@@ -106,31 +106,23 @@ void SActTreeViewTrackCarWidget::Update()
 		// .StateEndTimingNode(EndTimingNode);
 
 		NodeSlots->AddSlot()
-		         .Padding(TAttribute<FMargin>::Create(TAttribute<FMargin>::FGetter::CreateSP(this, &SActTreeViewTrackCarWidget::GetNotifyTrackPadding)))
+		         .Padding(TAttribute<FMargin>::Create(TAttribute<FMargin>::FGetter::CreateSP(this, &SActImageTrackCarWidget::GetNotifyTrackPadding)))
 		[
 			NotifyNode.ToSharedRef()
 		];
 	}
 }
 
-FReply SActTreeViewTrackCarWidget::OnNotifyNodeDragStarted(TSharedRef<SActActionSequenceNotifyNode> InNotifyNode, const FPointerEvent& MouseEvent, const FVector2D& ScreenNodePosition, const bool bDragOnMarker)
+FReply SActImageTrackCarWidget::OnNotifyNodeDragStarted(TSharedRef<SActActionSequenceNotifyNode> InNotifyNode, const FPointerEvent& MouseEvent, const FVector2D& ScreenNodePosition, const bool bDragOnMarker)
 {
 	return FReply::Handled().CaptureMouse(InNotifyNode).UseHighPrecisionMouseMovement(InNotifyNode);
 }
 
 // Returns the padding needed to render the notify in the correct track position
-FMargin SActTreeViewTrackCarWidget::GetNotifyTrackPadding() const
+FMargin SActImageTrackCarWidget::GetNotifyTrackPadding() const
 {
 	float LeftMargin = NotifyNode->GetWidgetPosition().X;
 	float RightMargin = CachedGeometry.GetLocalSize().X - NotifyNode->GetWidgetPosition().X - NotifyNode->ComputeDesiredSize(0).X;
 	return FMargin(LeftMargin, 0, RightMargin, 0);
 }
 
-float SActTreeViewTrackCarWidget::GetPhysicalPosition() const
-{
-	if (ActActionTrackAreaSlot.IsValid())
-	{
-		return ActActionTrackAreaSlot.Pin()->GetActActionSequenceTreeViewNode()->ComputeTrackPosition();
-	}
-	return 0.0f;
-}

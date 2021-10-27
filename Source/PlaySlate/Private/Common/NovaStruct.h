@@ -12,15 +12,15 @@ namespace NovaStruct
 	struct FActEventTimelineArgs
 	{
 		FActEventTimelineArgs()
-			: ViewRange(TRange<float>(0.0f, 1.0f)),
+			: ViewRange(new TRange<float>(0.0f, 1.0f)),
 			  ClampRange(TRange<float>(0.0f, 1.0f)),
 			  TickResolution(60, 1),
-			  CurrentTime(MakeShareable(new FFrameTime(0))),
+			  CurrentTime(new FFrameTime(0)),
 			  PlaybackStatus(ENovaPlaybackType::Stopped),
 			  AllowZoom(true) {}
 
-		TRange<float> ViewRange; // 当前可见的区域，这个值可以比动画播放区间小，例如放大显示时
-		TRange<float> ClampRange;// 最大可调整的区域，与AnimSequence动画的播放时长相同，范围[0, PlayLength]
+		TSharedPtr<TRange<float>> ViewRange;// 当前可见的区域，这个值可以比动画播放区间小，例如放大显示时
+		TRange<float> ClampRange;           // 最大可调整的区域，与AnimSequence动画的播放时长相同，范围[0, PlayLength]
 
 		FFrameRate TickResolution;         // 当前使用的帧率
 		TSharedPtr<FFrameTime> CurrentTime;// 当前动画所在的时间节点
@@ -80,6 +80,7 @@ namespace NovaStruct
 		{
 			return BeginTime + Duration;
 		}
+
 		//
 		// float GetDurationTime() const
 		// {
@@ -302,7 +303,7 @@ namespace NovaStruct
 	/** Structure used to define a column in the tree view */
 	struct FActActionSequenceTreeViewColumn
 	{
-		typedef TFunction<TSharedRef<SWidget>(const TSharedRef<SActTreeViewNode>&, const TSharedRef<SActActionSequenceTreeViewRow>&)> FOnGenerate;
+		typedef TFunction<TSharedRef<SWidget>(const TSharedRef<SActImageTreeViewTableRow>&, const TSharedRef<SActActionSequenceTreeViewRow>&)> FOnGenerate;
 
 		FActActionSequenceTreeViewColumn(const FOnGenerate& InOnGenerate, const TAttribute<float>& InWidth)
 			: Generator(InOnGenerate),

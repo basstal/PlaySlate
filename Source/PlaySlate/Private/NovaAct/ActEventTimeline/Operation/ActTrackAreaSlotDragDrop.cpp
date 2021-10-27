@@ -4,7 +4,7 @@
 #include "Common/NovaStruct.h"
 #include "Common/NovaDataBinding.h"
 #include "NovaAct/ActEventTimeline/TreeView/Subs/ActActionSequenceNotifyNode.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActTreeViewTrackLaneWidget.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActImageTrackLaneWidget.h"
 
 
 using namespace NovaStruct;

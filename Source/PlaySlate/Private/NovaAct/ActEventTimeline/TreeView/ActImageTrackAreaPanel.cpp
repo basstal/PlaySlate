@@ -1,21 +1,25 @@
-﻿#include "ActTreeViewTrackAreaPanel.h"
+﻿#include "ActImageTrackAreaPanel.h"
 
-#include "NovaAct/ActEventTimeline/TreeView/ActTreeViewNode.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActTreeViewTrackLaneWidget.h"
+#include "PlaySlate.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActImageTreeViewTableRow.h"
+#include "NovaAct/ActEventTimeline/TreeView/ActImageTrackLaneWidget.h"
 
 
-SActTreeViewTrackAreaPanel::SActTreeViewTrackAreaPanel()
-	: Children(this)
-{}
+SActImageTrackAreaPanel::SActImageTrackAreaPanel()
+	: Children(this) {}
 
-void SActTreeViewTrackAreaPanel::Construct(const FArguments& InArgs)
-{}
+SActImageTrackAreaPanel::~SActImageTrackAreaPanel()
+{
+	UE_LOG(LogNovaAct, Log, TEXT("SActImageTrackAreaPanel::~SActImageTrackAreaPanel "));
+}
 
-void SActTreeViewTrackAreaPanel::OnArrangeChildren(const FGeometry& AllottedGeometry, FArrangedChildren& ArrangedChildren) const
+void SActImageTrackAreaPanel::Construct(const FArguments& InArgs) {}
+
+void SActImageTrackAreaPanel::OnArrangeChildren(const FGeometry& AllottedGeometry, FArrangedChildren& ArrangedChildren) const
 {
 	for (int32 ChildIndex = 0; ChildIndex < Children.Num(); ++ChildIndex)
 	{
-		const SActTreeViewTrackLaneWidget& CurrentChild = Children[ChildIndex];
+		const SActImageTrackLaneWidget::Slot& CurrentChild = Children[ChildIndex];
 
 		const EVisibility ChildVisibility = CurrentChild.GetWidget()->GetVisibility();
 		if (!ArrangedChildren.Accepts(ChildVisibility))
@@ -33,12 +37,12 @@ void SActTreeViewTrackAreaPanel::OnArrangeChildren(const FGeometry& AllottedGeom
 	}
 }
 
-FVector2D SActTreeViewTrackAreaPanel::ComputeDesiredSize(float) const
+FVector2D SActImageTrackAreaPanel::ComputeDesiredSize(float) const
 {
 	FVector2D MaxSize(0.0f, 0.0f);
 	for (int32 ChildIndex = 0; ChildIndex < Children.Num(); ++ChildIndex)
 	{
-		const SActTreeViewTrackLaneWidget& CurrentChild = Children[ChildIndex];
+		const SActImageTrackLaneWidget::Slot& CurrentChild = Children[ChildIndex];
 
 		const EVisibility ChildVisibility = CurrentChild.GetWidget()->GetVisibility();
 		if (ChildVisibility != EVisibility::Collapsed)
@@ -52,14 +56,14 @@ FVector2D SActTreeViewTrackAreaPanel::ComputeDesiredSize(float) const
 	return MaxSize;
 }
 
-FChildren* SActTreeViewTrackAreaPanel::GetChildren()
+FChildren* SActImageTrackAreaPanel::GetChildren()
 {
 	return &Children;
 }
 
-TSharedRef<SActTreeViewTrackLaneWidget> SActTreeViewTrackAreaPanel::MakeTrackLaneWithTreeViewNode(const TSharedRef<SActTreeViewNode>& InActTreeViewNode)
+TSharedRef<SActImageTrackLaneWidget> SActImageTrackAreaPanel::MakeTrackLaneWithTreeViewNode(const TSharedRef<SActImageTreeViewTableRow>& InActTreeViewNode)
 {
-	TSharedRef<SActTreeViewTrackLaneWidget> TrackLaneWidget = SNew(SActTreeViewTrackLaneWidget);
-	Children.Add(&TrackLaneWidget.Get());
+	TSharedRef<SActImageTrackLaneWidget> TrackLaneWidget = SNew(SActImageTrackLaneWidget);
+	Children.Add(new SActImageTrackLaneWidget::Slot(TrackLaneWidget));
 	return TrackLaneWidget;
 }

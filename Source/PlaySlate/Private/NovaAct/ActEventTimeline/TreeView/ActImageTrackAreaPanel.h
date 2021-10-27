@@ -1,12 +1,15 @@
 ﻿#pragma once
 
-class SActTreeViewTrackAreaPanel : public SPanel
+#include "ActImageTrackLaneWidget.h"
+
+class SActImageTrackAreaPanel : public SPanel
 {
 public:
-	SLATE_BEGIN_ARGS(SActTreeViewTrackAreaPanel) { }
+	SLATE_BEGIN_ARGS(SActImageTrackAreaPanel) { }
 	SLATE_END_ARGS()
 
-	SActTreeViewTrackAreaPanel();
+	SActImageTrackAreaPanel();
+	virtual ~SActImageTrackAreaPanel() override;
 
 	void Construct(const FArguments& InArgs);
 
@@ -22,8 +25,8 @@ public:
 	 * @param InActTreeViewNode
 	 * @return
 	 */
-	TSharedRef<class SActTreeViewTrackLaneWidget> MakeTrackLaneWithTreeViewNode(const TSharedRef<class SActTreeViewNode>& InActTreeViewNode);
+	TSharedRef<SActImageTrackLaneWidget> MakeTrackLaneWithTreeViewNode(const TSharedRef<SActImageTreeViewTableRow>& InActTreeViewNode);
 
 protected:
-	TPanelChildren<SActTreeViewTrackLaneWidget> Children;// ** The track area's children.
+	TPanelChildren<SActImageTrackLaneWidget::Slot> Children;// ** The track area's children.
 };

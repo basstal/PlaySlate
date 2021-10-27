@@ -33,7 +33,7 @@
 // 	const TSharedPtr<SActTreeViewNode> ParentNode = PinnedNode ? PinnedNode->GetParentNode() : nullptr;
 //
 // 	const TArray<TSharedRef<SActTreeViewNode>>& ChildNodes = ParentNode->GetChildNodes();
-// 	if (ParentNode.IsValid() && ParentNode->GetType() == ENovaSequenceNodeType::Root && ChildNodes.Num() > 0 && ChildNodes[0] != PinnedNode)
+// 	if (ParentNode.IsValid() && ParentNode->GetType() == ENovaTreeViewNodeType::Root && ChildNodes.Num() > 0 && ChildNodes[0] != PinnedNode)
 // 	{
 // 		return FMargin(0.0f, 1.f, 0.0f, 0.0f);
 // 	}
@@ -55,7 +55,7 @@
 // 		];
 // }
 //
-// // void SActActionSequenceTreeViewRow::AddTrackAreaReference(const TSharedRef<SActTreeViewTrackCarWidget>& InTrackLane)
+// // void SActActionSequenceTreeViewRow::AddTrackAreaReference(const TSharedRef<SActImageTrackCarWidget>& InTrackLane)
 // // {
 // // 	TargetTrackLane = InTrackLane;
 // // }

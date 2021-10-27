@@ -25,7 +25,7 @@
 // 	DisplayNode = Node;
 // 	const bool bParentNodeValid = Node->GetParentNode().IsValid();
 // 	bIsOuterTopLevelNode = !bParentNodeValid;
-// 	bIsInnerTopLevelNode = Node->GetType() != ENovaSequenceNodeType::Folder && bParentNodeValid && Node->GetParentNode()->GetType() == ENovaSequenceNodeType::Folder;
+// 	bIsInnerTopLevelNode = Node->GetType() != ENovaTreeViewNodeType::Folder && bParentNodeValid && Node->GetParentNode()->GetType() == ENovaTreeViewNodeType::Folder;
 //
 // 	if (bIsOuterTopLevelNode)
 // 	{
@@ -208,7 +208,7 @@
 // TSharedPtr<SActTreeViewNode> SActActionOutlinerTreeNode::GetParent() const
 // {
 // 	TSharedPtr<SActTreeViewNode> Pinned = ParentNode.Pin();
-// 	return (Pinned && Pinned->GetType() != ENovaSequenceNodeType::Root) ? Pinned : nullptr;
+// 	return (Pinned && Pinned->GetType() != ENovaTreeViewNodeType::Root) ? Pinned : nullptr;
 // }
 //
 // bool SActActionOutlinerTreeNode::IsNodeLabelReadOnly() const

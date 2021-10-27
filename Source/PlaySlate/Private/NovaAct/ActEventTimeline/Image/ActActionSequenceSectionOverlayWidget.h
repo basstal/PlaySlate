@@ -6,7 +6,7 @@
 using namespace NovaDelegate;
 using namespace NovaStruct;
 
-class FActEventTimelineSlider;
+class SActEventTimelineSliderWidget;
 
 class SActActionSequenceSectionOverlayWidget : public SCompoundWidget
 {

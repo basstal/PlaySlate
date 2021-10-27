@@ -1,21 +1,18 @@
 ﻿#pragma once
 #include "Common/NovaStruct.h"
 
-class FActEventTimelineSlider;
+class SActEventTimelineSliderWidget;
 
-class SActActionTimeRangeSlider : public SCompoundWidget
+class SActEventTimelineViewRangeBarWidget : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SActActionTimeRangeSlider)
-		{
-		}
-
+	SLATE_BEGIN_ARGS(SActEventTimelineViewRangeBarWidget) { }
 	SLATE_END_ARGS()
 
-	SActActionTimeRangeSlider();
-	virtual ~SActActionTimeRangeSlider() override;
+	SActEventTimelineViewRangeBarWidget();
+	virtual ~SActEventTimelineViewRangeBarWidget() override;
 
-	void Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineSlider>& InTimeSliderController);
+	void Construct(const FArguments& InArgs);
 
 	//~Begin SWidget interface
 	virtual FVector2D ComputeDesiredSize(float LayoutScaleMultiplier) const override;
@@ -37,8 +34,6 @@ public:
 	void ResetHoveredState();
 
 protected:
-	/** Controller */
-	TWeakPtr<FActEventTimelineSlider> TimeSliderController;
 	/** TimeSlider ViewRange记录 */
 	// TRange<float> LastViewRange;
 	/** 拖拽中 */

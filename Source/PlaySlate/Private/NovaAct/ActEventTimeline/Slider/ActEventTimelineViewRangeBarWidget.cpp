@@ -1,37 +1,33 @@
-﻿#include "ActActionTimeRangeSlider.h"
+﻿#include "ActEventTimelineViewRangeBarWidget.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/ActEventTimeline/ActEventTimelineSlider.h"
+#include "NovaAct/ActEventTimeline/Slider/ActEventTimelineSliderWidget.h"
 
 
-SActActionTimeRangeSlider::SActActionTimeRangeSlider()
+SActEventTimelineViewRangeBarWidget::SActEventTimelineViewRangeBarWidget()
 	: bHandleDragged(false),
 	  bLeftHandleDragged(false),
 	  bRightHandleDragged(false),
 	  bHandleHovered(false),
 	  bLeftHandleHovered(false),
-	  bRightHandleHovered(false)
-{}
+	  bRightHandleHovered(false) {}
 
-SActActionTimeRangeSlider::~SActActionTimeRangeSlider()
+SActEventTimelineViewRangeBarWidget::~SActEventTimelineViewRangeBarWidget()
 {
-	UE_LOG(LogNovaAct, Log, TEXT("SActActionTimeRangeSlider::~SActActionTimeRangeSlider"));
+	UE_LOG(LogNovaAct, Log, TEXT("SActEventTimelineViewRangeBarWidget::~SActEventTimelineViewRangeBarWidget"));
 }
 
-void SActActionTimeRangeSlider::Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineSlider>& InTimeSliderController)
+void SActEventTimelineViewRangeBarWidget::Construct(const FArguments& InArgs)
 {
-	TimeSliderController = InTimeSliderController;
-	// LastViewRange = InTimeSliderController->GetTimeSliderArgs().ViewRange.Get();
-
 	ResetState();
 }
 
-FVector2D SActActionTimeRangeSlider::ComputeDesiredSize(float LayoutScaleMultiplier) const
+FVector2D SActEventTimelineViewRangeBarWidget::ComputeDesiredSize(float LayoutScaleMultiplier) const
 {
 	return FVector2D(56.0f, HandleSize);
 }
 
-int32 SActActionTimeRangeSlider::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+int32 SActEventTimelineViewRangeBarWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
 	static const FSlateBrush* RangeHandleLeft = FEditorStyle::GetBrush(TEXT("Sequencer.Timeline.RangeHandleLeft"));
 	static const FSlateBrush* RangeHandleRight = FEditorStyle::GetBrush(TEXT("Sequencer.Timeline.RangeHandleRight"));
@@ -77,12 +73,12 @@ int32 SActActionTimeRangeSlider::OnPaint(const FPaintArgs& Args, const FGeometry
 	return LayerId;
 }
 
-FReply SActActionTimeRangeSlider::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply SActEventTimelineViewRangeBarWidget::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	MouseDownPosition = MouseEvent.GetScreenSpacePosition();
-	MouseDownViewRange = TRange<float>(ActEventTimelineArgs->ViewRange);
+	MouseDownViewRange = TRange<float>(*ActEventTimelineArgs->ViewRange);
 
 	if (bHandleHovered)
 	{
@@ -103,28 +99,23 @@ FReply SActActionTimeRangeSlider::OnMouseButtonDown(const FGeometry& MyGeometry,
 	return FReply::Unhandled();
 }
 
-FReply SActActionTimeRangeSlider::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply SActEventTimelineViewRangeBarWidget::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	ResetState();
 
 	return FReply::Handled().ReleaseMouseCapture();
 }
 
-FReply SActActionTimeRangeSlider::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply SActEventTimelineViewRangeBarWidget::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	if (HasMouseCapture())
 	{
 		const float DragDelta = ComputeDragDelta(MouseEvent, MyGeometry.GetLocalSize().X);
-
-		if (!TimeSliderController.IsValid())
-		{
-			return FReply::Handled();
-		}
+		auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
+		TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 
 		if (bHandleDragged)
 		{
-			auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
-			TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 			double NewIn = MouseDownViewRange.GetLowerBoundValue() + DragDelta;
 			double NewOut = MouseDownViewRange.GetUpperBoundValue() + DragDelta;
 			const TRange<float> ClampRange = ActEventTimelineArgs->ClampRange;
@@ -138,7 +129,9 @@ FReply SActActionTimeRangeSlider::OnMouseMove(const FGeometry& MyGeometry, const
 				NewOut = ClampRange.GetUpperBoundValue();
 				NewIn = NewOut - (MouseDownViewRange.GetUpperBoundValue() - MouseDownViewRange.GetLowerBoundValue());
 			}
-			TimeSliderController.Pin()->SetViewRange(NewIn, NewOut, ENovaViewRangeInterpolation::Immediate);
+			ActEventTimelineArgs->ViewRange->SetLowerBoundValue(NewIn);
+			ActEventTimelineArgs->ViewRange->SetUpperBoundValue(NewOut);
+			NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
 		}
 		else if (bLeftHandleDragged || bRightHandleDragged)
 		{
@@ -170,8 +163,9 @@ FReply SActActionTimeRangeSlider::OnMouseMove(const FGeometry& MyGeometry, const
 			{
 				return FReply::Handled();
 			}
-
-			TimeSliderController.Pin()->SetViewRange(NewIn, NewOut, ENovaViewRangeInterpolation::Immediate);
+			ActEventTimelineArgs->ViewRange->SetLowerBoundValue(NewIn);
+			ActEventTimelineArgs->ViewRange->SetUpperBoundValue(NewOut);
+			NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
 		}
 
 		return FReply::Handled();
@@ -206,7 +200,7 @@ FReply SActActionTimeRangeSlider::OnMouseMove(const FGeometry& MyGeometry, const
 	return FReply::Unhandled();
 }
 
-void SActActionTimeRangeSlider::OnMouseLeave(const FPointerEvent& MouseEvent)
+void SActEventTimelineViewRangeBarWidget::OnMouseLeave(const FPointerEvent& MouseEvent)
 {
 	SCompoundWidget::OnMouseLeave(MouseEvent);
 
@@ -216,7 +210,7 @@ void SActActionTimeRangeSlider::OnMouseLeave(const FPointerEvent& MouseEvent)
 	}
 }
 
-FReply SActActionTimeRangeSlider::OnMouseButtonDoubleClick(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent)
+FReply SActEventTimelineViewRangeBarWidget::OnMouseButtonDoubleClick(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent)
 {
 	ResetState();
 
@@ -226,19 +220,19 @@ FReply SActActionTimeRangeSlider::OnMouseButtonDoubleClick(const FGeometry& InMy
 	// {
 	// 	if (!LastViewRange.IsEmpty())
 	// 	{
-	// 		TimeSliderController.Pin()->SetViewRange(LastViewRange.GetLowerBoundValue(), LastViewRange.GetUpperBoundValue(), ENovaViewRangeInterpolation::Immediate);
+	// 		TimeSliderController.Pin()->OnViewRangeChanged(LastViewRange.GetLowerBoundValue(), LastViewRange.GetUpperBoundValue(), ENovaViewRangeInterpolation::Immediate);
 	// 	}
 	// }
 	ResetState();
 	return FReply::Unhandled();
 }
 
-void SActActionTimeRangeSlider::ComputeHandleOffsets(float& LeftHandleOffset, float& RightHandleOffset, float& HandleOffset, int32 GeometryWidth) const
+void SActEventTimelineViewRangeBarWidget::ComputeHandleOffsets(float& LeftHandleOffset, float& RightHandleOffset, float& HandleOffset, int32 GeometryWidth) const
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
-	float InTime = ActEventTimelineArgs->ViewRange.GetLowerBoundValue();
-	float OutTime = ActEventTimelineArgs->ViewRange.GetUpperBoundValue();
+	float InTime = ActEventTimelineArgs->ViewRange->GetLowerBoundValue();
+	float OutTime = ActEventTimelineArgs->ViewRange->GetUpperBoundValue();
 	float EndTime = ActEventTimelineArgs->ClampRange.GetUpperBoundValue();
 	float BeginTime = ActEventTimelineArgs->ClampRange.GetLowerBoundValue();
 	if (EndTime - BeginTime <= 0)
@@ -260,7 +254,7 @@ void SActActionTimeRangeSlider::ComputeHandleOffsets(float& LeftHandleOffset, fl
 	}
 }
 
-float SActActionTimeRangeSlider::ComputeDragDelta(const FPointerEvent& MouseEvent, int32 GeometryWidth) const
+float SActEventTimelineViewRangeBarWidget::ComputeDragDelta(const FPointerEvent& MouseEvent, int32 GeometryWidth) const
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
@@ -273,7 +267,7 @@ float SActActionTimeRangeSlider::ComputeDragDelta(const FPointerEvent& MouseEven
 	return DragDelta;
 }
 
-void SActActionTimeRangeSlider::ResetState()
+void SActEventTimelineViewRangeBarWidget::ResetState()
 {
 	bHandleDragged = false;
 	bLeftHandleDragged = false;
@@ -281,7 +275,7 @@ void SActActionTimeRangeSlider::ResetState()
 	ResetHoveredState();
 }
 
-void SActActionTimeRangeSlider::ResetHoveredState()
+void SActEventTimelineViewRangeBarWidget::ResetHoveredState()
 {
 	bHandleHovered = false;
 	bLeftHandleHovered = false;

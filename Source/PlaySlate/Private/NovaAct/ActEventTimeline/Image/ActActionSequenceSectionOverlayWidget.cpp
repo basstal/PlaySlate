@@ -20,7 +20,7 @@ int32 SActActionSequenceSectionOverlayWidget::OnPaint(const FPaintArgs& Args, co
 	PaintArgs.bDisplayScrubPosition = bDisplayScrubPosition.Get();
 	PaintArgs.bDisplayMarkedFrames = bDisplayMarkedFrames.Get();
 	const ESlateDrawEffect DrawEffects = ShouldBeEnabled(bParentEnabled) ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
-	TRange<float> LocalViewRange = ActEventTimelineArgs->ViewRange;
+	TRange<float> LocalViewRange = *ActEventTimelineArgs->ViewRange;
 	const FActActionScrubRangeToScreen RangeToScreen(LocalViewRange, AllottedGeometry.Size);
 	if (PaintArgs.bDisplayTickLines)
 	{

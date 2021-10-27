@@ -2,9 +2,9 @@
 //
 // class SActActionSequenceTreeViewRow;
 //
-// class SActTreeViewNode;
+// class SActImageTreeViewTableRow;
 //
-// class SActActionOutlinerTreeNode : public SMultiColumnTableRow<TSharedRef<SActTreeViewNode>>
+// class SActActionOutlinerTreeNode : public SMultiColumnTableRow<TSharedRef<SActImageTreeViewTableRow>>
 // {
 // public:
 // 	SLATE_BEGIN_ARGS(SActActionOutlinerTreeNode) { }
@@ -21,12 +21,12 @@
 //
 // 	virtual ~SActActionOutlinerTreeNode() override;
 //
-// 	void Construct(const FArguments& InArgs, const TSharedRef<SActTreeViewNode>& Node, const TSharedRef<SActActionSequenceTreeViewRow>& InTableRow);
+// 	void Construct(const FArguments& InArgs, const TSharedRef<SActImageTreeViewTableRow>& Node, const TSharedRef<SActActionSequenceTreeViewRow>& InTableRow);
 //
 // 	/**
 // 	* @return The parent of this node. Will return null if this node is part of the FSequencerNodeTree::GetRootNodes array.
 // 	*/
-// 	TSharedPtr<SActTreeViewNode> GetParent() const;
+// 	TSharedPtr<SActImageTreeViewTableRow> GetParent() const;
 //
 //
 // 	/** Callback for checking whether the node label can be edited. */
@@ -46,10 +46,10 @@
 // 	/** Holds the editable text label widget. */
 // 	TSharedPtr<SInlineEditableTextBlock> EditableLabel;
 //
-// 	TSharedPtr<SActTreeViewNode> DisplayNode;
+// 	TSharedPtr<SActImageTreeViewTableRow> DisplayNode;
 //
 // 	/** The parent of this node*/
-// 	TWeakPtr<SActTreeViewNode> ParentNode;
+// 	TWeakPtr<SActImageTreeViewTableRow> ParentNode;
 //
 // 	/** True if this node is a top level node, at the root of the tree, false otherwise */
 // 	bool bIsOuterTopLevelNode;

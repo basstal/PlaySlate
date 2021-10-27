@@ -209,7 +209,8 @@ void FNovaActEditor::OnAnimSequenceChanged(UActAnimation* InActAnimation)
 	UE_LOG(LogNovaAct, Log, TEXT("InTotalLength : %f"), CalculateSequenceLength);
 	// ** 限制显示的最大长度为当前的Sequence总时长
 	auto ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
-	ActEventTimelineArgs->ViewRange = TRange<float>(0, CalculateSequenceLength);
+	ActEventTimelineArgs->ViewRange->SetLowerBoundValue(0);
+	ActEventTimelineArgs->ViewRange->SetUpperBoundValue(CalculateSequenceLength);
 	ActEventTimelineArgs->ClampRange = TRange<float>(0, CalculateSequenceLength);
 	ActEventTimelineArgs->TickResolution = InAnimSequence->GetSamplingFrameRate();;
 }

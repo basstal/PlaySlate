@@ -1,21 +1,19 @@
-﻿#include "ActActionTimeRange.h"
+﻿#include "ActEventTimelineViewRangeCommitWidget.h"
 
-#include "ActActionTimeRangeSlider.h"
-#include "NovaAct/ActEventTimeline/ActEventTimelineSlider.h"
+#include "NovaAct/ActEventTimeline/Slider/ActEventTimelineViewRangeBarWidget.h"
+#include "NovaAct/ActEventTimeline/Slider/ActEventTimelineSliderWidget.h"
 #include "Widgets/Input/SSpinBox.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
-void SActActionTimeRange::Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineSlider>& InTimeSliderController, const TSharedRef<SActActionTimeRangeSlider>& InTimeRangeSlider)
+void SActEventTimelineViewRangeCommitWidget::Construct(const FArguments& InArgs)
 {
-	TimeSliderController = InTimeSliderController;
-
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	const TSharedRef<SWidget> ViewRangeStart = SNew(SSpinBox<double>)
-	.Value(this, &SActActionTimeRange::ViewStartTime)
+	.Value(this, &SActEventTimelineViewRangeCommitWidget::ViewStartTime)
 	.ToolTipText(LOCTEXT("ViewStartTimeTooltip", "View Range Start Time"))
-	.OnValueCommitted(this, &SActActionTimeRange::OnViewStartTimeCommitted)
+	.OnValueCommitted(this, &SActEventTimelineViewRangeCommitWidget::OnViewStartTimeCommitted)
 	.OnValueChanged(SSpinBox<double>::FOnValueChanged::CreateLambda([this](double InNewValue)
 	                                                                 {
 		                                                                 OnViewTimeChanged(InNewValue);
@@ -25,14 +23,14 @@ void SActActionTimeRange::Construct(const FArguments& InArgs, const TSharedRef<F
 	.Style(&FEditorStyle::Get().GetWidgetStyle<FSpinBoxStyle>("Sequencer.HyperlinkSpinBox"))
 	.TypeInterface(ActEventTimelineArgs->NumericTypeInterface)
 	.ClearKeyboardFocusOnCommit(true)
-	.Delta(this, &SActActionTimeRange::GetSpinboxDelta)
+	.Delta(this, &SActEventTimelineViewRangeCommitWidget::GetSpinboxDelta)
 	.LinearDeltaSensitivity(25);
 
 
 	const TSharedRef<SWidget> ViewRangeEnd = SNew(SSpinBox<double>)
-	.Value(this, &SActActionTimeRange::ViewEndTime)
+	.Value(this, &SActEventTimelineViewRangeCommitWidget::ViewEndTime)
 	.ToolTipText(LOCTEXT("ViewEndTimeTooltip", "View Range End Time"))
-	.OnValueCommitted(this, &SActActionTimeRange::OnViewEndTimeCommitted)
+	.OnValueCommitted(this, &SActEventTimelineViewRangeCommitWidget::OnViewEndTimeCommitted)
 	.OnValueChanged(SSpinBox<double>::FOnValueChanged::CreateLambda([this](double InNewValue)
 	                                                               {
 		                                                               OnViewTimeChanged(InNewValue, true);
@@ -42,7 +40,7 @@ void SActActionTimeRange::Construct(const FArguments& InArgs, const TSharedRef<F
 	.Style(&FEditorStyle::Get().GetWidgetStyle<FSpinBoxStyle>("Sequencer.HyperlinkSpinBox"))
 	.TypeInterface(ActEventTimelineArgs->NumericTypeInterface)
 	.ClearKeyboardFocusOnCommit(true)
-	.Delta(this, &SActActionTimeRange::GetSpinboxDelta)
+	.Delta(this, &SActEventTimelineViewRangeCommitWidget::GetSpinboxDelta)
 	.LinearDeltaSensitivity(25);
 
 	this->ChildSlot
@@ -68,7 +66,7 @@ void SActActionTimeRange::Construct(const FArguments& InArgs, const TSharedRef<F
 		  .Padding(2.0f, 4.0f)
 		  .VAlign(VAlign_Center)
 		[
-			InTimeRangeSlider
+			SNew(SActEventTimelineViewRangeBarWidget)
 		]
 
 		+ SHorizontalBox::Slot()
@@ -87,33 +85,29 @@ void SActActionTimeRange::Construct(const FArguments& InArgs, const TSharedRef<F
 }
 
 
-double SActActionTimeRange::ViewStartTime() const
+double SActEventTimelineViewRangeCommitWidget::ViewStartTime() const
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
 	// View range is in seconds so we convert it to tick resolution
-	const FFrameTime Time = ActEventTimelineArgs->ViewRange.GetLowerBoundValue() * TickResolution;
+	const FFrameTime Time = ActEventTimelineArgs->ViewRange->GetLowerBoundValue() * TickResolution;
 	return Time.GetFrame().Value;
 }
 
-void SActActionTimeRange::OnViewStartTimeCommitted(double NewValue, ETextCommit::Type InTextCommit) const
+void SActEventTimelineViewRangeCommitWidget::OnViewStartTimeCommitted(double NewValue, ETextCommit::Type InTextCommit) const
 {
 	OnViewTimeChanged(NewValue);
 }
 
-void SActActionTimeRange::OnViewTimeChanged(double NewValue, bool bIsEndValue) const
+void SActEventTimelineViewRangeCommitWidget::OnViewTimeChanged(double NewValue, bool bIsEndValue) const
 {
-	if (!TimeSliderController.IsValid())
-	{
-		return;
-	}
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
 	const double Time = TickResolution.AsSeconds(FFrameTime::FromDecimal(NewValue));
-	const double ViewStartTime = ActEventTimelineArgs->ViewRange.GetLowerBoundValue();
-	double ViewEndTime = ActEventTimelineArgs->ViewRange.GetUpperBoundValue();
+	const double ViewStartTime = ActEventTimelineArgs->ViewRange->GetLowerBoundValue();
+	double ViewEndTime = ActEventTimelineArgs->ViewRange->GetUpperBoundValue();
 
 	if (Time >= ViewEndTime)
 	{
@@ -122,32 +116,36 @@ void SActActionTimeRange::OnViewTimeChanged(double NewValue, bool bIsEndValue) c
 	}
 	if (bIsEndValue)
 	{
-		TimeSliderController.Pin()->SetViewRange(ViewStartTime, Time, ENovaViewRangeInterpolation::Immediate);
+		ActEventTimelineArgs->ViewRange->SetLowerBoundValue(ViewStartTime);
+		ActEventTimelineArgs->ViewRange->SetUpperBoundValue(Time);
+		NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
 	}
 	else
 	{
-		TimeSliderController.Pin()->SetViewRange(Time, ViewEndTime, ENovaViewRangeInterpolation::Immediate);
+		ActEventTimelineArgs->ViewRange->SetLowerBoundValue(Time);
+		ActEventTimelineArgs->ViewRange->SetUpperBoundValue(ViewEndTime);
+		NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
 	}
 }
 
-double SActActionTimeRange::GetSpinboxDelta() const
+double SActEventTimelineViewRangeCommitWidget::GetSpinboxDelta() const
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	return ActEventTimelineArgs->TickResolution.AsDecimal() * ActEventTimelineArgs->TickResolution.AsInterval();
 }
 
-double SActActionTimeRange::ViewEndTime() const
+double SActEventTimelineViewRangeCommitWidget::ViewEndTime() const
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
 	// View range is in seconds so we convert it to tick resolution
-	const FFrameTime Time = ActEventTimelineArgs->ViewRange.GetUpperBoundValue() * TickResolution;
+	const FFrameTime Time = ActEventTimelineArgs->ViewRange->GetUpperBoundValue() * TickResolution;
 	return Time.GetFrame().Value;
 }
 
-void SActActionTimeRange::OnViewEndTimeCommitted(double NewValue, ETextCommit::Type InTextCommit) const
+void SActEventTimelineViewRangeCommitWidget::OnViewEndTimeCommitted(double NewValue, ETextCommit::Type InTextCommit) const
 {
 	OnViewTimeChanged(NewValue, true);
 }

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-class SActTreeViewNode;
+class SActImageTreeViewTableRow;
 class FActActionSequenceSectionBase;
 class SActActionSequenceSection;
 
@@ -19,7 +19,7 @@ SLATE_BEGIN_ARGS(SActActionSequenceSectionArea)
 	{
 	}
 
-	void Construct(const FArguments& InArgs, TSharedRef<SActTreeViewNode> Node);
+	void Construct(const FArguments& InArgs, TSharedRef<SActImageTreeViewTableRow> Node);
 	EVisibility GetSectionVisibility(UObject* SectionObject) const;
 	bool GetSectionEnabled(TSharedRef<FActActionSequenceSectionBase> InSequenceSection) const;
 	FText GetSectionToolTip(TSharedRef<FActActionSequenceSectionBase> InSequenceSection) const;
@@ -32,7 +32,7 @@ SLATE_BEGIN_ARGS(SActActionSequenceSectionArea)
 
 protected:
 	/** The node containing the sections we are viewing/manipulating */
-	TSharedPtr<SActTreeViewNode> SectionAreaNode;
+	TSharedPtr<SActImageTreeViewTableRow> SectionAreaNode;
 	/** The current view range */
 	TAttribute<TRange<double>> ViewRange;
 	/** All the widgets in the panel */

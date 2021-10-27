@@ -9,7 +9,7 @@ namespace NovaEnum
 		Backwards
 	};
 
-	enum class ENovaSequenceNodeType : uint8
+	enum class ENovaTreeViewNodeType : uint8
 	{
 		// 根节点，不作任何显示
 		Root,
