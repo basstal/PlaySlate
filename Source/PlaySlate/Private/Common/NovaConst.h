@@ -19,6 +19,6 @@ namespace NovaConst
 
 	const FMargin ResizeBarPadding(4.0f, 0, 0, 0);
 
-	// ** FActViewportPreviewScene tick max threshold
+	/** FActViewportPreviewScene tick max threshold */
 	const float VisibilityTimeThreshold = 0.25f;
 }

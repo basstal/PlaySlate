@@ -35,10 +35,12 @@ public:
 	TSharedRef<SWidget> BuildAddTrackMenuWidget();
 protected:
 	TSharedPtr<SActSliderWidget> ActEventTimelineSliderWidget;
-
-	FText InFilter;                                              // ** 过滤用的关键字 
-	TSharedPtr<TDataBinding<float>> ColumnFillCoefficientsLeftDB;// ** TreeView与TrackArea占比，此处为TreeView占比，TrackArea占比值为1 - ColumnFillCoefficientsLeft
-
-	TArray<OnCreateTrackEditorDelegate> TrackEditorDelegates;  // ** 所有已注册的CreateTrackEditor代理方法，在FActActionTrackEditorBase的子类中实现
-	TArray<TSharedPtr<FActActionTrackEditorBase>> TrackEditors;// ** List of tools we own 
+	/** 过滤用的关键字 */
+	FText InFilter;
+	/** TreeView与TrackArea占比，此处为TreeView占比，TrackArea占比值为1 - ColumnFillCoefficientsLeft */
+	TSharedPtr<TDataBinding<float>> ColumnFillCoefficientsLeftDB;
+	/** 所有已注册的CreateTrackEditor代理方法，在FActActionTrackEditorBase的子类中实现 */
+	TArray<OnCreateTrackEditorDelegate> TrackEditorDelegates;
+	/** List of tools we own */
+	TArray<TSharedPtr<FActActionTrackEditorBase>> TrackEditors;
 };

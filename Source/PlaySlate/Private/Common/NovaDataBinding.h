@@ -32,8 +32,7 @@
 {\
 	auto _DB = StaticCastSharedPtr<TDataBindingSP<AbstractData>>(NovaDB::Get(InName));\
 	OutHandle = _DB->Bind(TDataBindingSP<AbstractData>::DelegateType::CreateRaw(InUserObject, InFunc));\
-}\
-
+}
 /**
  * @param AbstractData 数据原型的类型
  * @param InName
@@ -45,8 +44,7 @@
 {\
 	auto DB = StaticCastSharedPtr<TDataBinding<AbstractData>>(NovaDB::Get(InName));\
 	OutHandle = DB->Bind(TDataBinding<AbstractData>::DelegateType::CreateRaw(InUserObject, InFunc));\
-}\
-
+}
 // /**
 //  * @param AbstractData 数据原型的类型，必须派生自UObject
 //  * @param InName
@@ -69,8 +67,10 @@ protected:
 	IDataBinding(FName InName)
 		: Name(InName) { }
 
-	TSet<FDelegateHandle> DelegateHandleSet;// 保存所有存在于Slots中的Handle
-	FName Name;                             // 数据绑定的名称
+	// 保存所有存在于Slots中的Handle
+	TSet<FDelegateHandle> DelegateHandleSet;
+	// 数据绑定的名称
+	FName Name;
 };
 
 template <typename AbstractData>
@@ -114,8 +114,10 @@ public:
 protected:
 	TDataBindingSP(FName InName, TSharedPtr<AbstractData> InData = nullptr);
 
-	TSharedPtr<AbstractData> Data;// 数据原型 SP
-	TArray<DelegateType> Slots;   // 保存绑定函数
+	// 数据原型 SP
+	TSharedPtr<AbstractData> Data;
+	// 保存绑定函数
+	TArray<DelegateType> Slots;
 };
 
 
@@ -159,8 +161,10 @@ public:
 protected:
 	TDataBindingUObject(FName InName, AbstractData* InData = nullptr);
 
-	AbstractData* Data;        // 数据原型
-	TArray<DelegateType> Slots;// 保存绑定函数
+	// 数据原型
+	AbstractData* Data;
+	// 保存绑定函数
+	TArray<DelegateType> Slots;
 };
 
 
@@ -204,8 +208,10 @@ public:
 protected:
 	TDataBinding(FName InName, AbstractData InData = nullptr);
 
-	AbstractData Data;         // 数据原型
-	TArray<DelegateType> Slots;// 保存绑定函数
+	// 数据原型
+	AbstractData Data;
+	// 保存绑定函数
+	TArray<DelegateType> Slots;
 };
 
 class NovaDataBinding

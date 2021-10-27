@@ -21,5 +21,6 @@ public:
 	 */
 	void RegisterAssetTypeActions(const TSharedRef<IAssetTypeActions>& InAssetTypeActions);
 protected:
-	TArray<TSharedRef<IAssetTypeActions>> RegisteredAssetTypeActions;/** 所有已注册的资源类型，登记在这里以便在模块关闭时反注册 */
+	/** 所有已注册的资源类型，登记在这里以便在模块关闭时反注册 */
+	TArray<TSharedRef<IAssetTypeActions>> RegisteredAssetTypeActions;
 };
