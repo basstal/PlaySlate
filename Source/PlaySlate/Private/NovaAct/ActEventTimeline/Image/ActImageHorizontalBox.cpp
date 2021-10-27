@@ -3,10 +3,10 @@
 #include "Common/NovaConst.h"
 #include "NovaAct/NovaActEditor.h"
 
-#include "NovaAct/ActEventTimeline/TreeView/ActImageTreeView.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActImageTreeViewTableRow.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActImageTrackAreaPanel.h"
-#include "NovaAct/ActEventTimeline/TreeView/Subs/ActActionSequenceTreeViewRow.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageTreeView.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageTreeViewTableRow.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageTrackAreaPanel.h"
+#include "NovaAct/ActEventTimeline/Image/Subs/ActActionSequenceTreeViewRow.h"
 
 #include "Widgets/Layout/SScrollBorder.h"
 
@@ -93,7 +93,7 @@ TSharedRef<ITableRow> SActImageHorizontalBox::OnGenerateRow(TSharedRef<SActImage
 	if (!TrackLane.IsValid())
 	{
 		// Add a track slot for the row
-		TrackLane = ActImageTrackAreaPanel->MakeTrackLaneWithTreeViewNode(InTreeViewNode);
+		TrackLane = ActImageTrackAreaPanel->MakeTrackLane();
 		TreeViewNode2TrackLane.Add(InTreeViewNode, TrackLane);
 	}
 	return InTreeViewNode;

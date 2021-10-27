@@ -1,7 +1,7 @@
 ﻿#include "ActActionSequenceSectionArea.h"
 
-#include "NovaAct/ActEventTimeline/TreeView/ActImageTreeViewTableRow.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActActionSequenceSectionBase.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageTreeViewTableRow.h"
+#include "NovaAct/ActEventTimeline/Image/ActActionSequenceSectionBase.h"
 #include "Subs/ActActionSequenceSection.h"
 
 

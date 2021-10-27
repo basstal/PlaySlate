@@ -1,27 +1,26 @@
 ﻿#pragma once
 
-#include "NovaAct/ActEventTimeline/ActEventTimelineImage.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageThickLine.h"
 #include "Common/NovaStruct.h"
 
 using namespace NovaDelegate;
 using namespace NovaStruct;
 
-class SActEventTimelineSliderWidget;
+class SActSliderWidget;
 
-class SActActionSequenceSectionOverlayWidget : public SCompoundWidget
+class SActImageScrubPosition : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SActActionSequenceSectionOverlayWidget)
-		{ }
+	SLATE_BEGIN_ARGS(SActImageScrubPosition) { }
 
-		SLATE_ATTRIBUTE(bool, DisplayTickLines)
-		SLATE_ATTRIBUTE(bool, DisplayScrubPosition)
+		// SLATE_ATTRIBUTE(bool, DisplayTickLines)
+		// SLATE_ATTRIBUTE(bool, DisplayScrubPosition)
 		SLATE_ATTRIBUTE(bool, DisplayMarkedFrames)
 		SLATE_ATTRIBUTE(FActActionPaintPlaybackRangeArgs, PaintPlaybackRangeArgs)
 
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineImage>& InActActionSequenceSectionOverlayController);
+	void Construct(const FArguments& InArgs);
 
 	//~Begin SWidget interface
 	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
@@ -30,7 +29,7 @@ protected:
 	/**
 	 * 这个Widget的Controller
 	 */
-	TWeakPtr<FActEventTimelineImage> ActActionSequenceSectionOverlayController;
+	// TWeakPtr<SActImageThickLine> ActActionSequenceSectionOverlayController;
 	/**
 	 * TODO:
 	 */
@@ -39,12 +38,12 @@ protected:
 	 * TODO:
 	 */
 	TAttribute<bool> bDisplayMarkedFrames;
-	/**
-	 * TODO:
-	 */
-	TAttribute<bool> bDisplayTickLines;
-	/**
-	 * TODO:
-	 */
-	TAttribute<bool> bDisplayScrubPosition;
+	// /**
+	//  * TODO:
+	//  */
+	// TAttribute<bool> bDisplayTickLines;
+	// /**
+	//  * TODO:
+	//  */
+	// TAttribute<bool> bDisplayScrubPosition;
 };

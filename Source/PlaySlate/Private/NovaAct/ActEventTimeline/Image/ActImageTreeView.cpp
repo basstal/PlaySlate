@@ -1,11 +1,11 @@
 ﻿#include "ActImageTreeView.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActImageTreeViewTableRow.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageTreeViewTableRow.h"
 
 #include "Common/NovaDataBinding.h"
 #include "NovaAct/Assets/ActAnimation.h"
-#include "NovaAct/ActEventTimeline/TreeView/Subs/ActActionSequenceTreeViewRow.h"
+#include "NovaAct/ActEventTimeline/Image/Subs/ActActionSequenceTreeViewRow.h"
 
 
 void SActImageTreeView::Construct(const FArguments& InArgs)

@@ -1,48 +1,49 @@
-﻿#include "ActActionSequenceSectionOverlayWidget.h"
+﻿#include "ActImageScrubPosition.h"
 
+#include "NovaAct/ActEventTimeline/Slider/ActSliderWidget.h"
 #include "Common/NovaDataBinding.h"
 #include "Common/NovaStaticFunction.h"
 
-void SActActionSequenceSectionOverlayWidget::Construct(const FArguments& InArgs, const TSharedRef<FActEventTimelineImage>& InActActionSequenceSectionOverlayController)
+void SActImageScrubPosition::Construct(const FArguments& InArgs)
 {
-	bDisplayScrubPosition = InArgs._DisplayScrubPosition;
-	bDisplayTickLines = InArgs._DisplayTickLines;
+	// bDisplayScrubPosition = InArgs._DisplayScrubPosition;
+	// bDisplayTickLines = InArgs._DisplayTickLines;
 	bDisplayMarkedFrames = InArgs._DisplayMarkedFrames;
-	ActActionSequenceSectionOverlayController = InActActionSequenceSectionOverlayController;
+	// ActActionSequenceSectionOverlayController = InActActionSequenceSectionOverlayController;
 }
 
-int32 SActActionSequenceSectionOverlayWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+int32 SActImageScrubPosition::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
-	FActActionPaintViewAreaArgs PaintArgs;
-	PaintArgs.bDisplayTickLines = bDisplayTickLines.Get();
-	PaintArgs.bDisplayScrubPosition = bDisplayScrubPosition.Get();
-	PaintArgs.bDisplayMarkedFrames = bDisplayMarkedFrames.Get();
+	// FActActionPaintViewAreaArgs PaintArgs;
+	// PaintArgs.bDisplayTickLines = bDisplayTickLines.Get();
+	// PaintArgs.bDisplayScrubPosition = bDisplayScrubPosition.Get();
+	// PaintArgs.bDisplayMarkedFrames = bDisplayMarkedFrames.Get();
 	const ESlateDrawEffect DrawEffects = ShouldBeEnabled(bParentEnabled) ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 	TRange<float> LocalViewRange = *ActEventTimelineArgs->ViewRange;
 	const FActActionScrubRangeToScreen RangeToScreen(LocalViewRange, AllottedGeometry.Size);
-	if (PaintArgs.bDisplayTickLines)
-	{
-		static FLinearColor TickColor(0.0f, 0.0f, 0.0f, 0.3f);
-		// Draw major tick lines in the section area
-		FActActionDrawTickArgs DrawTickArgs;
-		DrawTickArgs.AllottedGeometry = AllottedGeometry;
-		DrawTickArgs.bMirrorLabels = false;
-		DrawTickArgs.bOnlyDrawMajorTicks = true;
-		DrawTickArgs.TickColor = TickColor;
-		DrawTickArgs.CullingRect = MyCullingRect;
-		DrawTickArgs.DrawEffects = DrawEffects;
-		// Draw major ticks under sections
-		DrawTickArgs.StartLayer = LayerId - 1;
-		// Draw the tick the entire height of the section area
-		DrawTickArgs.TickOffset = 0.0f;
-		DrawTickArgs.MajorTickHeight = AllottedGeometry.Size.Y;
-		ActActionSequenceSectionOverlayController.Pin()->DrawTicks(OutDrawElements, LocalViewRange, RangeToScreen, DrawTickArgs);
-	}
+	// if (PaintArgs.bDisplayTickLines)
+	// {
+	// 	static FLinearColor TickColor(0.0f, 0.0f, 0.0f, 0.3f);
+	// 	// Draw major tick lines in the section area
+	// 	FActActionDrawTickArgs DrawTickArgs;
+	// 	DrawTickArgs.AllottedGeometry = AllottedGeometry;
+	// 	DrawTickArgs.bMirrorLabels = false;
+	// 	DrawTickArgs.bOnlyDrawMajorTicks = true;
+	// 	DrawTickArgs.TickColor = TickColor;
+	// 	DrawTickArgs.CullingRect = MyCullingRect;
+	// 	DrawTickArgs.DrawEffects = DrawEffects;
+	// 	// Draw major ticks under sections
+	// 	DrawTickArgs.StartLayer = LayerId - 1;
+	// 	// Draw the tick the entire height of the section area
+	// 	DrawTickArgs.TickOffset = 0.0f;
+	// 	DrawTickArgs.MajorTickHeight = AllottedGeometry.Size.Y;
+	// 	SActSliderWidget::DrawTicks(OutDrawElements, LocalViewRange, RangeToScreen, DrawTickArgs);
+	// }
 
-	if (PaintArgs.bDisplayScrubPosition)
-	{
+	// if (PaintArgs.bDisplayScrubPosition)
+	// {
 		FQualifiedFrameTime ScrubPosition = FQualifiedFrameTime(*ActEventTimelineArgs->CurrentTime, ActEventTimelineArgs->TickResolution);
 		const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
 		FActActionScrubberMetrics ScrubMetrics = NovaStaticFunction::GetScrubPixelMetrics(TickResolution, ScrubPosition, RangeToScreen);
@@ -75,7 +76,7 @@ int32 SActActionSequenceSectionOverlayWidget::OnPaint(const FPaintArgs& Args, co
 			FLinearColor(1.f, 1.f, 1.f, .5f),
 			false
 		);
-	}
+	// }
 
 	return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
 }

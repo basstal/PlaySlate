@@ -1,6 +1,6 @@
-﻿#include "ActActionSequenceSplitterOverlay.h"
+﻿#include "ActSplitterOverlay.h"
 
-void SActActionSequenceSplitterOverlay::Construct(const FArguments& InArgs)
+void SActSplitterOverlay::Construct(const FArguments& InArgs)
 {
 	SetVisibility(EVisibility::SelfHitTestInvisible);
 
@@ -31,7 +31,7 @@ void SActActionSequenceSplitterOverlay::Construct(const FArguments& InArgs)
 	}
 }
 
-void SActActionSequenceSplitterOverlay::OnArrangeChildren(const FGeometry& AllottedGeometry, FArrangedChildren& ArrangedChildren) const
+void SActSplitterOverlay::OnArrangeChildren(const FGeometry& AllottedGeometry, FArrangedChildren& ArrangedChildren) const
 {
 	FArrangedChildren SplitterChildren(ArrangedChildren.GetFilter());
 	Splitter->ArrangeChildren(AllottedGeometry, SplitterChildren);
@@ -66,12 +66,12 @@ void SActActionSequenceSplitterOverlay::OnArrangeChildren(const FGeometry& Allot
 	SOverlay::OnArrangeChildren(AllottedGeometry, ArrangedChildren);
 }
 
-FCursorReply SActActionSequenceSplitterOverlay::OnCursorQuery(const FGeometry& MyGeometry, const FPointerEvent& CursorEvent) const
+FCursorReply SActSplitterOverlay::OnCursorQuery(const FGeometry& MyGeometry, const FPointerEvent& CursorEvent) const
 {
 	return Splitter->OnCursorQuery(MyGeometry, CursorEvent);
 }
 
-FReply SActActionSequenceSplitterOverlay::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply SActSplitterOverlay::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	FReply Reply = Splitter->OnMouseButtonDown(MyGeometry, MouseEvent);
 	if (Reply.GetMouseCaptor().IsValid())
@@ -83,13 +83,13 @@ FReply SActActionSequenceSplitterOverlay::OnMouseButtonDown(const FGeometry& MyG
 	return Reply;
 }
 
-void SActActionSequenceSplitterOverlay::OnMouseCaptureLost(const FCaptureLostEvent& CaptureLostEvent)
+void SActSplitterOverlay::OnMouseCaptureLost(const FCaptureLostEvent& CaptureLostEvent)
 {
 	SetVisibility(EVisibility::SelfHitTestInvisible);
 	SOverlay::OnMouseCaptureLost(CaptureLostEvent);
 }
 
-FReply SActActionSequenceSplitterOverlay::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply SActSplitterOverlay::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	FReply Reply = Splitter->OnMouseButtonUp(MyGeometry, MouseEvent);
 	if (Reply.ShouldReleaseMouse())
@@ -99,12 +99,12 @@ FReply SActActionSequenceSplitterOverlay::OnMouseButtonUp(const FGeometry& MyGeo
 	return Reply;
 }
 
-FReply SActActionSequenceSplitterOverlay::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply SActSplitterOverlay::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	return Splitter->OnMouseMove(MyGeometry, MouseEvent);
 }
 
-void SActActionSequenceSplitterOverlay::OnMouseLeave(const FPointerEvent& MouseEvent)
+void SActSplitterOverlay::OnMouseLeave(const FPointerEvent& MouseEvent)
 {
 	Splitter->OnMouseLeave(MouseEvent);
 }

@@ -7,10 +7,10 @@
 #include "NovaAct/Assets/ActActionSequenceStructs.h"
 
 #include "NovaAct/Assets/ActAnimation.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActActionOutlinerTreeNode.h"
-// #include "NovaAct/ActEventTimeline/TreeView/ActActionSequenceCombinedKeysTrack.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActImageTreeView.h"
-// #include "NovaAct/ActEventTimeline/TreeView/ActTreeViewTrackAreaPanel.h"
+#include "NovaAct/ActEventTimeline/Image/ActActionOutlinerTreeNode.h"
+// #include "NovaAct/ActEventTimeline/Image/ActActionSequenceCombinedKeysTrack.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageTreeView.h"
+// #include "NovaAct/ActEventTimeline/Image/ActTreeViewTrackAreaPanel.h"
 #include "Widgets/Text/SInlineEditableTextBlock.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"

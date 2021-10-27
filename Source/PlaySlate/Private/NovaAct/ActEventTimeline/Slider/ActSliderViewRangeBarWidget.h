@@ -1,16 +1,16 @@
 ﻿#pragma once
 #include "Common/NovaStruct.h"
 
-class SActEventTimelineSliderWidget;
+class SActSliderWidget;
 
-class SActEventTimelineViewRangeBarWidget : public SCompoundWidget
+class SActSliderViewRangeBarWidget : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SActEventTimelineViewRangeBarWidget) { }
+	SLATE_BEGIN_ARGS(SActSliderViewRangeBarWidget) { }
 	SLATE_END_ARGS()
 
-	SActEventTimelineViewRangeBarWidget();
-	virtual ~SActEventTimelineViewRangeBarWidget() override;
+	SActSliderViewRangeBarWidget();
+	virtual ~SActSliderViewRangeBarWidget() override;
 
 	void Construct(const FArguments& InArgs);
 

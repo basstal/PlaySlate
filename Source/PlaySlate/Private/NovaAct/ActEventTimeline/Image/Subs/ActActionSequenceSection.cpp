@@ -1,8 +1,8 @@
 ﻿#include "ActActionSequenceSection.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActImageTreeViewTableRow.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActActionSequenceSectionBase.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageTreeViewTableRow.h"
+#include "NovaAct/ActEventTimeline/Image/ActActionSequenceSectionBase.h"
 
 SActActionSequenceSection::SActActionSequenceSection()
 	: SectionIndex(0)

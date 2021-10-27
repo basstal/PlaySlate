@@ -1,74 +1,43 @@
-﻿#include "ActEventTimelineSliderWidget.h"
+﻿#include "ActSliderWidget.h"
 
 #include "PlaySlate.h"
 #include "Common/NovaConst.h"
 #include "Common/NovaStaticFunction.h"
 #include "Common/NovaStruct.h"
-#include "NovaAct/ActEventTimeline/ActEventTimelineImage.h"
-#include "NovaAct/ActEventTimeline/Slider/ActEventTimelineViewRangeBarWidget.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageThickLine.h"
 #include "NovaAct/NovaActEditor.h"
 // ReSharper disable once CppUnusedIncludeDirective
-#include "NovaAct/ActEventTimeline/Image/ActActionSequenceSectionOverlayWidget.h"
-#include "NovaAct/ActEventTimeline/Slider/ActActionTimeSliderWidget.h"
-#include "NovaAct/ActEventTimeline/Slider/ActEventTimelineViewRangeCommitWidget.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageScrubPosition.h"
+#include "NovaAct/ActEventTimeline/Slider/ActSliderViewRangeWidget.h"
 
 #include "LevelEditorViewport.h"
 #include "Widgets/Layout/SGridPanel.h"
 
-SActEventTimelineSliderWidget::SActEventTimelineSliderWidget()
-	: DistanceDragged(0),
-	  MouseDragType(ENovaDragType::DRAG_NONE),
-	  bMouseDownInRegion(false),
-	  bPanning(false),
-	  bMirrorLabels(false)
+SActSliderWidget::~SActSliderWidget()
 {
-	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
-	ViewRangeDB = NovaDB::CreateSP("ActEventTimelineArgs/ViewRange", DB->GetData()->ViewRange);
-}
-
-SActEventTimelineSliderWidget::~SActEventTimelineSliderWidget()
-{
-	UE_LOG(LogNovaAct, Log, TEXT("SActEventTimelineSliderWidget::~SActEventTimelineSliderWidget"));
+	UE_LOG(LogNovaAct, Log, TEXT("SActSliderWidget::~SActSliderWidget"));
 	NovaDB::Delete("ActEventTimelineArgs/ViewRange");
 }
 
-void SActEventTimelineSliderWidget::Construct(const FArguments& InArgs, const TSharedRef<SGridPanel>& InParentGridPanel)
+void SActSliderWidget::Construct(const FArguments& InArgs, const TSharedRef<SGridPanel>& InParentGridPanel)
 {
-	ViewRangeDB->Bind(TDataBindingSP<TRange<float>>::DelegateType::CreateRaw(this, &SActEventTimelineSliderWidget::OnViewRangeChanged));
-
-	// Create the top and bottom sliders
-	TSharedRef<SActEventTimelineViewRangeCommitWidget> ActActionTimeRange = SNew(SActEventTimelineViewRangeCommitWidget);
-	TickLinesSequenceSectionOverlayController = MakeShareable(new FActEventTimelineImage(SharedThis(this)));
-	TickLinesSequenceSectionOverlayController->MakeSequenceSectionOverlayWidget(ENovaSectionOverlayWidgetType::TickLines);
-	ScrubPosSequenceSectionOverlayController = MakeShareable(new FActEventTimelineImage(SharedThis(this)));
-	ScrubPosSequenceSectionOverlayController->MakeSequenceSectionOverlayWidget(ENovaSectionOverlayWidgetType::ScrubPosition);
+	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
+	ViewRangeDB = NovaDB::CreateSP("ActEventTimelineArgs/ViewRange", DB->GetData()->ViewRange);
+	ViewRangeDB->Bind(TDataBindingSP<TRange<float>>::DelegateType::CreateRaw(this, &SActSliderWidget::OnViewRangeChanged));
 
 	InParentGridPanel->AddSlot(1, 0, SGridPanel::Layer(10))
 	                 .Padding(NovaConst::ResizeBarPadding)
 	[
 		SNew(SBorder)
-	.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
-	.BorderBackgroundColor(FLinearColor(.50f, .50f, .50f, 1.0f))
-	.Padding(0)
-	.Clipping(EWidgetClipping::ClipToBounds)
+		.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
+		.BorderBackgroundColor(FLinearColor(.50f, .50f, .50f, 1.0f))
+		.Padding(0)
+		.Clipping(EWidgetClipping::ClipToBounds)
 		[
 			this->AsShared()
 		]
 	];
 
-	// ** 第1列，第1行，Overlay that draws the tick lines
-	InParentGridPanel->AddSlot(1, 1, SGridPanel::Layer(10))
-	                 .Padding(NovaConst::ResizeBarPadding)
-	[
-		ScrubPosSequenceSectionOverlayController->GetActActionSequenceSectionOverlayWidget()
-	];
-
-	// ** 第1列，第1行，Overlay that draws the scrub position
-	InParentGridPanel->AddSlot(1, 1, SGridPanel::Layer(20))
-	                 .Padding(NovaConst::ResizeBarPadding)
-	[
-		TickLinesSequenceSectionOverlayController->GetActActionSequenceSectionOverlayWidget()
-	];
 
 	// play range slider
 	InParentGridPanel->AddSlot(1, 2, SGridPanel::Layer(10))
@@ -80,12 +49,12 @@ void SActEventTimelineSliderWidget::Construct(const FArguments& InArgs, const TS
 		.Clipping(EWidgetClipping::ClipToBounds)
 		.Padding(0)
 		[
-			ActActionTimeRange
+			SNew(SActSliderViewRangeWidget)
 		]
 	];
 }
 
-int32 SActEventTimelineSliderWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+int32 SActSliderWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
@@ -198,7 +167,7 @@ int32 SActEventTimelineSliderWidget::OnPaint(const FPaintArgs& Args, const FGeom
 }
 
 
-FReply SActEventTimelineSliderWidget::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply SActSliderWidget::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	MouseDragType = ENovaDragType::DRAG_NONE;
 	DistanceDragged = 0;
@@ -216,7 +185,7 @@ FReply SActEventTimelineSliderWidget::OnMouseButtonDown(const FGeometry& MyGeome
 	return FReply::Unhandled();
 }
 
-FReply SActEventTimelineSliderWidget::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply SActSliderWidget::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
 	// TSharedPtr<FActEventTimelineEvents> ActEventTimelineEvents = GetActEventTimelineEvents();
@@ -315,7 +284,7 @@ FReply SActEventTimelineSliderWidget::OnMouseButtonUp(const FGeometry& MyGeometr
 	return FReply::Unhandled();
 }
 
-FReply SActEventTimelineSliderWidget::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply SActSliderWidget::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
 	// TSharedPtr<FActEventTimelineEvents> ActEventTimelineEvents = GetActEventTimelineEvents();
@@ -455,7 +424,7 @@ FReply SActEventTimelineSliderWidget::OnMouseMove(const FGeometry& MyGeometry, c
 	return FReply::Handled();
 }
 
-FReply SActEventTimelineSliderWidget::OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply SActSliderWidget::OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
 
@@ -481,7 +450,7 @@ FReply SActEventTimelineSliderWidget::OnMouseWheel(const FGeometry& MyGeometry, 
 	return FReply::Unhandled();
 }
 
-FFrameTime SActEventTimelineSliderWidget::ComputeFrameTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, FActActionScrubRangeToScreen RangeToScreen, bool CheckSnapping) const
+FFrameTime SActSliderWidget::ComputeFrameTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, FActActionScrubRangeToScreen RangeToScreen, bool CheckSnapping) const
 {
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
 	const FVector2D CursorPos = Geometry.AbsoluteToLocal(ScreenSpacePosition);
@@ -489,7 +458,7 @@ FFrameTime SActEventTimelineSliderWidget::ComputeFrameTimeFromMouse(const FGeome
 	return MouseValue * ActEventTimelineArgs->TickResolution;
 }
 
-FFrameTime SActEventTimelineSliderWidget::ComputeScrubTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, FActActionScrubRangeToScreen RangeToScreen) const
+FFrameTime SActSliderWidget::ComputeScrubTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, FActActionScrubRangeToScreen RangeToScreen) const
 {
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
 	const FVector2D CursorPos = Geometry.AbsoluteToLocal(ScreenSpacePosition);
@@ -498,7 +467,7 @@ FFrameTime SActEventTimelineSliderWidget::ComputeScrubTimeFromMouse(const FGeome
 	return ScrubTime;
 }
 
-void SActEventTimelineSliderWidget::CommitScrubPosition(FFrameTime NewValue, bool bIsScrubbing)
+void SActSliderWidget::CommitScrubPosition(FFrameTime NewValue, bool bIsScrubbing)
 {
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
 	// TSharedPtr<FActEventTimelineEvents> ActEventTimelineEvents = GetActEventTimelineEvents();
@@ -517,7 +486,7 @@ void SActEventTimelineSliderWidget::CommitScrubPosition(FFrameTime NewValue, boo
 }
 
 
-void SActEventTimelineSliderWidget::SetPlaybackStatus(ENovaPlaybackType InPlaybackStatus)
+void SActSliderWidget::SetPlaybackStatus(ENovaPlaybackType InPlaybackStatus)
 {
 	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	DB->GetData()->PlaybackStatus = InPlaybackStatus;
@@ -548,19 +517,19 @@ void SActEventTimelineSliderWidget::SetPlaybackStatus(ENovaPlaybackType InPlayba
 	}
 }
 
-void SActEventTimelineSliderWidget::OnBeginScrubberMovement()
+void SActSliderWidget::OnBeginScrubberMovement()
 {
 	// Pause first since there's no explicit evaluation in the stopped state when OnEndScrubberMovement() is called
 	SetPlaybackStatus(ENovaPlaybackType::Stopped);
 	SetPlaybackStatus(ENovaPlaybackType::Scrubbing);
 }
 
-void SActEventTimelineSliderWidget::OnEndScrubberMovement()
+void SActSliderWidget::OnEndScrubberMovement()
 {
 	SetPlaybackStatus(ENovaPlaybackType::Stopped);
 }
 
-void SActEventTimelineSliderWidget::OnScrubPositionChanged(FFrameTime NewScrubPosition, bool bScrubbing)
+void SActSliderWidget::OnScrubPositionChanged(FFrameTime NewScrubPosition, bool bScrubbing)
 {
 	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = DB->GetData();
@@ -585,7 +554,7 @@ void SActEventTimelineSliderWidget::OnScrubPositionChanged(FFrameTime NewScrubPo
 	}
 }
 
-void SActEventTimelineSliderWidget::OnViewRangeChanged(TSharedPtr<TRange<float>> InViewRange) const
+void SActSliderWidget::OnViewRangeChanged(TSharedPtr<TRange<float>> InViewRange) const
 {
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
 	// Clamp to a minimum size to avoid zero-sized or negative visible ranges
@@ -607,12 +576,12 @@ void SActEventTimelineSliderWidget::OnViewRangeChanged(TSharedPtr<TRange<float>>
 
 	// Clamp to the clamp range
 	// const TRange<float> NewRange = TRange<float>(NewRangeMin, NewRangeMax);
-	UE_LOG(LogNovaAct, Log, TEXT("NewRangeMin : %f, NewRangeMax : %f"), NewRangeMin, NewRangeMax);
+	// UE_LOG(LogNovaAct, Log, TEXT("NewRangeMin : %f, NewRangeMax : %f"), NewRangeMin, NewRangeMax);
 
 	// ActEventTimelineArgs->OnViewRangeChanged.ExecuteIfBound(NewRange, Interpolation);
 }
 
-bool SActEventTimelineSliderWidget::HitTestRangeStart(const FActActionScrubRangeToScreen& RangeToScreen, const TRange<double>& Range, float HitPixel) const
+bool SActSliderWidget::HitTestRangeStart(const FActActionScrubRangeToScreen& RangeToScreen, const TRange<double>& Range, float HitPixel) const
 {
 	const float RangeStartPixel = RangeToScreen.InputToLocalX(Range.GetLowerBoundValue());
 
@@ -620,14 +589,14 @@ bool SActEventTimelineSliderWidget::HitTestRangeStart(const FActActionScrubRange
 	return HitPixel >= RangeStartPixel - 4.0f && HitPixel <= RangeStartPixel + 10.0f;
 }
 
-bool SActEventTimelineSliderWidget::HitTestRangeEnd(const FActActionScrubRangeToScreen& RangeToScreen, const TRange<double>& Range, float HitPixel) const
+bool SActSliderWidget::HitTestRangeEnd(const FActActionScrubRangeToScreen& RangeToScreen, const TRange<double>& Range, float HitPixel) const
 {
 	const float RangeEndPixel = RangeToScreen.InputToLocalX(Range.GetUpperBoundValue());
 	// Hit test against the brush region to the left of the playback end position, +/- DragToleranceSlateUnits
 	return HitPixel >= RangeEndPixel - 10.0f && HitPixel <= RangeEndPixel + 4.0f;
 }
 
-// void SActEventTimelineSliderWidget::SetPlaybackRangeStart(FFrameNumber NewStart) const
+// void SActSliderWidget::SetPlaybackRangeStart(FFrameNumber NewStart) const
 // {
 // 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
 // 	const TRange<FFrameNumber> PlaybackRange = ActEventTimelineArgs->PlaybackRange;
@@ -638,7 +607,7 @@ bool SActEventTimelineSliderWidget::HitTestRangeEnd(const FActActionScrubRangeTo
 // 	}
 // }
 
-// void SActEventTimelineSliderWidget::SetPlaybackRangeEnd(FFrameNumber NewEnd) const
+// void SActSliderWidget::SetPlaybackRangeEnd(FFrameNumber NewEnd) const
 // {
 // 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
 // 	const TRange<FFrameNumber> PlaybackRange = ActEventTimelineArgs->PlaybackRange;
@@ -649,7 +618,7 @@ bool SActEventTimelineSliderWidget::HitTestRangeEnd(const FActActionScrubRangeTo
 // 	}
 // }
 
-// void SActEventTimelineSliderWidget::SetSelectionRangeStart(FFrameNumber NewStart) const
+// void SActSliderWidget::SetSelectionRangeStart(FFrameNumber NewStart) const
 // {
 // 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
 // 	const TRange<FFrameNumber> SelectionRange = ActEventTimelineArgs->SelectionRange;
@@ -664,7 +633,7 @@ bool SActEventTimelineSliderWidget::HitTestRangeEnd(const FActActionScrubRangeTo
 // 	}
 // }
 //
-// void SActEventTimelineSliderWidget::SetSelectionRangeEnd(FFrameNumber NewEnd) const
+// void SActSliderWidget::SetSelectionRangeEnd(FFrameNumber NewEnd) const
 // {
 // 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
 // 	const TRange<FFrameNumber> SelectionRange = ActEventTimelineArgs->SelectionRange;
@@ -679,7 +648,7 @@ bool SActEventTimelineSliderWidget::HitTestRangeEnd(const FActActionScrubRangeTo
 // 	}
 // }
 
-bool SActEventTimelineSliderWidget::ZoomByDelta(float InDelta, float ZoomBias) const
+bool SActSliderWidget::ZoomByDelta(float InDelta, float ZoomBias) const
 {
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
 	const TRange<float> LocalViewRange = *ActEventTimelineArgs->ViewRange;
@@ -700,7 +669,7 @@ bool SActEventTimelineSliderWidget::ZoomByDelta(float InDelta, float ZoomBias) c
 	return false;
 }
 
-void SActEventTimelineSliderWidget::PanByDelta(float InDelta) const
+void SActSliderWidget::PanByDelta(float InDelta) const
 {
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
 	const TRange<float> LocalViewRange = *ActEventTimelineArgs->ViewRange;
@@ -719,14 +688,15 @@ void SActEventTimelineSliderWidget::PanByDelta(float InDelta) const
 
 
 //
-// ActActionSequence::FActEventTimelineArgs& SActEventTimelineSliderWidget::GetActEventTimelineArgs() const
+// ActActionSequence::FActEventTimelineArgs& SActSliderWidget::GetActEventTimelineArgs() const
 // {
 // 	return ActActionSequenceController.Pin()->GetActEventTimelineArgs();
 // }
 
-void SActEventTimelineSliderWidget::DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<float>& ViewRange, const FActActionScrubRangeToScreen& RangeToScreen, const FActActionDrawTickArgs& InArgs) const
+void SActSliderWidget::DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<float>& ViewRange, const FActActionScrubRangeToScreen& RangeToScreen, const FActActionDrawTickArgs& InArgs)
 {
-	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
+	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
 	// const FFrameRate DisplayRate = ActEventTimelineArgs->DisplayRate;
 	const FPaintGeometry PaintGeometry = InArgs.AllottedGeometry.ToPaintGeometry();
@@ -809,14 +779,14 @@ void SActEventTimelineSliderWidget::DrawTicks(FSlateWindowElementList& OutDrawEl
 	}
 }
 
-TSharedRef<FActEventTimelineArgs> SActEventTimelineSliderWidget::GetActEventTimelineArgs() const
+TSharedRef<FActEventTimelineArgs> SActSliderWidget::GetActEventTimelineArgs() const
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	return ActEventTimelineArgs.ToSharedRef();
 }
 
-// TSharedRef<FActEventTimelineEvents> SActEventTimelineSliderWidget::GetActEventTimelineEvents() const
+// TSharedRef<FActEventTimelineEvents> SActSliderWidget::GetActEventTimelineEvents() const
 // {
 // 	auto ActEventTimelineEventsDB = GetDataBindingSP(FActEventTimelineEvents, "ActEventTimelineEvents");
 // 	TSharedPtr<FActEventTimelineEvents> ActEventTimelineEvents = ActEventTimelineEventsDB->GetData();

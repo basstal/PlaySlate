@@ -1,8 +1,8 @@
 ﻿#include "ActImageTrackLaneWidget.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActImageTreeViewTableRow.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActImageTrackCarWidget.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageTreeViewTableRow.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageTrackCarWidget.h"
 
 #include "Widgets/SWeakWidget.h"
 

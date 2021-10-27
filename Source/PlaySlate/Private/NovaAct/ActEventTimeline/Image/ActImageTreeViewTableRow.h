@@ -21,7 +21,7 @@ using namespace NovaStruct;
  */
 class SActImageTreeViewTableRow : public SMultiColumnTableRow<TSharedRef<SActImageTreeViewTableRow>>
 {
-	friend class SActActionOutlinerTreeNode;
+	// friend class SActActionOutlinerTreeNode;
 public:
 	typedef SMultiColumnTableRow::FArguments FArguments;
 

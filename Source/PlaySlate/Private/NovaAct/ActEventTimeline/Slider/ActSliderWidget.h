@@ -4,22 +4,21 @@
 #include "Common/NovaStruct.h"
 
 class SActActionTimeSliderWidget;
-class SActEventTimelineViewRangeBarWidget;
-class SActEventTimelineViewRangeCommitWidget;
-class FActEventTimelineImage;
+class SActSliderViewRangeBarWidget;
+class SActEventTimelineViewRangeWidget;
+class SActImageThickLine;
 class SGridPanel;
 
 using namespace NovaStruct;
 
 
-class SActEventTimelineSliderWidget : public SCompoundWidget
+class SActSliderWidget : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SActEventTimelineSliderWidget) { }
+	SLATE_BEGIN_ARGS(SActSliderWidget) { }
 	SLATE_END_ARGS()
 
-	SActEventTimelineSliderWidget();
-	virtual ~SActEventTimelineSliderWidget() override;
+	virtual ~SActSliderWidget() override;
 
 	void Construct(const FArguments& InArgs, const TSharedRef<SGridPanel>& InParentGridPanel);
 
@@ -130,7 +129,7 @@ public:
 	 * @param RangeToScreen	当前显示范围换算成屏幕像素
 	 * @param InArgs 其他参数
 	 */
-	void DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<float>& ViewRange, const FActActionScrubRangeToScreen& RangeToScreen, const FActActionDrawTickArgs& InArgs) const;
+	static void DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<float>& ViewRange, const FActActionScrubRangeToScreen& RangeToScreen, const FActActionDrawTickArgs& InArgs);
 
 	/** 获得共享参数 */
 	TSharedRef<FActEventTimelineArgs> GetActEventTimelineArgs() const;
@@ -167,21 +166,21 @@ protected:
 	/**
 	* SectionOverlay的Controller，这个用来绘制TickLines
 	*/
-	TSharedPtr<FActEventTimelineImage> TickLinesSequenceSectionOverlayController;
+	TSharedPtr<SActImageThickLine> TickLinesSequenceSectionOverlayController;
 
 	/**
 	* SectionOverlay的Controller，这个用来绘制Scrub位置
 	*/
-	TSharedPtr<FActEventTimelineImage> ScrubPosSequenceSectionOverlayController;
-	TSharedPtr<TDataBindingSP<TRange<float>>> ViewRangeDB; // ** 数据绑定
+	TSharedPtr<SActImageThickLine> ScrubPosSequenceSectionOverlayController;
+	TSharedPtr<TDataBindingSP<TRange<float>>> ViewRangeDB;// ** 数据绑定
 
 public:
-	TSharedRef<FActEventTimelineImage> GetTickLinesSequenceSectionOverlayController() const
+	TSharedRef<SActImageThickLine> GetTickLinesSequenceSectionOverlayController() const
 	{
 		return TickLinesSequenceSectionOverlayController.ToSharedRef();
 	}
 
-	TSharedRef<FActEventTimelineImage> GetScrubPosSequenceSectionOverlayController() const
+	TSharedRef<SActImageThickLine> GetScrubPosSequenceSectionOverlayController() const
 	{
 		return ScrubPosSequenceSectionOverlayController.ToSharedRef();
 	}

@@ -1,12 +1,12 @@
 ﻿#pragma once
 
-class SActEventTimelineSliderWidget;
-class SActEventTimelineViewRangeBarWidget;
+class SActSliderWidget;
+class SActSliderViewRangeBarWidget;
 
-class SActEventTimelineViewRangeCommitWidget : public SCompoundWidget
+class SActSliderViewRangeWidget : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SActEventTimelineViewRangeCommitWidget) { }
+	SLATE_BEGIN_ARGS(SActSliderViewRangeWidget) { }
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
@@ -24,5 +24,5 @@ public:
 	/** 获得Spinbox Delta */
 	double GetSpinboxDelta() const;
 protected:
-	TWeakPtr<SActEventTimelineSliderWidget> TimeSliderController;
+	TWeakPtr<SActSliderWidget> TimeSliderController;
 };

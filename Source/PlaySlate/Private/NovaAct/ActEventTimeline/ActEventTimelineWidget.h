@@ -4,7 +4,7 @@
 #include "Common/NovaDelegate.h"
 
 
-class SActEventTimelineSliderWidget;
+class SActSliderWidget;
 class SActImageTreeView;
 class SActActionTimeSliderWidget;
 class SActImageTrackAreaPanel;
@@ -19,7 +19,6 @@ public:
 	SLATE_BEGIN_ARGS(SActEventTimelineWidget) { }
 	SLATE_END_ARGS()
 
-	SActEventTimelineWidget();
 	virtual ~SActEventTimelineWidget() override;
 
 	void Construct(const FArguments& InArgs);
@@ -35,7 +34,7 @@ public:
 	 */
 	TSharedRef<SWidget> BuildAddTrackMenuWidget();
 protected:
-	TSharedPtr<SActEventTimelineSliderWidget> ActEventTimelineSliderWidget;
+	TSharedPtr<SActSliderWidget> ActEventTimelineSliderWidget;
 
 	FText InFilter;                                              // ** 过滤用的关键字 
 	TSharedPtr<TDataBinding<float>> ColumnFillCoefficientsLeftDB;// ** TreeView与TrackArea占比，此处为TreeView占比，TrackArea占比值为1 - ColumnFillCoefficientsLeft

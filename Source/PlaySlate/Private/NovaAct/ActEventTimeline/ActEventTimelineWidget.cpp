@@ -3,29 +3,20 @@
 #include "PlaySlate.h"
 #include "Common/NovaConst.h"
 
-#include "NovaAct/ActEventTimeline/Slider/ActEventTimelineSliderWidget.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActImageHorizontalBox.h"
+#include "NovaAct/ActEventTimeline/Slider/ActSliderWidget.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageHorizontalBox.h"
 #include "NovaAct/ActViewport/ActActionViewportWidget.h"
 #include "NovaAct/ActEventTimeline/Components/ActTransportControlsWidget.h"
-#include "NovaAct/ActEventTimeline/Components/ActActionSequenceSplitterOverlay.h"
+#include "NovaAct/ActEventTimeline/Components/ActSplitterOverlay.h"
 
 #include "SEditorHeaderButton.h"
 #include "FrameNumberNumericInterface.h"
+#include "Image/ActImageScrubPosition.h"
 #include "NovaAct/Assets/Tracks/ActActionHitBoxTrack.h"
 #include "Widgets/Input/SSearchBox.h"
 #include "Widgets/Layout/SGridPanel.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
-
-SActEventTimelineWidget::SActEventTimelineWidget()
-{
-	/**
-	 * TODO:存储在配置中
-	 */
-	ColumnFillCoefficientsLeftDB = NovaDB::Create("ColumnFillCoefficientsLeft", 0.3f);
-	// ** 将能编辑的所有TrackEditor注册，以便能够使用AddTrackEditor以及AddTrackMenu
-	TrackEditorDelegates.Add(OnCreateTrackEditorDelegate::CreateStatic(FActActionHitBoxTrack::CreateTrackEditor));
-}
 
 SActEventTimelineWidget::~SActEventTimelineWidget()
 {
@@ -37,6 +28,11 @@ SActEventTimelineWidget::~SActEventTimelineWidget()
 
 void SActEventTimelineWidget::Construct(const FArguments& InArgs)
 {
+	// ** TODO:存储在配置中
+	ColumnFillCoefficientsLeftDB = NovaDB::Create("ColumnFillCoefficientsLeft", 0.3f);
+	// ** 将能编辑的所有TrackEditor注册，以便能够使用AddTrackEditor以及AddTrackMenu
+	TrackEditorDelegates.Add(OnCreateTrackEditorDelegate::CreateStatic(FActActionHitBoxTrack::CreateTrackEditor));
+
 	auto FillLeftAttr = TAttribute<float>::Create(TAttribute<float>::FGetter::CreateLambda([]()
 	{
 		auto DB = GetDataBinding(float, "ColumnFillCoefficientsLeft");
@@ -133,12 +129,26 @@ void SActEventTimelineWidget::Construct(const FArguments& InArgs)
 							SNew(SSpacer)
 						]
 					]
+
+					// ** 第1列，第1行，Overlay that draws the tick lines
+					+ SGridPanel::Slot(1, 1, SGridPanel::Layer(10))
+					.Padding(NovaConst::ResizeBarPadding)
+					[
+						SNew(SActImageScrubPosition)
+					]
+
+					// ** 第1列，第1行，Overlay that draws the scrub position
+					+ SGridPanel::Slot(1, 1, SGridPanel::Layer(20))
+					.Padding(NovaConst::ResizeBarPadding)
+					[
+						SNew(SActImageThickLine)
+					]
 				]
 
 				+ SOverlay::Slot()
 				[
 					// 绘制Overlay用于拖拽决定Sequence左右两块区域的占比
-					SNew(SActActionSequenceSplitterOverlay)
+					SNew(SActSplitterOverlay)
 					.Style(FEditorStyle::Get(), "AnimTimeline.Outliner.Splitter")
 					.Visibility(EVisibility::SelfHitTestInvisible)
 					+ SSplitter::Slot()
@@ -170,7 +180,7 @@ void SActEventTimelineWidget::Construct(const FArguments& InArgs)
 
 	if (GridPanel)
 	{
-		ActEventTimelineSliderWidget = SNew(SActEventTimelineSliderWidget, GridPanel.ToSharedRef());
+		ActEventTimelineSliderWidget = SNew(SActSliderWidget, GridPanel.ToSharedRef());
 	}
 
 	// 调用已注册的TrackEditor的Create代理，并收集创建的TrackEditor实例

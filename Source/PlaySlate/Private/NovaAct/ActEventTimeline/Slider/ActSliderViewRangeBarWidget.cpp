@@ -1,10 +1,10 @@
-﻿#include "ActEventTimelineViewRangeBarWidget.h"
+﻿#include "ActSliderViewRangeBarWidget.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/ActEventTimeline/Slider/ActEventTimelineSliderWidget.h"
+#include "NovaAct/ActEventTimeline/Slider/ActSliderWidget.h"
 
 
-SActEventTimelineViewRangeBarWidget::SActEventTimelineViewRangeBarWidget()
+SActSliderViewRangeBarWidget::SActSliderViewRangeBarWidget()
 	: bHandleDragged(false),
 	  bLeftHandleDragged(false),
 	  bRightHandleDragged(false),
@@ -12,22 +12,22 @@ SActEventTimelineViewRangeBarWidget::SActEventTimelineViewRangeBarWidget()
 	  bLeftHandleHovered(false),
 	  bRightHandleHovered(false) {}
 
-SActEventTimelineViewRangeBarWidget::~SActEventTimelineViewRangeBarWidget()
+SActSliderViewRangeBarWidget::~SActSliderViewRangeBarWidget()
 {
-	UE_LOG(LogNovaAct, Log, TEXT("SActEventTimelineViewRangeBarWidget::~SActEventTimelineViewRangeBarWidget"));
+	UE_LOG(LogNovaAct, Log, TEXT("SActSliderViewRangeBarWidget::~SActSliderViewRangeBarWidget"));
 }
 
-void SActEventTimelineViewRangeBarWidget::Construct(const FArguments& InArgs)
+void SActSliderViewRangeBarWidget::Construct(const FArguments& InArgs)
 {
 	ResetState();
 }
 
-FVector2D SActEventTimelineViewRangeBarWidget::ComputeDesiredSize(float LayoutScaleMultiplier) const
+FVector2D SActSliderViewRangeBarWidget::ComputeDesiredSize(float LayoutScaleMultiplier) const
 {
 	return FVector2D(56.0f, HandleSize);
 }
 
-int32 SActEventTimelineViewRangeBarWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+int32 SActSliderViewRangeBarWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
 	static const FSlateBrush* RangeHandleLeft = FEditorStyle::GetBrush(TEXT("Sequencer.Timeline.RangeHandleLeft"));
 	static const FSlateBrush* RangeHandleRight = FEditorStyle::GetBrush(TEXT("Sequencer.Timeline.RangeHandleRight"));
@@ -73,7 +73,7 @@ int32 SActEventTimelineViewRangeBarWidget::OnPaint(const FPaintArgs& Args, const
 	return LayerId;
 }
 
-FReply SActEventTimelineViewRangeBarWidget::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply SActSliderViewRangeBarWidget::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
@@ -99,14 +99,14 @@ FReply SActEventTimelineViewRangeBarWidget::OnMouseButtonDown(const FGeometry& M
 	return FReply::Unhandled();
 }
 
-FReply SActEventTimelineViewRangeBarWidget::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply SActSliderViewRangeBarWidget::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	ResetState();
 
 	return FReply::Handled().ReleaseMouseCapture();
 }
 
-FReply SActEventTimelineViewRangeBarWidget::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply SActSliderViewRangeBarWidget::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	if (HasMouseCapture())
 	{
@@ -200,7 +200,7 @@ FReply SActEventTimelineViewRangeBarWidget::OnMouseMove(const FGeometry& MyGeome
 	return FReply::Unhandled();
 }
 
-void SActEventTimelineViewRangeBarWidget::OnMouseLeave(const FPointerEvent& MouseEvent)
+void SActSliderViewRangeBarWidget::OnMouseLeave(const FPointerEvent& MouseEvent)
 {
 	SCompoundWidget::OnMouseLeave(MouseEvent);
 
@@ -210,7 +210,7 @@ void SActEventTimelineViewRangeBarWidget::OnMouseLeave(const FPointerEvent& Mous
 	}
 }
 
-FReply SActEventTimelineViewRangeBarWidget::OnMouseButtonDoubleClick(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent)
+FReply SActSliderViewRangeBarWidget::OnMouseButtonDoubleClick(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent)
 {
 	ResetState();
 
@@ -227,7 +227,7 @@ FReply SActEventTimelineViewRangeBarWidget::OnMouseButtonDoubleClick(const FGeom
 	return FReply::Unhandled();
 }
 
-void SActEventTimelineViewRangeBarWidget::ComputeHandleOffsets(float& LeftHandleOffset, float& RightHandleOffset, float& HandleOffset, int32 GeometryWidth) const
+void SActSliderViewRangeBarWidget::ComputeHandleOffsets(float& LeftHandleOffset, float& RightHandleOffset, float& HandleOffset, int32 GeometryWidth) const
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
@@ -254,7 +254,7 @@ void SActEventTimelineViewRangeBarWidget::ComputeHandleOffsets(float& LeftHandle
 	}
 }
 
-float SActEventTimelineViewRangeBarWidget::ComputeDragDelta(const FPointerEvent& MouseEvent, int32 GeometryWidth) const
+float SActSliderViewRangeBarWidget::ComputeDragDelta(const FPointerEvent& MouseEvent, int32 GeometryWidth) const
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
@@ -263,11 +263,11 @@ float SActEventTimelineViewRangeBarWidget::ComputeDragDelta(const FPointerEvent&
 	const float DragDistance = (MouseEvent.GetScreenSpacePosition() - MouseDownPosition).X;
 	const float PixelToUnits = (EndTime - BeginTime) / (GeometryWidth - HandleSize * 2);
 	const float DragDelta = DragDistance * PixelToUnits;
-	UE_LOG(LogNovaAct, Log, TEXT("DragDelta : %f"), DragDelta);
+	// UE_LOG(LogNovaAct, Log, TEXT("DragDelta : %f"), DragDelta);
 	return DragDelta;
 }
 
-void SActEventTimelineViewRangeBarWidget::ResetState()
+void SActSliderViewRangeBarWidget::ResetState()
 {
 	bHandleDragged = false;
 	bLeftHandleDragged = false;
@@ -275,7 +275,7 @@ void SActEventTimelineViewRangeBarWidget::ResetState()
 	ResetHoveredState();
 }
 
-void SActEventTimelineViewRangeBarWidget::ResetHoveredState()
+void SActSliderViewRangeBarWidget::ResetHoveredState()
 {
 	bHandleHovered = false;
 	bLeftHandleHovered = false;

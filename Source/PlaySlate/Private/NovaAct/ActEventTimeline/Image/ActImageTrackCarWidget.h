@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "NovaAct/ActEventTimeline/TreeView/Subs/ActActionSequenceNotifyNode.h"
+#include "NovaAct/ActEventTimeline/Image/Subs/ActActionSequenceNotifyNode.h"
 
 class SActImageTreeViewTableRow;
 class SActImageTreeView;

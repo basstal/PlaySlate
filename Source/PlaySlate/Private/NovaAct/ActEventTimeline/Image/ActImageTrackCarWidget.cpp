@@ -2,8 +2,8 @@
 
 #include "SCurveEditor.h"
 #include "Common/NovaConst.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActImageTrackLaneWidget.h"
-#include "NovaAct/ActEventTimeline/TreeView/Subs/ActActionSequenceNotifyNode.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageTrackLaneWidget.h"
+#include "NovaAct/ActEventTimeline/Image/Subs/ActActionSequenceNotifyNode.h"
 
 
 void SActImageTrackCarWidget::Construct(const FArguments& InArgs)

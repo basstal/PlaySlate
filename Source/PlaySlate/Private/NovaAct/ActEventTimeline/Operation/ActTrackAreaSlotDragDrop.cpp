@@ -3,8 +3,8 @@
 #include "SCurveEditor.h"
 #include "Common/NovaStruct.h"
 #include "Common/NovaDataBinding.h"
-#include "NovaAct/ActEventTimeline/TreeView/Subs/ActActionSequenceNotifyNode.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActImageTrackLaneWidget.h"
+#include "NovaAct/ActEventTimeline/Image/Subs/ActActionSequenceNotifyNode.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageTrackLaneWidget.h"
 
 
 using namespace NovaStruct;

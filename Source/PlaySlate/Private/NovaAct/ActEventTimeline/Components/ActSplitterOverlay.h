@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-class SActActionSequenceSplitterOverlay : public SOverlay
+class SActSplitterOverlay : public SOverlay
 {
 public:
 	// ** 用于把自身参数转换为SSplitter的参数，使其可以 + SSplitter::Slot

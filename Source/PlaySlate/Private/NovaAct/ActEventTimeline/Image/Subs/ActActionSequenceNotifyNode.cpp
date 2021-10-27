@@ -7,7 +7,7 @@
 #include "Common/NovaStruct.h"
 #include "Fonts/FontMeasure.h"
 #include "NovaAct/ActEventTimeline/Operation/ActTrackAreaSlotDragDrop.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActImageTrackLaneWidget.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageTrackLaneWidget.h"
 
 using namespace NovaStruct;
 

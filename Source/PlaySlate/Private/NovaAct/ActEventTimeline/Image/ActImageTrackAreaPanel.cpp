@@ -1,8 +1,8 @@
 ﻿#include "ActImageTrackAreaPanel.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActImageTreeViewTableRow.h"
-#include "NovaAct/ActEventTimeline/TreeView/ActImageTrackLaneWidget.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageTreeViewTableRow.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageTrackLaneWidget.h"
 
 
 SActImageTrackAreaPanel::SActImageTrackAreaPanel()
@@ -61,7 +61,7 @@ FChildren* SActImageTrackAreaPanel::GetChildren()
 	return &Children;
 }
 
-TSharedRef<SActImageTrackLaneWidget> SActImageTrackAreaPanel::MakeTrackLaneWithTreeViewNode(const TSharedRef<SActImageTreeViewTableRow>& InActTreeViewNode)
+TSharedRef<SActImageTrackLaneWidget> SActImageTrackAreaPanel::MakeTrackLane()
 {
 	TSharedRef<SActImageTrackLaneWidget> TrackLaneWidget = SNew(SActImageTrackLaneWidget);
 	Children.Add(new SActImageTrackLaneWidget::Slot(TrackLaneWidget));

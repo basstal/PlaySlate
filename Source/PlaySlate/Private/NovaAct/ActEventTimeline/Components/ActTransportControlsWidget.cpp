@@ -14,7 +14,6 @@ SActTransportControlsWidget::~SActTransportControlsWidget()
 void SActTransportControlsWidget::Construct(const FArguments& InArgs)
 {
 	FEditorWidgetsModule& EditorWidgetsModule = FModuleManager::LoadModuleChecked<FEditorWidgetsModule>("EditorWidgets");
-
 	FTransportControlArgs TransportControlArgs;
 	{
 		TransportControlArgs.OnForwardPlay = FOnClicked::CreateSP(this, &SActTransportControlsWidget::OnClickForwardPlay);
@@ -27,7 +26,6 @@ void SActTransportControlsWidget::Construct(const FArguments& InArgs)
 		TransportControlArgs.OnGetLooping = FOnGetLooping::CreateSP(this, &SActTransportControlsWidget::IsLoopStatusOn);
 		TransportControlArgs.OnGetPlaybackMode = FOnGetPlaybackMode::CreateSP(this, &SActTransportControlsWidget::GetPlaybackMode);
 	}
-
 	ChildSlot
 	[
 		EditorWidgetsModule.CreateTransportControl(TransportControlArgs)

@@ -1,6 +1,6 @@
 ﻿#include "ActActionSequenceCombinedKeysTrack.h"
 
-#include "NovaAct/ActEventTimeline/TreeView/ActImageTreeViewTableRow.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageTreeViewTableRow.h"
 
 void SActActionSequenceCombinedKeysTrack::Construct(const FArguments& InArgs, TSharedRef<SActImageTreeViewTableRow> InRootNode)
 {

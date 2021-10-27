@@ -22,10 +22,9 @@ public:
 	/**
 	 * Add a new track slot to this area for the given node. The slot will be automatically cleaned up when all external references to the supplied slot are removed.
 	 *
-	 * @param InActTreeViewNode
 	 * @return
 	 */
-	TSharedRef<SActImageTrackLaneWidget> MakeTrackLaneWithTreeViewNode(const TSharedRef<SActImageTreeViewTableRow>& InActTreeViewNode);
+	TSharedRef<SActImageTrackLaneWidget> MakeTrackLane();
 
 protected:
 	TPanelChildren<SActImageTrackLaneWidget::Slot> Children;// ** The track area's children.
