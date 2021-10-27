@@ -161,7 +161,7 @@ void FActViewportPreviewScene::OnCurrentTimeChanged(TSharedPtr<FFrameTime> InCur
 		auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 		const FFrameRate TickResolution = DB->GetData()->TickResolution;
 		float PreviewScrubTime = TickResolution.AsSeconds(*InCurrentTime);
-		UE_LOG(LogNovaAct, Log, TEXT("InCurrentTime : %f"), PreviewScrubTime);
+		// UE_LOG(LogNovaAct, Log, TEXT("InCurrentTime : %f"), PreviewScrubTime);
 		ActActionSkeletalMesh->PreviewInstance->SetPosition(PreviewScrubTime);
 		ActActionSkeletalMesh->PreviewInstance->UpdateAnimation(PreviewScrubTime, true, UAnimInstance::EUpdateAnimationFlag::ForceParallelUpdate);
 	}

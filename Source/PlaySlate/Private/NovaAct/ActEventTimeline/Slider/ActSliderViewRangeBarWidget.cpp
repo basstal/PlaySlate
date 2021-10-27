@@ -1,6 +1,7 @@
 ﻿#include "ActSliderViewRangeBarWidget.h"
 
 #include "PlaySlate.h"
+#include "Common/NovaDataBinding.h"
 #include "NovaAct/ActEventTimeline/Slider/ActSliderWidget.h"
 
 
@@ -78,7 +79,7 @@ FReply SActSliderViewRangeBarWidget::OnMouseButtonDown(const FGeometry& MyGeomet
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	MouseDownPosition = MouseEvent.GetScreenSpacePosition();
-	MouseDownViewRange = TRange<float>(*ActEventTimelineArgs->ViewRange);
+	MouseDownViewRange = *ActEventTimelineArgs->ViewRange;
 
 	if (bHandleHovered)
 	{

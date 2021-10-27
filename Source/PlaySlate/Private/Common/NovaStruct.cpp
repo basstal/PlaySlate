@@ -2,6 +2,35 @@
 
 namespace NovaStruct
 {
+	//~Begin FActEventTimelineArgs
+	FActEventTimelineArgs::FActEventTimelineArgs()
+		: ViewRange(new TRange<float>(0.0f, 1.0f)),
+		  ClampRange(TRange<float>(0.0f, 1.0f)),
+		  TickResolution(60, 1),
+		  CurrentTime(new FFrameTime(0)),
+		  PlaybackStatus(ENovaPlaybackType::Stopped),
+		  AllowZoom(true) {}
+	//~End FActEventTimelineArgs
+
+	//~Begin FActSliderScrubRangeToScreen
+	FActSliderScrubRangeToScreen::FActSliderScrubRangeToScreen(const TRange<float>& InViewInput, const FVector2D& InWidgetSize)
+	{
+		const float ViewInputRange = InViewInput.Size<float>();
+		ViewStart = InViewInput.GetLowerBoundValue();
+		PixelsPerInput = ViewInputRange > 0 ? (InWidgetSize.X / ViewInputRange) : 0;
+	}
+
+	float FActSliderScrubRangeToScreen::LocalXToInput(float ScreenX) const
+	{
+		return PixelsPerInput > 0 ? (ScreenX / PixelsPerInput) + ViewStart : ViewStart;
+	}
+
+	float FActSliderScrubRangeToScreen::InputToLocalX(float InputTime) const
+	{
+		return (InputTime - ViewStart) * PixelsPerInput;
+	}
+	//~End FActSliderScrubRangeToScreen
+	
 	TRange<FFrameTime> FActActionEvaluationRange::CalculateEvaluationRange(FFrameTime CurrentTime, FFrameTime PreviousTime, bool bInclusivePreviousTime)
 	{
 		if (CurrentTime == PreviousTime)

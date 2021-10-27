@@ -11,90 +11,58 @@ namespace NovaStruct
 	/** EventTimeline 所有Widget可能需要共享的一些参数，使用数据绑定以避免参数透传 */
 	struct FActEventTimelineArgs
 	{
-		FActEventTimelineArgs()
-			: ViewRange(new TRange<float>(0.0f, 1.0f)),
-			  ClampRange(TRange<float>(0.0f, 1.0f)),
-			  TickResolution(60, 1),
-			  CurrentTime(new FFrameTime(0)),
-			  PlaybackStatus(ENovaPlaybackType::Stopped),
-			  AllowZoom(true) {}
+		FActEventTimelineArgs();
 
-		TSharedPtr<TRange<float>> ViewRange;// 当前可见的区域，这个值可以比动画播放区间小，例如放大显示时
-		TRange<float> ClampRange;           // 最大可调整的区域，与AnimSequence动画的播放时长相同，范围[0, PlayLength]
+		// 当前可见的区域，这个值可以比动画播放区间小，例如放大显示时
+		TSharedPtr<TRange<float>> ViewRange;
+		// 最大可调整的区域，与AnimSequence动画的播放时长相同，范围[0, PlayLength]
+		TRange<float> ClampRange;
 
-		FFrameRate TickResolution;         // 当前使用的帧率
-		TSharedPtr<FFrameTime> CurrentTime;// 当前动画所在的时间节点
-		ENovaPlaybackType PlaybackStatus;  // 当前的播放状态
+		// 当前使用的帧率
+		FFrameRate TickResolution;
+		// 当前动画所在的时间节点
+		TSharedPtr<FFrameTime> CurrentTime;
+		// 当前的播放状态
+		ENovaPlaybackType PlaybackStatus;
 
-		bool AllowZoom;                                                // If we are allowed to zoom
-		TSharedPtr<INumericTypeInterface<double>> NumericTypeInterface;// Numeric Type interface for converting between frame numbers and display formats.
+		// If we are allowed to zoom
+		bool AllowZoom;
+		// Numeric Type interface for converting between frame numbers and display formats.
+		TSharedPtr<INumericTypeInterface<double>> NumericTypeInterface;
 	};
 
-	// struct FActEventTimelineEvents
-	// {
-	// 	OnScrubPositionChangedDelegate OnScrubPositionChanged;// Called when the scrub position changes 
-	// 	FSimpleDelegate OnBeginScrubberMovement;              // Called right before the scrubber begins to move 
-	// 	FSimpleDelegate OnEndScrubberMovement;                // Called right after the scrubber handle is released by the user 
-	// };
-
-	/** Utility struct for converting between scrub range space and local/absolute screen space */
-	struct FActActionScrubRangeToScreen
+	/** Utility struct for converting between scrub range space and local/absolute screen space, 这个结构用于时间和 Widget 距离的对应转换 */
+	struct FActSliderScrubRangeToScreen
 	{
-		double ViewStart;
+		FActSliderScrubRangeToScreen(const TRange<float>& InViewInput, const FVector2D& InWidgetSize);
 
+		/** Local Widget Space -> Curve InputTime domain. */
+		float LocalXToInput(float ScreenX) const;
+
+		/** Curve InputTime domain -> local Widget Space */
+		float InputToLocalX(float InputTime) const;
+
+		// InViewInput 对应的起点时间
+		float ViewStart;
+		// 每单位时间（秒）对应的 UI 距离
 		float PixelsPerInput;
-
-		FActActionScrubRangeToScreen(const TRange<float>& InViewInput, const FVector2D& InWidgetSize)
-		{
-			const float ViewInputRange = InViewInput.Size<double>();
-
-			ViewStart = InViewInput.GetLowerBoundValue();
-			PixelsPerInput = ViewInputRange > 0 ? (InWidgetSize.X / ViewInputRange) : 0;
-		}
-
-		/** Local Widget Space -> Curve Input domain. */
-		double LocalXToInput(float ScreenX) const
-		{
-			return PixelsPerInput > 0 ? (ScreenX / PixelsPerInput) + ViewStart : ViewStart;
-		}
-
-		/** Curve Input domain -> local Widget Space */
-		float InputToLocalX(double Input) const
-		{
-			return (Input - ViewStart) * PixelsPerInput;
-		}
 	};
 
-
-	struct FActActionTrackAreaArgs
+	/** 时间轴刷 相关指标 */
+	struct FActSliderScrubberMetrics
 	{
-		int BeginTime; // ** 开始时间
-		float Duration;// ** 时间长度
-
-		// float GetBeginTime() const
-		// {
-		// 	return Begin.Get() * TickResolution.Get().AsInterval();
-		// }
-		//
-		float GetEndTime() const
-		{
-			return BeginTime + Duration;
-		}
-
-		//
-		// float GetDurationTime() const
-		// {
-		// 	return (End.Get() - Begin.Get()) * TickResolution.Get().AsInterval();
-		// }
-		//
-		// float GetPlayLength() const
-		// {
-		// 	return ViewInputMax.Get() - ViewInputMin.Get();
-		// }
+		/** The extents of the current frame that the scrubber is on, in pixels */
+		TRange<float> FrameExtentsPx;
+		/** The pixel range that the scrubber handle (thumb) occupies */
+		TRange<float> HandleRangePx;
+		/** The style of the scrubber handle */
+		EActSliderScrubberStyle Style;
+		/** 是否显示 时间轴刷的 Extents 区域，只有在 ScrubberStyle 为 FrameBlock 时才会显示 */
+		bool bDrawExtents;
 	};
 
 
-	struct FActActionDrawTickArgs
+	struct FActDrawTickArgs
 	{
 		/** Geometry of the area */
 		FGeometry AllottedGeometry;
@@ -124,6 +92,34 @@ namespace NovaStruct
 		bool bMirrorLabels;
 	};
 
+	struct FActActionTrackAreaArgs
+	{
+		int BeginTime; // ** 开始时间
+		float Duration;// ** 时间长度
+
+		// float GetBeginTime() const
+		// {
+		// 	return Begin.Get() * TickResolution.Get().AsInterval();
+		// }
+		//
+		float GetEndTime() const
+		{
+			return BeginTime + Duration;
+		}
+
+		//
+		// float GetDurationTime() const
+		// {
+		// 	return (End.Get() - Begin.Get()) * TickResolution.Get().AsInterval();
+		// }
+		//
+		// float GetPlayLength() const
+		// {
+		// 	return ViewInputMax.Get() - ViewInputMin.Get();
+		// }
+	};
+
+
 	struct FActActionPaintPlaybackRangeArgs
 	{
 		/** Brush to use for the start bound */
@@ -139,20 +135,6 @@ namespace NovaStruct
 		float SolidFillOpacity;
 	};
 
-	struct FActActionScrubberMetrics
-	{
-		/** The extents of the current frame that the scrubber is on, in pixels */
-		TRange<float> FrameExtentsPx;
-
-		/** The pixel range that the scrubber handle (thumb) occupies */
-		TRange<float> HandleRangePx;
-
-		/** The style of the scrubber handle */
-		ENovaSequencerScrubberStyle Style;
-
-		/** The style of the scrubber handle */
-		bool bDrawExtents;
-	};
 
 	struct FActActionAnimatedPropertyKey
 	{
@@ -252,53 +234,38 @@ namespace NovaStruct
 		TArray<FActActionAnimatedPropertyKey, TInlineAllocator<4>> AnimatedTypes;
 	};
 
-	struct FActActionPaintViewAreaArgs
-	{
-		/** Whether to display tick lines */
-		bool bDisplayTickLines;
-
-		/** Whether to display the scrub position */
-		bool bDisplayScrubPosition;
-
-		/** Whether to display the marked frames */
-		bool bDisplayMarkedFrames;
-
-		/** Optional Paint args for the playback range*/
-		TOptional<FActActionPaintPlaybackRangeArgs> PlaybackRangeArgs;
-	};
-
-	/**
-	* Sequence view parameters.
-	*/
-	struct FActActionSequenceViewParams
-	{
-		// OnGetAddMenuContentDelegate OnGetAddMenuContent;
-
-		OnBuildCustomContextMenuForGuidDelegate OnBuildCustomContextMenuForGuid;
-
-		/** Called when this sequencer has received user focus */
-		FSimpleDelegate OnReceivedFocus;
-
-		/** A menu extender for the add menu */
-		TSharedPtr<FExtender> AddMenuExtender;
-
-		/** A toolbar extender for the main toolbar */
-		TSharedPtr<FExtender> ToolbarExtender;
-
-		/** Unique name for the sequencer. */
-		FString UniqueName;
-
-		/** Whether the sequencer is read-only */
-		bool bReadOnly;
-
-		/** Style of scrubber to use */
-		ENovaSequencerScrubberStyle ScrubberStyle;
-
-		FActActionSequenceViewParams(FString InName = FString())
-			: UniqueName(MoveTemp(InName)),
-			  bReadOnly(false),
-			  ScrubberStyle(ENovaSequencerScrubberStyle::Vanilla) { }
-	};
+	// /**
+	// * Sequence view parameters.
+	// */
+	// struct FActActionSequenceViewParams
+	// {
+	// 	// OnGetAddMenuContentDelegate OnGetAddMenuContent;
+	//
+	// 	OnBuildCustomContextMenuForGuidDelegate OnBuildCustomContextMenuForGuid;
+	//
+	// 	/** Called when this sequencer has received user focus */
+	// 	FSimpleDelegate OnReceivedFocus;
+	//
+	// 	/** A menu extender for the add menu */
+	// 	TSharedPtr<FExtender> AddMenuExtender;
+	//
+	// 	/** A toolbar extender for the main toolbar */
+	// 	TSharedPtr<FExtender> ToolbarExtender;
+	//
+	// 	/** Unique name for the sequencer. */
+	// 	FString UniqueName;
+	//
+	// 	/** Whether the sequencer is read-only */
+	// 	bool bReadOnly;
+	//
+	// 	/** Style of scrubber to use */
+	// 	EActSliderScrubberStyle ScrubberStyle;
+	//
+	// 	FActActionSequenceViewParams(FString InName = FString())
+	// 		: UniqueName(MoveTemp(InName)),
+	// 		  bReadOnly(false),
+	// 		  ScrubberStyle(EActSliderScrubberStyle::Vanilla) { }
+	// };
 
 	/** Structure used to define a column in the tree view */
 	struct FActActionSequenceTreeViewColumn

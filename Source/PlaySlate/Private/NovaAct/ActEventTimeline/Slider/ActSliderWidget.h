@@ -31,16 +31,6 @@ public:
 	//~End SWidget interface
 
 	/**
-	 * 根据鼠标位置计算当前时间轴刷对应的动画时间
-	 *
-	 * @param Geometry 时间轴刷的 几何体
-	 * @param ScreenSpacePosition 鼠标对应的 屏幕坐标 位置
-	 * @param RangeToScreen
-	 * @param CheckSnapping
-	 */
-	FFrameTime ComputeFrameTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, FActActionScrubRangeToScreen RangeToScreen, bool CheckSnapping = true) const;
-
-	/**
 	 * Call this method when the user's interaction has changed the scrub position
 	 *
 	 * @param NewValue Value resulting from the user's interaction
@@ -106,18 +96,26 @@ public:
 	static void DrawTicks(
 		FSlateWindowElementList& OutDrawElements,
 		const TRange<float>& ViewRange,
-		const FActActionScrubRangeToScreen& RangeToScreen,
-		const FActActionDrawTickArgs& InArgs);
+		const FActSliderScrubRangeToScreen& RangeToScreen,
+		const FActDrawTickArgs& InArgs);
 
 	/** @return 获得 EventTimeline 共享参数 */
 	TSharedRef<FActEventTimelineArgs> GetActEventTimelineArgs() const;
 protected:
-	float DistanceDragged;               // ** 鼠标拖拽的累计距离，Total mouse delta during dragging
-	ENovaDragType MouseDragType;         // ** 当前鼠标的拖拽状态，是在拖拽时间平移还是改变时间范围
-	bool bMouseDownInRegion;             // ** 鼠标按下时是否在指定区域内，If mouse down was in time scrubbing region, only allow setting time when mouse is pressed down in the region
-	bool bPanning;                       // ** 当前是否在拖拽平移的过程中，If we are currently panning the panel 
-	bool bMirrorLabels;                  // ** 将 Tick 的标记上下镜像，If we should mirror the labels on the timeline
-	FVector2D MouseDownPosition[2];      // ** 鼠标按下的位置范围值，Mouse down position range 
-	TArray<TRange<float>> ViewRangeStack;// ** 给 Zoom 功能使用，Range stack 
-	FGeometry MouseDownGeometry;         // ** 记录鼠标按下时传入的Geometry，Geometry on mouse down 
+	/** 鼠标拖拽的累计距离，Total mouse delta during dragging */
+	float DistanceDragged;
+	/** 当前鼠标的拖拽状态，是在拖拽时间平移还是改变时间范围 */
+	ENovaDragType MouseDragType;
+	/** 鼠标按下时是否在指定区域内，If mouse down was in time scrubbing region, only allow setting time when mouse is pressed down in the region */
+	bool bMouseDownInRegion;
+	/** 当前是否在拖拽平移的过程中，If we are currently panning the panel */
+	bool bPanning;
+	/** 将 Tick 的标记上下镜像，If we should mirror the labels on the timeline */
+	bool bMirrorLabels;
+	/** 鼠标按下的位置范围值，Mouse down position range */
+	FVector2D MouseDownPosition[2];
+	/** 给 DRAG_SETTING_RANGE Zoom 功能使用，Range stack */
+	TArray<TRange<float>> ViewRangeZoomStack;
+	/** 记录鼠标按下时传入的Geometry，Geometry on mouse down */
+	FGeometry MouseDownGeometry;
 };

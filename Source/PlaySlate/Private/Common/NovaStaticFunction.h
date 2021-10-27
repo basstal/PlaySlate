@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 #include "Common/NovaStruct.h"
 #include "Fonts/FontMeasure.h"
 
@@ -36,15 +37,31 @@ public:
 	}
 
 	/**
-	 * Get the pixel metrics of the Scrubber
+	 * 根据鼠标位置计算当前 时间轴刷 对应的动画时间
+	 *
+	 * @param Geometry 时间轴刷的 几何体
+	 * @param ScreenSpacePosition 鼠标对应的 屏幕坐标 位置
+	 * @param RangeToScreen 屏幕距离到时间的转换结构
+	 * @param TickResolution 时间到帧时间的转换结构
+	 */
+	static FFrameTime ComputeFrameTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, FActSliderScrubRangeToScreen RangeToScreen, const FFrameRate& TickResolution)
+	{
+		const FVector2D CursorPos = Geometry.AbsoluteToLocal(ScreenSpacePosition);
+		const double MouseValue = RangeToScreen.LocalXToInput(CursorPos.X);
+		return MouseValue * TickResolution;
+	}
+
+	/**
+	 * @return Get the pixel metrics of the Scrubber
+	 * @param DisplayRate		当前帧率
 	 * @param ScrubTime			The qualified time of the scrubber
 	 * @param RangeToScreen		Range to screen helper
-	 * @param DilationPixels		Number of pixels to dilate the handle by
-	 * @return FActActionScrubberMetrics
 	 */
-	static NovaStruct::FActActionScrubberMetrics GetScrubPixelMetrics(const FFrameRate& DisplayRate, const FQualifiedFrameTime& ScrubTime, const NovaStruct::FActActionScrubRangeToScreen& RangeToScreen, float DilationPixels = 0.0f, const ENovaSequencerScrubberStyle& ScrubberStyle = ENovaSequencerScrubberStyle())
+	static FActSliderScrubberMetrics MakePixelScrubberMetrics(const FFrameRate& DisplayRate,
+	                                                          const FQualifiedFrameTime& ScrubTime,
+	                                                          const FActSliderScrubRangeToScreen& RangeToScreen)
 	{
-		NovaStruct::FActActionScrubberMetrics Metrics;
+		FActSliderScrubberMetrics Metrics;
 
 		const FFrameNumber Frame = ScrubTime.ConvertTo(DisplayRate).FloorToFrame();
 
@@ -61,16 +78,16 @@ public:
 		Metrics.FrameExtentsPx = TRange<float>(FrameStartPixel, FrameEndPixel);
 
 		// Set the style of the scrub handle
-		Metrics.Style = ScrubberStyle;
+		Metrics.Style = EActSliderScrubberStyle::Vanilla;
 
 		// Always draw the extents on the section area for frame block styles
-		Metrics.bDrawExtents = Metrics.Style == ENovaSequencerScrubberStyle::FrameBlock;
+		Metrics.bDrawExtents = Metrics.Style == EActSliderScrubberStyle::FrameBlock;
 
 		static float MinScrubSize = 14.f;
 		// If it's vanilla style or too small to show the frame width, set that up
-		if (Metrics.Style == ENovaSequencerScrubberStyle::Vanilla || FrameEndPixel - FrameStartPixel < MinScrubSize)
+		if (Metrics.Style == EActSliderScrubberStyle::Vanilla || FrameEndPixel - FrameStartPixel < MinScrubSize)
 		{
-			Metrics.Style = ENovaSequencerScrubberStyle::Vanilla;
+			Metrics.Style = EActSliderScrubberStyle::Vanilla;
 
 			float ScrubPixel = RangeToScreen.InputToLocalX(ScrubTime.AsSeconds());
 			Metrics.HandleRangePx = TRange<float>(ScrubPixel - MinScrubSize * .5f, ScrubPixel + MinScrubSize * .5f);
@@ -83,7 +100,12 @@ public:
 		return Metrics;
 	}
 
-	static bool GetGridMetrics(TSharedPtr<INumericTypeInterface<double>> NumericTypeInterface, const float PhysicalWidth, const double InViewStart, const double InViewEnd, double& OutMajorInterval, int32& OutMinorDivisions)
+	static bool GetGridMetrics(TSharedPtr<INumericTypeInterface<double>> NumericTypeInterface,
+	                           const float PhysicalWidth,
+	                           const double InViewStart,
+	                           const double InViewEnd,
+	                           double& OutMajorInterval,
+	                           int32& OutMinorDivisions)
 	{
 		FSlateFontInfo SmallLayoutFont = FCoreStyle::GetDefaultFontStyle("Regular", 8);
 		TSharedRef<FSlateFontMeasure> FontMeasureService = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();

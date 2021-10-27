@@ -25,6 +25,7 @@ namespace NovaEnum
 	enum class ENovaDragType : uint8
 	{
 		DRAG_SCRUBBING_TIME,
+		// 拖拽选中 并 缩放至这段选中的时间
 		DRAG_SETTING_RANGE,
 		DRAG_PLAYBACK_START,
 		DRAG_PLAYBACK_END,
@@ -35,7 +36,7 @@ namespace NovaEnum
 	};
 
 	/** Enum representing supported scrubber styles */
-	enum class ENovaSequencerScrubberStyle : uint8
+	enum class EActSliderScrubberStyle : uint8
 	{
 		/** Scrubber is represented as a single thin line for the current time, with a constant-sized thumb. */
 		Vanilla,
@@ -63,12 +64,6 @@ namespace NovaEnum
 		Stepping,
 		Paused,
 		MAX
-	};
-
-	enum class ENovaSectionOverlayWidgetType : uint8
-	{
-		TickLines,
-		ScrubPosition
 	};
 
 	enum class ENovaNotifyStateHandleHit : uint8

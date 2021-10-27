@@ -12,6 +12,7 @@
 #include "SEditorHeaderButton.h"
 #include "FrameNumberNumericInterface.h"
 #include "Image/ActImageScrubPosition.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageThickLine.h"
 #include "NovaAct/Assets/Tracks/ActActionHitBoxTrack.h"
 #include "Widgets/Input/SSearchBox.h"
 #include "Widgets/Layout/SGridPanel.h"
