@@ -372,8 +372,8 @@ FReply SActSliderWidget::OnMouseMove(const FGeometry& MyGeometry, const FPointer
 				else if (bMouseDownInRegion)
 				{
 					MouseDragType = ENovaDragType::DRAG_SCRUBBING_TIME;
-					auto DB = GetDataBinding(ENovaTransportControls, "TransportControlsState");
-					DB->SetData(ENovaTransportControls::Pause);
+					// auto DB = GetDataBinding(ENovaTransportControls, "TransportControlsState");
+					// DB->SetData(ENovaTransportControls::Pause);
 					OnBeginScrubberMovement();
 				}
 			}
@@ -487,33 +487,33 @@ void SActSliderWidget::CommitScrubPosition(FFrameTime NewValue, bool bIsScrubbin
 
 void SActSliderWidget::SetPlaybackStatus(ENovaPlaybackType InPlaybackStatus)
 {
-	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
-	DB->GetData()->PlaybackStatus = InPlaybackStatus;
-	ESequencerState State = ESS_None;
-	switch (InPlaybackStatus)
-	{
-	case ENovaPlaybackType::Playing:
-	case ENovaPlaybackType::Recording:
-		{
-			State = ESS_Playing;
-			break;
-		}
-	case ENovaPlaybackType::Stopped:
-	case ENovaPlaybackType::Scrubbing:
-	case ENovaPlaybackType::Stepping:
-		{
-			State = ESS_Paused;
-			break;
-		}
-	default: ;
-	}
-	for (FLevelEditorViewportClient* LevelVC : GEditor->GetLevelViewportClients())
-	{
-		if (LevelVC && LevelVC->AllowsCinematicControl())
-		{
-			LevelVC->ViewState.GetReference()->SetSequencerState(State);
-		}
-	}
+	// auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
+	// DB->GetData()->PlaybackStatus = InPlaybackStatus;
+	// ESequencerState State = ESS_None;
+	// switch (InPlaybackStatus)
+	// {
+	// case ENovaPlaybackType::Playing:
+	// case ENovaPlaybackType::Recording:
+	// 	{
+	// 		State = ESS_Playing;
+	// 		break;
+	// 	}
+	// case ENovaPlaybackType::Stopped:
+	// case ENovaPlaybackType::Scrubbing:
+	// case ENovaPlaybackType::Stepping:
+	// 	{
+	// 		State = ESS_Paused;
+	// 		break;
+	// 	}
+	// default: ;
+	// }
+	// for (FLevelEditorViewportClient* LevelVC : GEditor->GetLevelViewportClients())
+	// {
+	// 	if (LevelVC && LevelVC->AllowsCinematicControl())
+	// 	{
+	// 		LevelVC->ViewState.GetReference()->SetSequencerState(State);
+	// 	}
+	// }
 }
 
 void SActSliderWidget::OnBeginScrubberMovement()
@@ -538,10 +538,10 @@ void SActSliderWidget::OnScrubPositionChanged(FFrameTime NewScrubPosition, bool 
 	}
 	const TWeakPtr<SWidget> PreviousFocusedWidget = FSlateApplication::Get().GetKeyboardFocusedWidget();
 	// Clear focus before setting time in case there's a key editor value selected that gets committed to a newly selected key on UserMovedFocus
-	if (ActEventTimelineArgs->PlaybackStatus == ENovaPlaybackType::Stopped)
-	{
-		FSlateApplication::Get().ClearKeyboardFocus(EFocusCause::Cleared);
-	}
+	// if (ActEventTimelineArgs->PlaybackStatus == ENovaPlaybackType::Stopped)
+	// {
+	// 	FSlateApplication::Get().ClearKeyboardFocus(EFocusCause::Cleared);
+	// }
 	if (ActEventTimelineArgs->CurrentTime && NewScrubPosition != *ActEventTimelineArgs->CurrentTime)
 	{
 		*ActEventTimelineArgs->CurrentTime = NewScrubPosition;

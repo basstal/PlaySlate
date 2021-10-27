@@ -148,8 +148,7 @@ protected:
 	/** Mouse down position range */
 	FVector2D MouseDownPosition[2];
 
-	/** If mouse down was in time scrubbing region, only allow setting time when mouse is pressed down in the region */
-	bool bMouseDownInRegion;
+	bool bMouseDownInRegion;// ** If mouse down was in time scrubbing region, only allow setting time when mouse is pressed down in the region
 
 	/** If we are currently panning the panel */
 	bool bPanning;
