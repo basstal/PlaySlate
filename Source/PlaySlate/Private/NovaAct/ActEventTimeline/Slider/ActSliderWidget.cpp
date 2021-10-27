@@ -4,7 +4,6 @@
 #include "Common/NovaConst.h"
 #include "Common/NovaStaticFunction.h"
 #include "Common/NovaStruct.h"
-#include "NovaAct/ActEventTimeline/Image/ActImageThickLine.h"
 #include "NovaAct/NovaActEditor.h"
 // ReSharper disable once CppUnusedIncludeDirective
 #include "NovaAct/ActEventTimeline/Image/ActImageScrubPosition.h"

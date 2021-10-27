@@ -2,7 +2,6 @@
 
 #include "PlaySlate.h"
 #include "Common/NovaStaticFunction.h"
-#include "PlaySlate.h"
 #include "ActActionViewportClient.h"
 #include "NovaAct/ActViewport/ActActionViewportWidget.h"
 #include "NovaAct/NovaActEditor.h"
@@ -23,19 +22,19 @@ FActViewport::FActViewport(const ConstructionValues& CVS, const TSharedRef<FNova
 	  ActActionSkeletalMesh(nullptr),
 	  LastCurrentTime(0)
 {
-	TransportControlsState = NovaDB::Create("TransportControlsState", ENovaTransportControls::ForwardPlay);
+	NovaDB::Create("TransportControlsState", ENovaTransportControls::ForwardPlay);
 	PreviewInstanceLooping = NovaDB::Create("PreviewInstanceLooping", false);
 	PreviewInstancePlaybackMode = NovaDB::Create("PreviewInstancePlaybackMode", EPlaybackMode::Stopped);
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
-	CurrentTimeDB = NovaDB::CreateSP("ActEventTimelineArgs/CurrentTime", ActEventTimelineArgsDB->GetData()->CurrentTime);
+	NovaDB::CreateSP("ActEventTimelineArgs/CurrentTime", ActEventTimelineArgsDB->GetData()->CurrentTime);
 }
 
 FActViewport::~FActViewport()
 {
 	UE_LOG(LogNovaAct, Log, TEXT("FActActionPreviewSceneController::~FActActionPreviewSceneController"));
 	ActActionViewportWidget.Reset();
-	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
-	ActEventTimelineArgsDB->UnBind(OnCurrentTimeChangedHandle);
+	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs/CurrentTime");
+	DB->UnBind(OnCurrentTimeChangedHandle);
 	auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
 	ActAnimationDB->UnBind(OnAnimBlueprintChangedHandle);
 	ActAnimationDB->UnBind(OnAnimSequenceChangedHandle);
@@ -50,14 +49,15 @@ void FActViewport::Init(const TSharedRef<SDockTab>& InParentDockTab)
 	// ** NOTE:合理不能用SNew的原因是在构造时会调用到FActActionPreviewSceneController::MakeViewportClient，需要先设置好ActActionViewportWidget指针
 	InParentDockTab->SetContent(SAssignNew(ActActionViewportWidget, SActActionViewportWidget, SharedThis(this)));
 
-	OnCurrentTimeChangedHandle = CurrentTimeDB->Bind(TDataBindingSP<FFrameTime>::DelegateType::CreateRaw(this, &FActViewport::OnCurrentTimeChanged));
+	DataBindingSPBindRaw(FFrameTime, "ActEventTimelineArgs/CurrentTime", this, &FActViewport::OnCurrentTimeChanged, OnCurrentTimeChangedHandle);
 
 	auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
 	OnAnimBlueprintChangedHandle = ActAnimationDB->Bind(TDataBindingUObject<UActAnimation>::DelegateType::CreateRaw(this, &FActViewport::OnAnimBlueprintChanged));
 	OnAnimSequenceChangedHandle = ActAnimationDB->Bind(TDataBindingUObject<UActAnimation>::DelegateType::CreateRaw(this, &FActViewport::OnAnimSequenceChanged));
 
-	TransportControlsState->Bind(TDataBinding<ENovaTransportControls>::DelegateType::CreateRaw(this, &FActViewport::OnTransportControlsStateChanged));
-	PreviewInstancePlaybackMode->Bind(TDataBinding<EPlaybackMode::Type>::DelegateType::CreateRaw(this, &FActViewport::OnPlaybackModeChanged));
+	FDelegateHandle _;
+	DataBindingBindRaw(ENovaTransportControls, "TransportControlsState", this, &FActViewport::OnTransportControlsStateChanged, _);
+	DataBindingBindRaw(EPlaybackMode::Type, "PreviewInstancePlaybackMode", this, &FActViewport::OnPlaybackModeChanged, _);
 }
 
 TSharedPtr<FActActionViewportClient> FActViewport::MakeViewportClient()
@@ -127,6 +127,7 @@ void FActViewport::SpawnActorInViewport(UClass* ActorType, const UAnimBlueprint*
 	ActActionSkeletalMesh->InitializeAnimScriptInstance();
 	ActActionSkeletalMesh->UpdateBounds();
 
+
 	// Center the mesh at the world origin then offset to put it on top of the plane
 	const float BoundsZOffset = NovaStaticFunction::GetBoundsZOffset(ActActionSkeletalMesh->Bounds);
 	ActActionActor->SetActorLocation(FVector(0, 0, BoundsZOffset) - ActActionSkeletalMesh->Bounds.Origin, false);
@@ -140,8 +141,9 @@ void FActViewport::OnCurrentTimeChanged(TSharedPtr<FFrameTime> InCurrentTime)
 		auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 		const FFrameRate TickResolution = DB->GetData()->TickResolution;
 		float PreviewScrubTime = TickResolution.AsSeconds(*InCurrentTime);
+		UE_LOG(LogNovaAct, Log, TEXT("InCurrentTime : %f"), PreviewScrubTime);
 		ActActionSkeletalMesh->PreviewInstance->SetPosition(PreviewScrubTime);
-		ActActionSkeletalMesh->PreviewInstance->UpdateAnimation(PreviewScrubTime, false);
+		ActActionSkeletalMesh->PreviewInstance->UpdateAnimation(PreviewScrubTime, true, UAnimInstance::EUpdateAnimationFlag::ForceParallelUpdate);
 	}
 }
 
@@ -158,7 +160,7 @@ void FActViewport::EvaluateToOneEnd(bool bIsEndEnd)
 		{
 			*ActEventTimelineArgs->CurrentTime = TickResolution.AsFrameTime(ActEventTimelineArgs->ClampRange.GetUpperBoundValue());
 		}
-		CurrentTimeDB->Trigger();
+		NovaDB::Trigger("ActEventTimelineArgs/CurrentTime");
 	}
 }
 
@@ -166,6 +168,7 @@ void FActViewport::OnPlaybackModeChanged(EPlaybackMode::Type InPlaybackMode) con
 {
 	if (UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 	{
+		UE_LOG(LogNovaAct, Log, TEXT("InPlaybackMode : %d"), InPlaybackMode);
 		const bool bPlay = InPlaybackMode != EPlaybackMode::Stopped;
 		const bool bReverse = InPlaybackMode == EPlaybackMode::PlayingReverse;
 		const bool bIsReverse = PreviewInstance->IsReverse();
@@ -354,7 +357,7 @@ void FActViewport::OnAnimSequenceChanged(UActAnimation* InActAnimation)
 				ActActionSkeletalMesh->SetSkeletalMeshWithoutResettingAnimation(PreviewMesh);
 				ActActionSkeletalMesh->EnablePreview(true, InAnimSequence);
 				// ** 强制同步 PlaybackMode 状态，否则会因为 EnablePreview 调用而自动进入播放状态
-				PreviewInstancePlaybackMode->Trigger();
+				NovaDB::Trigger("PreviewInstancePlaybackMode");
 				ActActionSkeletalMesh->PreviewInstance->SetLooping(true);
 				PreviewInstanceLooping->SetData(true);
 				ActActionSkeletalMesh->SetPlayRate(1.0f);

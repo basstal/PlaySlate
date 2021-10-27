@@ -134,13 +134,6 @@ protected:
 	FDelegateHandle OnAnimSequenceChangedHandle;
 
 
-	TSharedPtr<TDataBinding<ENovaTransportControls>> TransportControlsState;  // ** 当前Viewport transport controls 状态的数据绑定
 	TSharedPtr<TDataBinding<bool>> PreviewInstanceLooping;                    // ** 当前 Viewport 动画实例播放是否为 Lopping 状态
 	TSharedPtr<TDataBinding<EPlaybackMode::Type>> PreviewInstancePlaybackMode;//** 当前 Viewport 动画实例播放 PlaybackMode 状态
-	TSharedPtr<TDataBindingSP<FFrameTime>> CurrentTimeDB;                     // ** 当前 Viewport 动画实例的实际时间点
-// public:
-// 	TSharedRef<SActActionViewportWidget> GetActActionViewportWidget() const
-// 	{
-// 		return ActActionViewportWidget.ToSharedRef();
-// 	}
 };

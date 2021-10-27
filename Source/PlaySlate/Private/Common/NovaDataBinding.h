@@ -20,22 +20,39 @@
  * @param InName
  */
 #define GetDataBinding(AbstractData, InName) StaticCastSharedPtr<TDataBinding<AbstractData>>(NovaDB::Get(InName))
-// /**
-//  * @param AbstractData 数据原型的类型
-//  * @param FieldName 自定义字段名
-//  * @param InLambda 自定义Lambda函数，其中自定义字段名会作为这个Lambda函数的首参数
-//  */
-// #define CreateLambdaBind(AbstractData, FieldName, InLambda) TDataBinding<AbstractData>::DelegateType::CreateLambda([](AbstractData FieldName)InLambda)
-// /**
-//  * @param AbstractData 数据原型的类型
-//  * @param InUserObject 对象实例，可参考TDelegate的CreateRaw
-//  * @param InFunc 对实例方法的引用，可参考TDelegate的CreateRaw
-//  */
-// #define CreateRawBind(InUserObject, InFunc, AbstractData) TDataBinding<AbstractData>::DelegateType::CreateRaw(InUserObject, InFunc)
+
+/**
+ * @param AbstractData 数据原型的类型
+ * @param InName
+ * @param FieldName 自定义字段名
+ * @param InLambda 自定义Lambda函数，其中自定义字段名会作为这个Lambda函数的首参数
+ * @param OutHandle
+ */
+#define DataBindingSPBindRaw(AbstractData, InName, InUserObject, InFunc, OutHandle) \
+{\
+	auto DB = StaticCastSharedPtr<TDataBindingSP<AbstractData>>(NovaDB::Get(InName));\
+	OutHandle = DB->Bind(TDataBindingSP<AbstractData>::DelegateType::CreateRaw(InUserObject, InFunc));\
+}\
+
+/**
+ * @param AbstractData 数据原型的类型
+ * @param InName
+ * @param InUserObject 对象实例，可参考TDelegate的CreateRaw
+ * @param InFunc 对实例方法的引用，可参考TDelegate的CreateRaw
+ * @param OutHandle
+ */
+#define DataBindingBindRaw(AbstractData, InName, InUserObject, InFunc, OutHandle) \
+{\
+	auto DB = StaticCastSharedPtr<TDataBinding<AbstractData>>(NovaDB::Get(InName));\
+	OutHandle = DB->Bind(TDataBinding<AbstractData>::DelegateType::CreateRaw(InUserObject, InFunc));\
+}\
+
 // /**
 //  * @param AbstractData 数据原型的类型，必须派生自UObject
+//  * @param InName
 //  * @param InUserObject 对象实例，可参考TDelegate的CreateRaw
 //  * @param InFunc 对实例方法的引用，可参考TDelegate的CreateRaw
+//  * @param OutHandle
 //  */
 // #define CreateUObjectBind(InUserObject, InFunc, AbstractData) TDataBindingUObject<AbstractData>::DelegateType::CreateUObject(InUserObject, InFunc)
 
