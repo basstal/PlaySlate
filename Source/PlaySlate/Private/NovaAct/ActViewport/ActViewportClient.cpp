@@ -1,15 +1,15 @@
-﻿#include "ActActionViewportClient.h"
+﻿#include "ActViewportClient.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/ActViewport/ActActionViewportWidget.h"
+#include "NovaAct/ActViewport/ActViewport.h"
 #include "ActViewportPreviewScene.h"
 
 #include "AssetEditorModeManager.h"
 #include "EditorModeManager.h"
 #include "UnrealWidget.h"
 
-FActActionViewportClient::FActActionViewportClient(const TSharedRef<FActViewportPreviewScene>& InActViewportPreviewScene,
-                                                   const TSharedRef<SActActionViewportWidget>& InActActionViewportWidget,
+FActViewportClient::FActViewportClient(const TSharedRef<FActViewportPreviewScene>& InActViewportPreviewScene,
+                                                   const TSharedRef<SActViewport>& InActActionViewportWidget,
                                                    FEditorModeTools& InEditorModeTools)
 	: FEditorViewportClient(
 		&InEditorModeTools,
@@ -38,12 +38,12 @@ FActActionViewportClient::FActActionViewportClient(const TSharedRef<FActViewport
 	SetViewRotation(EditorViewportDefs::DefaultPerspectiveViewRotation);
 }
 
-FActActionViewportClient::~FActActionViewportClient()
+FActViewportClient::~FActViewportClient()
 {
-	UE_LOG(LogNovaAct, Log, TEXT("FActActionViewportClient::~FActActionViewportClient"));
+	UE_LOG(LogNovaAct, Log, TEXT("FActViewportClient::~FActViewportClient"));
 }
 
-void FActActionViewportClient::Tick(float DeltaSeconds)
+void FActViewportClient::Tick(float DeltaSeconds)
 {
 	FEditorViewportClient::Tick(DeltaSeconds);
 

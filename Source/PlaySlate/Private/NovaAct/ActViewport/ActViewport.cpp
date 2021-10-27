@@ -1,11 +1,11 @@
-﻿#include "ActActionViewportWidget.h"
+﻿#include "ActViewport.h"
 
 #include "PlaySlate.h"
 // ReSharper disable once CppUnusedIncludeDirective
-#include "NovaAct/ActViewport/ActActionViewportClient.h"
+#include "NovaAct/ActViewport/ActViewportClient.h"
 #include "NovaAct/ActViewport/ActViewportPreviewScene.h"
 
-void SActActionViewportWidget::Construct(const FArguments& InArgs, const TSharedRef<FActViewportPreviewScene>& InActActionPreviewSceneController)
+void SActViewport::Construct(const FArguments& InArgs, const TSharedRef<FActViewportPreviewScene>& InActActionPreviewSceneController)
 {
 	ActActionPreviewSceneController = InActActionPreviewSceneController;
 
@@ -44,12 +44,12 @@ void SActActionViewportWidget::Construct(const FArguments& InArgs, const TShared
 	];
 }
 
-SActActionViewportWidget::~SActActionViewportWidget()
+SActViewport::~SActViewport()
 {
-	UE_LOG(LogNovaAct, Log, TEXT("SActActionViewportWidget::~SActActionViewportWidget"));
+	UE_LOG(LogNovaAct, Log, TEXT("SActViewport::~SActViewport"));
 }
 
-TSharedRef<FEditorViewportClient> SActActionViewportWidget::MakeEditorViewportClient()
+TSharedRef<FEditorViewportClient> SActViewport::MakeEditorViewportClient()
 {
 	return ActActionPreviewSceneController.Pin()->MakeViewportClient().ToSharedRef();
 }

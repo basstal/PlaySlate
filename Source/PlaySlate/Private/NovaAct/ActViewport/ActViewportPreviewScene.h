@@ -7,8 +7,8 @@
 #include "Common/NovaStruct.h"
 #include "NovaAct/Assets/ActAnimation.h"
 
-class FActActionViewportClient;
-class SActActionViewportWidget;
+class FActViewportClient;
+class SActViewport;
 class FNovaActEditor;
 struct FActActionHitBoxData;
 
@@ -30,7 +30,7 @@ public:
 	* 
 	* @return 构造的FActActionViewportClient，是SEditorViewport必须实现的组件之一
 	*/
-	TSharedPtr<FActActionViewportClient> MakeViewportClient();
+	TSharedPtr<FActViewportClient> MakeViewportClient();
 
 	//~Begin FPreviewScene interface
 	virtual void AddComponent(UActorComponent* Component, const FTransform& LocalToWorld, bool bAttachToRoot) override;
@@ -121,7 +121,7 @@ protected:
 
 
 	FBoxSphereBounds FloorBounds;                                // ** Cached bounds of the floor mesh
-	TSharedPtr<SActActionViewportWidget> ActActionViewportWidget;// ** PreviewScene Main Widget
+	TSharedPtr<SActViewport> ActActionViewportWidget;// ** PreviewScene Main Widget
 
 
 	float LastCurrentTime;                       // ** 用于检测CurrentTime是否改变

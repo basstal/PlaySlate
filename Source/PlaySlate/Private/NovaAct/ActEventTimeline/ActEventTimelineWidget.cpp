@@ -5,7 +5,7 @@
 
 #include "NovaAct/ActEventTimeline/Slider/ActSliderWidget.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageHorizontalBox.h"
-#include "NovaAct/ActViewport/ActActionViewportWidget.h"
+#include "NovaAct/ActViewport/ActViewport.h"
 #include "NovaAct/ActEventTimeline/Components/ActTransportControlsWidget.h"
 #include "NovaAct/ActEventTimeline/Components/ActSplitterOverlay.h"
 

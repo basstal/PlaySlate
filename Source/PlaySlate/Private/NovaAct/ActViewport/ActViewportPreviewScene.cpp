@@ -2,8 +2,8 @@
 
 #include "PlaySlate.h"
 #include "Common/NovaStaticFunction.h"
-#include "ActActionViewportClient.h"
-#include "NovaAct/ActViewport/ActActionViewportWidget.h"
+#include "ActViewportClient.h"
+#include "NovaAct/ActViewport/ActViewport.h"
 #include "NovaAct/NovaActEditor.h"
 
 #include "Animation/DebugSkelMeshComponent.h"
@@ -49,7 +49,7 @@ FActViewportPreviewScene::~FActViewportPreviewScene()
 void FActViewportPreviewScene::Init(const TSharedRef<SDockTab>& InParentDockTab)
 {
 	// ** NOTE:合理不能用SNew的原因是在构造时会调用到FActActionPreviewSceneController::MakeViewportClient，需要先设置好ActActionViewportWidget指针
-	InParentDockTab->SetContent(SAssignNew(ActActionViewportWidget, SActActionViewportWidget, SharedThis(this)));
+	InParentDockTab->SetContent(SAssignNew(ActActionViewportWidget, SActViewport, SharedThis(this)));
 
 	DataBindingSPBindRaw(FFrameTime, "ActEventTimelineArgs/CurrentTime", this, &FActViewportPreviewScene::OnCurrentTimeChanged, OnCurrentTimeChangedHandle);
 
@@ -62,9 +62,9 @@ void FActViewportPreviewScene::Init(const TSharedRef<SDockTab>& InParentDockTab)
 	DataBindingBindRaw(EPlaybackMode::Type, "PreviewInstancePlaybackMode", this, &FActViewportPreviewScene::OnPlaybackModeChanged, _);
 }
 
-TSharedPtr<FActActionViewportClient> FActViewportPreviewScene::MakeViewportClient()
+TSharedPtr<FActViewportClient> FActViewportPreviewScene::MakeViewportClient()
 {
-	return MakeShareable(new FActActionViewportClient(
+	return MakeShareable(new FActViewportClient(
 		SharedThis(this),
 		ActActionViewportWidget.ToSharedRef(),
 		ActActionSequenceEditor.Pin()->GetEditorModeManager()));

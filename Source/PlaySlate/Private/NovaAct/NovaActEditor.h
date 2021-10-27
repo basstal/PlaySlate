@@ -7,7 +7,7 @@
 class FActAssetDetailsNotifyHook;
 class FActViewportPreviewScene;
 class UActAnimation;
-class FActActionViewportClient;
+class FActViewportClient;
 
 class FActAssetDetailsBrain;
 

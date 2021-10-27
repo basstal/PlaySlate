@@ -3,20 +3,17 @@
 #include "SEditorViewport.h"
 
 class FNovaActEditor;
-class FActActionViewportClient;
+class FActViewportClient;
 class FActViewportPreviewScene;
 
-class SActActionViewportWidget : public SEditorViewport, public FEditorUndoClient
+class SActViewport : public SEditorViewport, public FEditorUndoClient
 {
 public:
-SLATE_BEGIN_ARGS(SActActionViewportWidget)
-		{
-		}
-
+	SLATE_BEGIN_ARGS(SActViewport) { }
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs, const TSharedRef<FActViewportPreviewScene>& InActActionPreviewSceneController);
-	virtual ~SActActionViewportWidget() override;
+	virtual ~SActViewport() override;
 
 	//~Begin SEditorViewport interface
 	virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override;
