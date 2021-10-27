@@ -44,7 +44,7 @@ int32 SActImageScrubPosition::OnPaint(const FPaintArgs& Args, const FGeometry& A
 
 	// if (PaintArgs.bDisplayScrubPosition)
 	// {
-		FQualifiedFrameTime ScrubPosition = FQualifiedFrameTime(*ActEventTimelineArgs->CurrentTime, ActEventTimelineArgs->TickResolution);
+		FQualifiedFrameTime ScrubPosition = FQualifiedFrameTime(FFrameTime(ActEventTimelineArgs->CurrentTime->GetFrame()), ActEventTimelineArgs->TickResolution);
 		const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
 		FActActionScrubberMetrics ScrubMetrics = NovaStaticFunction::GetScrubPixelMetrics(TickResolution, ScrubPosition, RangeToScreen);
 		if (ScrubMetrics.bDrawExtents)

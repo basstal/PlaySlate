@@ -14,11 +14,11 @@ struct FActActionHitBoxData;
 
 using namespace NovaStruct;
 
-class FActViewport : public TSharedFromThis<FActViewport>, public FAdvancedPreviewScene
+class FActViewportPreviewScene : public TSharedFromThis<FActViewportPreviewScene>, public FAdvancedPreviewScene
 {
 public:
-	FActViewport(const ConstructionValues& CVS, const TSharedRef<FNovaActEditor>& InActActionSequenceEditor);
-	virtual ~FActViewport() override;
+	FActViewportPreviewScene(const ConstructionValues& CVS, const TSharedRef<FNovaActEditor>& InActActionSequenceEditor);
+	virtual ~FActViewportPreviewScene() override;
 
 	/**
 	* @param InParentDockTab 子Widget所附着的DockTab
@@ -38,8 +38,14 @@ public:
 
 	//~Begin FTickableObjectBase interface
 	virtual void Tick(float DeltaTime) override;
+	virtual bool IsTickable() const override;
+	virtual ETickableTickType GetTickableTickType() const override;
 	//~End FTickableObjectBase interface
 
+	/**
+	 * 设置 LastTickTime 值，以判断当前是否能够 Tick
+	 */
+	void FlagTickable();
 	/**
 	 * 在Viewport中生成指定ActorType类型的Actor
 	 *
@@ -104,29 +110,19 @@ public:
 
 
 protected:
-	/**
-	* 对Editor的引用，调用编辑器资源和相关工具方法
-	*/
-	TWeakPtr<FNovaActEditor> ActActionSequenceEditor;
+	double LastTickTime;// ** The last time we were flagged for ticking
 
-	/** The one and only actor we have */
-	AActor* ActActionActor;
+	TWeakPtr<FNovaActEditor> ActActionSequenceEditor;// ** 对Editor的引用，调用编辑器资源和相关工具方法
 
-	/** The main preview skeletal mesh component */
-	UDebugSkelMeshComponent* ActActionSkeletalMesh;
+	AActor* ActActionActor;// ** The one and only actor we have 
 
-	/** Cached bounds of the floor mesh */
-	FBoxSphereBounds FloorBounds;
 
-	/**
-	 * PreviewScene Main Widget
-	 */
-	TSharedPtr<SActActionViewportWidget> ActActionViewportWidget;
+	UDebugSkelMeshComponent* ActActionSkeletalMesh;// ** The main preview skeletal mesh component
 
-	// /**
-	//  * 当前预览动画的定格时间，单位秒
-	//  */
-	// double PreviewScrubTime;
+
+	FBoxSphereBounds FloorBounds;                                // ** Cached bounds of the floor mesh
+	TSharedPtr<SActActionViewportWidget> ActActionViewportWidget;// ** PreviewScene Main Widget
+
 
 	float LastCurrentTime;                       // ** 用于检测CurrentTime是否改变
 	FDelegateHandle OnCurrentTimeChangedHandle;  // ** 数据绑定

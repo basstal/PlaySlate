@@ -5,7 +5,7 @@
 #include "Common/NovaDataBinding.h"
 #include "NovaAct/Assets/ActAnimation.h"
 
-#include "NovaAct/ActViewport/ActViewport.h"
+#include "NovaAct/ActViewport/ActViewportPreviewScene.h"
 #include "NovaAct/ActEventTimeline/ActEventTimelineWidget.h"
 #include "NovaAct/ActAssetDetails/ActAssetDetailsWidget.h"
 
@@ -89,7 +89,7 @@ void FNovaActEditor::CreateEditorWindow(const TSharedPtr<IToolkitHost>& InIToolk
 
 	// ** Init Viewport Dock Tab
 	const FPreviewScene::ConstructionValues CSV = FPreviewScene::ConstructionValues().AllowAudioPlayback(true).ShouldSimulatePhysics(true);
-	ActViewport = MakeShareable(new FActViewport(CSV, SharedThis(this)));
+	ActViewport = MakeShareable(new FActViewportPreviewScene(CSV, SharedThis(this)));
 	if (ActViewportParentDockTab)
 	{
 		ActViewport->Init(ActViewportParentDockTab.ToSharedRef());

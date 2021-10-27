@@ -5,7 +5,7 @@
 #include "Common/NovaStruct.h"
 
 class FActAssetDetailsNotifyHook;
-class FActViewport;
+class FActViewportPreviewScene;
 class UActAnimation;
 class FActActionViewportClient;
 
@@ -76,7 +76,7 @@ protected:
 	TSharedPtr<TDataBindingUObject<UActAnimation>> ActAnimationDB;           // 当前资源实例的数据绑定
 	TSharedPtr<TDataBindingSP<FActEventTimelineArgs>> ActEventTimelineArgsDB;// EventTimeline 参数的数据绑定
 
-	TSharedPtr<FActViewport> ActViewport;/** Viewport Controller，Editor没有销毁的情况下不会为空 */
+	TSharedPtr<FActViewportPreviewScene> ActViewport;/** Viewport Controller，Editor没有销毁的情况下不会为空 */
 
 	TSharedPtr<SDockTab> ActEventTimelineParentDockTab;/** EventTimeline Widget Container */
 	TSharedPtr<SDockTab> ActViewportParentDockTab;     /** Viewport Widget Container */

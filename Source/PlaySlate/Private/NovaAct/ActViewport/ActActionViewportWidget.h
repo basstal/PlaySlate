@@ -4,7 +4,7 @@
 
 class FNovaActEditor;
 class FActActionViewportClient;
-class FActViewport;
+class FActViewportPreviewScene;
 
 class SActActionViewportWidget : public SEditorViewport, public FEditorUndoClient
 {
@@ -15,7 +15,7 @@ SLATE_BEGIN_ARGS(SActActionViewportWidget)
 
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, const TSharedRef<FActViewport>& InActActionPreviewSceneController);
+	void Construct(const FArguments& InArgs, const TSharedRef<FActViewportPreviewScene>& InActActionPreviewSceneController);
 	virtual ~SActActionViewportWidget() override;
 
 	//~Begin SEditorViewport interface
@@ -26,5 +26,5 @@ protected:
 	/**
 	 * 这个Widget的Controller
 	 */
-	TWeakPtr<FActViewport> ActActionPreviewSceneController;
+	TWeakPtr<FActViewportPreviewScene> ActActionPreviewSceneController;
 };

@@ -30,8 +30,8 @@
  */
 #define DataBindingSPBindRaw(AbstractData, InName, InUserObject, InFunc, OutHandle) \
 {\
-	auto DB = StaticCastSharedPtr<TDataBindingSP<AbstractData>>(NovaDB::Get(InName));\
-	OutHandle = DB->Bind(TDataBindingSP<AbstractData>::DelegateType::CreateRaw(InUserObject, InFunc));\
+	auto _DB = StaticCastSharedPtr<TDataBindingSP<AbstractData>>(NovaDB::Get(InName));\
+	OutHandle = _DB->Bind(TDataBindingSP<AbstractData>::DelegateType::CreateRaw(InUserObject, InFunc));\
 }\
 
 /**

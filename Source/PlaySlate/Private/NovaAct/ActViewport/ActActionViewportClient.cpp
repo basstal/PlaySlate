@@ -2,20 +2,25 @@
 
 #include "PlaySlate.h"
 #include "NovaAct/ActViewport/ActActionViewportWidget.h"
-#include "ActViewport.h"
+#include "ActViewportPreviewScene.h"
 
 #include "AssetEditorModeManager.h"
 #include "EditorModeManager.h"
 #include "UnrealWidget.h"
 
-FActActionViewportClient::FActActionViewportClient(const TSharedRef<FActViewport>& InActActionPreviewSceneController, const TSharedRef<SActActionViewportWidget>& InActActionViewportWidget, FEditorModeTools& InEditorModeTools)
-	: FEditorViewportClient(&InEditorModeTools, StaticCast<FPreviewScene*>(&InActActionPreviewSceneController.Get()), StaticCastSharedRef<SEditorViewport>(InActActionViewportWidget))
+FActActionViewportClient::FActActionViewportClient(const TSharedRef<FActViewportPreviewScene>& InActViewportPreviewScene,
+                                                   const TSharedRef<SActActionViewportWidget>& InActActionViewportWidget,
+                                                   FEditorModeTools& InEditorModeTools)
+	: FEditorViewportClient(
+		&InEditorModeTools,
+		StaticCast<FPreviewScene*>(&InActViewportPreviewScene.Get()),
+		StaticCastSharedRef<SEditorViewport>(InActActionViewportWidget))
 {
 	FAssetEditorModeManager* ModeManager = StaticCast<FAssetEditorModeManager*>(ModeTools.Get());
 	Widget->SetUsesEditorModeTools(ModeManager);
 	if (ModeManager)
 	{
-		ModeManager->SetPreviewScene(StaticCast<FPreviewScene*>(&InActActionPreviewSceneController.Get()));
+		ModeManager->SetPreviewScene(StaticCast<FPreviewScene*>(&InActViewportPreviewScene.Get()));
 	}
 	// Default to local space
 	ModeTools->SetCoordSystem(COORD_Local);
@@ -36,4 +41,11 @@ FActActionViewportClient::FActActionViewportClient(const TSharedRef<FActViewport
 FActActionViewportClient::~FActActionViewportClient()
 {
 	UE_LOG(LogNovaAct, Log, TEXT("FActActionViewportClient::~FActActionViewportClient"));
+}
+
+void FActActionViewportClient::Tick(float DeltaSeconds)
+{
+	FEditorViewportClient::Tick(DeltaSeconds);
+
+	StaticCast<FActViewportPreviewScene*>(PreviewScene)->FlagTickable();
 }

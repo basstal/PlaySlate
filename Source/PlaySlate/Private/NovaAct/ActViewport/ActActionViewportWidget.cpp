@@ -3,9 +3,9 @@
 #include "PlaySlate.h"
 // ReSharper disable once CppUnusedIncludeDirective
 #include "NovaAct/ActViewport/ActActionViewportClient.h"
-#include "NovaAct/ActViewport/ActViewport.h"
+#include "NovaAct/ActViewport/ActViewportPreviewScene.h"
 
-void SActActionViewportWidget::Construct(const FArguments& InArgs, const TSharedRef<FActViewport>& InActActionPreviewSceneController)
+void SActActionViewportWidget::Construct(const FArguments& InArgs, const TSharedRef<FActViewportPreviewScene>& InActActionPreviewSceneController)
 {
 	ActActionPreviewSceneController = InActActionPreviewSceneController;
 

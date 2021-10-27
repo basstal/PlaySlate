@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include "Common/NovaDataBinding.h"
 #include "Common/NovaStruct.h"
 
 class SActActionTimeSliderWidget;
@@ -18,6 +17,7 @@ public:
 	SLATE_BEGIN_ARGS(SActSliderWidget) { }
 	SLATE_END_ARGS()
 
+	SActSliderWidget();
 	virtual ~SActSliderWidget() override;
 
 	void Construct(const FArguments& InArgs, const TSharedRef<SGridPanel>& InParentGridPanel);
@@ -31,93 +31,67 @@ public:
 	//~End SWidget interface
 
 	/**
-	 * TODO:
+	 * 根据鼠标位置计算当前时间轴刷对应的动画时间
+	 *
+	 * @param Geometry 时间轴刷的 几何体
+	 * @param ScreenSpacePosition 鼠标对应的 屏幕坐标 位置
+	 * @param RangeToScreen
+	 * @param CheckSnapping
 	 */
 	FFrameTime ComputeFrameTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, FActActionScrubRangeToScreen RangeToScreen, bool CheckSnapping = true) const;
 
 	/**
-	 * TODO:
-	 */
-	FFrameTime ComputeScrubTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, FActActionScrubRangeToScreen RangeToScreen) const;
-
-	/**
 	 * Call this method when the user's interaction has changed the scrub position
 	 *
-	 * @param NewValue				Value resulting from the user's interaction
-	 * @param bIsScrubbing			True if done via scrubbing, false if just releasing scrubbing
+	 * @param NewValue Value resulting from the user's interaction
+	 * @param bIsScrubbing True if done via scrubbing, false if just releasing scrubbing
 	 */
 	void CommitScrubPosition(FFrameTime NewValue, bool bIsScrubbing);
+
 	/**
 	 * 设置Viewport的回放状态
 	 *
-	 * @param InPlaybackStatus 当前外部传入的播放状态
+	 * @param InPlaybackStatus 待设置的播放状态
 	 */
 	void SetPlaybackStatus(ENovaPlaybackType InPlaybackStatus);
 
 	/**
-	 * 时间轴拖拽器开始拖拽的回调
+	 * 时间轴刷开始拖拽的回调
 	 */
 	void OnBeginScrubberMovement();
 
 	/**
-	 * 时间轴拖拽器结束拖拽的回调
+	 * 时间轴刷结束拖拽的回调
 	 */
 	void OnEndScrubberMovement();
 
 	/**
-	 * 时间轴拖拽器位置改变的回调
+	 * 时间轴刷位置改变的回调
+	 *
+	 * @param NewScrubPosition 传入的 时间轴刷 位置
+	 * @param bScrubbing 是否 时间轴刷 位置修改中
 	 */
 	void OnScrubPositionChanged(FFrameTime NewScrubPosition, bool bScrubbing);
 
 	/**
-	 * Set a new range based on a min, max and an interpolation mode
+	 * 设置当前TrackPanel时间轴表示的范围
 	 * 
 	 * @param InViewRange
 	 */
-	void OnViewRangeChanged(TSharedPtr<TRange<float>> InViewRange) const;
-
-	/**
-	 * Hit test the lower bound of a range
-	 */
-	bool HitTestRangeStart(const FActActionScrubRangeToScreen& RangeToScreen, const TRange<double>& Range, float HitPixel) const;
-
-	/**
-	 * Hit test the upper bound of a range
-	 */
-	bool HitTestRangeEnd(const FActActionScrubRangeToScreen& RangeToScreen, const TRange<double>& Range, float HitPixel) const;
-
-	// /**
-	//  * TODO:
-	//  */
-	// void SetPlaybackRangeStart(FFrameNumber NewStart) const;
-	//
-	// /**
-	// * TODO:
-	// */
-	// void SetPlaybackRangeEnd(FFrameNumber NewEnd) const;
-
-	// /**
-	// * TODO:
-	// */
-	// void SetSelectionRangeStart(FFrameNumber NewStart) const;
-	//
-	// /**
-	// * TODO:
-	// */
-	// void SetSelectionRangeEnd(FFrameNumber NewEnd) const;
+	void OnViewRangeChanged(TSharedPtr<TRange<float>> InViewRange);
 
 	/**
 	 * Zoom the range by a given delta.
 	 * 
-	 * @param InDelta		The total amount to zoom by (+ve = zoom out, -ve = zoom in)
-	 * @param ZoomBias		Bias to apply to lower/upper extents of the range. (0 = lower, 0.5 = equal, 1 = upper)
+	 * @param InDelta The total amount to zoom by (+ve = zoom out, -ve = zoom in)
+	 * @param ZoomBias Bias to apply to lower/upper extents of the range. (0 = lower, 0.5 = equal, 1 = upper)
 	 */
 	bool ZoomByDelta(float InDelta, float ZoomBias = 0.5f) const;
 
 	/**
 	 * Pan the range by a given delta
 	 * 
-	 * @param InDelta		The total amount to pan by (+ve = pan forwards in time, -ve = pan backwards in time)
+	 * @param InDelta The total amount to pan by (+ve = pan forwards in time, -ve = pan backwards in time)
 	 */
 	void PanByDelta(float InDelta) const;
 
@@ -129,58 +103,21 @@ public:
 	 * @param RangeToScreen	当前显示范围换算成屏幕像素
 	 * @param InArgs 其他参数
 	 */
-	static void DrawTicks(FSlateWindowElementList& OutDrawElements, const TRange<float>& ViewRange, const FActActionScrubRangeToScreen& RangeToScreen, const FActActionDrawTickArgs& InArgs);
+	static void DrawTicks(
+		FSlateWindowElementList& OutDrawElements,
+		const TRange<float>& ViewRange,
+		const FActActionScrubRangeToScreen& RangeToScreen,
+		const FActActionDrawTickArgs& InArgs);
 
-	/** 获得共享参数 */
+	/** @return 获得 EventTimeline 共享参数 */
 	TSharedRef<FActEventTimelineArgs> GetActEventTimelineArgs() const;
-	// /** 获得相关事件绑定 */
-	// TSharedRef<FActEventTimelineEvents> GetActEventTimelineEvents() const;
-
 protected:
-	/** Total mouse delta during dragging **/
-	float DistanceDragged;
-
-	/**
-	 * 当前鼠标的拖拽状态
-	 */
-	ENovaDragType MouseDragType;
-
-	/** Mouse down position range */
-	FVector2D MouseDownPosition[2];
-
-	bool bMouseDownInRegion;// ** If mouse down was in time scrubbing region, only allow setting time when mouse is pressed down in the region
-
-	/** If we are currently panning the panel */
-	bool bPanning;
-
-	/** Range stack */
-	TArray<TRange<float>> ViewRangeStack;
-
-	/** Geometry on mouse down */
-	FGeometry MouseDownGeometry;
-
-	/* If we should mirror the labels on the timeline */
-	bool bMirrorLabels;
-
-	/**
-	* SectionOverlay的Controller，这个用来绘制TickLines
-	*/
-	TSharedPtr<SActImageThickLine> TickLinesSequenceSectionOverlayController;
-
-	/**
-	* SectionOverlay的Controller，这个用来绘制Scrub位置
-	*/
-	TSharedPtr<SActImageThickLine> ScrubPosSequenceSectionOverlayController;
-	TSharedPtr<TDataBindingSP<TRange<float>>> ViewRangeDB;// ** 数据绑定
-
-public:
-	TSharedRef<SActImageThickLine> GetTickLinesSequenceSectionOverlayController() const
-	{
-		return TickLinesSequenceSectionOverlayController.ToSharedRef();
-	}
-
-	TSharedRef<SActImageThickLine> GetScrubPosSequenceSectionOverlayController() const
-	{
-		return ScrubPosSequenceSectionOverlayController.ToSharedRef();
-	}
+	float DistanceDragged;               // ** 鼠标拖拽的累计距离，Total mouse delta during dragging
+	ENovaDragType MouseDragType;         // ** 当前鼠标的拖拽状态，是在拖拽时间平移还是改变时间范围
+	bool bMouseDownInRegion;             // ** 鼠标按下时是否在指定区域内，If mouse down was in time scrubbing region, only allow setting time when mouse is pressed down in the region
+	bool bPanning;                       // ** 当前是否在拖拽平移的过程中，If we are currently panning the panel 
+	bool bMirrorLabels;                  // ** 将 Tick 的标记上下镜像，If we should mirror the labels on the timeline
+	FVector2D MouseDownPosition[2];      // ** 鼠标按下的位置范围值，Mouse down position range 
+	TArray<TRange<float>> ViewRangeStack;// ** 给 Zoom 功能使用，Range stack 
+	FGeometry MouseDownGeometry;         // ** 记录鼠标按下时传入的Geometry，Geometry on mouse down 
 };

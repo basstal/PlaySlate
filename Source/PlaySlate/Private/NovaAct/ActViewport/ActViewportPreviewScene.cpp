@@ -1,4 +1,4 @@
-﻿#include "ActViewport.h"
+﻿#include "ActViewportPreviewScene.h"
 
 #include "PlaySlate.h"
 #include "Common/NovaStaticFunction.h"
@@ -12,11 +12,13 @@
 #include "Animation/AnimSingleNodeInstance.h"
 #include "AnimPreviewInstance.h"
 #include "Animation/SkeletalMeshActor.h"
+#include "Common/NovaConst.h"
 
 #include "NovaAct/Assets/ActAnimation.h"
 
-FActViewport::FActViewport(const ConstructionValues& CVS, const TSharedRef<FNovaActEditor>& InActActionSequenceEditor)
+FActViewportPreviewScene::FActViewportPreviewScene(const ConstructionValues& CVS, const TSharedRef<FNovaActEditor>& InActActionSequenceEditor)
 	: FAdvancedPreviewScene(CVS),
+	  LastTickTime(0),
 	  ActActionSequenceEditor(InActActionSequenceEditor),
 	  ActActionActor(nullptr),
 	  ActActionSkeletalMesh(nullptr),
@@ -29,7 +31,7 @@ FActViewport::FActViewport(const ConstructionValues& CVS, const TSharedRef<FNova
 	NovaDB::CreateSP("ActEventTimelineArgs/CurrentTime", ActEventTimelineArgsDB->GetData()->CurrentTime);
 }
 
-FActViewport::~FActViewport()
+FActViewportPreviewScene::~FActViewportPreviewScene()
 {
 	UE_LOG(LogNovaAct, Log, TEXT("FActActionPreviewSceneController::~FActActionPreviewSceneController"));
 	ActActionViewportWidget.Reset();
@@ -44,23 +46,23 @@ FActViewport::~FActViewport()
 	NovaDB::Delete("ActEventTimelineArgs/CurrentTime");
 }
 
-void FActViewport::Init(const TSharedRef<SDockTab>& InParentDockTab)
+void FActViewportPreviewScene::Init(const TSharedRef<SDockTab>& InParentDockTab)
 {
 	// ** NOTE:合理不能用SNew的原因是在构造时会调用到FActActionPreviewSceneController::MakeViewportClient，需要先设置好ActActionViewportWidget指针
 	InParentDockTab->SetContent(SAssignNew(ActActionViewportWidget, SActActionViewportWidget, SharedThis(this)));
 
-	DataBindingSPBindRaw(FFrameTime, "ActEventTimelineArgs/CurrentTime", this, &FActViewport::OnCurrentTimeChanged, OnCurrentTimeChangedHandle);
+	DataBindingSPBindRaw(FFrameTime, "ActEventTimelineArgs/CurrentTime", this, &FActViewportPreviewScene::OnCurrentTimeChanged, OnCurrentTimeChangedHandle);
 
 	auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
-	OnAnimBlueprintChangedHandle = ActAnimationDB->Bind(TDataBindingUObject<UActAnimation>::DelegateType::CreateRaw(this, &FActViewport::OnAnimBlueprintChanged));
-	OnAnimSequenceChangedHandle = ActAnimationDB->Bind(TDataBindingUObject<UActAnimation>::DelegateType::CreateRaw(this, &FActViewport::OnAnimSequenceChanged));
+	OnAnimBlueprintChangedHandle = ActAnimationDB->Bind(TDataBindingUObject<UActAnimation>::DelegateType::CreateRaw(this, &FActViewportPreviewScene::OnAnimBlueprintChanged));
+	OnAnimSequenceChangedHandle = ActAnimationDB->Bind(TDataBindingUObject<UActAnimation>::DelegateType::CreateRaw(this, &FActViewportPreviewScene::OnAnimSequenceChanged));
 
 	FDelegateHandle _;
-	DataBindingBindRaw(ENovaTransportControls, "TransportControlsState", this, &FActViewport::OnTransportControlsStateChanged, _);
-	DataBindingBindRaw(EPlaybackMode::Type, "PreviewInstancePlaybackMode", this, &FActViewport::OnPlaybackModeChanged, _);
+	DataBindingBindRaw(ENovaTransportControls, "TransportControlsState", this, &FActViewportPreviewScene::OnTransportControlsStateChanged, _);
+	DataBindingBindRaw(EPlaybackMode::Type, "PreviewInstancePlaybackMode", this, &FActViewportPreviewScene::OnPlaybackModeChanged, _);
 }
 
-TSharedPtr<FActActionViewportClient> FActViewport::MakeViewportClient()
+TSharedPtr<FActActionViewportClient> FActViewportPreviewScene::MakeViewportClient()
 {
 	return MakeShareable(new FActActionViewportClient(
 		SharedThis(this),
@@ -68,7 +70,7 @@ TSharedPtr<FActActionViewportClient> FActViewport::MakeViewportClient()
 		ActActionSequenceEditor.Pin()->GetEditorModeManager()));
 }
 
-void FActViewport::AddComponent(UActorComponent* Component, const FTransform& LocalToWorld, bool bAttachToRoot)
+void FActViewportPreviewScene::AddComponent(UActorComponent* Component, const FTransform& LocalToWorld, bool bAttachToRoot)
 {
 	if (bAttachToRoot)
 	{
@@ -81,7 +83,7 @@ void FActViewport::AddComponent(UActorComponent* Component, const FTransform& Lo
 	FAdvancedPreviewScene::AddComponent(Component, LocalToWorld, bAttachToRoot);
 }
 
-void FActViewport::Tick(float DeltaTime)
+void FActViewportPreviewScene::Tick(float DeltaTime)
 {
 	FAdvancedPreviewScene::Tick(DeltaTime);
 	if (!GIntraFrameDebuggingGameThread)
@@ -97,7 +99,25 @@ void FActViewport::Tick(float DeltaTime)
 	TickPlayingStopped();
 }
 
-void FActViewport::SpawnActorInViewport(UClass* ActorType, const UAnimBlueprint* AnimBlueprint)
+bool FActViewportPreviewScene::IsTickable() const
+{
+	// The preview scene is tickable if any viewport can see it
+	return LastTickTime == 0.0 ||                                                     // Never been ticked
+		FPlatformTime::Seconds() - LastTickTime <= NovaConst::VisibilityTimeThreshold;// Ticked recently
+}
+
+ETickableTickType FActViewportPreviewScene::GetTickableTickType() const
+{
+	return ETickableTickType::Conditional;
+}
+
+void FActViewportPreviewScene::FlagTickable()
+{
+	// Set the last tick time so we tick when we are visible in a viewport
+	LastTickTime = FPlatformTime::Seconds();
+}
+
+void FActViewportPreviewScene::SpawnActorInViewport(UClass* ActorType, const UAnimBlueprint* AnimBlueprint)
 {
 	if (ActActionActor)
 	{
@@ -134,7 +154,7 @@ void FActViewport::SpawnActorInViewport(UClass* ActorType, const UAnimBlueprint*
 	ActActionSkeletalMesh->RecreateRenderState_Concurrent();
 }
 
-void FActViewport::OnCurrentTimeChanged(TSharedPtr<FFrameTime> InCurrentTime)
+void FActViewportPreviewScene::OnCurrentTimeChanged(TSharedPtr<FFrameTime> InCurrentTime)
 {
 	if (ActActionSkeletalMesh && ActActionSkeletalMesh->IsPreviewOn())
 	{
@@ -147,7 +167,7 @@ void FActViewport::OnCurrentTimeChanged(TSharedPtr<FFrameTime> InCurrentTime)
 	}
 }
 
-void FActViewport::EvaluateToOneEnd(bool bIsEndEnd)
+void FActViewportPreviewScene::EvaluateToOneEnd(bool bIsEndEnd)
 {
 	if (ActActionSkeletalMesh && ActActionSkeletalMesh->IsPreviewOn())
 	{
@@ -158,13 +178,13 @@ void FActViewport::EvaluateToOneEnd(bool bIsEndEnd)
 		ActEventTimelineArgs->CurrentTime->FrameNumber = 0;
 		if (bIsEndEnd)
 		{
-			*ActEventTimelineArgs->CurrentTime = TickResolution.AsFrameTime(ActEventTimelineArgs->ClampRange.GetUpperBoundValue());
+			ActEventTimelineArgs->CurrentTime->FrameNumber = TickResolution.AsFrameNumber(ActEventTimelineArgs->ClampRange.GetUpperBoundValue());
 		}
 		NovaDB::Trigger("ActEventTimelineArgs/CurrentTime");
 	}
 }
 
-void FActViewport::OnPlaybackModeChanged(EPlaybackMode::Type InPlaybackMode) const
+void FActViewportPreviewScene::OnPlaybackModeChanged(EPlaybackMode::Type InPlaybackMode) const
 {
 	if (UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 	{
@@ -206,7 +226,7 @@ void FActViewport::OnPlaybackModeChanged(EPlaybackMode::Type InPlaybackMode) con
 	}
 }
 
-void FActViewport::ToggleLooping() const
+void FActViewportPreviewScene::ToggleLooping() const
 {
 	if (UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 	{
@@ -216,7 +236,7 @@ void FActViewport::ToggleLooping() const
 	}
 }
 
-bool FActViewport::IsLoopStatusOn() const
+bool FActViewportPreviewScene::IsLoopStatusOn() const
 {
 	if (ActActionSkeletalMesh && ActActionSkeletalMesh->PreviewInstance)
 	{
@@ -225,7 +245,7 @@ bool FActViewport::IsLoopStatusOn() const
 	return false;
 }
 
-void FActViewport::PlayStep(bool bForward) const
+void FActViewportPreviewScene::PlayStep(bool bForward) const
 {
 	if (UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 	{
@@ -257,7 +277,7 @@ void FActViewport::PlayStep(bool bForward) const
 	}
 }
 
-// EPlaybackMode::Type FActViewport::GetPlaybackMode() const
+// EPlaybackMode::Type FActViewportPreviewScene::GetPlaybackMode() const
 // {
 // 	if (const UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 // 	{
@@ -274,7 +294,7 @@ void FActViewport::PlayStep(bool bForward) const
 // 	return EPlaybackMode::Stopped;
 // }
 
-float FActViewport::GetCurrentPosition() const
+float FActViewportPreviewScene::GetCurrentPosition() const
 {
 	if (const UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 	{
@@ -283,7 +303,7 @@ float FActViewport::GetCurrentPosition() const
 	return 0.0f;
 }
 
-UAnimSingleNodeInstance* FActViewport::GetAnimSingleNodeInstance() const
+UAnimSingleNodeInstance* FActViewportPreviewScene::GetAnimSingleNodeInstance() const
 {
 	if (ActActionSkeletalMesh)
 	{
@@ -292,7 +312,7 @@ UAnimSingleNodeInstance* FActViewport::GetAnimSingleNodeInstance() const
 	return nullptr;
 }
 
-void FActViewport::TickCurrentTimeChanged()
+void FActViewportPreviewScene::TickCurrentTimeChanged()
 {
 	if (const UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 	{
@@ -302,13 +322,13 @@ void FActViewport::TickCurrentTimeChanged()
 			LastCurrentTime = CurrentTime;
 			auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 			TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
-			*ActEventTimelineArgs->CurrentTime = ActEventTimelineArgs->TickResolution.AsFrameTime(CurrentTime);
+			ActEventTimelineArgs->CurrentTime->FrameNumber = ActEventTimelineArgs->TickResolution.AsFrameNumber(CurrentTime);
 			ActEventTimelineArgsDB->SetData(ActEventTimelineArgs);
 		}
 	}
 }
 
-void FActViewport::TickPlayingStopped()
+void FActViewportPreviewScene::TickPlayingStopped()
 {
 	if (ActActionSkeletalMesh && ActActionSkeletalMesh->IsPreviewOn())
 	{
@@ -319,7 +339,7 @@ void FActViewport::TickPlayingStopped()
 	}
 }
 
-void FActViewport::OnAnimBlueprintChanged(UActAnimation* InActAnimation)
+void FActViewportPreviewScene::OnAnimBlueprintChanged(UActAnimation* InActAnimation)
 {
 	if (!InActAnimation)
 	{
@@ -334,7 +354,7 @@ void FActViewport::OnAnimBlueprintChanged(UActAnimation* InActAnimation)
 	SpawnActorInViewport(ASkeletalMeshActor::StaticClass(), AnimBlueprint);
 }
 
-void FActViewport::OnAnimSequenceChanged(UActAnimation* InActAnimation)
+void FActViewportPreviewScene::OnAnimSequenceChanged(UActAnimation* InActAnimation)
 {
 	if (!InActAnimation)
 	{
@@ -372,7 +392,7 @@ void FActViewport::OnAnimSequenceChanged(UActAnimation* InActAnimation)
 	}
 }
 
-void FActViewport::OnTransportControlsStateChanged(ENovaTransportControls InNovaTransportControls)
+void FActViewportPreviewScene::OnTransportControlsStateChanged(ENovaTransportControls InNovaTransportControls)
 {
 	switch (InNovaTransportControls)
 	{

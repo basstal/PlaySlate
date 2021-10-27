@@ -4,7 +4,7 @@
 #include "EditorWidgetsModule.h"
 #include "ITransportControl.h"
 
-#include "NovaAct/ActViewport/ActViewport.h"
+#include "NovaAct/ActViewport/ActViewportPreviewScene.h"
 
 SActTransportControlsWidget::~SActTransportControlsWidget()
 {
