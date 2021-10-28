@@ -53,3 +53,10 @@ TSharedRef<FEditorViewportClient> SActViewport::MakeEditorViewportClient()
 {
 	return ActActionPreviewSceneController.Pin()->MakeViewportClient().ToSharedRef();
 }
+
+void SActViewport::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
+{
+	// UE_LOG(LogNovaAct, Log, TEXT("SActViewport::Tick : %f"), InDeltaTime);
+
+	SEditorViewport::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
+}

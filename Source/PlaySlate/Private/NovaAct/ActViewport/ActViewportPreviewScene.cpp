@@ -18,7 +18,6 @@
 
 FActViewportPreviewScene::FActViewportPreviewScene(const ConstructionValues& CVS, const TSharedRef<FNovaActEditor>& InActActionSequenceEditor)
 	: FAdvancedPreviewScene(CVS),
-	  LastTickTime(0),
 	  ActActionSequenceEditor(InActActionSequenceEditor),
 	  ActActionActor(nullptr),
 	  ActActionSkeletalMesh(nullptr),
@@ -34,7 +33,7 @@ FActViewportPreviewScene::FActViewportPreviewScene(const ConstructionValues& CVS
 FActViewportPreviewScene::~FActViewportPreviewScene()
 {
 	UE_LOG(LogNovaAct, Log, TEXT("FActActionPreviewSceneController::~FActActionPreviewSceneController"));
-	ActActionViewportWidget.Reset();
+	ActViewport.Reset();
 	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs/CurrentTime");
 	DB->UnBind(OnCurrentTimeChangedHandle);
 	auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
@@ -49,7 +48,7 @@ FActViewportPreviewScene::~FActViewportPreviewScene()
 void FActViewportPreviewScene::Init(const TSharedRef<SDockTab>& InParentDockTab)
 {
 	// ** NOTE:合理不能用SNew的原因是在构造时会调用到FActActionPreviewSceneController::MakeViewportClient，需要先设置好ActActionViewportWidget指针
-	InParentDockTab->SetContent(SAssignNew(ActActionViewportWidget, SActViewport, SharedThis(this)));
+	InParentDockTab->SetContent(SAssignNew(ActViewport, SActViewport, SharedThis(this)));
 
 	DataBindingSPBindRaw(FFrameTime, "ActEventTimelineArgs/CurrentTime", this, &FActViewportPreviewScene::OnCurrentTimeChanged, OnCurrentTimeChangedHandle);
 
@@ -66,7 +65,7 @@ TSharedPtr<FActViewportClient> FActViewportPreviewScene::MakeViewportClient()
 {
 	return MakeShareable(new FActViewportClient(
 		SharedThis(this),
-		ActActionViewportWidget.ToSharedRef(),
+		ActViewport.ToSharedRef(),
 		ActActionSequenceEditor.Pin()->GetEditorModeManager()));
 }
 
@@ -97,24 +96,18 @@ void FActViewportPreviewScene::Tick(float DeltaTime)
 	}
 	TickCurrentTimeChanged();
 	TickPlayingStopped();
+	// UE_LOG(LogNovaAct, Log, TEXT("FActViewportPreviewScene::Tick %f"), DeltaTime);
 }
 
 bool FActViewportPreviewScene::IsTickable() const
 {
 	// The preview scene is tickable if any viewport can see it
-	return LastTickTime == 0.0 ||                                                     // Never been ticked
-		FPlatformTime::Seconds() - LastTickTime <= NovaConst::VisibilityTimeThreshold;// Ticked recently
+	return ActViewport->IsVisible();
 }
 
 ETickableTickType FActViewportPreviewScene::GetTickableTickType() const
 {
 	return ETickableTickType::Conditional;
-}
-
-void FActViewportPreviewScene::FlagTickable()
-{
-	// Set the last tick time so we tick when we are visible in a viewport
-	LastTickTime = FPlatformTime::Seconds();
 }
 
 void FActViewportPreviewScene::SpawnActorInViewport(UClass* ActorType, const UAnimBlueprint* AnimBlueprint)
@@ -383,7 +376,7 @@ void FActViewportPreviewScene::OnAnimSequenceChanged(UActAnimation* InActAnimati
 				ActActionSkeletalMesh->SetPlayRate(1.0f);
 
 				//Place the camera at a good viewer position
-				const TSharedPtr<FEditorViewportClient> ViewportClient = ActActionViewportWidget->GetViewportClient();
+				const TSharedPtr<FEditorViewportClient> ViewportClient = ActViewport->GetViewportClient();
 				FVector NewPosition = ViewportClient->GetViewLocation();
 				NewPosition.Normalize();
 				ViewportClient->SetViewLocation(NewPosition * (PreviewMesh->GetImportedBounds().SphereRadius * 1.5f));

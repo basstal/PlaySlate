@@ -21,31 +21,24 @@ public:
 	virtual ~FActViewportPreviewScene() override;
 
 	/**
-	* @param InParentDockTab 子Widget所附着的DockTab
-	*/
+	 * @param InParentDockTab 子Widget所附着的DockTab
+	 */
 	void Init(const TSharedRef<SDockTab>& InParentDockTab);
 
 	/**
-	* Widget Make Client回调方法
-	* 
-	* @return 构造的FActActionViewportClient，是SEditorViewport必须实现的组件之一
-	*/
+	 * Widget Make Client回调方法
+	 * 
+	 * @return 构造的FActActionViewportClient，是SEditorViewport必须实现的组件之一
+	 */
 	TSharedPtr<FActViewportClient> MakeViewportClient();
 
-	//~Begin FPreviewScene interface
+	//~Begin FAdvancedPreviewScene interface
 	virtual void AddComponent(UActorComponent* Component, const FTransform& LocalToWorld, bool bAttachToRoot) override;
-	//~End FPreviewScene interface
-
-	//~Begin FTickableObjectBase interface
 	virtual void Tick(float DeltaTime) override;
 	virtual bool IsTickable() const override;
 	virtual ETickableTickType GetTickableTickType() const override;
-	//~End FTickableObjectBase interface
+	//~End FAdvancedPreviewScene interface
 
-	/**
-	 * 设置 LastTickTime 值，以判断当前是否能够 Tick
-	 */
-	void FlagTickable();
 	/**
 	 * 在Viewport中生成指定ActorType类型的Actor
 	 *
@@ -108,28 +101,27 @@ public:
 	/** ENovaTransportControls 的数据绑定，监听ENovaTransportControls数据改变，控制Viewport的动画播放 */
 	void OnTransportControlsStateChanged(ENovaTransportControls InNovaTransportControls);
 
-
+	/** Viewport Widget */
+	TSharedPtr<SActViewport> ActViewport;
 protected:
-	double LastTickTime;// ** The last time we were flagged for ticking
+	/** 对Editor的引用，调用编辑器资源和相关工具方法 */
+	TWeakPtr<FNovaActEditor> ActActionSequenceEditor;
+	/** The one and only actor we have */
+	AActor* ActActionActor;
+	/** The main preview skeletal mesh component */
+	UDebugSkelMeshComponent* ActActionSkeletalMesh;
+	/** Cached bounds of the floor mesh */
+	FBoxSphereBounds FloorBounds;
 
-	TWeakPtr<FNovaActEditor> ActActionSequenceEditor;// ** 对Editor的引用，调用编辑器资源和相关工具方法
-
-	AActor* ActActionActor;// ** The one and only actor we have 
-
-
-	UDebugSkelMeshComponent* ActActionSkeletalMesh;// ** The main preview skeletal mesh component
-
-
-	FBoxSphereBounds FloorBounds;                                // ** Cached bounds of the floor mesh
-	TSharedPtr<SActViewport> ActActionViewportWidget;// ** PreviewScene Main Widget
-
-
-	float LastCurrentTime;                       // ** 用于检测CurrentTime是否改变
-	FDelegateHandle OnCurrentTimeChangedHandle;  // ** 数据绑定
-	FDelegateHandle OnAnimBlueprintChangedHandle;// ** 数据绑定
+	/** 用于检测CurrentTime是否改变 */
+	float LastCurrentTime;
+	/** 数据绑定 */
+	FDelegateHandle OnCurrentTimeChangedHandle;
+	/** 数据绑定 */
+	FDelegateHandle OnAnimBlueprintChangedHandle;
 	FDelegateHandle OnAnimSequenceChangedHandle;
-
-
-	TSharedPtr<TDataBinding<bool>> PreviewInstanceLooping;                    // ** 当前 Viewport 动画实例播放是否为 Lopping 状态
-	TSharedPtr<TDataBinding<EPlaybackMode::Type>> PreviewInstancePlaybackMode;//** 当前 Viewport 动画实例播放 PlaybackMode 状态
+	/** 当前 Viewport 动画实例播放是否为 Lopping 状态 */
+	TSharedPtr<TDataBinding<bool>> PreviewInstanceLooping;
+	/** 当前 Viewport 动画实例播放 PlaybackMode 状态 */
+	TSharedPtr<TDataBinding<EPlaybackMode::Type>> PreviewInstancePlaybackMode;
 };

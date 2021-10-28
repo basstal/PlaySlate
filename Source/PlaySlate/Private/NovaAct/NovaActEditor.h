@@ -17,17 +17,17 @@ using namespace NovaStruct;
 /**
  * 资源编辑器的入口和管理者，提供一些工具方法和资源对象指针，该对象会与编辑器的主页签一同释放
  */
-class FNovaActEditor : public FWorkflowCentricApplication, public FGCObject, public FEditorUndoClient
+class FNovaActEditor : public FWorkflowCentricApplication, public FGCObject, public FEditorUndoClient, public FTickableEditorObject
 {
 public:
 	FNovaActEditor(UActAnimation* InActAnimation);
 	virtual ~FNovaActEditor() override;
 
 	/**
-	* 构造编辑器窗口，设置当前编辑的资源实例及相关参数
-	*
-	* @param InIToolkitHost 仅透传到对应接口，无实际作用
-	*/
+	 * 构造编辑器窗口，设置当前编辑的资源实例及相关参数
+	 *
+	 * @param InIToolkitHost 仅透传到对应接口，无实际作用
+	 */
 	void CreateEditorWindow(const TSharedPtr<IToolkitHost>& InIToolkitHost);
 
 	//~Begin FGCObject interface
@@ -35,15 +35,19 @@ public:
 	virtual FString GetReferencerName() const override;
 	//~End FGCObject interface
 
-	//~Begin FAssetEditorToolkit interface
+	//~Begin FWorkflowCentricApplication interface
 	virtual FName GetToolkitFName() const override;
 	virtual FText GetBaseToolkitName() const override;
 	virtual void RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
 	virtual void UnregisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
 	virtual FLinearColor GetWorldCentricTabColorScale() const override;
 	virtual FString GetWorldCentricTabPrefix() const override;
-	//~End FAssetEditorToolkit interfaced
+	//~End FWorkflowCentricApplication interfaced
 
+	//~Begin FTickableEditorObject interface
+	virtual void Tick(float DeltaTime) override;
+	virtual TStatId GetStatId() const override;
+	//~End FTickableEditorObject interface
 	/**
 	 * 生成 Viewport Tab
 	 *
@@ -72,15 +76,8 @@ public:
 	 */
 	void OnAnimSequenceChanged(UActAnimation* InActAnimation);
 protected:
-	/** DataBinding */
-	
-	// 当前资源实例的数据绑定
-	TSharedPtr<TDataBindingUObject<UActAnimation>> ActAnimationDB;
-	// EventTimeline 参数的数据绑定
-	TSharedPtr<TDataBindingSP<FActEventTimelineArgs>> ActEventTimelineArgsDB;
-	
 	/** Viewport Controller，Editor没有销毁的情况下不会为空 */
-	TSharedPtr<FActViewportPreviewScene> ActViewport;
+	TSharedPtr<FActViewportPreviewScene> ActViewportPreviewScene;
 	/** EventTimeline Widget Container */
 	TSharedPtr<SDockTab> ActEventTimelineParentDockTab;
 	/** Viewport Widget Container */

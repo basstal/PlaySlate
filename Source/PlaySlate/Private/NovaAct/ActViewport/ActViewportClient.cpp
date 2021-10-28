@@ -9,12 +9,12 @@
 #include "UnrealWidget.h"
 
 FActViewportClient::FActViewportClient(const TSharedRef<FActViewportPreviewScene>& InActViewportPreviewScene,
-                                                   const TSharedRef<SActViewport>& InActActionViewportWidget,
-                                                   FEditorModeTools& InEditorModeTools)
+                                       const TSharedRef<SActViewport>& ActViewport,
+                                       FEditorModeTools& InEditorModeTools)
 	: FEditorViewportClient(
 		&InEditorModeTools,
 		StaticCast<FPreviewScene*>(&InActViewportPreviewScene.Get()),
-		StaticCastSharedRef<SEditorViewport>(InActActionViewportWidget))
+		StaticCastSharedRef<SEditorViewport>(ActViewport))
 {
 	FAssetEditorModeManager* ModeManager = StaticCast<FAssetEditorModeManager*>(ModeTools.Get());
 	Widget->SetUsesEditorModeTools(ModeManager);
@@ -45,7 +45,6 @@ FActViewportClient::~FActViewportClient()
 
 void FActViewportClient::Tick(float DeltaSeconds)
 {
+	// UE_LOG(LogNovaAct, Log, TEXT("FEditorViewportClient::Tick : %f"), DeltaSeconds);
 	FEditorViewportClient::Tick(DeltaSeconds);
-
-	StaticCast<FActViewportPreviewScene*>(PreviewScene)->FlagTickable();
 }

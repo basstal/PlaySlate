@@ -17,8 +17,8 @@ public:
 
 	//~Begin SEditorViewport interface
 	virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override;
+	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 	//~End SEditorViewport interface
-
 protected:
 	/**
 	 * 这个Widget的Controller

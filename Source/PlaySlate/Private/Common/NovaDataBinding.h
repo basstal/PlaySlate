@@ -42,17 +42,21 @@
  */
 #define DataBindingBindRaw(AbstractData, InName, InUserObject, InFunc, OutHandle) \
 {\
-	auto DB = StaticCastSharedPtr<TDataBinding<AbstractData>>(NovaDB::Get(InName));\
-	OutHandle = DB->Bind(TDataBinding<AbstractData>::DelegateType::CreateRaw(InUserObject, InFunc));\
+	auto _DB = StaticCastSharedPtr<TDataBinding<AbstractData>>(NovaDB::Get(InName));\
+	OutHandle = _DB->Bind(TDataBinding<AbstractData>::DelegateType::CreateRaw(InUserObject, InFunc));\
 }
-// /**
-//  * @param AbstractData 数据原型的类型，必须派生自UObject
-//  * @param InName
-//  * @param InUserObject 对象实例，可参考TDelegate的CreateRaw
-//  * @param InFunc 对实例方法的引用，可参考TDelegate的CreateRaw
-//  * @param OutHandle
-//  */
-// #define CreateUObjectBind(InUserObject, InFunc, AbstractData) TDataBindingUObject<AbstractData>::DelegateType::CreateUObject(InUserObject, InFunc)
+/**
+ * @param AbstractData 数据原型的类型，必须派生自UObject
+ * @param InName
+ * @param InUserObject 对象实例，可参考TDelegate的CreateRaw
+ * @param InFunc 对实例方法的引用，可参考TDelegate的CreateRaw
+ * @param OutHandle
+ */
+#define DataBindingUObjectBindRaw(AbstractData, InName, InUserObject, InFunc, OutHandle) \
+{\
+	auto _DB = StaticCastSharedPtr<TDataBindingUObject<AbstractData>>(NovaDB::Get(InName));\
+	OutHandle = _DB->Bind(TDataBindingUObject<AbstractData>::DelegateType::CreateRaw(InUserObject, InFunc));\
+}
 
 
 class IDataBinding

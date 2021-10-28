@@ -8,7 +8,9 @@ class SActViewport;
 class FActViewportClient : public FEditorViewportClient
 {
 public:
-	FActViewportClient(const TSharedRef<FActViewportPreviewScene>& InActViewportPreviewScene, const TSharedRef<SActViewport>& InActActionViewportWidget, FEditorModeTools& InEditorModeTools);
+	FActViewportClient(const TSharedRef<FActViewportPreviewScene>& InActViewportPreviewScene,
+	                   const TSharedRef<SActViewport>& ActViewport,
+	                   FEditorModeTools& InEditorModeTools);
 	virtual ~FActViewportClient() override;
 
 	//~Begin FEditorViewportClient interface
