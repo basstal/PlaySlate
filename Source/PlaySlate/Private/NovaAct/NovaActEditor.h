@@ -72,9 +72,16 @@ public:
 	/**
 	 * 设置AnimSequence的相关数据
 	 *
-	 * @param InActAnimation
+	 * @param InAnimSequence
 	 */
-	void OnAnimSequenceChanged(UActAnimation* InActAnimation);
+	void OnAnimSequenceChanged(UAnimSequence* InAnimSequence);
+	/**
+	 * 打开资源对应的编辑Tab
+	 *
+	 * @param InAnimationAsset
+	 */
+	void OpenNewAnimationAssetEditTab(UAnimationAsset* InAnimationAsset);
+
 protected:
 	/** Viewport Controller，Editor没有销毁的情况下不会为空 */
 	TSharedPtr<FActViewportPreviewScene> ActViewportPreviewScene;

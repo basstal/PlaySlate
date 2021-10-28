@@ -6,6 +6,7 @@
 #include "Common/NovaStruct.h"
 #include "NovaAct/NovaActEditor.h"
 // ReSharper disable once CppUnusedIncludeDirective
+#include "ITransportControl.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageScrubPosition.h"
 #include "NovaAct/ActEventTimeline/Slider/ActSliderViewRangeWidget.h"
 
@@ -116,9 +117,7 @@ int32 SActSliderWidget::OnPaint(const FPaintArgs& Args,
 	const FSlateBrush* VanillaScrubHandleUpBrush = FEditorStyle::GetBrush(TEXT("Sequencer.Timeline.VanillaScrubHandleUp"));
 	const FSlateBrush* VanillaScrubHandleDownBrush = FEditorStyle::GetBrush(TEXT("Sequencer.Timeline.VanillaScrubHandleDown"));
 	const FSlateBrush* Brush =
-		ScrubberMetrics.Style == EActSliderScrubberStyle::Vanilla
-			? (bMirrorLabels ? VanillaScrubHandleUpBrush : VanillaScrubHandleDownBrush)
-			: (bMirrorLabels ? FrameBlockScrubHandleUpBrush : FrameBlockScrubHandleDownBrush);
+		ScrubberMetrics.Style == EActSliderScrubberStyle::Vanilla ? (bMirrorLabels ? VanillaScrubHandleUpBrush : VanillaScrubHandleDownBrush) : (bMirrorLabels ? FrameBlockScrubHandleUpBrush : FrameBlockScrubHandleDownBrush);
 	const int32 ArrowLayer = LayerId + 2;
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
@@ -364,6 +363,8 @@ FReply SActSliderWidget::OnMouseMove(const FGeometry& MyGeometry, const FPointer
 				else if (bMouseDownInRegion)
 				{
 					MouseDragType = ENovaDragType::DRAG_SCRUBBING_TIME;
+					auto DB = GetDataBinding(EPlaybackMode::Type, "PreviewInstancePlaybackMode");
+					DB->SetData(EPlaybackMode::Stopped);
 					OnBeginScrubberMovement();
 				}
 			}

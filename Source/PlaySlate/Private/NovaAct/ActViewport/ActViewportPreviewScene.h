@@ -17,7 +17,7 @@ using namespace NovaStruct;
 class FActViewportPreviewScene : public TSharedFromThis<FActViewportPreviewScene>, public FAdvancedPreviewScene
 {
 public:
-	FActViewportPreviewScene(const ConstructionValues& CVS, const TSharedRef<FNovaActEditor>& InActActionSequenceEditor);
+	FActViewportPreviewScene(const ConstructionValues& CVS);
 	virtual ~FActViewportPreviewScene() override;
 
 	/**
@@ -30,7 +30,7 @@ public:
 	 * 
 	 * @return 构造的FActActionViewportClient，是SEditorViewport必须实现的组件之一
 	 */
-	TSharedPtr<FActViewportClient> MakeViewportClient();
+	// TSharedPtr<FActViewportClient> MakeViewportClient();
 
 	//~Begin FAdvancedPreviewScene interface
 	virtual void AddComponent(UActorComponent* Component, const FTransform& LocalToWorld, bool bAttachToRoot) override;
@@ -104,8 +104,8 @@ public:
 	/** Viewport Widget */
 	TSharedPtr<SActViewport> ActViewport;
 protected:
-	/** 对Editor的引用，调用编辑器资源和相关工具方法 */
-	TWeakPtr<FNovaActEditor> ActActionSequenceEditor;
+	// /** 对Editor的引用，调用编辑器资源和相关工具方法 */
+	// TWeakPtr<FNovaActEditor> ActActionSequenceEditor;
 	/** The one and only actor we have */
 	AActor* ActActionActor;
 	/** The main preview skeletal mesh component */

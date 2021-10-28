@@ -12,7 +12,7 @@ public:
 	SLATE_BEGIN_ARGS(SActViewport) { }
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, const TSharedRef<FActViewportPreviewScene>& InActActionPreviewSceneController);
+	void Construct(const FArguments& InArgs);
 	virtual ~SActViewport() override;
 
 	//~Begin SEditorViewport interface
@@ -23,5 +23,5 @@ protected:
 	/**
 	 * 这个Widget的Controller
 	 */
-	TWeakPtr<FActViewportPreviewScene> ActActionPreviewSceneController;
+	TWeakPtr<FActViewportPreviewScene> ActViewportPreviewScene;
 };

@@ -34,7 +34,11 @@ void SActImageTreeViewTableRow::Construct(const FArguments& InArgs, const TShare
 		OutlinerContent = SNew(SBorder)
 		.ToolTipText(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateLambda([this]()
 		                               {
-			                               return FText::Format(LOCTEXT("ActActionSequence", "ToolTip {0}"), FText::FromString(*this->NodeName.ToString()));
+			                               FFormatNamedArguments Args;
+			                               {
+				                               Args.Add("NodeName", FText::FromString(*this->NodeName.ToString()));
+			                               }
+			                               return FText::Format(LOCTEXT("FolderToolTipText", "ToolTip {NodeName}"), Args);
 		                               })))
 		.BorderImage(FEditorStyle::GetBrush("Sequencer.Section.BackgroundTint"))
 		.BorderBackgroundColor(FEditorStyle::GetColor("AnimTimeline.Outliner.ItemColor"))
@@ -51,7 +55,11 @@ void SActImageTreeViewTableRow::Construct(const FArguments& InArgs, const TShare
 					.TextStyle(&FEditorStyle::Get().GetWidgetStyle<FTextBlockStyle>("AnimTimeline.Outliner.Label"))
 					.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateLambda([this]()
 				                {
-					                return FText::Format(LOCTEXT("ActActionSequence", "{0}"), FText::FromString(*this->NodeName.ToString()));
+					                FFormatNamedArguments Args;
+					                {
+						                Args.Add("NodeName", FText::FromString(*this->NodeName.ToString()));
+					                }
+					                return FText::Format(LOCTEXT("FolderTextBlock", "{NodeName}"), Args);
 				                })))
 			]
 		];

@@ -497,6 +497,11 @@ void TDataBinding<AbstractData>::Release()
 template <typename AbstractData>
 TSharedPtr<TDataBinding<AbstractData>> NovaDataBinding::Create(FName InName, AbstractData InData)
 {
+	if (NovaDataBinding::DataBindingMap.Contains(InName))
+	{
+		TSharedPtr<IDataBinding> Value = NovaDataBinding::DataBindingMap.FindChecked(InName);
+		return StaticCastSharedPtr<TDataBinding<AbstractData>>(Value);
+	}
 	TSharedPtr<TDataBinding<AbstractData>> CreatedDataBinding = MakeShareable(new TDataBinding<AbstractData>(InName, InData));
 	NovaDataBinding::DataBindingMap.Add(InName, CreatedDataBinding.ToSharedRef());
 	return CreatedDataBinding;
@@ -505,6 +510,11 @@ TSharedPtr<TDataBinding<AbstractData>> NovaDataBinding::Create(FName InName, Abs
 template <typename AbstractData>
 TSharedPtr<TDataBindingUObject<AbstractData>> NovaDataBinding::CreateUObject(FName InName, AbstractData* InData)
 {
+	if (NovaDataBinding::DataBindingMap.Contains(InName))
+	{
+		TSharedPtr<IDataBinding> Value = NovaDataBinding::DataBindingMap.FindChecked(InName);
+		return StaticCastSharedPtr<TDataBindingUObject<AbstractData>>(Value);
+	}
 	TSharedPtr<TDataBindingUObject<AbstractData>> CreatedDataBinding = MakeShareable(new TDataBindingUObject<AbstractData>(InName, InData));
 	NovaDataBinding::DataBindingMap.Add(InName, CreatedDataBinding.ToSharedRef());
 	return CreatedDataBinding;
@@ -513,6 +523,11 @@ TSharedPtr<TDataBindingUObject<AbstractData>> NovaDataBinding::CreateUObject(FNa
 template <typename AbstractData>
 TSharedPtr<TDataBindingSP<AbstractData>> NovaDataBinding::CreateSP(FName InName, TSharedPtr<AbstractData> InData)
 {
+	if (NovaDataBinding::DataBindingMap.Contains(InName))
+	{
+		TSharedPtr<IDataBinding> Value = NovaDataBinding::DataBindingMap.FindChecked(InName);
+		return StaticCastSharedPtr<TDataBindingSP<AbstractData>>(Value);
+	}
 	TSharedPtr<TDataBindingSP<AbstractData>> CreatedDataBinding = MakeShareable(new TDataBindingSP<AbstractData>(InName, InData));
 	NovaDataBinding::DataBindingMap.Add(InName, CreatedDataBinding.ToSharedRef());
 	return CreatedDataBinding;

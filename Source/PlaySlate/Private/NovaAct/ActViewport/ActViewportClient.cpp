@@ -9,12 +9,10 @@
 #include "UnrealWidget.h"
 
 FActViewportClient::FActViewportClient(const TSharedRef<FActViewportPreviewScene>& InActViewportPreviewScene,
-                                       const TSharedRef<SActViewport>& ActViewport,
-                                       FEditorModeTools& InEditorModeTools)
-	: FEditorViewportClient(
-		&InEditorModeTools,
-		StaticCast<FPreviewScene*>(&InActViewportPreviewScene.Get()),
-		StaticCastSharedRef<SEditorViewport>(ActViewport))
+                                       const TSharedRef<SActViewport>& ActViewport)
+	: FEditorViewportClient(nullptr,
+	                        StaticCast<FPreviewScene*>(&InActViewportPreviewScene.Get()),
+	                        StaticCastSharedRef<SEditorViewport>(ActViewport))
 {
 	FAssetEditorModeManager* ModeManager = StaticCast<FAssetEditorModeManager*>(ModeTools.Get());
 	Widget->SetUsesEditorModeTools(ModeManager);

@@ -90,7 +90,7 @@ FText SActActionSequenceSectionArea::GetSectionToolTip(TSharedRef<FActActionSequ
 	// 		return FText::Format(NSLOCTEXT("SequencerSection", "TooltipSectionContentFormat", "{0}{1}"), SectionTitleText, SectionToolTipContent);
 	// 	}
 	// }
-	return FText(NSLOCTEXT("SequencerSection", "TooltipSectionContentFormat", "111"));
+	return FText(NSLOCTEXT("SequencerSection", "TooltipSectionContentFormat1", "Default?"));
 }
 
 void SActActionSequenceSectionArea::OnArrangeChildren(const FGeometry& AllottedGeometry, FArrangedChildren& ArrangedChildren) const

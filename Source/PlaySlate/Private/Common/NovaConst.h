@@ -1,12 +1,23 @@
 #pragma once
 
-
 namespace NovaConst
 {
-	const FName NovaActAppName = FName(TEXT("NovaAct"));
+	const FName NovaActAppName(TEXT("NovaAct"));
+	const FName NovaActEditorMode(TEXT("NovaActEditorMode"));
 
 	const FName ActEventTimelineTabId(TEXT("ActEventTimeline"));
-	const FName ActViewportTabId(TEXT("ActViewport"));
+	
+	const TArray<FName> ActViewportTabIds = TArray<FName>({
+		TEXT("ActViewport1"),
+		TEXT("ActViewport2"),
+		TEXT("ActViewport3"),
+		TEXT("ActViewport4")
+	});
+	
+	const FName ActViewportTab2Id();
+	const FName ActViewportTab3Id();
+	const FName ActViewportTab4Id();
+	
 	const FName ActAssetDetailsTabId(TEXT("ActAssetDetails"));
 	/** Notify State 最短持续时间，单位帧 */
 	const int ActMinimumNotifyStateFrame = 1;

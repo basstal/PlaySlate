@@ -16,9 +16,8 @@
 
 #include "NovaAct/Assets/ActAnimation.h"
 
-FActViewportPreviewScene::FActViewportPreviewScene(const ConstructionValues& CVS, const TSharedRef<FNovaActEditor>& InActActionSequenceEditor)
+FActViewportPreviewScene::FActViewportPreviewScene(const ConstructionValues& CVS)
 	: FAdvancedPreviewScene(CVS),
-	  ActActionSequenceEditor(InActActionSequenceEditor),
 	  ActActionActor(nullptr),
 	  ActActionSkeletalMesh(nullptr),
 	  LastCurrentTime(0)
@@ -27,29 +26,12 @@ FActViewportPreviewScene::FActViewportPreviewScene(const ConstructionValues& CVS
 	PreviewInstanceLooping = NovaDB::Create("PreviewInstanceLooping", false);
 	PreviewInstancePlaybackMode = NovaDB::Create("PreviewInstancePlaybackMode", EPlaybackMode::Stopped);
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
+	if (!ActEventTimelineArgsDB)
+	{
+		auto ActEventTimelineArgs = NovaStaticFunction::MakeActEventTimelineArgs();
+		ActEventTimelineArgsDB = NovaDB::CreateSP("ActEventTimelineArgs", ActEventTimelineArgs);
+	}
 	NovaDB::CreateSP("ActEventTimelineArgs/CurrentTime", ActEventTimelineArgsDB->GetData()->CurrentTime);
-}
-
-FActViewportPreviewScene::~FActViewportPreviewScene()
-{
-	UE_LOG(LogNovaAct, Log, TEXT("FActActionPreviewSceneController::~FActActionPreviewSceneController"));
-	ActViewport.Reset();
-	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs/CurrentTime");
-	DB->UnBind(OnCurrentTimeChangedHandle);
-	auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
-	ActAnimationDB->UnBind(OnAnimBlueprintChangedHandle);
-	ActAnimationDB->UnBind(OnAnimSequenceChangedHandle);
-	NovaDB::Delete("TransportControlsState");
-	NovaDB::Delete("PreviewInstanceLooping");
-	NovaDB::Delete("PreviewInstancePlaybackMode");
-	NovaDB::Delete("ActEventTimelineArgs/CurrentTime");
-}
-
-void FActViewportPreviewScene::Init(const TSharedRef<SDockTab>& InParentDockTab)
-{
-	// ** NOTE:合理不能用SNew的原因是在构造时会调用到FActActionPreviewSceneController::MakeViewportClient，需要先设置好ActActionViewportWidget指针
-	InParentDockTab->SetContent(SAssignNew(ActViewport, SActViewport, SharedThis(this)));
-
 	DataBindingSPBindRaw(FFrameTime, "ActEventTimelineArgs/CurrentTime", this, &FActViewportPreviewScene::OnCurrentTimeChanged, OnCurrentTimeChangedHandle);
 
 	auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
@@ -61,13 +43,36 @@ void FActViewportPreviewScene::Init(const TSharedRef<SDockTab>& InParentDockTab)
 	DataBindingBindRaw(EPlaybackMode::Type, "PreviewInstancePlaybackMode", this, &FActViewportPreviewScene::OnPlaybackModeChanged, _);
 }
 
-TSharedPtr<FActViewportClient> FActViewportPreviewScene::MakeViewportClient()
+FActViewportPreviewScene::~FActViewportPreviewScene()
 {
-	return MakeShareable(new FActViewportClient(
-		SharedThis(this),
-		ActViewport.ToSharedRef(),
-		ActActionSequenceEditor.Pin()->GetEditorModeManager()));
+	UE_LOG(LogNovaAct, Log, TEXT("FActActionPreviewSceneController::~FActActionPreviewSceneController"));
+	ActViewport.Reset();
+	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs/CurrentTime");
+	DB->UnBind(OnCurrentTimeChangedHandle);
+	auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
+	if (ActAnimationDB)
+	{
+		ActAnimationDB->UnBind(OnAnimBlueprintChangedHandle);
+		ActAnimationDB->UnBind(OnAnimSequenceChangedHandle);
+	}
+	NovaDB::Delete("TransportControlsState");
+	NovaDB::Delete("PreviewInstanceLooping");
+	NovaDB::Delete("PreviewInstancePlaybackMode");
+	NovaDB::Delete("ActEventTimelineArgs/CurrentTime");
 }
+
+void FActViewportPreviewScene::Init(const TSharedRef<SDockTab>& InParentDockTab)
+{
+	// ** NOTE:这里不能用SNew的原因是在构造时会调用到FActActionPreviewSceneController::MakeViewportClient，需要先设置好ActActionViewportWidget指针
+	// InParentDockTab->SetContent(SAssignNew(ActViewport, SActViewport, SharedThis(this)));
+
+	
+}
+//
+// TSharedPtr<FActViewportClient> FActViewportPreviewScene::MakeViewportClient()
+// {
+// 	
+// }
 
 void FActViewportPreviewScene::AddComponent(UActorComponent* Component, const FTransform& LocalToWorld, bool bAttachToRoot)
 {
@@ -102,7 +107,7 @@ void FActViewportPreviewScene::Tick(float DeltaTime)
 bool FActViewportPreviewScene::IsTickable() const
 {
 	// The preview scene is tickable if any viewport can see it
-	return ActViewport->IsVisible();
+	return ActViewport.IsValid() && ActViewport->IsVisible();
 }
 
 ETickableTickType FActViewportPreviewScene::GetTickableTickType() const
@@ -375,11 +380,14 @@ void FActViewportPreviewScene::OnAnimSequenceChanged(UActAnimation* InActAnimati
 				PreviewInstanceLooping->SetData(true);
 				ActActionSkeletalMesh->SetPlayRate(1.0f);
 
-				//Place the camera at a good viewer position
-				const TSharedPtr<FEditorViewportClient> ViewportClient = ActViewport->GetViewportClient();
-				FVector NewPosition = ViewportClient->GetViewLocation();
-				NewPosition.Normalize();
-				ViewportClient->SetViewLocation(NewPosition * (PreviewMesh->GetImportedBounds().SphereRadius * 1.5f));
+				if (ActViewport.IsValid())
+				{
+					//Place the camera at a good viewer position
+					const TSharedPtr<FEditorViewportClient> ViewportClient = ActViewport->GetViewportClient();
+					FVector NewPosition = ViewportClient->GetViewLocation();
+					NewPosition.Normalize();
+					ViewportClient->SetViewLocation(NewPosition * (PreviewMesh->GetImportedBounds().SphereRadius * 1.5f));
+				}
 			}
 		}
 	}

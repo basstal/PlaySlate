@@ -5,9 +5,11 @@
 #include "NovaAct/ActViewport/ActViewportClient.h"
 #include "NovaAct/ActViewport/ActViewportPreviewScene.h"
 
-void SActViewport::Construct(const FArguments& InArgs, const TSharedRef<FActViewportPreviewScene>& InActActionPreviewSceneController)
+void SActViewport::Construct(const FArguments& InArgs)
 {
-	ActActionPreviewSceneController = InActActionPreviewSceneController;
+	// ActViewportPreviewScene = InActViewportPreviewScene;
+	auto DB = GetDataBindingSP(FActViewportPreviewScene, "ActViewportPreviewScene");
+	DB->GetData()->ActViewport = SharedThis(this);
 
 	SEditorViewport::Construct(
 		SEditorViewport::FArguments()
@@ -51,7 +53,11 @@ SActViewport::~SActViewport()
 
 TSharedRef<FEditorViewportClient> SActViewport::MakeEditorViewportClient()
 {
-	return ActActionPreviewSceneController.Pin()->MakeViewportClient().ToSharedRef();
+	auto DB = GetDataBindingSP(FActViewportPreviewScene, "ActViewportPreviewScene");
+	return MakeShareable(new FActViewportClient(
+		DB->GetData().ToSharedRef(),
+		SharedThis(this)));
+	// return ActViewportPreviewScene.Pin()->MakeViewportClient().ToSharedRef();
 }
 
 void SActViewport::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)

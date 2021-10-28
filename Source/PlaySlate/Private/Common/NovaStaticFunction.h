@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include "FrameNumberNumericInterface.h"
+#include "NovaDataBinding.h"
 #include "Common/NovaStruct.h"
 #include "Fonts/FontMeasure.h"
 
@@ -130,7 +132,7 @@ public:
 
 		return false;
 	}
-
+	
 	static TSharedRef<SWidget> MakeTrackButton(FText HoverText, FOnGetContent MenuContent, const TAttribute<bool>& HoverState)
 	{
 		FSlateFontInfo SmallLayoutFont = FCoreStyle::GetDefaultFontStyle("Regular", 8);
@@ -189,5 +191,25 @@ public:
 		ComboButtonText->SetVisibility(Visibility);
 
 		return ComboButton;
+	}
+
+	static TSharedPtr<FActEventTimelineArgs> MakeActEventTimelineArgs()
+	{
+		// ** EventTimeline 共享参数的初始化
+		TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = MakeShareable(new FActEventTimelineArgs());
+		auto TickResolutionAttrLambda = MakeAttributeLambda([]()
+		{
+			auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
+			TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = DB->GetData();
+			return ActEventTimelineArgs->TickResolution;
+		});
+		ActEventTimelineArgs->NumericTypeInterface = MakeShareable(new FFrameNumberInterface(MakeAttributeLambda([]()
+																							 {
+																								 return EFrameNumberDisplayFormats::Frames;
+																							 }),
+																							 0,
+																							 TickResolutionAttrLambda,
+																							 TickResolutionAttrLambda));
+		return ActEventTimelineArgs;
 	}
 };
