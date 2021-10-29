@@ -2,7 +2,7 @@
 
 #include "PlaySlate.h"
 #include "Common/NovaStaticFunction.h"
-#include "ActViewportClient.h"
+// #include "ActViewportClient.h"
 #include "NovaAct/ActViewport/ActViewport.h"
 #include "NovaAct/NovaActEditor.h"
 
@@ -12,7 +12,7 @@
 #include "Animation/AnimSingleNodeInstance.h"
 #include "AnimPreviewInstance.h"
 #include "Animation/SkeletalMeshActor.h"
-#include "Common/NovaConst.h"
+// #include "Common/NovaConst.h"
 
 #include "NovaAct/Assets/ActAnimation.h"
 

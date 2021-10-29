@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "IAnimationEditor.h"
-#include "Common/NovaDataBinding.h"
+// #include "Common/NovaDataBinding.h"
 #include "Common/NovaStruct.h"
 
 class FActAssetDetailsNotifyHook;

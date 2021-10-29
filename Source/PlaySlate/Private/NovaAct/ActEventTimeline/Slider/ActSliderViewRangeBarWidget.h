@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Common/NovaStruct.h"
+// #include "Common/NovaStruct.h"
 
 class SActSliderWidget;
 

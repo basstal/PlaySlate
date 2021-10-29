@@ -1,8 +1,8 @@
 ﻿#include "ActImageTrackLaneWidget.h"
 
-#include "PlaySlate.h"
+// #include "PlaySlate.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTreeViewTableRow.h"
-#include "NovaAct/ActEventTimeline/Image/ActImageTrackCarWidget.h"
+// #include "NovaAct/ActEventTimeline/Image/ActImageTrackCarWidget.h"
 
 #include "Widgets/SWeakWidget.h"
 
@@ -50,7 +50,7 @@ FText SActImageTrackLaneWidget::GetNodeTooltip()
 
 float SActImageTrackLaneWidget::GetPlayLength()
 {
-	FPlaySlateModule& PlaySlateModule = FModuleManager::GetModuleChecked<FPlaySlateModule>("PlaySlate");
+	// FPlaySlateModule& PlaySlateModule = FModuleManager::GetModuleChecked<FPlaySlateModule>("PlaySlate");
 	// ** TODO;
 	// return PlaySlateModule.NovaActEditor.Pin()->GetActActionSequence()->AnimSequence->GetPlayLength();
 	return 0;
@@ -100,8 +100,9 @@ bool SActImageTrackLaneWidget::IsBranchingPoint()
 
 bool SActImageTrackLaneWidget::HasNotifyNode()
 {
-	ENovaTreeViewNodeType NodeType = SequenceTreeViewNode.Pin()->GetType();
-	return NodeType != ENovaTreeViewNodeType::Root && NodeType != ENovaTreeViewNodeType::Folder;
+	// ENovaTreeViewNodeType NodeType = SequenceTreeViewNode.Pin()->GetType();
+	// return NodeType != ENovaTreeViewNodeType::Root && NodeType != ENovaTreeViewNodeType::Folder;
+	return true;
 }
 
 // void SActImageTrackLaneWidget::SetVisibility(EVisibility InVisibility)

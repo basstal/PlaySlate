@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include "Common/NovaStruct.h"
-#include "Common/NovaConst.h"
 #include "Common/NovaStaticFunction.h"
 #include "NovaAct/Assets/ActActionSequenceStructs.h"
 #include "ActImageTrackLaneWidget.h"
@@ -98,7 +97,7 @@ public:
 	/**
 	 * @return 当前节点的类型
 	 */
-	ENovaTreeViewNodeType GetType() const;
+	// ENovaTreeViewNodeType GetType() const;
 
 	/**
 	 * 重新挂载Parent并调整其在Parent中的节点顺序
@@ -193,13 +192,13 @@ public:
 	// TSharedPtr<SActImageTreeViewTableRow> GetRoot();
 	/** 获得当前节点的可见性，节点可见性由Outliner的可见性决定 */
 	// EVisibility GetVisibility() const;
-	/**
-	 * 为特定节点和列生成Widget
-	 * @param InNode
-	 * @param ColumnId
-	 * @param Row
-	 * @return 
-	 */
+	// /**
+	//  * 为特定节点和列生成Widget
+	//  * @param InNode
+	//  * @param ColumnId
+	//  * @param Row
+	//  * @return 
+	//  */
 	// TSharedRef<SWidget> GenerateWidgetFromColumn(const TSharedRef<SActImageTreeViewTableRow>& InNode, const FName& ColumnId, const TSharedRef<SActActionSequenceTreeViewRow>& Row);
 
 	//~Begin SMultiColumnTableRow interface

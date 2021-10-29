@@ -1,8 +1,8 @@
 ﻿#include "ActAssetDetailsNotifyHook.h"
 
 #include "PlaySlate.h"
-#include "NovaAct/Assets/ActAnimation.h"
-#include "NovaAct/NovaActEditor.h"
+#include "Common/NovaDataBinding.h"
+// #include "NovaAct/NovaActEditor.h"
 
 FActAssetDetailsNotifyHook::~FActAssetDetailsNotifyHook()
 {

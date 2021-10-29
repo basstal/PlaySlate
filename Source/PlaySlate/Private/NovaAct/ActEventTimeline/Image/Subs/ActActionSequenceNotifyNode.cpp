@@ -218,9 +218,9 @@ FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, co
 	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = DB->GetData();
 	// const FActActionTrackAreaArgs& TrackAreaArgs = ActActionTrackAreaSlot.Pin()->GetActActionTrackAreaArgs();
-	float ViewMinInput = ActEventTimelineArgs->ClampRange.GetLowerBoundValue();
-	float ViewMaxInput = ActEventTimelineArgs->ClampRange.GetUpperBoundValue();
-	FTrackScaleInfo ScaleInfo(ViewMinInput, ViewMaxInput, 0, 0, CachedAllottedGeometrySize);
+	// float ViewMinInput = ActEventTimelineArgs->ClampRange.GetLowerBoundValue();
+	// float ViewMaxInput = ActEventTimelineArgs->ClampRange.GetUpperBoundValue();
+	// FTrackScaleInfo ScaleInfo(ViewMinInput, ViewMaxInput, 0, 0, CachedAllottedGeometrySize);
 	float PlayLength = ActActionTrackAreaSlot.Pin()->GetPlayLength();
 	float XPositionInTrack = MyGeometry.AbsolutePosition.X - CachedTrackGeometry.AbsolutePosition.X;
 	float TrackScreenSpaceXPosition = MyGeometry.AbsolutePosition.X - XPositionInTrack;
@@ -233,32 +233,32 @@ FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, co
 		// Check track bounds
 		// float OldDisplayTime = TrackAreaArgs.BeginTime;
 		// float DurationTime = TrackAreaArgs.Duration;
-		float OldDisplayTime = 0;
+		// float OldDisplayTime = 0;
 		float DurationTime = 0;
 		if (MouseEvent.GetScreenSpacePosition().X >= TrackScreenSpaceXPosition && MouseEvent.GetScreenSpacePosition().X <= TrackScreenSpaceXPosition + CachedAllottedGeometrySize.X)
 		{
-			float NewDisplayTime = ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X);
-			float NewDuration = OldDisplayTime - NewDisplayTime;
+			// float NewDisplayTime = ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X);
+			// float NewDuration = OldDisplayTime - NewDisplayTime;
 			// Check to make sure the duration is not less than the minimum allowed
-			if (NewDuration < NovaConst::ActMinimumNotifyStateFrame)
-			{
-				NewDisplayTime -= NovaConst::ActMinimumNotifyStateFrame - NewDuration;
-			}
-			NewDisplayTime = FMath::Max(0.0f, NewDisplayTime);
+			// if (NewDuration < NovaConst::ActMinimumNotifyStateFrame)
+			// {
+			// 	NewDisplayTime -= NovaConst::ActMinimumNotifyStateFrame - NewDuration;
+			// }
+			// NewDisplayTime = FMath::Max(0.0f, NewDisplayTime);
 			// ActActionSequenceTreeViewNode->SetHitBoxBegin((int)(NewDisplayTime / TickResolutionInterval));
-			float NewDurationTime = DurationTime + OldDisplayTime - NewDisplayTime;
+			// float NewDurationTime = DurationTime + OldDisplayTime - NewDisplayTime;
 			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int)(NewDurationTime / TickResolutionInterval));
 		}
 		else if (DurationTime > NovaConst::ActMinimumNotifyStateFrame)
 		{
 			// float Overflow = HandleOverflowPan(MouseEvent.GetScreenSpacePosition(), TrackScreenSpaceXPosition, TrackScreenSpaceOrigin, TrackScreenSpaceLimit);
 			// Update scale info to the new view inputs after panning
-			ScaleInfo.ViewMinInput = ViewMinInput;
-			ScaleInfo.ViewMaxInput = ViewMaxInput;
-
-			float NewDisplayTime = FMath::Max(0.0f, ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X));
+			// ScaleInfo.ViewMinInput = ViewMinInput;
+			// ScaleInfo.ViewMaxInput = ViewMaxInput;
+			//
+			// float NewDisplayTime = FMath::Max(0.0f, ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X));
 			// ActActionSequenceTreeViewNode->SetHitBoxBegin((int)(NewDisplayTime / TickResolutionInterval));
-			float NewDurationTime = DurationTime + OldDisplayTime - NewDisplayTime;
+			// float NewDurationTime = DurationTime + OldDisplayTime - NewDisplayTime;
 			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int)(NewDurationTime / TickResolutionInterval));
 
 			// Adjust in case we went under the minimum
@@ -303,19 +303,19 @@ FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, co
 		float DurationTime = 0;
 		if (MouseEvent.GetScreenSpacePosition().X >= TrackScreenSpaceXPosition && MouseEvent.GetScreenSpacePosition().X <= TrackScreenSpaceXPosition + CachedAllottedGeometrySize.X)
 		{
-			float NewDurationTime = ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X) - BeginTime;
-			NewDurationTime = FMath::Max(NewDurationTime, (float)(NovaConst::ActMinimumNotifyStateFrame * TickResolutionInterval));
+			// float NewDurationTime = ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X) - BeginTime;
+			// NewDurationTime = FMath::Max(NewDurationTime, (float)(NovaConst::ActMinimumNotifyStateFrame * TickResolutionInterval));
 			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int)(NewDurationTime / TickResolutionInterval));
 		}
 		else if ((int)(DurationTime / TickResolutionInterval) > NovaConst::ActMinimumNotifyStateFrame)
 		{
 			// float Overflow = HandleOverflowPan(MouseEvent.GetScreenSpacePosition(), TrackScreenSpaceXPosition, TrackScreenSpaceOrigin, TrackScreenSpaceLimit);
 			// Update scale info to the new view inputs after panning
-			ScaleInfo.ViewMinInput = ViewMinInput;
-			ScaleInfo.ViewMaxInput = ViewMaxInput;
+			// ScaleInfo.ViewMinInput = ViewMinInput;
+			// ScaleInfo.ViewMaxInput = ViewMaxInput;
 
-			float NewDurationTime = ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X) - BeginTime;
-			NewDurationTime = FMath::Max(NewDurationTime, (float)(NovaConst::ActMinimumNotifyStateFrame * TickResolutionInterval));
+			// float NewDurationTime = ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X) - BeginTime;
+			// NewDurationTime = FMath::Max(NewDurationTime, (float)(NovaConst::ActMinimumNotifyStateFrame * TickResolutionInterval));
 			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int)(NewDurationTime / TickResolutionInterval));
 		}
 		if (BeginTime + DurationTime > PlayLength)
@@ -567,7 +567,7 @@ FReply SActActionSequenceNotifyNode::OnNotifyNodeDragStarted(const FPointerEvent
 	// 	SelectTrackObjectNode(NotifyIndex, MouseEvent.IsShiftDown(), false);
 	// }
 
-	// Sort our nodes so we're acessing them in time order
+	// Sort our nodes so we're accessing them in time order
 	// SelectedNodeIndices.Sort([this](const int32& A, const int32& B)
 	// {
 	// 	float TimeA = NotifyNodes[A]->NodeObjectInterface->GetTime();

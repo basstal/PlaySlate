@@ -1,12 +1,10 @@
 ﻿#include "ActImageHorizontalBox.h"
 
 #include "Common/NovaConst.h"
-#include "NovaAct/NovaActEditor.h"
 
 #include "NovaAct/ActEventTimeline/Image/ActImageTreeView.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTreeViewTableRow.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTrackAreaPanel.h"
-#include "NovaAct/ActEventTimeline/Image/Subs/ActActionSequenceTreeViewRow.h"
 
 #include "Widgets/Layout/SScrollBorder.h"
 

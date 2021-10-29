@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Common/NovaDataBinding.h"
+// #include "Common/NovaDataBinding.h"
 #include "Common/NovaDelegate.h"
 
 

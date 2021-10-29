@@ -416,8 +416,10 @@ void FNovaActEditor::OpenNewAnimationAssetEditTab(UAnimationAsset** InAnimationA
 			// ];
 
 			// OpenedTab->SetLeftContent(IDocumentation::Get()->CreateAnchor(DocumentLink));
-
-			TabManager->TryInvokeTab(NovaConst::ActEventTimelineTabId);
+			if (TabManager)
+			{
+				TabManager->TryInvokeTab(NovaConst::ActEventTimelineTabId);
+			}
 
 			// SharedAnimationAssetTab = OpenedTab;
 		}

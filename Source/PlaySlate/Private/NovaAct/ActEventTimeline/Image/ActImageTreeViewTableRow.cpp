@@ -1,16 +1,13 @@
 ﻿#include "ActImageTreeViewTableRow.h"
 
-#include "PlaySlate.h"
 #include "ActActionSequenceSectionBase.h"
+#include "Common/NovaConst.h"
 
 #include "NovaAct/NovaActEditor.h"
 #include "NovaAct/Assets/ActActionSequenceStructs.h"
 
 #include "NovaAct/Assets/ActAnimation.h"
-#include "NovaAct/ActEventTimeline/Image/ActActionOutlinerTreeNode.h"
-// #include "NovaAct/ActEventTimeline/Image/ActActionSequenceCombinedKeysTrack.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTreeView.h"
-// #include "NovaAct/ActEventTimeline/Image/ActTreeViewTrackAreaPanel.h"
 #include "Widgets/Text/SInlineEditableTextBlock.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
@@ -147,7 +144,7 @@ TSharedRef<SWidget> SActImageTreeViewTableRow::MakeOutlinerWidget()
 // 		// 	                                    if (UStatusBarSubsystem* StatusBarSubsystem = GEditor->GetEditorSubsystem<UStatusBarSubsystem>())
 // 		// 	                                    {
 // 		// 		                                    StatusBarMessageHandle = StatusBarSubsystem->PushStatusBarMessage(AnimationEditorStatusBarName,
-// 		// 		                                                                                                      LOCTEXT("AutoscrubNotifyStateHandle", "Hold SHIFT while dragging a notify state Begin or End handle to auto scrub the timeline."));
+// 		// 		                                                                                                      LOCTEXT("AutoScrubNotifyStateHandle", "Hold SHIFT while dragging a notify state Begin or End handle to auto scrub the timeline."));
 // 		// 	                                    }
 // 		//                                     }
 // 		//                                    })
@@ -164,7 +161,7 @@ TSharedRef<SWidget> SActImageTreeViewTableRow::MakeOutlinerWidget()
 // 		// 	                                    if (UStatusBarSubsystem* StatusBarSubsystem = GEditor->GetEditorSubsystem<UStatusBarSubsystem>())
 // 		// 	                                    {
 // 		// 		                                    StatusBarMessageHandle = StatusBarSubsystem->PushStatusBarMessage(AnimationEditorStatusBarName,
-// 		// 		                                                                                                      LOCTEXT("AutoscrubNotify", "Hold SHIFT while dragging a notify to auto scrub the timeline."));
+// 		// 		                                                                                                      LOCTEXT("AutoScrubNotify", "Hold SHIFT while dragging a notify to auto scrub the timeline."));
 // 		// 	                                    }
 // 		//                                     }
 // 		//                                    });
@@ -298,7 +295,7 @@ TSharedRef<SWidget> SActImageTreeViewTableRow::BuildNotifiesPanelSubMenu(int32 I
 {
 	auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
 
-	UAnimSequenceBase* AnimSequence = ActAnimationDB->GetData()->AnimSequence;
+	// UAnimSequenceBase* AnimSequence = ActAnimationDB->GetData()->AnimSequence;
 
 	FMenuBuilder MenuBuilder(true, nullptr);
 
@@ -405,10 +402,10 @@ bool SActImageTreeViewTableRow::IsVisible() const
 	return true;
 }
 
-ENovaTreeViewNodeType SActImageTreeViewTableRow::GetType() const
-{
-	return NodeType;
-}
+// ENovaTreeViewNodeType SActImageTreeViewTableRow::GetType() const
+// {
+// 	return NodeType;
+// }
 
 void SActImageTreeViewTableRow::SetParent(TSharedPtr<SActImageTreeViewTableRow> InParent, int32 DesiredChildIndex)
 {
