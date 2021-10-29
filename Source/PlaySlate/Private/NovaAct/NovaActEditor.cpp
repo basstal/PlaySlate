@@ -39,6 +39,7 @@ FNovaActEditor::~FNovaActEditor()
 	NovaDB::Delete("ActViewportPreviewScene");
 	NovaDB::Delete("AnimSequence");
 	NovaDB::Delete("ColumnFillCoefficientsLeft");
+	NovaDB::Delete("ActAnimation/AnimSequence");
 }
 
 void FNovaActEditor::CreateEditorWindow(const TSharedPtr<IToolkitHost>& InIToolkitHost)
@@ -416,11 +417,7 @@ void FNovaActEditor::OpenNewAnimationAssetEditTab(UAnimationAsset** InAnimationA
 			// ];
 
 			// OpenedTab->SetLeftContent(IDocumentation::Get()->CreateAnchor(DocumentLink));
-			if (TabManager)
-			{
-				TabManager->TryInvokeTab(NovaConst::ActEventTimelineTabId);
-			}
-
+			TabManager->TryInvokeTab(NovaConst::ActEventTimelineTabId);
 			// SharedAnimationAssetTab = OpenedTab;
 		}
 
