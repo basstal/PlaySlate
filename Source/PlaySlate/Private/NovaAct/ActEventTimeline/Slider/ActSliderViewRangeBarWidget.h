@@ -40,8 +40,6 @@ public:
 	void ResetHoveredState();
 
 protected:
-	/** TimeSlider ViewRange记录 */
-	// TRange<float> LastViewRange;
 	/** 拖拽中 */
 	bool bHandleDragged;
 	/** 左侧拖拽中 */
