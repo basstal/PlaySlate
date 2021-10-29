@@ -3,6 +3,8 @@
 #include "Common/NovaDelegate.h"
 
 
+struct FFrameNumberInterface;
+
 namespace NovaStruct
 {
 	using namespace NovaEnum;
@@ -13,6 +15,7 @@ namespace NovaStruct
 	{
 		FActEventTimelineArgs();
 
+		void SetViewRangeClamped(float NewRangeMin, float NewRangeMax);
 		// 当前可见的区域，这个值可以比动画播放区间小，例如放大显示时
 		TSharedPtr<TRange<float>> ViewRange;
 		// 最大可调整的区域，与AnimSequence动画的播放时长相同，范围[0, PlayLength]
@@ -28,7 +31,7 @@ namespace NovaStruct
 		// If we are allowed to zoom
 		bool AllowZoom;
 		// Numeric Type interface for converting between frame numbers and display formats.
-		TSharedPtr<INumericTypeInterface<double>> NumericTypeInterface;
+		TSharedPtr<FFrameNumberInterface> NumericTypeInterface;
 	};
 
 	/** Utility struct for converting between scrub range space and local/absolute screen space, 这个结构用于时间和 Widget 距离的对应转换 */

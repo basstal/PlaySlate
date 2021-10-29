@@ -36,12 +36,12 @@ void SActImageHorizontalBox::Construct(const FArguments& InArgs)
 	auto FillLeftAttr = TAttribute<float>::Create(TAttribute<float>::FGetter::CreateLambda([]()
 	{
 		auto DB = GetDataBinding(float, "ColumnFillCoefficientsLeft");
-		return DB->GetData();
+		return DB ? DB->GetData() : 0;
 	}));
 	auto FillRightAttr = TAttribute<float>::Create(TAttribute<float>::FGetter::CreateLambda([]()
 	{
 		auto DB = GetDataBinding(float, "ColumnFillCoefficientsLeft");
-		return 1 - DB->GetData();
+		return DB ? (1 - DB->GetData()) : 1;
 	}));
 
 	AddSlot()

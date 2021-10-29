@@ -12,6 +12,6 @@ FActAssetDetailsNotifyHook::~FActAssetDetailsNotifyHook()
 void FActAssetDetailsNotifyHook::NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, FProperty* PropertyThatChanged)
 {
 	UE_LOG(LogNovaAct, Log, TEXT("PropertyChangedEvent : %s"), *PropertyChangedEvent.GetPropertyName().ToString());
-	auto DB = GetDataBindingUObject(UActAnimation, "ActAnimation");
-	DB->Trigger();
+	NovaDB::Trigger("ActAnimation");
+	NovaDB::Trigger("ActAnimation/AnimSequence");
 }

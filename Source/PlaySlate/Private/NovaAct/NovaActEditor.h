@@ -48,6 +48,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 	//~End FTickableEditorObject interface
+
 	/**
 	 * 生成 Viewport Tab
 	 *
@@ -69,20 +70,31 @@ public:
 	 * @return 生成的 Widget
 	 */
 	TSharedRef<SDockTab> OnActAssetDetailsTabSpawn(const FSpawnTabArgs& SpawnTabArgs);
+	
 	/**
 	 * 设置AnimSequence的相关数据
 	 *
 	 * @param InAnimSequence
 	 */
-	void OnAnimSequenceChanged(UAnimSequence* InAnimSequence);
+	void OnAnimSequenceChanged(UAnimSequence** InAnimSequence);
+	/**
+	 * 根据 AnimationAsset 资源类型创建 Tab 界面的内容
+	 * @param InAnimationAsset
+	 * @return Tab 内容 Widget
+	 */
+	TSharedRef<SWidget> MakeEditTabContent(UAnimationAsset* InAnimationAsset);
+
 	/**
 	 * 打开资源对应的编辑Tab
 	 *
 	 * @param InAnimationAsset
 	 */
-	void OpenNewAnimationAssetEditTab(UAnimationAsset* InAnimationAsset);
+	void OpenNewAnimationAssetEditTab(UAnimationAsset** InAnimationAsset);
 
 protected:
+	/** 当前编辑的 Animation 资源引用 */
+	// UAnimationAsset* AnimationAsset;
+
 	/** Viewport Controller，Editor没有销毁的情况下不会为空 */
 	TSharedPtr<FActViewportPreviewScene> ActViewportPreviewScene;
 	/** EventTimeline Widget Container */

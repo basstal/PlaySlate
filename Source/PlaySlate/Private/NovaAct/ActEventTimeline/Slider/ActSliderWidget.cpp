@@ -31,7 +31,7 @@ void SActSliderWidget::Construct(const FArguments& InArgs, const TSharedRef<SGri
 	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	NovaDB::CreateSP("ActEventTimelineArgs/ViewRange", DB->GetData()->ViewRange);
 	FDelegateHandle _;
-	DataBindingSPBindRaw(TRange<float>, "ActEventTimelineArgs/ViewRange", this, &SActSliderWidget::OnViewRangeChanged, _);
+	// DataBindingSPBindRaw(TRange<float>, "ActEventTimelineArgs/ViewRange", this, &SActSliderWidget::OnViewRangeChanged, _);
 
 	InParentGridPanel->AddSlot(1, 0, SGridPanel::Layer(10))
 	                 .Padding(NovaConst::ResizeBarPadding)
@@ -251,14 +251,14 @@ FReply SActSliderWidget::OnMouseButtonUp(const FGeometry& MyGeometry, const FPoi
 				{
 					// push the current value onto the stack
 					ViewRangeZoomStack.Add(*ActEventTimelineArgs->ViewRange);
-					ActEventTimelineArgs->ViewRange->SetLowerBoundValue(MouseDownStart.FrameNumber / TickResolution);
-					ActEventTimelineArgs->ViewRange->SetUpperBoundValue(MouseTime.FrameNumber / TickResolution);
+					ActEventTimelineArgs->SetViewRangeClamped(MouseDownStart.FrameNumber / TickResolution,
+					                                          MouseTime.FrameNumber / TickResolution);
 				}
 				else
 				{
 					TRange<float> ViewRangePopped = ViewRangeZoomStack.Pop();
-					ActEventTimelineArgs->ViewRange->SetLowerBoundValue(ViewRangePopped.GetLowerBoundValue());
-					ActEventTimelineArgs->ViewRange->SetUpperBoundValue(ViewRangePopped.GetUpperBoundValue());
+					ActEventTimelineArgs->SetViewRangeClamped(ViewRangePopped.GetLowerBoundValue(),
+					                                          ViewRangePopped.GetUpperBoundValue());
 				}
 				NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
 			}
@@ -304,8 +304,7 @@ FReply SActSliderWidget::OnMouseMove(const FGeometry& MyGeometry, const FPointer
 			FVector2D InputDelta(ScreenDelta.X / RangeToScreen.PixelsPerInput, 0);
 			double NewViewOutputMin = ActEventTimelineArgs->ViewRange->GetLowerBoundValue() - InputDelta.X;
 			double NewViewOutputMax = ActEventTimelineArgs->ViewRange->GetUpperBoundValue() - InputDelta.X;
-			ActEventTimelineArgs->ViewRange->SetLowerBoundValue(NewViewOutputMin);
-			ActEventTimelineArgs->ViewRange->SetUpperBoundValue(NewViewOutputMax);
+			ActEventTimelineArgs->SetViewRangeClamped(NewViewOutputMin, NewViewOutputMax);
 			NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
 		}
 	}
@@ -521,22 +520,6 @@ void SActSliderWidget::OnScrubPositionChanged(FFrameTime NewScrubPosition, bool 
 	}
 }
 
-void SActSliderWidget::OnViewRangeChanged(TSharedPtr<TRange<float>> InViewRange)
-{
-	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
-	// Clamp to a minimum size to avoid zero-sized or negative visible ranges
-	const double MinVisibleTimeRange = FFrameNumber(1) / ActEventTimelineArgs->TickResolution;
-	float NewRangeMax = InViewRange->GetUpperBoundValue();
-	float NewRangeMin = InViewRange->GetLowerBoundValue();
-	if (NewRangeMin > NewRangeMax - MinVisibleTimeRange)
-	{
-		NewRangeMin = NewRangeMax - MinVisibleTimeRange;
-	}
-	// Clamp to the clamp range
-	ActEventTimelineArgs->ViewRange->SetLowerBoundValue(NewRangeMin);
-	ActEventTimelineArgs->ViewRange->SetUpperBoundValue(NewRangeMax);
-}
-
 bool SActSliderWidget::ZoomByDelta(float InDelta, float ZoomBias) const
 {
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
@@ -551,8 +534,7 @@ bool SActSliderWidget::ZoomByDelta(float InDelta, float ZoomBias) const
 
 	if (NewViewOutputMin < NewViewOutputMax)
 	{
-		LocalViewRange.SetLowerBoundValue(NewViewOutputMin);
-		LocalViewRange.SetUpperBoundValue(NewViewOutputMax);
+		ActEventTimelineArgs->SetViewRangeClamped(NewViewOutputMin, NewViewOutputMax);
 		NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
 		return true;
 	}
@@ -564,18 +546,13 @@ void SActSliderWidget::PanByDelta(float InDelta) const
 {
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
 	TRange<float> LocalViewRange = *ActEventTimelineArgs->ViewRange;
-
 	const double CurrentMin = LocalViewRange.GetLowerBoundValue();
 	const double CurrentMax = LocalViewRange.GetUpperBoundValue();
-
 	// Adjust the delta to be a percentage of the current range
 	InDelta *= 0.1f * (CurrentMax - CurrentMin);
-
 	const double NewViewOutputMin = CurrentMin + InDelta;
 	const double NewViewOutputMax = CurrentMax + InDelta;
-
-	LocalViewRange.SetLowerBoundValue(NewViewOutputMin);
-	LocalViewRange.SetUpperBoundValue(NewViewOutputMax);
+	ActEventTimelineArgs->SetViewRangeClamped(NewViewOutputMin, NewViewOutputMax);
 	NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
 }
 

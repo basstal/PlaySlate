@@ -10,6 +10,18 @@ namespace NovaStruct
 		  CurrentTime(new FFrameTime(0)),
 		  PlaybackStatus(ENovaPlaybackType::Stopped),
 		  AllowZoom(true) {}
+
+	void FActEventTimelineArgs::SetViewRangeClamped(float NewRangeMin, float NewRangeMax)
+	{
+		// Clamp to a minimum size to avoid zero-sized or negative visible ranges
+		const float MinVisibleTimeRange = FFrameNumber(1) / TickResolution;
+		// Clamp to the clamp range
+		NewRangeMin = FMath::Clamp(NewRangeMin, ClampRange.GetLowerBoundValue(), NewRangeMax - MinVisibleTimeRange);
+		NewRangeMax = FMath::Clamp(NewRangeMax, NewRangeMin + MinVisibleTimeRange, ClampRange.GetUpperBoundValue());
+		ViewRange->SetLowerBoundValue(NewRangeMin);
+		ViewRange->SetUpperBoundValue(NewRangeMax);
+	}
+
 	//~End FActEventTimelineArgs
 
 	//~Begin FActSliderScrubRangeToScreen
@@ -29,8 +41,9 @@ namespace NovaStruct
 	{
 		return (InputTime - ViewStart) * PixelsPerInput;
 	}
+
 	//~End FActSliderScrubRangeToScreen
-	
+
 	TRange<FFrameTime> FActActionEvaluationRange::CalculateEvaluationRange(FFrameTime CurrentTime, FFrameTime PreviousTime, bool bInclusivePreviousTime)
 	{
 		if (CurrentTime == PreviousTime)

@@ -15,12 +15,17 @@ public:
 	double ViewStartTime() const;
 	/** 属性绑定 */
 	double ViewEndTime() const;
+	/**
+	 * 属性值提交的回调
+	 *
+	 * @param InFrameValue
+	 * @param InTextCommit
+	 */
+	void OnViewStartTimeCommitted(double InFrameValue, ETextCommit::Type InTextCommit) const;
 	/** 属性值提交的回调 */
-	void OnViewStartTimeCommitted(double NewValue, ETextCommit::Type InTextCommit) const;
-	/** 属性值提交的回调 */
-	void OnViewEndTimeCommitted(double NewValue, ETextCommit::Type InTextCommit) const;
+	void OnViewEndTimeCommitted(double InFrameValue, ETextCommit::Type InTextCommit) const;
 	/** 属性值改变的回调 */
-	void OnViewTimeChanged(double NewValue, bool bIsEndValue = false) const;
+	void OnViewTimeChanged(double InFrameValue, bool bIsEndValue = false) const;
 	/** 获得Spinbox Delta */
 	double GetSpinboxDelta() const;
 protected:

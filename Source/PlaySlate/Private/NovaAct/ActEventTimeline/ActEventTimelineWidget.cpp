@@ -19,30 +19,31 @@
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
+SActEventTimelineWidget::SActEventTimelineWidget()
+{
+	UE_LOG(LogNovaAct, Log, TEXT("SActEventTimelineWidget::SActEventTimelineWidget"));
+	// ** 将能编辑的所有TrackEditor注册，以便能够使用AddTrackEditor以及AddTrackMenu
+	TrackEditorDelegates.Add(OnCreateTrackEditorDelegate::CreateStatic(FActActionHitBoxTrack::CreateTrackEditor));
+}
+
 SActEventTimelineWidget::~SActEventTimelineWidget()
 {
 	UE_LOG(LogNovaAct, Log, TEXT("SActEventTimelineWidget::~SActEventTimelineWidget"));
-	NovaDB::Delete("ColumnFillCoefficientsLeft");
 	TrackEditors.Empty();
 	TrackEditorDelegates.Empty();
 }
 
 void SActEventTimelineWidget::Construct(const FArguments& InArgs)
 {
-	// ** TODO:存储在配置中
-	ColumnFillCoefficientsLeftDB = NovaDB::Create("ColumnFillCoefficientsLeft", 0.3f);
-	// ** 将能编辑的所有TrackEditor注册，以便能够使用AddTrackEditor以及AddTrackMenu
-	TrackEditorDelegates.Add(OnCreateTrackEditorDelegate::CreateStatic(FActActionHitBoxTrack::CreateTrackEditor));
-
 	auto FillLeftAttr = TAttribute<float>::Create(TAttribute<float>::FGetter::CreateLambda([]()
 	{
 		auto DB = GetDataBinding(float, "ColumnFillCoefficientsLeft");
-		return DB->GetData();
+		return DB ? DB->GetData() : 0;
 	}));
 	auto FillRightAttr = TAttribute<float>::Create(TAttribute<float>::FGetter::CreateLambda([]()
 	{
 		auto DB = GetDataBinding(float, "ColumnFillCoefficientsLeft");
-		return 1 - DB->GetData();
+		return DB ? (1 - DB->GetData()) : 1;
 	}));
 
 	TSharedPtr<SGridPanel> GridPanel;

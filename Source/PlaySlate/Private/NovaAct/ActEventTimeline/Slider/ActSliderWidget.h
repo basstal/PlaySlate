@@ -63,12 +63,12 @@ public:
 	 */
 	void OnScrubPositionChanged(FFrameTime NewScrubPosition, bool bScrubbing);
 
-	/**
-	 * 设置当前TrackPanel时间轴表示的范围
-	 * 
-	 * @param InViewRange
-	 */
-	void OnViewRangeChanged(TSharedPtr<TRange<float>> InViewRange);
+	// /**
+	//  * 设置当前TrackPanel时间轴表示的范围
+	//  * 
+	//  * @param InViewRange
+	//  */
+	// void OnViewRangeChanged(TSharedPtr<TRange<float>> InViewRange);
 
 	/**
 	 * Zoom the range by a given delta.

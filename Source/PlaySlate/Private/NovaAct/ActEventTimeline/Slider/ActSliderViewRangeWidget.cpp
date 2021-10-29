@@ -1,8 +1,10 @@
 ﻿#include "ActSliderViewRangeWidget.h"
 
+#include "Common/NovaDataBinding.h"
 #include "NovaAct/ActEventTimeline/Slider/ActSliderViewRangeBarWidget.h"
 #include "NovaAct/ActEventTimeline/Slider/ActSliderWidget.h"
 #include "Widgets/Input/SSpinBox.h"
+#include "FrameNumberNumericInterface.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
@@ -29,10 +31,10 @@ void SActSliderViewRangeWidget::Construct(const FArguments& InArgs)
 					.Value(this, &SActSliderViewRangeWidget::ViewStartTime)
 					.ToolTipText(LOCTEXT("ViewStartTimeTooltip", "View Range Start Time"))
 					.OnValueCommitted(this, &SActSliderViewRangeWidget::OnViewStartTimeCommitted)
-					.OnValueChanged(SSpinBox<double>::FOnValueChanged::CreateLambda([this](double InNewValue)
+					.OnValueChanged_Lambda([this](double InNewValue)
 					                      {
 						                      OnViewTimeChanged(InNewValue);
-					                      }))
+					                      })
 					.MinValue(TOptional<double>())
 					.MaxValue(TOptional<double>())
 					.Style(&FEditorStyle::Get().GetWidgetStyle<FSpinBoxStyle>("Sequencer.HyperlinkSpinBox"))
@@ -64,10 +66,10 @@ void SActSliderViewRangeWidget::Construct(const FArguments& InArgs)
 					.Value(this, &SActSliderViewRangeWidget::ViewEndTime)
 					.ToolTipText(LOCTEXT("ViewEndTimeTooltip", "View Range End Time"))
 					.OnValueCommitted(this, &SActSliderViewRangeWidget::OnViewEndTimeCommitted)
-					.OnValueChanged(SSpinBox<double>::FOnValueChanged::CreateLambda([this](double InNewValue)
+					.OnValueChanged_Lambda([this](double InNewValue)
 					                      {
 						                      OnViewTimeChanged(InNewValue, true);
-					                      }))
+					                      })
 					.MinValue(TOptional<double>())
 					.MaxValue(TOptional<double>())
 					.Style(&FEditorStyle::Get().GetWidgetStyle<FSpinBoxStyle>("Sequencer.HyperlinkSpinBox"))
@@ -91,17 +93,28 @@ double SActSliderViewRangeWidget::ViewStartTime() const
 	return Time.GetFrame().Value;
 }
 
-void SActSliderViewRangeWidget::OnViewStartTimeCommitted(double NewValue, ETextCommit::Type InTextCommit) const
+void SActSliderViewRangeWidget::OnViewStartTimeCommitted(double InFrameValue, ETextCommit::Type InTextCommit) const
 {
-	OnViewTimeChanged(NewValue);
+	OnViewTimeChanged(InFrameValue);
 }
 
-void SActSliderViewRangeWidget::OnViewTimeChanged(double NewValue, bool bIsEndValue) const
+void SActSliderViewRangeWidget::OnViewTimeChanged(double InFrameValue, bool bIsEndValue) const
 {
+	UE_LOG(LogNovaAct, Log, TEXT("NewValue : %f, %d"), InFrameValue, bIsEndValue);
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
-	const double Time = TickResolution.AsSeconds(FFrameTime::FromDecimal(NewValue));
+	double Time = TickResolution.AsSeconds(FFrameTime::FromDecimal(InFrameValue));
+	if (bIsEndValue)
+	{
+		Time = FMath::Clamp(Time, TickResolution.AsInterval(), (double)ActEventTimelineArgs->ClampRange.GetUpperBoundValue());
+	}
+	else
+	{
+		Time = FMath::Clamp(Time,
+		                    (double)ActEventTimelineArgs->ClampRange.GetLowerBoundValue(),
+		                    (double)ActEventTimelineArgs->ClampRange.GetUpperBoundValue() - TickResolution.AsInterval());
+	}
 	const double ViewStartTime = ActEventTimelineArgs->ViewRange->GetLowerBoundValue();
 	double ViewEndTime = ActEventTimelineArgs->ViewRange->GetUpperBoundValue();
 
@@ -110,18 +123,8 @@ void SActSliderViewRangeWidget::OnViewTimeChanged(double NewValue, bool bIsEndVa
 		const double ViewDuration = ViewEndTime - ViewStartTime;
 		ViewEndTime = Time + ViewDuration;
 	}
-	if (bIsEndValue)
-	{
-		ActEventTimelineArgs->ViewRange->SetLowerBoundValue(ViewStartTime);
-		ActEventTimelineArgs->ViewRange->SetUpperBoundValue(Time);
-		NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
-	}
-	else
-	{
-		ActEventTimelineArgs->ViewRange->SetLowerBoundValue(Time);
-		ActEventTimelineArgs->ViewRange->SetUpperBoundValue(ViewEndTime);
-		NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
-	}
+	ActEventTimelineArgs->SetViewRangeClamped(bIsEndValue ? ViewStartTime : Time, bIsEndValue ? Time : ViewEndTime);
+	NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
 }
 
 double SActSliderViewRangeWidget::GetSpinboxDelta() const
@@ -141,8 +144,8 @@ double SActSliderViewRangeWidget::ViewEndTime() const
 	return Time.GetFrame().Value;
 }
 
-void SActSliderViewRangeWidget::OnViewEndTimeCommitted(double NewValue, ETextCommit::Type InTextCommit) const
+void SActSliderViewRangeWidget::OnViewEndTimeCommitted(double InFrameValue, ETextCommit::Type InTextCommit) const
 {
-	OnViewTimeChanged(NewValue, true);
+	OnViewTimeChanged(InFrameValue, true);
 }
 #undef LOCTEXT_NAMESPACE

@@ -34,9 +34,9 @@ FActViewportPreviewScene::FActViewportPreviewScene(const ConstructionValues& CVS
 	NovaDB::CreateSP("ActEventTimelineArgs/CurrentTime", ActEventTimelineArgsDB->GetData()->CurrentTime);
 	DataBindingSPBindRaw(FFrameTime, "ActEventTimelineArgs/CurrentTime", this, &FActViewportPreviewScene::OnCurrentTimeChanged, OnCurrentTimeChangedHandle);
 
-	auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
-	OnAnimBlueprintChangedHandle = ActAnimationDB->Bind(TDataBindingUObject<UActAnimation>::DelegateType::CreateRaw(this, &FActViewportPreviewScene::OnAnimBlueprintChanged));
-	OnAnimSequenceChangedHandle = ActAnimationDB->Bind(TDataBindingUObject<UActAnimation>::DelegateType::CreateRaw(this, &FActViewportPreviewScene::OnAnimSequenceChanged));
+	// auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
+	DataBindingUObjectBindRaw(UActAnimation, "ActAnimation", this, &FActViewportPreviewScene::OnAnimBlueprintChanged, OnAnimBlueprintChangedHandle);
+	DataBindingUObjectBindRaw(UActAnimation, "ActAnimation", this, &FActViewportPreviewScene::OnAnimSequenceChanged, OnAnimSequenceChangedHandle);
 
 	FDelegateHandle _;
 	DataBindingBindRaw(ENovaTransportControls, "TransportControlsState", this, &FActViewportPreviewScene::OnTransportControlsStateChanged, _);
@@ -65,9 +65,8 @@ void FActViewportPreviewScene::Init(const TSharedRef<SDockTab>& InParentDockTab)
 {
 	// ** NOTE:这里不能用SNew的原因是在构造时会调用到FActActionPreviewSceneController::MakeViewportClient，需要先设置好ActActionViewportWidget指针
 	// InParentDockTab->SetContent(SAssignNew(ActViewport, SActViewport, SharedThis(this)));
-
-	
 }
+
 //
 // TSharedPtr<FActViewportClient> FActViewportPreviewScene::MakeViewportClient()
 // {

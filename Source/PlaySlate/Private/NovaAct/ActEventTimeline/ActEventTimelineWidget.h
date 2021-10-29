@@ -19,6 +19,7 @@ public:
 	SLATE_BEGIN_ARGS(SActEventTimelineWidget) { }
 	SLATE_END_ARGS()
 
+	SActEventTimelineWidget();
 	virtual ~SActEventTimelineWidget() override;
 
 	void Construct(const FArguments& InArgs);
@@ -37,8 +38,6 @@ protected:
 	TSharedPtr<SActSliderWidget> ActEventTimelineSliderWidget;
 	/** 过滤用的关键字 */
 	FText InFilter;
-	/** TreeView与TrackArea占比，此处为TreeView占比，TrackArea占比值为1 - ColumnFillCoefficientsLeft */
-	TSharedPtr<TDataBinding<float>> ColumnFillCoefficientsLeftDB;
 	/** 所有已注册的CreateTrackEditor代理方法，在FActActionTrackEditorBase的子类中实现 */
 	TArray<OnCreateTrackEditorDelegate> TrackEditorDelegates;
 	/** List of tools we own */

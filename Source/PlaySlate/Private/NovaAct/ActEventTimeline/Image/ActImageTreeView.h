@@ -14,6 +14,7 @@ class SActImageTreeView : public STreeView<TSharedRef<SActImageTreeViewTableRow>
 public:
 	typedef STreeView::FArguments FArguments;
 
+	virtual ~SActImageTreeView() override;
 	// ReSharper disable once CppHidingFunction
 	void Construct(const FArguments& InArgs);
 
@@ -45,4 +46,6 @@ protected:
 	TArray<TSharedRef<SActImageTreeViewTableRow>> DisplayedRootNodes;// ** 从树的数据中复制和缓存的根节点信息
 
 	TArray<TSharedRef<SActImageTreeViewTableRow>> ChildNodes;// ** List of children belonging to this node
+	
+	FDelegateHandle OnHitBoxesChangedHandle;
 };

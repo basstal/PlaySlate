@@ -8,10 +8,15 @@
 #include "NovaAct/ActEventTimeline/Image/Subs/ActActionSequenceTreeViewRow.h"
 
 
+SActImageTreeView::~SActImageTreeView()
+{
+	auto DB = GetDataBindingUObject(UActAnimation, "ActAnimation");
+	DB->UnBind(OnHitBoxesChangedHandle);
+}
+
 void SActImageTreeView::Construct(const FArguments& InArgs)
 {
-	auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
-	ActAnimationDB->Bind(TDataBindingUObject<UActAnimation>::DelegateType::CreateRaw(this, &SActImageTreeView::OnHitBoxesChanged));
+	DataBindingUObjectBindRaw(UActAnimation, "ActAnimation", this, &SActImageTreeView::OnHitBoxesChanged, OnHitBoxesChangedHandle);
 
 	HeaderRow = SNew(SHeaderRow)
 		.Visibility(EVisibility::Collapsed)

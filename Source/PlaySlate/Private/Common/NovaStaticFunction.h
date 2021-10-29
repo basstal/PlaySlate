@@ -102,7 +102,7 @@ public:
 		return Metrics;
 	}
 
-	static bool GetGridMetrics(TSharedPtr<INumericTypeInterface<double>> NumericTypeInterface,
+	static bool GetGridMetrics(TSharedPtr<FFrameNumberInterface> NumericTypeInterface,
 	                           const float PhysicalWidth,
 	                           const double InViewStart,
 	                           const double InViewEnd,
