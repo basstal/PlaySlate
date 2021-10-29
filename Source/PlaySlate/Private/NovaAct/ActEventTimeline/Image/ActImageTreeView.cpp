@@ -11,7 +11,10 @@
 SActImageTreeView::~SActImageTreeView()
 {
 	auto DB = GetDataBindingUObject(UActAnimation, "ActAnimation");
-	DB->UnBind(OnHitBoxesChangedHandle);
+	if (DB)
+	{
+		DB->UnBind(OnHitBoxesChangedHandle);
+	}
 }
 
 void SActImageTreeView::Construct(const FArguments& InArgs)

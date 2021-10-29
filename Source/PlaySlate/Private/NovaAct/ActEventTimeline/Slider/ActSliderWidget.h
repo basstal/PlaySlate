@@ -63,13 +63,6 @@ public:
 	 */
 	void OnScrubPositionChanged(FFrameTime NewScrubPosition, bool bScrubbing);
 
-	// /**
-	//  * 设置当前TrackPanel时间轴表示的范围
-	//  * 
-	//  * @param InViewRange
-	//  */
-	// void OnViewRangeChanged(TSharedPtr<TRange<float>> InViewRange);
-
 	/**
 	 * Zoom the range by a given delta.
 	 * 
@@ -95,11 +88,13 @@ public:
 	 */
 	static void DrawTicks(
 		FSlateWindowElementList& OutDrawElements,
-		const TRange<float>& ViewRange,
+		const TRange<double>& ViewRange,
 		const FActSliderScrubRangeToScreen& RangeToScreen,
 		const FActDrawTickArgs& InArgs);
 
-	/** @return 获得 EventTimeline 共享参数 */
+	/**
+	 * @return 获得 EventTimeline 共享参数
+	 */
 	TSharedRef<FActEventTimelineArgs> GetActEventTimelineArgs() const;
 protected:
 	/** 鼠标拖拽的累计距离，Total mouse delta during dragging */
@@ -115,7 +110,7 @@ protected:
 	/** 鼠标按下的位置范围值，Mouse down position range */
 	FVector2D MouseDownPosition[2];
 	/** 给 DRAG_SETTING_RANGE Zoom 功能使用，Range stack */
-	TArray<TRange<float>> ViewRangeZoomStack;
+	TArray<TRange<double>> ViewRangeZoomStack;
 	/** 记录鼠标按下时传入的Geometry，Geometry on mouse down */
 	FGeometry MouseDownGeometry;
 };

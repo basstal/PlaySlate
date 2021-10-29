@@ -14,12 +14,16 @@ namespace NovaStruct
 	struct FActEventTimelineArgs
 	{
 		FActEventTimelineArgs();
-
-		void SetViewRangeClamped(float NewRangeMin, float NewRangeMax);
+		/**
+		 * 设置 ViewRange 并且限制其范围
+		 * @param NewRangeMin
+		 * @param NewRangeMax
+		 */
+		void SetViewRangeClamped(double NewRangeMin, double NewRangeMax);
 		// 当前可见的区域，这个值可以比动画播放区间小，例如放大显示时
-		TSharedPtr<TRange<float>> ViewRange;
+		TSharedPtr<TRange<double>> ViewRange;
 		// 最大可调整的区域，与AnimSequence动画的播放时长相同，范围[0, PlayLength]
-		TRange<float> ClampRange;
+		TRange<double> ClampRange;
 
 		// 当前使用的帧率
 		FFrameRate TickResolution;
@@ -37,18 +41,26 @@ namespace NovaStruct
 	/** Utility struct for converting between scrub range space and local/absolute screen space, 这个结构用于时间和 Widget 距离的对应转换 */
 	struct FActSliderScrubRangeToScreen
 	{
-		FActSliderScrubRangeToScreen(const TRange<float>& InViewInput, const FVector2D& InWidgetSize);
+		FActSliderScrubRangeToScreen(const TRange<double>& InViewInput, const FVector2D& InWidgetSize);
 
-		/** Local Widget Space -> Curve InputTime domain. */
-		float LocalXToInput(float ScreenX) const;
+		/**
+		 * Local Widget Space -> Curve InputTime domain.
+		 *
+		 * @param ScreenX
+		 */
+		double LocalXToInput(double ScreenX) const;
 
-		/** Curve InputTime domain -> local Widget Space */
-		float InputToLocalX(float InputTime) const;
+		/**
+		 * Curve InputTime domain -> local Widget Space
+		 *
+		 * @param InputTime
+		 */
+		double InputToLocalX(double InputTime) const;
 
 		// InViewInput 对应的起点时间
-		float ViewStart;
+		double ViewStart;
 		// 每单位时间（秒）对应的 UI 距离
-		float PixelsPerInput;
+		double PixelsPerInput;
 	};
 
 	/** 时间轴刷 相关指标 */

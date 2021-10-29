@@ -21,7 +21,7 @@ int32 SActImageThickLine::OnPaint(const FPaintArgs& Args,
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
-	const TRange<float> LocalViewRange = *ActEventTimelineArgs->ViewRange;
+	auto LocalViewRange = *ActEventTimelineArgs->ViewRange;
 	const FActSliderScrubRangeToScreen RangeToScreen(LocalViewRange, AllottedGeometry.Size);
 	// Draw major tick lines in the section area
 	FActDrawTickArgs DrawTickArgs;

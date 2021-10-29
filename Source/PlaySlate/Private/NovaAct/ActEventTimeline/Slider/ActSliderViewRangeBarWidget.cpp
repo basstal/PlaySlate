@@ -76,27 +76,17 @@ int32 SActSliderViewRangeBarWidget::OnPaint(const FPaintArgs& Args, const FGeome
 
 FReply SActSliderViewRangeBarWidget::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
-	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
-	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	MouseDownPosition = MouseEvent.GetScreenSpacePosition();
-	MouseDownViewRange = *ActEventTimelineArgs->ViewRange;
-
-	if (bHandleHovered)
+	bHandleDragged = bHandleHovered;
+	bLeftHandleDragged = bLeftHandleHovered;
+	bRightHandleDragged = bRightHandleHovered;
+	if (bHandleDragged || bLeftHandleDragged || bRightHandleDragged)
 	{
-		bHandleDragged = true;
+		auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
+		TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
+		MouseDownViewRange = *ActEventTimelineArgs->ViewRange;
 		return FReply::Handled().CaptureMouse(AsShared());
 	}
-	else if (bLeftHandleHovered)
-	{
-		bLeftHandleDragged = true;
-		return FReply::Handled().CaptureMouse(AsShared());
-	}
-	else if (bRightHandleHovered)
-	{
-		bRightHandleDragged = true;
-		return FReply::Handled().CaptureMouse(AsShared());
-	}
-
 	return FReply::Unhandled();
 }
 
@@ -111,50 +101,24 @@ FReply SActSliderViewRangeBarWidget::OnMouseMove(const FGeometry& MyGeometry, co
 {
 	if (HasMouseCapture())
 	{
-		const float DragDelta = ComputeDragDelta(MouseEvent, MyGeometry.GetLocalSize().X);
+		const double DragDelta = ComputeDragDelta(MouseEvent, MyGeometry.GetLocalSize().X);
 		auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 		TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 
 		if (bHandleDragged)
 		{
-			double NewIn = MouseDownViewRange.GetLowerBoundValue() + DragDelta;
-			double NewOut = MouseDownViewRange.GetUpperBoundValue() + DragDelta;
-			const TRange<float> ClampRange = ActEventTimelineArgs->ClampRange;
-			if (NewIn < ClampRange.GetLowerBoundValue())
-			{
-				NewIn = ClampRange.GetLowerBoundValue();
-				NewOut = NewIn + (MouseDownViewRange.GetUpperBoundValue() - MouseDownViewRange.GetLowerBoundValue());
-			}
-			else if (NewOut > ClampRange.GetUpperBoundValue())
-			{
-				NewOut = ClampRange.GetUpperBoundValue();
-				NewIn = NewOut - (MouseDownViewRange.GetUpperBoundValue() - MouseDownViewRange.GetLowerBoundValue());
-			}
-			ActEventTimelineArgs->SetViewRangeClamped(NewIn, NewOut);
+			ActEventTimelineArgs->SetViewRangeClamped(MouseDownViewRange.GetLowerBoundValue() + DragDelta,
+			                                          MouseDownViewRange.GetUpperBoundValue() + DragDelta);
 			NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
 		}
 		else if (bLeftHandleDragged || bRightHandleDragged)
 		{
-			double NewIn, NewOut;
-			if (bLeftHandleDragged)
+			double NewIn = bLeftHandleDragged ? MouseDownViewRange.GetLowerBoundValue() + DragDelta : MouseDownViewRange.GetLowerBoundValue();
+			double NewOut = bRightHandleDragged ? MouseDownViewRange.GetUpperBoundValue() + DragDelta : MouseDownViewRange.GetUpperBoundValue();
+			if (MouseEvent.IsShiftDown())
 			{
-				NewIn = MouseDownViewRange.GetLowerBoundValue() + DragDelta;
-
-				NewOut = MouseDownViewRange.GetUpperBoundValue();
-				if (MouseEvent.IsShiftDown())
-				{
-					NewOut -= DragDelta;
-				}
-			}
-			else
-			{
-				NewIn = MouseDownViewRange.GetLowerBoundValue();
-				if (MouseEvent.IsShiftDown())
-				{
-					NewIn -= DragDelta;
-				}
-
-				NewOut = MouseDownViewRange.GetUpperBoundValue() + DragDelta;
+				NewIn -= bRightHandleDragged ? DragDelta : 0;
+				NewOut -= bLeftHandleDragged ? DragDelta : 0;
 			}
 
 			// In cases of extreme zoom the drag delta will be greater than the difference between In/Out.
@@ -214,14 +178,6 @@ FReply SActSliderViewRangeBarWidget::OnMouseButtonDoubleClick(const FGeometry& I
 	ResetState();
 
 	OnMouseMove(InMyGeometry, InMouseEvent);
-
-	// if (bHandleHovered && TimeSliderController.IsValid())
-	// {
-	// 	if (!LastViewRange.IsEmpty())
-	// 	{
-	// 		TimeSliderController.Pin()->OnViewRangeChanged(LastViewRange.GetLowerBoundValue(), LastViewRange.GetUpperBoundValue(), ENovaViewRangeInterpolation::Immediate);
-	// 	}
-	// }
 	ResetState();
 	return FReply::Unhandled();
 }
@@ -253,17 +209,15 @@ void SActSliderViewRangeBarWidget::ComputeHandleOffsets(float& LeftHandleOffset,
 	}
 }
 
-float SActSliderViewRangeBarWidget::ComputeDragDelta(const FPointerEvent& MouseEvent, int32 GeometryWidth) const
+double SActSliderViewRangeBarWidget::ComputeDragDelta(const FPointerEvent& MouseEvent, float GeometryWidth) const
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
-	float BeginTime = ActEventTimelineArgs->ClampRange.GetLowerBoundValue();
-	float EndTime = ActEventTimelineArgs->ClampRange.GetUpperBoundValue();
+	float ClampSize = ActEventTimelineArgs->ClampRange.Size<double>();
 	const float DragDistance = (MouseEvent.GetScreenSpacePosition() - MouseDownPosition).X;
-	const float PixelToUnits = (EndTime - BeginTime) / (GeometryWidth - HandleSize * 2);
-	const float DragDelta = DragDistance * PixelToUnits;
+	const double PixelToUnits = ClampSize / (GeometryWidth - HandleSize * 2);
 	// UE_LOG(LogNovaAct, Log, TEXT("DragDelta : %f"), DragDelta);
-	return DragDelta;
+	return DragDistance * PixelToUnits;
 }
 
 void SActSliderViewRangeBarWidget::ResetState()

@@ -1,23 +1,30 @@
 ﻿#include "Common/NovaStruct.h"
+#include "PlaySlate.h"
 
 namespace NovaStruct
 {
 	//~Begin FActEventTimelineArgs
 	FActEventTimelineArgs::FActEventTimelineArgs()
-		: ViewRange(new TRange<float>(0.0f, 1.0f)),
-		  ClampRange(TRange<float>(0.0f, 1.0f)),
+		: ViewRange(new TRange<double>(0.0f, 1.0f)),
+		  ClampRange(TRange<double>(0.0f, 1.0f)),
 		  TickResolution(60, 1),
 		  CurrentTime(new FFrameTime(0)),
 		  PlaybackStatus(ENovaPlaybackType::Stopped),
 		  AllowZoom(true) {}
 
-	void FActEventTimelineArgs::SetViewRangeClamped(float NewRangeMin, float NewRangeMax)
+	void FActEventTimelineArgs::SetViewRangeClamped(double NewRangeMin, double NewRangeMax)
 	{
-		// Clamp to a minimum size to avoid zero-sized or negative visible ranges
-		const float MinVisibleTimeRange = FFrameNumber(1) / TickResolution;
+		UE_LOG(LogNovaAct, Log, TEXT("NewValue : (%f, %f)"), NewRangeMin, NewRangeMax);
+		const double ClampBeginTime = ClampRange.GetLowerBoundValue();
+		const double ClampEndTime = ClampRange.GetUpperBoundValue();
+		const double TickInterval = TickResolution.AsInterval();
 		// Clamp to the clamp range
-		NewRangeMin = FMath::Clamp(NewRangeMin, ClampRange.GetLowerBoundValue(), NewRangeMax - MinVisibleTimeRange);
-		NewRangeMax = FMath::Clamp(NewRangeMax, NewRangeMin + MinVisibleTimeRange, ClampRange.GetUpperBoundValue());
+		NewRangeMax = FMath::Clamp(NewRangeMax, TickInterval, ClampEndTime);
+		NewRangeMin = FMath::Clamp(NewRangeMin, ClampBeginTime, ClampEndTime - TickInterval);
+		// Clamp to a minimum size to avoid zero-sized or negative visible ranges
+		const double MinVisibleTimeRange = FFrameNumber(1) / TickResolution;
+		NewRangeMin = FMath::Clamp(NewRangeMin, ClampBeginTime, NewRangeMax - MinVisibleTimeRange);
+		NewRangeMax = FMath::Clamp(NewRangeMax, NewRangeMin + MinVisibleTimeRange, ClampEndTime);
 		ViewRange->SetLowerBoundValue(NewRangeMin);
 		ViewRange->SetUpperBoundValue(NewRangeMax);
 	}
@@ -25,19 +32,19 @@ namespace NovaStruct
 	//~End FActEventTimelineArgs
 
 	//~Begin FActSliderScrubRangeToScreen
-	FActSliderScrubRangeToScreen::FActSliderScrubRangeToScreen(const TRange<float>& InViewInput, const FVector2D& InWidgetSize)
+	FActSliderScrubRangeToScreen::FActSliderScrubRangeToScreen(const TRange<double>& InViewInput, const FVector2D& InWidgetSize)
 	{
-		const float ViewInputRange = InViewInput.Size<float>();
+		const double ViewInputRange = InViewInput.Size<double>();
 		ViewStart = InViewInput.GetLowerBoundValue();
 		PixelsPerInput = ViewInputRange > 0 ? (InWidgetSize.X / ViewInputRange) : 0;
 	}
 
-	float FActSliderScrubRangeToScreen::LocalXToInput(float ScreenX) const
+	double FActSliderScrubRangeToScreen::LocalXToInput(double ScreenX) const
 	{
 		return PixelsPerInput > 0 ? (ScreenX / PixelsPerInput) + ViewStart : ViewStart;
 	}
 
-	float FActSliderScrubRangeToScreen::InputToLocalX(float InputTime) const
+	double FActSliderScrubRangeToScreen::InputToLocalX(double InputTime) const
 	{
 		return (InputTime - ViewStart) * PixelsPerInput;
 	}

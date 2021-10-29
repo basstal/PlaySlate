@@ -28,12 +28,12 @@ void SActSliderViewRangeWidget::Construct(const FArguments& InArgs)
 				.HAlign(HAlign_Center)
 				[
 					SNew(SSpinBox<double>)
-					.Value(this, &SActSliderViewRangeWidget::ViewStartTime)
-					.ToolTipText(LOCTEXT("ViewStartTimeTooltip", "View Range Start Time"))
-					.OnValueCommitted(this, &SActSliderViewRangeWidget::OnViewStartTimeCommitted)
+					.Value(this, &SActSliderViewRangeWidget::ViewBeginTime)
+					.ToolTipText(LOCTEXT("ViewBeginTimeTooltip", "View Range Begin Time"))
+					.OnValueCommitted(this, &SActSliderViewRangeWidget::OnViewBeginTimeCommitted)
 					.OnValueChanged_Lambda([this](double InNewValue)
 					                      {
-						                      OnViewTimeChanged(InNewValue);
+						                      OnViewBeginTimeCommitted(InNewValue, ETextCommit::Default);
 					                      })
 					.MinValue(TOptional<double>())
 					.MaxValue(TOptional<double>())
@@ -68,7 +68,7 @@ void SActSliderViewRangeWidget::Construct(const FArguments& InArgs)
 					.OnValueCommitted(this, &SActSliderViewRangeWidget::OnViewEndTimeCommitted)
 					.OnValueChanged_Lambda([this](double InNewValue)
 					                      {
-						                      OnViewTimeChanged(InNewValue, true);
+						                      OnViewEndTimeCommitted(InNewValue, ETextCommit::Default);
 					                      })
 					.MinValue(TOptional<double>())
 					.MaxValue(TOptional<double>())
@@ -83,7 +83,7 @@ void SActSliderViewRangeWidget::Construct(const FArguments& InArgs)
 }
 
 
-double SActSliderViewRangeWidget::ViewStartTime() const
+double SActSliderViewRangeWidget::ViewBeginTime() const
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
@@ -93,38 +93,12 @@ double SActSliderViewRangeWidget::ViewStartTime() const
 	return Time.GetFrame().Value;
 }
 
-void SActSliderViewRangeWidget::OnViewStartTimeCommitted(double InFrameValue, ETextCommit::Type InTextCommit) const
+void SActSliderViewRangeWidget::OnViewBeginTimeCommitted(double InFrameValue, ETextCommit::Type InTextCommit) const
 {
-	OnViewTimeChanged(InFrameValue);
-}
-
-void SActSliderViewRangeWidget::OnViewTimeChanged(double InFrameValue, bool bIsEndValue) const
-{
-	UE_LOG(LogNovaAct, Log, TEXT("NewValue : %f, %d"), InFrameValue, bIsEndValue);
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
-	const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
-	double Time = TickResolution.AsSeconds(FFrameTime::FromDecimal(InFrameValue));
-	if (bIsEndValue)
-	{
-		Time = FMath::Clamp(Time, TickResolution.AsInterval(), (double)ActEventTimelineArgs->ClampRange.GetUpperBoundValue());
-	}
-	else
-	{
-		Time = FMath::Clamp(Time,
-		                    (double)ActEventTimelineArgs->ClampRange.GetLowerBoundValue(),
-		                    (double)ActEventTimelineArgs->ClampRange.GetUpperBoundValue() - TickResolution.AsInterval());
-	}
-	const double ViewStartTime = ActEventTimelineArgs->ViewRange->GetLowerBoundValue();
-	double ViewEndTime = ActEventTimelineArgs->ViewRange->GetUpperBoundValue();
-
-	if (Time >= ViewEndTime)
-	{
-		const double ViewDuration = ViewEndTime - ViewStartTime;
-		ViewEndTime = Time + ViewDuration;
-	}
-	ActEventTimelineArgs->SetViewRangeClamped(bIsEndValue ? ViewStartTime : Time, bIsEndValue ? Time : ViewEndTime);
-	NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
+	double BeginTime = ActEventTimelineArgs->TickResolution.AsInterval() * InFrameValue;
+	ActEventTimelineArgs->SetViewRangeClamped(BeginTime, ActEventTimelineArgs->ViewRange->GetUpperBoundValue());
 }
 
 double SActSliderViewRangeWidget::GetSpinboxDelta() const
@@ -146,6 +120,9 @@ double SActSliderViewRangeWidget::ViewEndTime() const
 
 void SActSliderViewRangeWidget::OnViewEndTimeCommitted(double InFrameValue, ETextCommit::Type InTextCommit) const
 {
-	OnViewTimeChanged(InFrameValue, true);
+	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
+	double EndTime = ActEventTimelineArgs->TickResolution.AsInterval() * InFrameValue;
+	ActEventTimelineArgs->SetViewRangeClamped(ActEventTimelineArgs->ViewRange->GetLowerBoundValue(), EndTime);
 }
 #undef LOCTEXT_NAMESPACE

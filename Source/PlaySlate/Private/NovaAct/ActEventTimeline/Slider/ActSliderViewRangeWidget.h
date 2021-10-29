@@ -12,7 +12,7 @@ public:
 	void Construct(const FArguments& InArgs);
 
 	/** 属性绑定 */
-	double ViewStartTime() const;
+	double ViewBeginTime() const;
 	/** 属性绑定 */
 	double ViewEndTime() const;
 	/**
@@ -21,11 +21,9 @@ public:
 	 * @param InFrameValue
 	 * @param InTextCommit
 	 */
-	void OnViewStartTimeCommitted(double InFrameValue, ETextCommit::Type InTextCommit) const;
+	void OnViewBeginTimeCommitted(double InFrameValue, ETextCommit::Type InTextCommit) const;
 	/** 属性值提交的回调 */
 	void OnViewEndTimeCommitted(double InFrameValue, ETextCommit::Type InTextCommit) const;
-	/** 属性值改变的回调 */
-	void OnViewTimeChanged(double InFrameValue, bool bIsEndValue = false) const;
 	/** 获得Spinbox Delta */
 	double GetSpinboxDelta() const;
 protected:

@@ -233,7 +233,7 @@ void FNovaActEditor::OnAnimSequenceChanged(UAnimSequence** InAnimSequence)
 	// ** 限制显示的最大长度为当前的Sequence总时长
 	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	auto ActEventTimelineArgs = DB->GetData();
-	ActEventTimelineArgs->ClampRange = TRange<float>(0, CalculateSequenceLength);
+	ActEventTimelineArgs->ClampRange = TRange<double>(0, CalculateSequenceLength);
 	ActEventTimelineArgs->SetViewRangeClamped(0, CalculateSequenceLength);
 	NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
 	ActEventTimelineArgs->TickResolution = AnimSequence->GetSamplingFrameRate();

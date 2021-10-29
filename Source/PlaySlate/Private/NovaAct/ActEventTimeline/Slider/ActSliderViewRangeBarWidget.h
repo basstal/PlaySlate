@@ -26,8 +26,14 @@ public:
 
 	/** 计算拖拽部分的offset距离 */
 	void ComputeHandleOffsets(float& LeftHandleOffset, float& RightHandleOffset, float& HandleOffset, int32 GeometryWidth) const;
-	/** 计算单位拖拽的时间跨度 */
-	float ComputeDragDelta(const FPointerEvent& MouseEvent, int32 GeometryWidth) const;
+	/**
+	 * 计算单位拖拽的时间跨度
+	 *
+	 * @param MouseEvent
+	 * @param GeometryWidth
+	 * @return DragDelta 拖动的距离转换成 时间
+	 */
+	double ComputeDragDelta(const FPointerEvent& MouseEvent, float GeometryWidth) const;
 	/** 重置所有状态 */
 	void ResetState();
 	/** 重置按下中的状态 */
@@ -51,7 +57,7 @@ protected:
 	/* The position of the mouse on mouse down */
 	FVector2D MouseDownPosition;
 	/* The in/out view range on mouse down */
-	TRange<float> MouseDownViewRange;
+	TRange<double> MouseDownViewRange;
 	/** 拖拽按钮单个的宽度 */
 	float HandleSize = 14.0f;
 };

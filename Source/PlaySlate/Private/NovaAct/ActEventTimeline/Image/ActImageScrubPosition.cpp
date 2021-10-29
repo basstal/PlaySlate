@@ -19,7 +19,7 @@ int32 SActImageScrubPosition::OnPaint(const FPaintArgs& Args,
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
-	TRange<float> LocalViewRange = *ActEventTimelineArgs->ViewRange;
+	auto LocalViewRange = *ActEventTimelineArgs->ViewRange;
 	const FActSliderScrubRangeToScreen RangeToScreen(LocalViewRange, AllottedGeometry.Size);
 
 	FQualifiedFrameTime ScrubPosition = FQualifiedFrameTime(FFrameTime(ActEventTimelineArgs->CurrentTime->GetFrame()), ActEventTimelineArgs->TickResolution);
