@@ -93,21 +93,6 @@ double SActSliderViewRangeWidget::ViewBeginTime() const
 	return Time.GetFrame().Value;
 }
 
-void SActSliderViewRangeWidget::OnViewBeginTimeCommitted(double InFrameValue, ETextCommit::Type InTextCommit) const
-{
-	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
-	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
-	double BeginTime = ActEventTimelineArgs->TickResolution.AsInterval() * InFrameValue;
-	ActEventTimelineArgs->SetViewRangeClamped(BeginTime, ActEventTimelineArgs->ViewRange->GetUpperBoundValue());
-}
-
-double SActSliderViewRangeWidget::GetSpinboxDelta() const
-{
-	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
-	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
-	return ActEventTimelineArgs->TickResolution.AsDecimal() * ActEventTimelineArgs->TickResolution.AsInterval();
-}
-
 double SActSliderViewRangeWidget::ViewEndTime() const
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
@@ -118,11 +103,28 @@ double SActSliderViewRangeWidget::ViewEndTime() const
 	return Time.GetFrame().Value;
 }
 
+
+void SActSliderViewRangeWidget::OnViewBeginTimeCommitted(double InFrameValue, ETextCommit::Type InTextCommit) const
+{
+	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
+	double BeginTime = ActEventTimelineArgs->TickResolution.AsInterval() * InFrameValue;
+	ActEventTimelineArgs->SetViewRangeClamped(BeginTime, ActEventTimelineArgs->ViewRange->GetUpperBoundValue());
+}
+
 void SActSliderViewRangeWidget::OnViewEndTimeCommitted(double InFrameValue, ETextCommit::Type InTextCommit) const
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
 	double EndTime = ActEventTimelineArgs->TickResolution.AsInterval() * InFrameValue;
 	ActEventTimelineArgs->SetViewRangeClamped(ActEventTimelineArgs->ViewRange->GetLowerBoundValue(), EndTime);
+}
+
+
+double SActSliderViewRangeWidget::GetSpinboxDelta() const
+{
+	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
+	return ActEventTimelineArgs->TickResolution.AsDecimal() * ActEventTimelineArgs->TickResolution.AsInterval();
 }
 #undef LOCTEXT_NAMESPACE
