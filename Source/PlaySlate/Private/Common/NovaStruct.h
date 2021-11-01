@@ -109,7 +109,7 @@ namespace NovaStruct
 
 	struct FActActionTrackAreaArgs
 	{
-		int BeginTime; // ** 开始时间
+		int32 BeginTime; // ** 开始时间
 		float Duration;// ** 时间长度
 
 		// float GetBeginTime() const

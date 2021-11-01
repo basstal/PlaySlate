@@ -25,10 +25,10 @@ bool NovaDataBinding::Delete(FName InName)
 	return false;
 }
 
-void NovaDataBinding::Trigger(FName InName)
+void NovaDataBinding::Trigger(FName InName, const FDelegateHandle& InDelegateHandle)
 {
 	if (auto DataBinding = Get(InName))
 	{
-		DataBinding->Trigger();
+		DataBinding->Trigger(InDelegateHandle);
 	}
 }

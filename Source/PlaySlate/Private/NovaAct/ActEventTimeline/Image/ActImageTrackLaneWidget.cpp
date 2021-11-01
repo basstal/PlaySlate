@@ -24,24 +24,82 @@ float SActImageTrackLaneWidget::Slot::GetVerticalOffset() const
 {
 	if (SlotContent.IsValid())
 	{
-		return SlotContent.Pin()->GetPhysicalPosition();
+		return SlotContent->GetPhysicalPosition();
 	}
 	return 0.0f;
 }
 
-void SActImageTrackLaneWidget::Construct(const FArguments& InArgs) {}
+void SActImageTrackLaneWidget::Construct(const FArguments& InArgs, const TSharedRef<SActImageTreeViewTableRow>& InActImageTreeViewTableRow)
+{
+	Height = 24.0f;
+
+	ActImageTreeViewTableRow = InActImageTreeViewTableRow;
+}
+
+int32 SActImageTrackLaneWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+{
+	// static const FName BorderName("AnimTimeline.Outliner.DefaultBorder");
+	// static const FName SelectionColorName("SelectionColor");
+
+	// TSharedPtr<FAnimTimelineTrack> Track = WeakTrack.Pin();
+	// if(Track.IsValid())
+	// {
+	// 	if (Track->IsVisible())
+	// 	{
+	// float TotalNodeHeight = Track->GetHeight() + Track->GetPadding().Combined();
+	//
+	// // draw hovered
+	// if (Track->IsHovered())
+	// {
+	// 	FSlateDrawElement::MakeBox(
+	// 		OutDrawElements,
+	// 		LayerId++,
+	// 		AllottedGeometry.ToPaintGeometry(
+	// 			FVector2D(0, 0),
+	// 			FVector2D(AllottedGeometry.GetLocalSize().X, TotalNodeHeight)
+	// 		),
+	// 		FEditorStyle::GetBrush(BorderName),
+	// 		ESlateDrawEffect::None,
+	// 		FLinearColor(1.0f, 1.0f, 1.0f, 0.05f)
+	// 	);
+	// }
+
+	// Draw track bottom border
+	FSlateDrawElement::MakeLines(
+		OutDrawElements,
+		LayerId++,
+		AllottedGeometry.ToPaintGeometry(),
+		TArray<FVector2D>({
+			FVector2D(0.0f, Height),
+			FVector2D(AllottedGeometry.GetLocalSize().X, Height)
+		}),
+		ESlateDrawEffect::None,
+		FLinearColor::White.CopyWithNewOpacity(0.2f)
+	);
+	// }
+	//
+	// }
+
+	return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId + 1, InWidgetStyle, bParentEnabled);
+}
+
+FVector2D SActImageTrackLaneWidget::ComputeDesiredSize(float LayoutScaleMultiplier) const
+{
+	return FVector2D(100.0f, Height);
+}
 
 // void SActImageTrackLaneWidget::MakeTrackLane()
 // {
 // 	// TrackLane = SNew(SActImageTrackCarWidget)
 // 	// [
-// 	// 	SequenceTreeViewNode.Pin()->GetActActionSectionWidget()
+// 	// 	ActImageTreeViewTableRow.Pin()->GetActActionSectionWidget()
 // 	// ];
 // 	// TSharedRef<SWeakWidget> AttachedWidget = SNew(SWeakWidget)
 // 	// .Clipping(EWidgetClipping::ClipToBounds)
 // 	// .PossiblyNullContent(TrackLane);
 // 	// AttachWidget(AttachedWidget);
 // }
+
 
 FText SActImageTrackLaneWidget::GetNodeTooltip()
 {
@@ -67,26 +125,26 @@ FLinearColor SActImageTrackLaneWidget::GetEditorColor()
 }
 
 //
-// void SActImageTrackLaneWidget::GetTime(float& OutTime, int& OutFrame)
+// void SActImageTrackLaneWidget::GetTime(float& OutTime, int32& OutFrame)
 // {
 // 	const ActActionSequence::FActActionTrackAreaArgs& TrackAreaArgs = GetActActionTrackAreaArgs();
 // 	const FFrameRate& FrameRate = TrackAreaArgs.TickResolution.Get();
 // 	OutTime = 0;
 // 	OutFrame = 0;
-// 	if (SequenceTreeViewNode.Pin()->GetType() == ENovaTreeViewNodeType::State)
+// 	if (ActImageTreeViewTableRow.Pin()->GetType() == ENovaTreeViewNodeType::State)
 // 	{
 // 		OutTime = FMath::Max(OutTime, (float)(TrackAreaArgs.Begin.Get() * FrameRate.AsInterval()));
 // 		OutFrame = FMath::Max(OutFrame, TrackAreaArgs.Begin.Get());
 // 	}
 // }
 //
-// void SActImageTrackLaneWidget::GetDuration(float& OutTime, int& OutFrame)
+// void SActImageTrackLaneWidget::GetDuration(float& OutTime, int32& OutFrame)
 // {
 // 	const ActActionSequence::FActActionTrackAreaArgs& TrackAreaArgs = GetActActionTrackAreaArgs();
 // 	const FFrameRate& FrameRate = TrackAreaArgs.TickResolution.Get();
 // 	OutTime = NovaConst::ActMinimumNotifyStateFrame * FrameRate.AsInterval();
 // 	OutFrame = NovaConst::ActMinimumNotifyStateFrame;
-// 	if (SequenceTreeViewNode.Pin()->GetType() == ENovaTreeViewNodeType::State)
+// 	if (ActImageTreeViewTableRow.Pin()->GetType() == ENovaTreeViewNodeType::State)
 // 	{
 // 		OutTime = FMath::Max(OutTime, (float)((TrackAreaArgs.End.Get() - TrackAreaArgs.Begin.Get()) * FrameRate.AsInterval()));
 // 		OutFrame = FMath::Max(OutFrame, TrackAreaArgs.End.Get() - TrackAreaArgs.Begin.Get());
@@ -100,7 +158,7 @@ bool SActImageTrackLaneWidget::IsBranchingPoint()
 
 bool SActImageTrackLaneWidget::HasNotifyNode()
 {
-	// ENovaTreeViewNodeType NodeType = SequenceTreeViewNode.Pin()->GetType();
+	// ENovaTreeViewNodeType NodeType = ActImageTreeViewTableRow.Pin()->GetType();
 	// return NodeType != ENovaTreeViewNodeType::Root && NodeType != ENovaTreeViewNodeType::Folder;
 	return true;
 }
@@ -113,9 +171,9 @@ bool SActImageTrackLaneWidget::HasNotifyNode()
 
 float SActImageTrackLaneWidget::GetPhysicalPosition() const
 {
-	// if (ActActionTrackAreaSlot.IsValid())
-	// {
-	// 	// return ActActionTrackAreaSlot.Pin()->GetActActionSequenceTreeViewNode()->ComputeTrackPosition();
-	// }
+	if (ActImageTreeViewTableRow.IsValid())
+	{
+		return ActImageTreeViewTableRow.Pin()->ComputeTrackPosition();
+	}
 	return 0.0f;
 }

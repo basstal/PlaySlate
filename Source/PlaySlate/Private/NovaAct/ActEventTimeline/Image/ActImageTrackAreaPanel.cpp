@@ -29,10 +29,20 @@ void SActImageTrackAreaPanel::OnArrangeChildren(const FGeometry& AllottedGeometr
 
 		const FMargin Padding(0, CurrentChild.GetVerticalOffset(), 0, 0);
 
-		AlignmentArrangeResult XResult = AlignChild<Orient_Horizontal>(AllottedGeometry.GetLocalSize().X, CurrentChild, Padding, 1.0f, false);
-		AlignmentArrangeResult YResult = AlignChild<Orient_Vertical>(AllottedGeometry.GetLocalSize().Y, CurrentChild, Padding, 1.0f, false);
+		AlignmentArrangeResult XResult = AlignChild<Orient_Horizontal>(AllottedGeometry.GetLocalSize().X,
+		                                                               CurrentChild,
+		                                                               Padding,
+		                                                               1.0f,
+		                                                               false);
+		AlignmentArrangeResult YResult = AlignChild<Orient_Vertical>(AllottedGeometry.GetLocalSize().Y,
+		                                                             CurrentChild,
+		                                                             Padding,
+		                                                             1.0f,
+		                                                             false);
 
-		FArrangedWidget ChildWidget = AllottedGeometry.MakeChild(CurrentChild.GetWidget(), FVector2D(XResult.Offset, YResult.Offset), FVector2D(XResult.Size, YResult.Size));
+		FArrangedWidget ChildWidget = AllottedGeometry.MakeChild(CurrentChild.GetWidget(),
+		                                                         FVector2D(XResult.Offset, YResult.Offset),
+		                                                         FVector2D(XResult.Size, YResult.Size));
 		ArrangedChildren.AddWidget(ChildVisibility, ChildWidget);
 	}
 }
@@ -61,9 +71,9 @@ FChildren* SActImageTrackAreaPanel::GetChildren()
 	return &Children;
 }
 
-TSharedRef<SActImageTrackLaneWidget> SActImageTrackAreaPanel::MakeTrackLane()
+TSharedRef<SActImageTrackLaneWidget> SActImageTrackAreaPanel::MakeTrackLane(const TSharedRef<SActImageTreeViewTableRow>& InActImageTreeViewTableRow)
 {
-	TSharedRef<SActImageTrackLaneWidget> TrackLaneWidget = SNew(SActImageTrackLaneWidget);
+	TSharedRef<SActImageTrackLaneWidget> TrackLaneWidget = SNew(SActImageTrackLaneWidget, InActImageTreeViewTableRow);
 	Children.Add(new SActImageTrackLaneWidget::Slot(TrackLaneWidget));
 	return TrackLaneWidget;
 }

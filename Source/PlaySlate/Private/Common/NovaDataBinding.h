@@ -32,6 +32,7 @@
 {\
 	auto _DB = StaticCastSharedPtr<TDataBindingSP<AbstractData>>(NovaDB::Get(InName));\
 	OutHandle = _DB->Bind(TDataBindingSP<AbstractData>::DelegateType::CreateRaw(InUserObject, InFunc));\
+	NovaDB::Trigger(InName, OutHandle);\
 }
 /**
  * @param AbstractData 数据原型的类型
@@ -44,6 +45,7 @@
 {\
 	auto _DB = StaticCastSharedPtr<TDataBinding<AbstractData>>(NovaDB::Get(InName));\
 	OutHandle = _DB->Bind(TDataBinding<AbstractData>::DelegateType::CreateRaw(InUserObject, InFunc));\
+	NovaDB::Trigger(InName, OutHandle);\
 }
 /**
  * @param AbstractData 数据原型的类型，必须派生自UObject
@@ -56,14 +58,19 @@
 {\
 	auto _DB = StaticCastSharedPtr<TDataBindingUObject<AbstractData>>(NovaDB::Get(InName));\
 	OutHandle = _DB->Bind(TDataBindingUObject<AbstractData>::DelegateType::CreateRaw(InUserObject, InFunc));\
+	NovaDB::Trigger(InName, OutHandle);\
 }
 
 
 class IDataBinding
 {
 public:
-	/** 触发绑定函数 */
-	virtual void Trigger() = 0;
+	/**
+	 * 触发绑定函数
+	 *
+	 * @param InDelegateHandle （可选的）若传入绑定函数的 Handle ，以便只调用这个已绑定的函数
+	 */
+	virtual void Trigger(const FDelegateHandle& InDelegateHandle = FDelegateHandle()) = 0;
 	/** 解除对数据原型、绑定函数等相关资源的引用 */
 	virtual void Release() = 0;
 	virtual ~IDataBinding() = default;
@@ -110,10 +117,11 @@ public:
 	 * @param InData 待设置的数据原型
 	 */
 	void SetData(TSharedPtr<AbstractData> InData);
-	/** 触发绑定函数 */
-	virtual void Trigger() override;
-	/** 解除对数据原型、绑定函数等相关资源的引用 */
+
+	//~Begin IDataBinding interface
+	virtual void Trigger(const FDelegateHandle& InDelegateHandle = FDelegateHandle()) override;
 	virtual void Release() override;
+	//~End IDataBinding interface
 
 protected:
 	TDataBindingSP(FName InName, TSharedPtr<AbstractData> InData = nullptr);
@@ -158,10 +166,10 @@ public:
 	 * @param InData 待设置的数据原型
 	 */
 	void SetData(AbstractData* InData);
-	/** 触发绑定函数 */
-	virtual void Trigger() override;
-	/** 解除对数据原型、绑定函数等相关资源的引用 */
+	//~Begin IDataBinding interface
+	virtual void Trigger(const FDelegateHandle& InDelegateHandle = FDelegateHandle()) override;
 	virtual void Release() override;
+	//~End IDataBinding interface
 protected:
 	TDataBindingUObject(FName InName, AbstractData* InData = nullptr);
 
@@ -205,10 +213,10 @@ public:
 	 * @param InData 待设置的数据原型
 	 */
 	void SetData(AbstractData InData);
-	/** 触发绑定函数 */
-	virtual void Trigger() override;
-	/** 解除对数据原型、绑定函数等相关资源的引用 */
+	//~Begin IDataBinding interface
+	virtual void Trigger(const FDelegateHandle& InDelegateHandle = FDelegateHandle()) override;
 	virtual void Release() override;
+	//~End IDataBinding interface
 protected:
 	TDataBinding(FName InName, AbstractData InData = nullptr);
 
@@ -259,8 +267,9 @@ public:
 	 * 触发指定名称的数据绑定的所有绑定函数
 	 *
 	 * @param InName 指定名称的数据绑定
+	 * @param InDelegateHandle （可选的）若传入绑定函数的 Handle ，以便只调用这个已绑定的函数
 	 */
-	static void Trigger(FName InName);
+	static void Trigger(FName InName, const FDelegateHandle& InDelegateHandle = FDelegateHandle());
 protected:
 	static TMap<FName, TSharedRef<IDataBinding>> DataBindingMap;// 名称到数据绑定的映射
 };
@@ -443,30 +452,42 @@ void TDataBinding<AbstractData>::SetData(AbstractData InData)
 }
 
 template <typename AbstractData>
-void TDataBindingSP<AbstractData>::Trigger()
+void TDataBindingSP<AbstractData>::Trigger(const FDelegateHandle& InDelegateHandle)
 {
+	bool bHasInDelegateHandle = InDelegateHandle.IsValid();
 	for (DelegateType& Slot : Slots)
 	{
-		Slot.ExecuteIfBound(Data);
+		if (!bHasInDelegateHandle || (bHasInDelegateHandle && Slot.GetHandle() == InDelegateHandle))
+		{
+			Slot.ExecuteIfBound(Data);
+		}
 	}
 }
 
 template <typename AbstractData>
-void TDataBindingUObject<AbstractData>::Trigger()
+void TDataBindingUObject<AbstractData>::Trigger(const FDelegateHandle& InDelegateHandle)
 {
+	bool bHasInDelegateHandle = InDelegateHandle.IsValid();
 	for (DelegateType& Slot : Slots)
 	{
-		Slot.ExecuteIfBound(Data);
+		if (!bHasInDelegateHandle || (bHasInDelegateHandle && Slot.GetHandle() == InDelegateHandle))
+		{
+			Slot.ExecuteIfBound(Data);
+		}
 	}
 }
 
 
 template <typename AbstractData>
-void TDataBinding<AbstractData>::Trigger()
+void TDataBinding<AbstractData>::Trigger(const FDelegateHandle& InDelegateHandle)
 {
+	bool bHasInDelegateHandle = InDelegateHandle.IsValid();
 	for (DelegateType& Slot : Slots)
 	{
-		Slot.ExecuteIfBound(Data);
+		if (!bHasInDelegateHandle || (bHasInDelegateHandle && Slot.GetHandle() == InDelegateHandle))
+		{
+			Slot.ExecuteIfBound(Data);
+		}
 	}
 }
 

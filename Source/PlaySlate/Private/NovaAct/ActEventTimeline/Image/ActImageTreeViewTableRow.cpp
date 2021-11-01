@@ -1,6 +1,7 @@
 ﻿#include "ActImageTreeViewTableRow.h"
 
 #include "ActActionSequenceSectionBase.h"
+#include "ActImageTrackAreaPanel.h"
 #include "Common/NovaConst.h"
 
 #include "NovaAct/NovaActEditor.h"
@@ -24,46 +25,6 @@ void SActImageTreeViewTableRow::Construct(const FArguments& InArgs, const TShare
 		// MultiColumnTableRowArgs._OnAcceptDrop.BindRaw(this, &SActActionSequenceTreeViewRow::OnAcceptDrop);
 		MultiColumnTableRowArgs._ShowSelection = IsSelectable();
 		// MultiColumnTableRowArgs._Padding.BindRaw(this, &SActActionSequenceTreeViewRow::GetRowPadding);
-	}
-
-	if (NodeType == ENovaTreeViewNodeType::Folder)
-	{
-		OutlinerContent = SNew(SBorder)
-		.ToolTipText(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateLambda([this]()
-		                               {
-			                               FFormatNamedArguments Args;
-			                               {
-				                               Args.Add("NodeName", FText::FromString(*this->NodeName.ToString()));
-			                               }
-			                               return FText::Format(LOCTEXT("FolderToolTipText", "ToolTip {NodeName}"), Args);
-		                               })))
-		.BorderImage(FEditorStyle::GetBrush("Sequencer.Section.BackgroundTint"))
-		.BorderBackgroundColor(FEditorStyle::GetColor("AnimTimeline.Outliner.ItemColor"))
-		[
-			SNew(SHorizontalBox)
-
-			+ SHorizontalBox::Slot()
-			  .VAlign(VAlign_Center)
-			  .HAlign(HAlign_Left)
-			  .Padding(2.0f, 1.0f)
-			  .FillWidth(1.0f)
-			[
-				SNew(STextBlock)
-					.TextStyle(&FEditorStyle::Get().GetWidgetStyle<FTextBlockStyle>("AnimTimeline.Outliner.Label"))
-					.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateLambda([this]()
-				                {
-					                FFormatNamedArguments Args;
-					                {
-						                Args.Add("NodeName", FText::FromString(*this->NodeName.ToString()));
-					                }
-					                return FText::Format(LOCTEXT("FolderTextBlock", "{NodeName}"), Args);
-				                })))
-			]
-		];
-	}
-	else
-	{
-		OutlinerContent == SNullWidget::NullWidget;
 	}
 
 	SMultiColumnTableRow::Construct(InArgs, OwnerTableView);
@@ -92,7 +53,47 @@ TSharedRef<SWidget> SActImageTreeViewTableRow::MakeOutlinerWidget()
 	// [
 	// 	OutlinerContent ? OutlinerContent.ToSharedRef() : SNullWidget::NullWidget
 	// ];
-	return OutlinerContent.ToSharedRef();
+	TSharedRef<SWidget> OutlinerWidget = SNew(SBorder)
+	.ToolTipText(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateLambda([this]()
+	                                                  {
+		                                                  FFormatNamedArguments Args;
+		                                                  {
+			                                                  Args.Add("NodeName", FText::FromString(*this->NodeName.ToString()));
+		                                                  }
+		                                                  return FText::Format(LOCTEXT("FolderToolTipText", "ToolTip {NodeName}"), Args);
+	                                                  })))
+	.BorderImage(FEditorStyle::GetBrush("Sequencer.Section.BackgroundTint"))
+	.BorderBackgroundColor(FEditorStyle::GetColor("AnimTimeline.Outliner.ItemColor"))
+	[
+		SNew(SHorizontalBox)
+
+		+ SHorizontalBox::Slot()
+		  .VAlign(VAlign_Center)
+		  .AutoWidth()
+		  .Padding(4.0f, 1.0f)
+		[
+			SNew(SExpanderArrow, SharedThis(this))
+		]
+
+		+ SHorizontalBox::Slot()
+		  .VAlign(VAlign_Center)
+		  .HAlign(HAlign_Left)
+		  .Padding(2.0f, 1.0f)
+		  .FillWidth(1.0f)
+		[
+			SNew(STextBlock)
+			.TextStyle(&FEditorStyle::Get().GetWidgetStyle<FTextBlockStyle>("AnimTimeline.Outliner.Label"))
+			.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateLambda([this]()
+			{
+				FFormatNamedArguments Args;
+				{
+					Args.Add("NodeName", FText::FromString(*this->NodeName.ToString()));
+				}
+				return FText::Format(LOCTEXT("FolderTextBlock", "{NodeName}"), Args);
+			})))
+		]
+	];
+	return OutlinerWidget;
 }
 
 // TSharedRef<SActTrackPanel> SActImageTreeViewTableRow::GetActTrackPanel()
@@ -360,7 +361,7 @@ const TArray<TSharedRef<SActImageTreeViewTableRow>>& SActImageTreeViewTableRow::
 	return ChildNodes;
 }
 
-TSharedPtr<SActImageTreeViewTableRow> SActImageTreeViewTableRow::GetChildByIndex(int Index) const
+TSharedPtr<SActImageTreeViewTableRow> SActImageTreeViewTableRow::GetChildByIndex(int32 Index) const
 {
 	if (ChildNodes.Num() > Index)
 	{
@@ -407,17 +408,22 @@ bool SActImageTreeViewTableRow::IsVisible() const
 // 	return NodeType;
 // }
 
+void SActImageTreeViewTableRow::RemoveFromParent()
+{
+	if (ParentNode)
+	{
+		// Remove from parent
+		ParentNode->ChildNodes.Remove(SharedThis(this));
+	}
+}
+
 void SActImageTreeViewTableRow::SetParent(TSharedPtr<SActImageTreeViewTableRow> InParent, int32 DesiredChildIndex)
 {
 	if (!InParent || ParentNode == InParent)
 	{
 		return;
 	}
-	if (ParentNode)
-	{
-		// Remove from parent
-		ParentNode->ChildNodes.Remove(SharedThis(this));
-	}
+	RemoveFromParent();
 	// Add to new parent
 	if (DesiredChildIndex != INDEX_NONE && ensureMsgf(DesiredChildIndex <= InParent->ChildNodes.Num(), TEXT("Invalid insert index specified")))
 	{
@@ -547,38 +553,43 @@ void SActImageTreeViewTableRow::SetContentAsHitBox(FActActionHitBoxData& InHitBo
 {
 	// ** TODO:临时先把对象存这里
 	CachedHitBox = &InHitBox;
-	// ActActionTrackAreaArgs.Begin.Bind(TAttribute<int>::FGetter::CreateLambda([this]()
+	// ActActionTrackAreaArgs.Begin.Bind(TAttribute<int32>::FGetter::CreateLambda([this]()
 	// {
 	// 	return CachedHitBox->Begin;
 	// }));
-	// ActActionTrackAreaArgs.End.Bind(TAttribute<int>::FGetter::CreateLambda([this]()
+	// ActActionTrackAreaArgs.End.Bind(TAttribute<int32>::FGetter::CreateLambda([this]()
 	// {
 	// 	return CachedHitBox->End;
 	// }));
 }
 
-void SActImageTreeViewTableRow::SetVisible(EVisibility InVisibility)
-{
-	// if (ActActionOutlinerTreeNode.IsValid())
-	// {
-	// 	ActActionOutlinerTreeNode->SetVisibility(InVisibility);
-	// }
-	// if (ActActionTrackAreaSlot.IsValid())
-	// {
-	// 	ActActionTrackAreaSlot->SetVisibility(InVisibility);
-	// }
-}
+//
+// void SActImageTreeViewTableRow::SetVisible(EVisibility InVisibility)
+// {
+// 	if (OutlinerContent.IsValid())
+// 	{
+// 		OutlinerContent->SetVisibility(InVisibility);
+// 	}
+// 	if (TrackArea.IsValid())
+// 	{
+// 		TrackArea->SetVisibility(InVisibility);
+// 	}
+// }
 
 float SActImageTreeViewTableRow::ComputeTrackPosition()
 {
-	// ** TODO:
 	// Positioning strategy:
 	// Attempt to root out any visible track in the specified track's sub-hierarchy, and compute the track's offset from that
-	// const FGeometry& CachedGeometryOutlinerTreeNode = ActActionOutlinerTreeNode->GetCachedGeometry();
+	const FGeometry& CachedGeometryOutlinerTreeNode = GetCachedGeometry();
 	// UE_LOG(LogNovaAct, Log, TEXT("CachedGeometryOutlinerTreeNode : %s"), *CachedGeometryOutlinerTreeNode.ToString());
-	// const FGeometry& CachedGeometryTrackArea = GetRoot()->ActTreeViewTrackAreaPanel->GetCachedGeometry();
-	// return CachedGeometryOutlinerTreeNode.AbsolutePosition.Y - CachedGeometryTrackArea.AbsolutePosition.Y;
-	return 0;
+	TSharedPtr<SActImageTreeView> ActImageTreeView = StaticCastSharedPtr<SActImageTreeView>(OwnerTablePtr.Pin());
+	const FGeometry& CachedGeometryTrackArea = ActImageTreeView->GetCachedGeometry();
+	// UE_LOG(LogNovaAct,
+	//        Log,
+	//        TEXT("CachedGeometryOutlinerTreeNode.AbsolutePosition.Y : %f, CachedGeometryTrackArea.AbsolutePosition.Y : %f"),
+	//        CachedGeometryOutlinerTreeNode.AbsolutePosition.Y,
+	//        CachedGeometryTrackArea.AbsolutePosition.Y);
+	return CachedGeometryOutlinerTreeNode.AbsolutePosition.Y - CachedGeometryTrackArea.AbsolutePosition.Y;
 }
 
 TSharedRef<SWidget> SActImageTreeViewTableRow::GenerateWidgetForColumn(const FName& InColumnName)

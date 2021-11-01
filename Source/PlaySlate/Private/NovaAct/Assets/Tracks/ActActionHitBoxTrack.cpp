@@ -1,5 +1,6 @@
 ﻿#include "ActActionHitBoxTrack.h"
 
+#include "Common/NovaDataBinding.h"
 #include "NovaAct/NovaActEditor.h"
 
 #include "NovaAct/Assets/ActAnimation.h"

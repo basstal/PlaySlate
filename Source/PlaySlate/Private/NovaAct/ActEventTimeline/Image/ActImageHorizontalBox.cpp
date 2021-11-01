@@ -22,13 +22,11 @@ void SActImageHorizontalBox::Construct(const FArguments& InArgs)
 	const TSharedRef<SScrollBar> PinnedAreaScrollBar = SNew(SScrollBar)
 		.Thickness(FVector2D(9.0f, 9.0f));
 	ActImageTrackAreaPanel = SNew(SActImageTrackAreaPanel);
-	ActImageTreeView = SNew(SActImageTreeView)
-		.ExternalScrollbar(ScrollBar)
-		.OnGenerateRow(this, &SActImageHorizontalBox::OnGenerateRow);
+	ActImageTreeView = SNew(SActImageTreeView, ActImageTrackAreaPanel.ToSharedRef())
+		.ExternalScrollbar(ScrollBar);
 	PinnedActImageTrackAreaPanel = SNew(SActImageTrackAreaPanel);
-	PinnedActImageTreeView = SNew(SActImageTreeView)
-		.ExternalScrollbar(PinnedAreaScrollBar)
-		.OnGenerateRow(this, &SActImageHorizontalBox::OnGenerateRow);
+	PinnedActImageTreeView = SNew(SActImageTreeView, PinnedActImageTrackAreaPanel.ToSharedRef())
+		.ExternalScrollbar(PinnedAreaScrollBar);
 
 
 	auto FillLeftAttr = TAttribute<float>::Create(TAttribute<float>::FGetter::CreateLambda([]()
@@ -81,20 +79,6 @@ void SActImageHorizontalBox::Construct(const FArguments& InArgs)
 			ScrollBar
 		]
 	];
-}
-
-
-TSharedRef<ITableRow> SActImageHorizontalBox::OnGenerateRow(TSharedRef<SActImageTreeViewTableRow> InTreeViewNode, const TSharedRef<STableViewBase>& OwnerTable)
-{
-	// Ensure the track area is kept up to date with the virtualized scroll of the tree view
-	TSharedPtr<SActImageTrackLaneWidget> TrackLane = TreeViewNode2TrackLane.FindRef(InTreeViewNode).Pin();
-	if (!TrackLane.IsValid())
-	{
-		// Add a track slot for the row
-		TrackLane = ActImageTrackAreaPanel->MakeTrackLane();
-		TreeViewNode2TrackLane.Add(InTreeViewNode, TrackLane);
-	}
-	return InTreeViewNode;
 }
 
 #undef LOCTEXT_NAMESPACE

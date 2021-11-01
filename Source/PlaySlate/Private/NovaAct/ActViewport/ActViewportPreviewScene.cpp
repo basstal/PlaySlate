@@ -35,8 +35,8 @@ FActViewportPreviewScene::FActViewportPreviewScene(const ConstructionValues& CVS
 	DataBindingSPBindRaw(FFrameTime, "ActEventTimelineArgs/CurrentTime", this, &FActViewportPreviewScene::OnCurrentTimeChanged, OnCurrentTimeChangedHandle);
 
 	// auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
-	DataBindingUObjectBindRaw(UActAnimation, "ActAnimation", this, &FActViewportPreviewScene::OnAnimBlueprintChanged, OnAnimBlueprintChangedHandle);
-	DataBindingUObjectBindRaw(UActAnimation, "ActAnimation", this, &FActViewportPreviewScene::OnAnimSequenceChanged, OnAnimSequenceChangedHandle);
+	DataBindingBindRaw(UAnimBlueprint**, "ActAnimation/AnimBlueprint", this, &FActViewportPreviewScene::OnAnimBlueprintChanged, OnAnimBlueprintChangedHandle);
+	DataBindingBindRaw(UAnimSequence**, "ActAnimation/AnimSequence", this, &FActViewportPreviewScene::OnAnimSequenceChanged, OnAnimSequenceChangedHandle);
 
 	FDelegateHandle _;
 	DataBindingBindRaw(ENovaTransportControls, "TransportControlsState", this, &FActViewportPreviewScene::OnTransportControlsStateChanged, _);
@@ -53,25 +53,17 @@ FActViewportPreviewScene::~FActViewportPreviewScene()
 	if (ActAnimationDB)
 	{
 		ActAnimationDB->UnBind(OnAnimBlueprintChangedHandle);
-		ActAnimationDB->UnBind(OnAnimSequenceChangedHandle);
+	}
+	auto ActAnimationAnimSequenceDB = GetDataBindingUObject(UAnimSequence, "ActAnimation/AnimSequence");
+	if (ActAnimationAnimSequenceDB)
+	{
+		ActAnimationAnimSequenceDB->UnBind(OnAnimSequenceChangedHandle);
 	}
 	NovaDB::Delete("TransportControlsState");
 	NovaDB::Delete("PreviewInstanceLooping");
 	NovaDB::Delete("PreviewInstancePlaybackMode");
 	NovaDB::Delete("ActEventTimelineArgs/CurrentTime");
 }
-
-void FActViewportPreviewScene::Init(const TSharedRef<SDockTab>& InParentDockTab)
-{
-	// ** NOTE:这里不能用SNew的原因是在构造时会调用到FActActionPreviewSceneController::MakeViewportClient，需要先设置好ActActionViewportWidget指针
-	// InParentDockTab->SetContent(SAssignNew(ActViewport, SActViewport, SharedThis(this)));
-}
-
-//
-// TSharedPtr<FActViewportClient> FActViewportPreviewScene::MakeViewportClient()
-// {
-// 	
-// }
 
 void FActViewportPreviewScene::AddComponent(UActorComponent* Component, const FTransform& LocalToWorld, bool bAttachToRoot)
 {
@@ -336,13 +328,13 @@ void FActViewportPreviewScene::TickPlayingStopped()
 	}
 }
 
-void FActViewportPreviewScene::OnAnimBlueprintChanged(UActAnimation* InActAnimation)
+void FActViewportPreviewScene::OnAnimBlueprintChanged(UAnimBlueprint** InAnimBlueprint)
 {
-	if (!InActAnimation)
+	if (!InAnimBlueprint)
 	{
 		return;
 	}
-	UAnimBlueprint* AnimBlueprint = InActAnimation->AnimBlueprint;
+	UAnimBlueprint* AnimBlueprint = *InAnimBlueprint;
 	if (!AnimBlueprint || !AnimBlueprint->TargetSkeleton)
 	{
 		UE_LOG(LogNovaAct, Log, TEXT("FNovaActEditor::OnAnimBlueprintChanged with nullptr AnimBlueprint or AnimBlueprint->TargetSkeleton is nullptr"));
@@ -351,28 +343,24 @@ void FActViewportPreviewScene::OnAnimBlueprintChanged(UActAnimation* InActAnimat
 	SpawnActorInViewport(ASkeletalMeshActor::StaticClass(), AnimBlueprint);
 }
 
-void FActViewportPreviewScene::OnAnimSequenceChanged(UActAnimation* InActAnimation)
+void FActViewportPreviewScene::OnAnimSequenceChanged(UAnimSequence** InAnimSequence)
 {
-	if (!InActAnimation)
+	UAnimSequence* AnimSequence = *InAnimSequence;
+	if (!AnimSequence)
 	{
 		return;
 	}
-	UAnimSequence* InAnimSequence = InActAnimation->AnimSequence;
-	USkeleton* Skeleton = nullptr;
-	if (InAnimSequence)
-	{
-		Skeleton = InAnimSequence->GetSkeleton();
-	}
+	USkeleton* Skeleton = AnimSequence->GetSkeleton();
 	if (ActActionSkeletalMesh && Skeleton)
 	{
-		USkeletalMesh* PreviewMesh = Skeleton->GetAssetPreviewMesh(InAnimSequence);
+		USkeletalMesh* PreviewMesh = Skeleton->GetAssetPreviewMesh(AnimSequence);
 		if (PreviewMesh)
 		{
 			UAnimSingleNodeInstance* PreviewInstance = Cast<UAnimSingleNodeInstance>(ActActionSkeletalMesh->PreviewInstance);
-			if (!PreviewInstance || PreviewInstance->GetCurrentAsset() != InAnimSequence || ActActionSkeletalMesh->SkeletalMesh != PreviewMesh)
+			if (!PreviewInstance || PreviewInstance->GetCurrentAsset() != AnimSequence || ActActionSkeletalMesh->SkeletalMesh != PreviewMesh)
 			{
 				ActActionSkeletalMesh->SetSkeletalMeshWithoutResettingAnimation(PreviewMesh);
-				ActActionSkeletalMesh->EnablePreview(true, InAnimSequence);
+				ActActionSkeletalMesh->EnablePreview(true, AnimSequence);
 				// ** 强制同步 PlaybackMode 状态，否则会因为 EnablePreview 调用而自动进入播放状态
 				NovaDB::Trigger("PreviewInstancePlaybackMode");
 				ActActionSkeletalMesh->PreviewInstance->SetLooping(true);

@@ -20,7 +20,7 @@ namespace NovaConst
 	
 	const FName ActAssetDetailsTabId(TEXT("ActAssetDetails"));
 	/** Notify State 最短持续时间，单位帧 */
-	const int ActMinimumNotifyStateFrame = 1;
+	const int32 ActMinimumNotifyStateFrame = 1;
 	/** Notify 高度偏移 */
 	const float NotifyHeightOffset = 0.f;
 	/** Notify 高度 */

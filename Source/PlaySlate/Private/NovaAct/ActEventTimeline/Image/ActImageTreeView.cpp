@@ -2,6 +2,7 @@
 
 #include "PlaySlate.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTreeViewTableRow.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageTrackAreaPanel.h"
 
 #include "Common/NovaDataBinding.h"
 #include "NovaAct/Assets/ActAnimation.h"
@@ -16,9 +17,9 @@ SActImageTreeView::~SActImageTreeView()
 	}
 }
 
-void SActImageTreeView::Construct(const FArguments& InArgs)
+void SActImageTreeView::Construct(const FArguments& InArgs, const TSharedRef<SActImageTrackAreaPanel>& InActImageTrackAreaPanel)
 {
-	DataBindingUObjectBindRaw(UActAnimation, "ActAnimation", this, &SActImageTreeView::OnHitBoxesChanged, OnHitBoxesChangedHandle);
+	ActImageTrackAreaPanel = InActImageTrackAreaPanel;
 
 	HeaderRow = SNew(SHeaderRow)
 		.Visibility(EVisibility::Collapsed)
@@ -35,9 +36,11 @@ void SActImageTreeView::Construct(const FArguments& InArgs)
 		TreeViewArgs._OnGetChildren.BindRaw(this, &SActImageTreeView::OnGetChildren);
 		TreeViewArgs._OnExpansionChanged.BindRaw(this, &SActImageTreeView::OnExpansionChanged);
 		TreeViewArgs._ExternalScrollbar = InArgs._ExternalScrollbar;
-		TreeViewArgs._OnGenerateRow = InArgs._OnGenerateRow;
+		TreeViewArgs._OnGenerateRow.BindRaw(this, &SActImageTreeView::OnGenerateRow);
 	}
 	STreeView::Construct(TreeViewArgs);
+
+	DataBindingUObjectBindRaw(UActAnimation, "ActAnimation", this, &SActImageTreeView::OnHitBoxesChanged, OnHitBoxesChangedHandle);
 }
 
 void SActImageTreeView::OnGetChildren(TSharedRef<SActImageTreeViewTableRow> InParent, TArray<TSharedRef<SActImageTreeViewTableRow>>& OutChildren) const
@@ -56,7 +59,11 @@ void SActImageTreeView::OnExpansionChanged(TSharedRef<SActImageTreeViewTableRow>
 	UE_LOG(LogNovaAct, Log, TEXT("InDisplayNode->GetPathName : %s, bIsExpanded : %d"), *InDisplayNode->GetPathName(), bIsExpanded);
 	for (const TSharedRef<SActImageTreeViewTableRow>& ChildNode : InDisplayNode->GetChildNodes())
 	{
-		ChildNode->SetVisible(bIsExpanded ? EVisibility::Visible : EVisibility::Collapsed);
+		TWeakPtr<SActImageTrackLaneWidget>* WeakTrackLanePtr = TreeViewTableRow2TrackLaneWidget.Find(ChildNode);
+		if (WeakTrackLanePtr && WeakTrackLanePtr->IsValid())
+		{
+			TreeViewTableRow2TrackLaneWidget.FindChecked(ChildNode).Pin()->SetVisibility(bIsExpanded ? EVisibility::Visible : EVisibility::Collapsed);
+		}
 	}
 }
 
@@ -93,24 +100,41 @@ void SActImageTreeView::OnHitBoxesChanged(UActAnimation* InActAnimation)
 	{
 		HitBoxesFolder = *FindElement;
 	}
-	int HitBoxTreeViewNodeCount = HitBoxesFolder->GetChildNodes().Num();
+	int32 HitBoxTreeViewNodeCount = HitBoxesFolder->GetChildNodes().Num();
 	if (HitBoxTreeViewNodeCount < InHitBoxData.Num())
 	{
 		FName HitBoxName("HitBox");
-		for (int count = HitBoxTreeViewNodeCount; count < InHitBoxData.Num(); ++count)
+		for (int32 count = HitBoxTreeViewNodeCount; count < InHitBoxData.Num(); ++count)
 		{
 			TSharedRef<SActImageTreeViewTableRow> NewTreeViewNode = SNew(SActImageTreeViewTableRow, SharedThis(this), HitBoxName, ENovaTreeViewNodeType::State);
 			NewTreeViewNode->SetParent(HitBoxesFolder);
+			// DisplayedRootNodes.Add(NewTreeViewNode);
 		}
 	}
-	int Index = 0;
+	int32 Index = 0;
 	for (FActActionHitBoxData& InHitBox : InHitBoxData)
 	{
 		HitBoxesFolder->GetChildByIndex(Index++)->SetContentAsHitBox(InHitBox);
 	}
-	while (Index < HitBoxesFolder->GetChildNodes().Num())
+	int32 ChildCount = HitBoxesFolder->GetChildNodes().Num();
+	while (Index < ChildCount)
 	{
-		HitBoxesFolder->GetChildByIndex(Index++)->SetVisible(EVisibility::Collapsed);
+		HitBoxesFolder->GetChildByIndex(Index++)->RemoveFromParent();
 	}
-	Refresh();
+	// SetTreeItemsSource(&DisplayedRootNodes);
+	RequestListRefresh();
+}
+
+
+TSharedRef<ITableRow> SActImageTreeView::OnGenerateRow(TSharedRef<SActImageTreeViewTableRow> InTreeViewNode, const TSharedRef<STableViewBase>& OwnerTable)
+{
+	// Ensure the track area is kept up to date with the virtualized scroll of the tree view
+	TSharedPtr<SActImageTrackLaneWidget> TrackLane = TreeViewTableRow2TrackLaneWidget.FindRef(InTreeViewNode).Pin();
+	if (!TrackLane.IsValid())
+	{
+		// Add a track slot for the row
+		TrackLane = ActImageTrackAreaPanel->MakeTrackLane(InTreeViewNode);
+		TreeViewTableRow2TrackLaneWidget.Add(InTreeViewNode, TrackLane);
+	}
+	return InTreeViewNode;
 }

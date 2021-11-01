@@ -16,23 +16,30 @@ public:
 		/** @return Get the vertical position of this slot inside its parent. */
 		float GetVerticalOffset() const;
 
-		EHorizontalAlignment HAlignment;// ** NOTE:必须是public的因为LayoutUtils.h在用这个字段，Horizontal alignment for the slot.
-		EVerticalAlignment VAlignment;  // ** NOTE:必须是public的因为LayoutUtils.h在用这个字段，Vertical alignment for the slot.
+		/** NOTE:必须是public的因为LayoutUtils.h在用这个字段，Horizontal alignment for the slot. */
+		EHorizontalAlignment HAlignment;
+		/** NOTE:必须是public的因为LayoutUtils.h在用这个字段，Vertical alignment for the slot. */
+		EVerticalAlignment VAlignment;
 
 	protected:
-		TWeakPtr<SActImageTrackLaneWidget> SlotContent;// ** Slot 的具体 Widget 内容，这里是WeakPtr是因为基类有对 Widget 的管理
+		/** Slot 的具体 Widget 内容，这里是WeakPtr是因为基类有对 Widget 的管理 */
+		TSharedPtr<SActImageTrackLaneWidget> SlotContent;
 	};
 	SLATE_BEGIN_ARGS(SActImageTrackLaneWidget) {}
 	SLATE_END_ARGS()
 
-	/** Construction from a track lane */
-	// SActImageTrackLaneWidget(const TSharedRef<SActImageTreeViewTableRow>& InSequenceTreeViewNode);
+	void Construct(const FArguments& InArgs, const TSharedRef<SActImageTreeViewTableRow>& InActImageTreeViewTableRow);
 
-	void Construct(const FArguments& InArgs);
-
-	/** 构造TrackLane Widget*/
-	// void MakeTrackLane();
-
+	//~Begin SCompoundWidget interface
+	virtual int32 OnPaint(const FPaintArgs& Args,
+	                      const FGeometry& AllottedGeometry,
+	                      const FSlateRect& MyCullingRect,
+	                      FSlateWindowElementList& OutDrawElements,
+	                      int32 LayerId,
+	                      const FWidgetStyle& InWidgetStyle,
+	                      bool bParentEnabled) const override;
+	virtual FVector2D ComputeDesiredSize(float LayoutScaleMultiplier) const override;
+	//~End SCompoundWidget interface
 
 	/** 获得节点的Tooltip */
 	FText GetNodeTooltip();
@@ -49,14 +56,14 @@ public:
 	//  * @param OutTime 输出的时间，单位秒
 	//  * @param OutFrame 输出的时间，单位帧
 	//  */
-	// void GetTime(float& OutTime, int& OutFrame);
+	// void GetTime(float& OutTime, int32& OutFrame);
 	// /**
 	//  * 获得当前节点状态持续时间
 	//  *
 	//  * @param OutTime 输出的时间，单位秒
 	//  * @param OutFrame 输出的时间，单位帧
 	//  */
-	// void GetDuration(float& OutTime, int& OutFrame);
+	// void GetDuration(float& OutTime, int32& OutFrame);
 	/** TODO: */
 	bool IsBranchingPoint();
 	/** 是否需要创建NotifyNode */
@@ -71,27 +78,30 @@ public:
 	// void SetVisibility(EVisibility InVisibility);
 protected:
 	/** TreeViewNode Controller */
-	TWeakPtr<SActImageTreeViewTableRow> SequenceTreeViewNode;
-	/** The track lane that we represent. */
-	TSharedPtr<SActImageTrackCarWidget> TrackLane;
+	TWeakPtr<SActImageTreeViewTableRow> ActImageTreeViewTableRow;
+	// /** The track lane that we represent. */
+	// TSharedPtr<SActImageTrackCarWidget> TrackLane;
 	/** Notify Node */
 	TSharedPtr<SActActionSequenceNotifyNode> NotifyNode;
 
 	// FAnimNotifyEvent* AnimNotifyEvent;
+	/** Get the height of this track */
 public:
+	float Height;
 	TSharedRef<SActImageTreeViewTableRow> GetActActionSequenceTreeViewNode() const
 	{
-		return SequenceTreeViewNode.Pin().ToSharedRef();
+		return ActImageTreeViewTableRow.Pin().ToSharedRef();
 	}
 
-	TSharedRef<SActImageTrackCarWidget> GetActActionSequenceTrackLane() const
-	{
-		return TrackLane.ToSharedRef();
-	}
+	//
+	// TSharedRef<SActImageTrackCarWidget> GetActActionSequenceTrackLane() const
+	// {
+	// 	return TrackLane.ToSharedRef();
+	// }
 
 	// FActActionTrackAreaArgs& GetActActionTrackAreaArgs() const
 	// {
-	// 	return SequenceTreeViewNode.Pin()->GetActActionTrackAreaArgs();
+	// 	return ActImageTreeViewTableRow.Pin()->GetActActionTrackAreaArgs();
 	// }
 
 	// FAnimNotifyEvent* GetNotifyEvent() const

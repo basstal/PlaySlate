@@ -74,7 +74,7 @@ public:
 	 * @param Index 输入顺序值
 	 * @return 获取的子节点
 	 */
-	TSharedPtr<SActImageTreeViewTableRow> GetChildByIndex(int Index) const;
+	TSharedPtr<SActImageTreeViewTableRow> GetChildByIndex(int32 Index) const;
 
 	/**
 	 * @return 节点在树中的完整路径名
@@ -93,6 +93,10 @@ public:
 	 * @return Whether this node should be displayed on the tree view
 	 */
 	bool IsVisible() const;
+	/**
+	 * 从树结构中移除自身，以及自身的所有子节点
+	 */
+	void RemoveFromParent();
 
 	/**
 	 * @return 当前节点的类型
@@ -180,12 +184,12 @@ public:
 	 */
 	void SetContentAsHitBox(FActActionHitBoxData& InHitBox);
 
-	/**
-	 * 设置节点的可见性
-	 *
-	 * @param InVisibility 可见性枚举
-	 */
-	void SetVisible(EVisibility InVisibility);
+	// /**
+	//  * 设置节点的可见性
+	//  *
+	//  * @param InVisibility 可见性枚举
+	//  */
+	// void SetVisible(EVisibility InVisibility);
 	/** 计算当前Track的纵向间距 */
 	float ComputeTrackPosition();
 	/** 获得根节点 */
@@ -261,8 +265,8 @@ protected:
 	// TSharedPtr<SActTrackPanel> ActTrackPanel;
 	/** The height of the track */
 	float Height;
-	/** The outliner widget to allow for dynamic refresh */
-	TSharedPtr<SVerticalBox> OutlinerWidget;
+	// /** The outliner widget to allow for dynamic refresh */
+	// TSharedPtr<SVerticalBox> OutlinerWidget;
 	int32 PendingRenameTrackIndex;
 public:
 	FName GetNodeName() const
@@ -271,7 +275,7 @@ public:
 	}
 
 	/** TODO:临时放到这里 */
-	void SetHitBoxBegin(int InBegin)
+	void SetHitBoxBegin(int32 InBegin)
 	{
 		if (CachedHitBox)
 		{
@@ -279,7 +283,7 @@ public:
 		}
 	}
 
-	void SetHitBoxDuration(int InDuration)
+	void SetHitBoxDuration(int32 InDuration)
 	{
 		if (CachedHitBox)
 		{

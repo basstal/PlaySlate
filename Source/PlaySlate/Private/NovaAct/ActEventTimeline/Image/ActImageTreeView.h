@@ -8,6 +8,7 @@ class SActImageTrackCarWidget;
 class SActImageTrackAreaPanel;
 class SActImageTreeViewTableRow;
 class SActImageHorizontalBox;
+class SActImageTrackLaneWidget;
 
 class SActImageTreeView : public STreeView<TSharedRef<SActImageTreeViewTableRow>>
 {
@@ -16,7 +17,7 @@ public:
 
 	virtual ~SActImageTreeView() override;
 	// ReSharper disable once CppHidingFunction
-	void Construct(const FArguments& InArgs);
+	void Construct(const FArguments& InArgs, const TSharedRef<SActImageTrackAreaPanel>& InActImageTrackAreaPanel);
 
 
 	/**
@@ -42,10 +43,21 @@ public:
 	 * @param InActAnimation
 	 */
 	void OnHitBoxesChanged(UActAnimation* InActAnimation);
+	/**
+	 * 依据特定的数据生成一行 TableRow，供TreeView回调使用，同时在TrackAreaPanel也生成一个对应的TrackLaneWidget 
+	 * @param InTreeViewNode
+	 * @param OwnerTable
+	 * @return 
+	 */
+	TSharedRef<ITableRow> OnGenerateRow(TSharedRef<SActImageTreeViewTableRow> InTreeViewNode, const TSharedRef<STableViewBase>& OwnerTable);
 protected:
-	TArray<TSharedRef<SActImageTreeViewTableRow>> DisplayedRootNodes;// ** 从树的数据中复制和缓存的根节点信息
+	TSharedPtr<SActImageTrackAreaPanel> ActImageTrackAreaPanel;
+	/** 从树的数据中复制和缓存的根节点信息 */
+	TArray<TSharedRef<SActImageTreeViewTableRow>> DisplayedRootNodes;
+	/** List of children belonging to this node */
+	TArray<TSharedRef<SActImageTreeViewTableRow>> ChildNodes;
+	/** A map of child slot content that exist in our view. */
+	TMap<TSharedPtr<SActImageTreeViewTableRow>, TWeakPtr<SActImageTrackLaneWidget>> TreeViewTableRow2TrackLaneWidget;
 
-	TArray<TSharedRef<SActImageTreeViewTableRow>> ChildNodes;// ** List of children belonging to this node
-	
 	FDelegateHandle OnHitBoxesChangedHandle;
 };

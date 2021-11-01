@@ -245,9 +245,9 @@ FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, co
 			// 	NewDisplayTime -= NovaConst::ActMinimumNotifyStateFrame - NewDuration;
 			// }
 			// NewDisplayTime = FMath::Max(0.0f, NewDisplayTime);
-			// ActActionSequenceTreeViewNode->SetHitBoxBegin((int)(NewDisplayTime / TickResolutionInterval));
+			// ActActionSequenceTreeViewNode->SetHitBoxBegin((int32)(NewDisplayTime / TickResolutionInterval));
 			// float NewDurationTime = DurationTime + OldDisplayTime - NewDisplayTime;
-			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int)(NewDurationTime / TickResolutionInterval));
+			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int32)(NewDurationTime / TickResolutionInterval));
 		}
 		else if (DurationTime > NovaConst::ActMinimumNotifyStateFrame)
 		{
@@ -257,12 +257,12 @@ FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, co
 			// ScaleInfo.ViewMaxInput = ViewMaxInput;
 			//
 			// float NewDisplayTime = FMath::Max(0.0f, ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X));
-			// ActActionSequenceTreeViewNode->SetHitBoxBegin((int)(NewDisplayTime / TickResolutionInterval));
+			// ActActionSequenceTreeViewNode->SetHitBoxBegin((int32)(NewDisplayTime / TickResolutionInterval));
 			// float NewDurationTime = DurationTime + OldDisplayTime - NewDisplayTime;
-			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int)(NewDurationTime / TickResolutionInterval));
+			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int32)(NewDurationTime / TickResolutionInterval));
 
 			// Adjust in case we went under the minimum
-			// if ((int)(NewDurationTime / TickResolutionInterval) < NovaConst::ActMinimumNotifyStateFrame)
+			// if ((int32)(NewDurationTime / TickResolutionInterval) < NovaConst::ActMinimumNotifyStateFrame)
 			// {
 			// 	float EndTimeBefore = NodeObjectInterface->GetTime() + NodeObjectInterface->GetDuration();
 			// 	NodeObjectInterface->SetTime(NodeObjectInterface->GetTime() + NodeObjectInterface->GetDuration() - NovaConst::ActMinimumNotifyStateFrame);
@@ -305,9 +305,9 @@ FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, co
 		{
 			// float NewDurationTime = ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X) - BeginTime;
 			// NewDurationTime = FMath::Max(NewDurationTime, (float)(NovaConst::ActMinimumNotifyStateFrame * TickResolutionInterval));
-			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int)(NewDurationTime / TickResolutionInterval));
+			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int32)(NewDurationTime / TickResolutionInterval));
 		}
-		else if ((int)(DurationTime / TickResolutionInterval) > NovaConst::ActMinimumNotifyStateFrame)
+		else if ((int32)(DurationTime / TickResolutionInterval) > NovaConst::ActMinimumNotifyStateFrame)
 		{
 			// float Overflow = HandleOverflowPan(MouseEvent.GetScreenSpacePosition(), TrackScreenSpaceXPosition, TrackScreenSpaceOrigin, TrackScreenSpaceLimit);
 			// Update scale info to the new view inputs after panning
@@ -316,11 +316,11 @@ FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, co
 
 			// float NewDurationTime = ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X) - BeginTime;
 			// NewDurationTime = FMath::Max(NewDurationTime, (float)(NovaConst::ActMinimumNotifyStateFrame * TickResolutionInterval));
-			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int)(NewDurationTime / TickResolutionInterval));
+			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int32)(NewDurationTime / TickResolutionInterval));
 		}
 		if (BeginTime + DurationTime > PlayLength)
 		{
-			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int)((PlayLength - BeginTime) / TickResolutionInterval));
+			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int32)((PlayLength - BeginTime) / TickResolutionInterval));
 		}
 
 		// // Now we know where the scrub handle should be, look for possible snaps on montage marker bars

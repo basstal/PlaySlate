@@ -23,10 +23,20 @@ static const FText NovaActEditor_ActAssetDetails = LOCTEXT("ActAssetDetails", "N
 using namespace NovaStruct;
 
 FNovaActEditor::FNovaActEditor(UActAnimation* InActAnimation)
-// : AnimationAsset(nullptr)
 {
 	check(InActAnimation);
 	NovaDB::CreateUObject("ActAnimation", InActAnimation);
+	NovaDB::Create("ActAnimation/AnimSequence", &InActAnimation->AnimSequence);
+	NovaDB::Create("ActAnimation/AnimBlueprint", &InActAnimation->AnimBlueprint);
+
+	FDelegateHandle _;
+	DataBindingBindRaw(UAnimSequence**, "ActAnimation/AnimSequence", this, &FNovaActEditor::OnAnimSequenceChanged, _);
+	DataBindingBindRaw(UAnimationAsset**, "ActAnimation/AnimSequence", this, &FNovaActEditor::OpenNewAnimationAssetEditTab, _)
+
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = NovaStaticFunction::MakeActEventTimelineArgs();
+	NovaDB::CreateSP("ActEventTimelineArgs", ActEventTimelineArgs);
+	// ** TODO:存储在配置中
+	NovaDB::Create("ColumnFillCoefficientsLeft", 0.3f);
 }
 
 FNovaActEditor::~FNovaActEditor()
@@ -40,27 +50,16 @@ FNovaActEditor::~FNovaActEditor()
 	NovaDB::Delete("AnimSequence");
 	NovaDB::Delete("ColumnFillCoefficientsLeft");
 	NovaDB::Delete("ActAnimation/AnimSequence");
+	NovaDB::Delete("ActAnimation/AnimBlueprint");
 }
 
 void FNovaActEditor::CreateEditorWindow(const TSharedPtr<IToolkitHost>& InIToolkitHost)
 {
-	FDelegateHandle _;
-
-	auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
-	NovaDB::Create("ActAnimation/AnimSequence", &ActAnimationDB->GetData()->AnimSequence);
-	DataBindingBindRaw(UAnimSequence**, "ActAnimation/AnimSequence", this, &FNovaActEditor::OnAnimSequenceChanged, _);
-	DataBindingBindRaw(UAnimationAsset**, "ActAnimation/AnimSequence", this, &FNovaActEditor::OpenNewAnimationAssetEditTab, _)
-
-	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = NovaStaticFunction::MakeActEventTimelineArgs();
-	NovaDB::CreateSP("ActEventTimelineArgs", ActEventTimelineArgs);
-
 	const FPreviewScene::ConstructionValues CSV = FPreviewScene::ConstructionValues().AllowAudioPlayback(true).ShouldSimulatePhysics(true);
 	ActViewportPreviewScene = MakeShareable(new FActViewportPreviewScene(CSV));
 	NovaDB::CreateSP("ActViewportPreviewScene", ActViewportPreviewScene);
 
-	// ** TODO:存储在配置中
-	NovaDB::Create("ColumnFillCoefficientsLeft", 0.3f);
-
+	auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
 	// Initialize the asset editor
 	InitAssetEditor(EToolkitMode::Standalone,
 	                InIToolkitHost,
@@ -73,31 +72,9 @@ void FNovaActEditor::CreateEditorWindow(const TSharedPtr<IToolkitHost>& InIToolk
 	AddApplicationMode(NovaConst::NovaActEditorMode, MakeShareable(new FNovaActEditorMode(SharedThis(this))));
 	SetCurrentMode(NovaConst::NovaActEditorMode);
 
-
-	// ** 填充Tab的实际内容Widget
-	// if (ActEventTimelineParentDockTab)
-	// {
-	// 	// ** 构造 Widget 显示
-	// 	TSharedRef<SActEventTimelineWidget> ActEventTimelineWidget = SNew(SActEventTimelineWidget);
-	// 	ActEventTimelineParentDockTab->SetContent(ActEventTimelineWidget);
-	// }
-
-
-	// ** Init Viewport Dock Tab
-	// if (ActViewportParentDockTab)
-	// {
-	// 	ActViewportPreviewScene->Init(ActViewportParentDockTab.ToSharedRef());
-	// }
-
-	// // ** Init AssetDetails Dock Tab
-	// if (ActAssetDetailsParentDockTab)
-	// {
-	// 	TSharedRef<SWidget> ActAssetDetailsWidget = SNew(SActAssetDetailsWidget);
-	// 	ActAssetDetailsParentDockTab->SetContent(ActAssetDetailsWidget);
-	// }
-
 	// ** Init by resource
 	NovaDB::Trigger("ActAnimation");
+	NovaDB::Trigger("ActAnimation/AnimBlueprint");
 	NovaDB::Trigger("ActAnimation/AnimSequence");
 
 	// When undo occurs, get a notification so we can make sure our view is up to date
@@ -222,12 +199,11 @@ TSharedRef<SDockTab> FNovaActEditor::OnActAssetDetailsTabSpawn(const FSpawnTabAr
 
 void FNovaActEditor::OnAnimSequenceChanged(UAnimSequence** InAnimSequence)
 {
-	if (!InAnimSequence)
+	UAnimSequence* AnimSequence = *InAnimSequence;
+	if (!AnimSequence)
 	{
-		UE_LOG(LogNovaAct, Log, TEXT("FActEventTimeline::AddAnimMontageTrack with nullptr AnimMontage"))
 		return;
 	}
-	UAnimSequence* AnimSequence = *InAnimSequence;
 	UE_LOG(LogNovaAct, Log, TEXT("AnimMontage : %s"), *AnimSequence->GetName());
 	const float CalculateSequenceLength = AnimSequence->GetPlayLength();
 	UE_LOG(LogNovaAct, Log, TEXT("InTotalLength : %f"), CalculateSequenceLength);
@@ -352,106 +328,107 @@ TSharedRef<SWidget> FNovaActEditor::MakeEditTabContent(UAnimationAsset* InAnimat
 
 void FNovaActEditor::OpenNewAnimationAssetEditTab(UAnimationAsset** InAnimationAsset)
 {
+	UAnimationAsset* AnimationAsset = *InAnimationAsset;
+	if (!AnimationAsset)
+	{
+		return;
+	}
 	UE_LOG(LogNovaAct, Log, TEXT("FNovaActEditor::OpenNewAnimationAssetEditTab"));
 
 
-	if (InAnimationAsset != nullptr)
+	// FString	DocumentLink;
+
+	// FAnimDocumentArgs Args(PersonaToolkit->GetPreviewScene(), GetPersonaToolkit(), GetSkeletonTree()->GetEditableSkeleton(), OnSectionsChanged);
+	// Args.OnDespatchObjectsSelected = FOnObjectsSelected::CreateSP(this, &FAnimationEditor::HandleObjectsSelected);
+	// Args.OnDespatchInvokeTab = FOnInvokeTab::CreateSP(this, &FAssetEditorToolkit::InvokeTab);
+	// Args.OnDespatchSectionsChanged = FSimpleDelegate::CreateSP(this, &FAnimationEditor::HandleSectionsChanged);
+
+	// FPersonaModule& PersonaModule = FModuleManager::GetModuleChecked<FPersonaModule>("Persona");
+
+	// if (AnimationAsset)
+	// {
+	// 	RemoveEditingObject(AnimationAsset);
+	// }
+	//
+	// AddEditingObject(InAnimationAsset);
+	// AnimationAsset = InAnimationAsset;
+
+	// Close existing opened curve tab
+	// if(AnimCurveDocumentTab.IsValid())
+	// {
+	// 	AnimCurveDocumentTab.Pin()->RequestCloseTab();
+	// }
+	//
+	// AnimCurveDocumentTab.Reset();
+
+	// struct Local
+	// {
+	// 	static FText GetObjectName(UObject* Object)
+	// 	{
+	// 		return FText::FromString(Object->GetName());
+	// 	}
+	// };
+
+	// TAttribute<FText> NameAttribute = TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateStatic(&Local::GetObjectName, (UObject*)InAnimationAsset));
+
+	if (ActEventTimelineParentDockTab)
 	{
-		UAnimationAsset* AnimationAsset = *InAnimationAsset;
-		// FString	DocumentLink;
-
-		// FAnimDocumentArgs Args(PersonaToolkit->GetPreviewScene(), GetPersonaToolkit(), GetSkeletonTree()->GetEditableSkeleton(), OnSectionsChanged);
-		// Args.OnDespatchObjectsSelected = FOnObjectsSelected::CreateSP(this, &FAnimationEditor::HandleObjectsSelected);
-		// Args.OnDespatchInvokeTab = FOnInvokeTab::CreateSP(this, &FAssetEditorToolkit::InvokeTab);
-		// Args.OnDespatchSectionsChanged = FSimpleDelegate::CreateSP(this, &FAnimationEditor::HandleSectionsChanged);
-
-		// FPersonaModule& PersonaModule = FModuleManager::GetModuleChecked<FPersonaModule>("Persona");
-
-		// if (AnimationAsset)
-		// {
-		// 	RemoveEditingObject(AnimationAsset);
-		// }
-		//
-		// AddEditingObject(InAnimationAsset);
-		// AnimationAsset = InAnimationAsset;
-
-		// Close existing opened curve tab
-		// if(AnimCurveDocumentTab.IsValid())
-		// {
-		// 	AnimCurveDocumentTab.Pin()->RequestCloseTab();
-		// }
-		//
-		// AnimCurveDocumentTab.Reset();
-
-		// struct Local
-		// {
-		// 	static FText GetObjectName(UObject* Object)
-		// 	{
-		// 		return FText::FromString(Object->GetName());
-		// 	}
-		// };
-
-		// TAttribute<FText> NameAttribute = TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateStatic(&Local::GetObjectName, (UObject*)InAnimationAsset));
-
-		if (ActEventTimelineParentDockTab)
-		{
-			TSharedRef<SWidget> TabContents = MakeEditTabContent(AnimationAsset);
-			ActEventTimelineParentDockTab->SetContent(TabContents);
-			ActEventTimelineParentDockTab->ActivateInParent(ETabActivationCause::SetDirectly);
-			// OpenedTab->SetLabel(NameAttribute);
-			// OpenedTab->SetLeftContent(IDocumentation::Get()->CreateAnchor(DocumentLink));
-		}
-		else
-		{
-			// OpenedTab = 
-			// .OnTabClosed_Lambda([this](TSharedRef<SDockTab> InTab)
-			// {
-			// 	TSharedPtr<SDockTab> CurveTab = AnimCurveDocumentTab.Pin();
-			// 	if(CurveTab.IsValid())
-			// 	{
-			// 		CurveTab->RequestCloseTab();
-			// 	}
-			// })
-			// [
-			// 	TabContents
-			// ];
-
-			// OpenedTab->SetLeftContent(IDocumentation::Get()->CreateAnchor(DocumentLink));
-			TabManager->TryInvokeTab(NovaConst::ActEventTimelineTabId);
-			// SharedAnimationAssetTab = OpenedTab;
-		}
-
-		// Invoke the montage sections tab, and make sure the asset browser is there and in focus when we are dealing with a montage.
-		// if(InAnimationAsset->IsA<UAnimMontage>())
-		// {
-		// 	TabManager->TryInvokeTab(AnimationEditorTabs::AnimMontageSectionsTab);
-		//
-		// 	// Only activate the asset browser tab when this is a reused Animation Editor window.
-		// 	if (bIsReusedEditor)
-		// 	{
-		// 		TabManager->TryInvokeTab(AnimationEditorTabs::AssetBrowserTab);
-		// 	}
-		// 	OnSectionsChanged.Broadcast();
-		// }
-		// else
-		// {
-		// 	// Close existing opened montage sections tab
-		// 	TSharedPtr<SDockTab> OpenMontageSectionsTab = TabManager->FindExistingLiveTab(AnimationEditorTabs::AnimMontageSectionsTab);
-		// 	if(OpenMontageSectionsTab.IsValid())
-		// 	{
-		// 		OpenMontageSectionsTab->RequestCloseTab();
-		// 	}
-		// }
-
-		// if (SequenceBrowser.IsValid())
-		// {
-		// 	SequenceBrowser.Pin()->SelectAsset(InAnimationAsset);
-		// }
-		//
-		// // let the asset family know too
-		// TSharedRef<IAssetFamily> AssetFamily = PersonaModule.CreatePersonaAssetFamily(InAnimationAsset);
-		// AssetFamily->RecordAssetOpened(FAssetData(InAnimationAsset));
+		TSharedRef<SWidget> TabContents = MakeEditTabContent(AnimationAsset);
+		ActEventTimelineParentDockTab->SetContent(TabContents);
+		ActEventTimelineParentDockTab->ActivateInParent(ETabActivationCause::SetDirectly);
+		// OpenedTab->SetLabel(NameAttribute);
+		// OpenedTab->SetLeftContent(IDocumentation::Get()->CreateAnchor(DocumentLink));
 	}
+	else
+	{
+		// OpenedTab = 
+		// .OnTabClosed_Lambda([this](TSharedRef<SDockTab> InTab)
+		// {
+		// 	TSharedPtr<SDockTab> CurveTab = AnimCurveDocumentTab.Pin();
+		// 	if(CurveTab.IsValid())
+		// 	{
+		// 		CurveTab->RequestCloseTab();
+		// 	}
+		// })
+		// [
+		// 	TabContents
+		// ];
+
+		// OpenedTab->SetLeftContent(IDocumentation::Get()->CreateAnchor(DocumentLink));
+		TabManager->TryInvokeTab(NovaConst::ActEventTimelineTabId);
+		// SharedAnimationAssetTab = OpenedTab;
+	}
+
+	// Invoke the montage sections tab, and make sure the asset browser is there and in focus when we are dealing with a montage.
+	// if(InAnimationAsset->IsA<UAnimMontage>())
+	// {
+	// 	TabManager->TryInvokeTab(AnimationEditorTabs::AnimMontageSectionsTab);
+	//
+	// 	// Only activate the asset browser tab when this is a reused Animation Editor window.
+	// 	if (bIsReusedEditor)
+	// 	{
+	// 		TabManager->TryInvokeTab(AnimationEditorTabs::AssetBrowserTab);
+	// 	}
+	// 	OnSectionsChanged.Broadcast();
+	// }
+	// else
+	// {
+	// 	// Close existing opened montage sections tab
+	// 	TSharedPtr<SDockTab> OpenMontageSectionsTab = TabManager->FindExistingLiveTab(AnimationEditorTabs::AnimMontageSectionsTab);
+	// 	if(OpenMontageSectionsTab.IsValid())
+	// 	{
+	// 		OpenMontageSectionsTab->RequestCloseTab();
+	// 	}
+	// }
+
+	// if (SequenceBrowser.IsValid())
+	// {
+	// 	SequenceBrowser.Pin()->SelectAsset(InAnimationAsset);
+	// }
+	//
+	// // let the asset family know too
+	// TSharedRef<IAssetFamily> AssetFamily = PersonaModule.CreatePersonaAssetFamily(InAnimationAsset);
+	// AssetFamily->RecordAssetOpened(FAssetData(InAnimationAsset));
 }
 
 #undef LOCTEXT_NAMESPACE

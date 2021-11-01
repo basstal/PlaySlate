@@ -20,18 +20,6 @@ public:
 	FActViewportPreviewScene(const ConstructionValues& CVS);
 	virtual ~FActViewportPreviewScene() override;
 
-	/**
-	 * @param InParentDockTab 子Widget所附着的DockTab
-	 */
-	void Init(const TSharedRef<SDockTab>& InParentDockTab);
-
-	/**
-	 * Widget Make Client回调方法
-	 * 
-	 * @return 构造的FActActionViewportClient，是SEditorViewport必须实现的组件之一
-	 */
-	// TSharedPtr<FActViewportClient> MakeViewportClient();
-
 	//~Begin FAdvancedPreviewScene interface
 	virtual void AddComponent(UActorComponent* Component, const FTransform& LocalToWorld, bool bAttachToRoot) override;
 	virtual void Tick(float DeltaTime) override;
@@ -95,9 +83,13 @@ public:
 	/** 监听 AnimSequence 的播放状态是否已停止*/
 	void TickPlayingStopped();
 	/** UActAnimation 的数据绑定，监听AnimBlueprint数据改变 */
-	void OnAnimBlueprintChanged(UActAnimation* InActAnimation);
-	/** UActAnimation 的数据绑定，监听AnimSequence数据改变 */
-	void OnAnimSequenceChanged(UActAnimation* InActAnimation);
+	void OnAnimBlueprintChanged(UAnimBlueprint** InAnimBlueprint);
+	/**
+	 * UActAnimation 的数据绑定，监听AnimSequence数据改变
+	 *
+	 * @param InAnimSequence
+	 */
+	void OnAnimSequenceChanged(UAnimSequence** InAnimSequence);
 	/** ENovaTransportControls 的数据绑定，监听ENovaTransportControls数据改变，控制Viewport的动画播放 */
 	void OnTransportControlsStateChanged(ENovaTransportControls InNovaTransportControls);
 

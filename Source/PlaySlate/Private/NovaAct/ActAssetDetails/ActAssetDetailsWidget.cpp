@@ -1,5 +1,6 @@
 ﻿#include "ActAssetDetailsWidget.h"
-#include "NovaAct/NovaActEditor.h"
+
+#include "Common/NovaDataBinding.h"
 #include "NovaAct/Assets/ActAnimation.h"
 
 void SActAssetDetailsWidget::Construct(const FArguments& InArgs)

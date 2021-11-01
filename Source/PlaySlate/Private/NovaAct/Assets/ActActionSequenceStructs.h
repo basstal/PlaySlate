@@ -11,13 +11,13 @@ struct FActActionHitBoxData
 	 * 开始帧
 	 */
 	UPROPERTY(EditAnywhere)
-	int Begin;
+	int32 Begin;
 
 	/**
 	 * 结束帧
 	 */
 	UPROPERTY(EditAnywhere)
-	int End;
+	int32 End;
 
 	/**
 	 * 攻击盒数据

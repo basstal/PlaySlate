@@ -29,7 +29,7 @@ int32 SActImageThickLine::OnPaint(const FPaintArgs& Args,
 		DrawTickArgs.AllottedGeometry = AllottedGeometry;
 		DrawTickArgs.bMirrorLabels = false;
 		DrawTickArgs.bOnlyDrawMajorTicks = true;
-		DrawTickArgs.TickColor = FLinearColor(1.0f, 1.0f, 1.0f, 0.2f);
+		DrawTickArgs.TickColor = FLinearColor::White.CopyWithNewOpacity(0.2f);
 		DrawTickArgs.CullingRect = MyCullingRect;
 		DrawTickArgs.DrawEffects = ShouldBeEnabled(bParentEnabled) ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 		// Draw major ticks under sections
