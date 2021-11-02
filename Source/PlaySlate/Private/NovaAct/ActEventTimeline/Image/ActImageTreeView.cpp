@@ -24,7 +24,7 @@ void SActImageTreeView::Construct(const FArguments& InArgs, const TSharedRef<SAc
 	ActImageAreaPanel = InActImageTrackAreaPanel;
 
 	TextFilter = MakeShareable(new FTextFilterExpressionEvaluator(ETextFilterExpressionEvaluatorMode::BasicString));
-	
+
 	HeaderRow = SNew(SHeaderRow)
 		.Visibility(EVisibility::Collapsed)
 		+ SHeaderRow::Column(FName("Outliner"))
@@ -45,6 +45,10 @@ void SActImageTreeView::Construct(const FArguments& InArgs, const TSharedRef<SAc
 	STreeView::Construct(TreeViewArgs);
 
 	DataBindingUObjectBindRaw(UActAnimation, "ActAnimation", this, &SActImageTreeView::OnHitBoxesChanged, OnHitBoxesChangedHandle);
+	if (!NovaDB::Get("TreeViewFilterText"))
+	{
+		NovaDB::Create("TreeViewFilterText", FText::GetEmpty());
+	}
 	DataBindingBindRaw(FText, "TreeViewFilterText", this, &SActImageTreeView::OnFilterChanged, OnFilterChangedHandle);
 }
 

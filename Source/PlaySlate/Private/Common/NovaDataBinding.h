@@ -218,7 +218,7 @@ public:
 	virtual void Release() override;
 	//~End IDataBinding interface
 protected:
-	TDataBinding(FName InName, AbstractData InData = nullptr);
+	TDataBinding(FName InName, AbstractData InData);
 
 	// 数据原型
 	AbstractData Data;
