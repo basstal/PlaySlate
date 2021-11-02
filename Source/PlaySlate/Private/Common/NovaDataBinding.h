@@ -31,6 +31,7 @@
 #define DataBindingSPBindRaw(AbstractData, InName, InUserObject, InFunc, OutHandle) \
 {\
 	auto _DB = StaticCastSharedPtr<TDataBindingSP<AbstractData>>(NovaDB::Get(InName));\
+	check(_DB);\
 	OutHandle = _DB->Bind(TDataBindingSP<AbstractData>::DelegateType::CreateRaw(InUserObject, InFunc));\
 	NovaDB::Trigger(InName, OutHandle);\
 }
@@ -44,6 +45,7 @@
 #define DataBindingBindRaw(AbstractData, InName, InUserObject, InFunc, OutHandle) \
 {\
 	auto _DB = StaticCastSharedPtr<TDataBinding<AbstractData>>(NovaDB::Get(InName));\
+	check(_DB);\
 	OutHandle = _DB->Bind(TDataBinding<AbstractData>::DelegateType::CreateRaw(InUserObject, InFunc));\
 	NovaDB::Trigger(InName, OutHandle);\
 }
@@ -57,6 +59,7 @@
 #define DataBindingUObjectBindRaw(AbstractData, InName, InUserObject, InFunc, OutHandle) \
 {\
 	auto _DB = StaticCastSharedPtr<TDataBindingUObject<AbstractData>>(NovaDB::Get(InName));\
+	check(_DB);\
 	OutHandle = _DB->Bind(TDataBindingUObject<AbstractData>::DelegateType::CreateRaw(InUserObject, InFunc));\
 	NovaDB::Trigger(InName, OutHandle);\
 }
