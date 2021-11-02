@@ -1,21 +1,21 @@
-﻿#include "ActImageTrackAreaPanel.h"
+﻿#include "ActImageAreaPanel.h"
 
 #include "PlaySlate.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTreeViewTableRow.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTrackLaneWidget.h"
 
 
-SActImageTrackAreaPanel::SActImageTrackAreaPanel()
+SActImageAreaPanel::SActImageAreaPanel()
 	: Children(this) {}
 
-SActImageTrackAreaPanel::~SActImageTrackAreaPanel()
+SActImageAreaPanel::~SActImageAreaPanel()
 {
-	UE_LOG(LogNovaAct, Log, TEXT("SActImageTrackAreaPanel::~SActImageTrackAreaPanel "));
+	UE_LOG(LogNovaAct, Log, TEXT("SActImageAreaPanel::~SActImageAreaPanel "));
 }
 
-void SActImageTrackAreaPanel::Construct(const FArguments& InArgs) {}
+void SActImageAreaPanel::Construct(const FArguments& InArgs) {}
 
-void SActImageTrackAreaPanel::OnArrangeChildren(const FGeometry& AllottedGeometry, FArrangedChildren& ArrangedChildren) const
+void SActImageAreaPanel::OnArrangeChildren(const FGeometry& AllottedGeometry, FArrangedChildren& ArrangedChildren) const
 {
 	for (int32 ChildIndex = 0; ChildIndex < Children.Num(); ++ChildIndex)
 	{
@@ -47,7 +47,7 @@ void SActImageTrackAreaPanel::OnArrangeChildren(const FGeometry& AllottedGeometr
 	}
 }
 
-FVector2D SActImageTrackAreaPanel::ComputeDesiredSize(float) const
+FVector2D SActImageAreaPanel::ComputeDesiredSize(float) const
 {
 	FVector2D MaxSize(0.0f, 0.0f);
 	for (int32 ChildIndex = 0; ChildIndex < Children.Num(); ++ChildIndex)
@@ -66,12 +66,12 @@ FVector2D SActImageTrackAreaPanel::ComputeDesiredSize(float) const
 	return MaxSize;
 }
 
-FChildren* SActImageTrackAreaPanel::GetChildren()
+FChildren* SActImageAreaPanel::GetChildren()
 {
 	return &Children;
 }
 
-TSharedRef<SActImageTrackLaneWidget> SActImageTrackAreaPanel::MakeTrackLane(const TSharedRef<SActImageTreeViewTableRow>& InActImageTreeViewTableRow)
+TSharedRef<SActImageTrackLaneWidget> SActImageAreaPanel::MakeTrackLane(const TSharedRef<SActImageTreeViewTableRow>& InActImageTreeViewTableRow)
 {
 	TSharedRef<SActImageTrackLaneWidget> TrackLaneWidget = SNew(SActImageTrackLaneWidget, InActImageTreeViewTableRow);
 	Children.Add(new SActImageTrackLaneWidget::Slot(TrackLaneWidget));

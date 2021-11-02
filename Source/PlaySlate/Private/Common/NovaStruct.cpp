@@ -1,5 +1,9 @@
 ﻿#include "Common/NovaStruct.h"
 #include "PlaySlate.h"
+#include "Animation/AnimNotifies/AnimNotify.h"
+#include "Animation/AnimNotifies/AnimNotifyState.h"
+
+#define LOCTEXT_NAMESPACE "NovaAct"
 
 namespace NovaStruct
 {
@@ -229,4 +233,168 @@ namespace NovaStruct
 	{
 		checkf(InputRate.IsValid() && OutputRate.IsValid(), TEXT("Invalid input or output rate. SetTimeBase must be called before any use of this class."))
 	}
+
+	FActImageTrackCarNotifyNode::FActImageTrackCarNotifyNode(FAnimNotifyEvent* InAnimNotifyEvent)
+		: NotifyEvent(InAnimNotifyEvent),
+		  Guid(NotifyEvent->Guid) {}
+
+	TOptional<FLinearColor> FActImageTrackCarNotifyNode::GetEditorColor()
+	{
+		TOptional<FLinearColor> ReturnColour;
+		if (NotifyEvent->Notify)
+		{
+			ReturnColour = NotifyEvent->Notify->GetEditorColor();
+		}
+		else if (NotifyEvent->NotifyStateClass)
+		{
+			ReturnColour = NotifyEvent->NotifyStateClass->GetEditorColor();
+		}
+		return ReturnColour;
+	}
+
+	FText FActImageTrackCarNotifyNode::GetNodeTooltip(const UAnimSequenceBase* Sequence)
+	{
+		FText ToolTipText = MakeTooltipFromTime(Sequence, NotifyEvent->GetTime(), NotifyEvent->GetDuration());
+
+		if (NotifyEvent->IsBranchingPoint())
+		{
+			ToolTipText = FText::Format(LOCTEXT("AnimNotify_ToolTipBranchingPoint", "{0} (BranchingPoint)"), ToolTipText);
+		}
+
+		UObject* NotifyToDisplayClassOf = NotifyEvent->Notify;
+		if (NotifyToDisplayClassOf == nullptr)
+		{
+			NotifyToDisplayClassOf = NotifyEvent->NotifyStateClass;
+		}
+
+		if (NotifyToDisplayClassOf != nullptr)
+		{
+			ToolTipText = FText::Format(LOCTEXT("AnimNotify_ToolTipNotifyClass", "{0}\nClass: {1}"), ToolTipText, NotifyToDisplayClassOf->GetClass()->GetDisplayNameText());
+		}
+
+		return ToolTipText;
+	}
+
+	TOptional<UObject*> FActImageTrackCarNotifyNode::GetObjectBeingDisplayed()
+	{
+		if (NotifyEvent->Notify)
+		{
+			return TOptional<UObject*>(NotifyEvent->Notify);
+		}
+
+		if (NotifyEvent->NotifyStateClass)
+		{
+			return TOptional<UObject*>(NotifyEvent->NotifyStateClass);
+		}
+		return TOptional<UObject*>();
+	}
+
+	void FActImageTrackCarNotifyNode::HandleDrop(UAnimSequenceBase* Sequence, float Time, int32 TrackIndex)
+	{
+		float EventDuration = NotifyEvent->GetDuration();
+
+		NotifyEvent->Link(Sequence, Time, NotifyEvent->GetSlotIndex());
+		NotifyEvent->RefreshTriggerOffset(Sequence->CalculateOffsetForNotify(NotifyEvent->GetTime()));
+
+		if (EventDuration > 0.0f)
+		{
+			NotifyEvent->EndLink.Link(Sequence, NotifyEvent->GetTime() + EventDuration, NotifyEvent->GetSlotIndex());
+			NotifyEvent->RefreshEndTriggerOffset(Sequence->CalculateOffsetForNotify(NotifyEvent->EndLink.GetTime()));
+		}
+		else
+		{
+			NotifyEvent->EndTriggerTimeOffset = 0.0f;
+		}
+
+		NotifyEvent->TrackIndex = TrackIndex;
+	}
+
+	void FActImageTrackCarNotifyNode::CacheName()
+	{
+		if (NotifyEvent->Notify)
+		{
+			CachedNotifyName = FName(*NotifyEvent->Notify->GetNotifyName());
+		}
+		else if (NotifyEvent->NotifyStateClass)
+		{
+			CachedNotifyName = FName(*NotifyEvent->NotifyStateClass->GetNotifyName());
+		}
+		else
+		{
+			CachedNotifyName = NotifyEvent->NotifyName;
+		}
+	}
+
+	void FActImageTrackCarNotifyNode::Delete(UAnimSequenceBase* Seq)
+	{
+		for (int32 I = 0; I < Seq->Notifies.Num(); ++I)
+		{
+			if (NotifyEvent == &(Seq->Notifies[I]))
+			{
+				Seq->Notifies.RemoveAt(I);
+				Seq->PostEditChange();
+				Seq->MarkPackageDirty();
+				break;
+			}
+		}
+	}
+
+	void FActImageTrackCarNotifyNode::MarkForDelete(UAnimSequenceBase* Seq)
+	{
+		for (int32 I = 0; I < Seq->Notifies.Num(); ++I)
+		{
+			if (NotifyEvent == &(Seq->Notifies[I]))
+			{
+				Seq->Notifies[I].Guid = FGuid();
+				break;
+			}
+		}
+	}
+
+	void FActImageTrackCarNotifyNode::ExportForCopy(UAnimSequenceBase* Seq, FString& StrValue) const
+	{
+		int32 Index = INDEX_NONE;
+		for (int32 NotifyIdx = 0; NotifyIdx < Seq->Notifies.Num(); ++NotifyIdx)
+		{
+			if (NotifyEvent == &Seq->Notifies[NotifyIdx])
+			{
+				Index = NotifyIdx;
+				break;
+			}
+		}
+
+		check(Index != INDEX_NONE);
+
+		FArrayProperty* ArrayProperty = NULL;
+		uint8* PropertyData = Seq->FindNotifyPropertyData(Index, ArrayProperty);
+		if (PropertyData && ArrayProperty)
+		{
+			ArrayProperty->Inner->ExportTextItem(StrValue, PropertyData, PropertyData, Seq, PPF_Copy);
+		}
+	}
+
+	FText FActImageTrackCarNotifyNode::MakeTooltipFromTime(const UAnimSequenceBase* InSequence, float InSeconds, float InDuration)
+	{
+		const FText Frame = FText::AsNumber(InSequence->GetFrameAtTime(InSeconds));
+		const FText Seconds = FText::AsNumber(InSeconds);
+
+		if (InDuration > 0.0f)
+		{
+			const FText Duration = FText::AsNumber(InDuration);
+			return FText::Format(LOCTEXT("NodeToolTipLong", "@ {0} sec (frame {1}) for {2} sec"), Seconds, Frame, Duration);
+		}
+		else
+		{
+			return FText::Format(LOCTEXT("NodeToolTipShort", "@ {0} sec (frame {1})"), Seconds, Frame);
+		}
+	}
+
+	void FActImageTrackCarNotifyNode::RemoveInvalidNotifies(UAnimSequenceBase* SeqBase)
+	{
+		SeqBase->Notifies.RemoveAll([](const FAnimNotifyEvent& InNotifyEvent) { return !InNotifyEvent.Guid.IsValid(); });
+		SeqBase->PostEditChange();
+		SeqBase->MarkPackageDirty();
+	}
 }
+
+#undef LOCTEXT_NAMESPACE

@@ -54,7 +54,7 @@ FActViewportPreviewScene::~FActViewportPreviewScene()
 	{
 		ActAnimationDB->UnBind(OnAnimBlueprintChangedHandle);
 	}
-	auto ActAnimationAnimSequenceDB = GetDataBindingUObject(UAnimSequence, "ActAnimation/AnimSequence");
+	auto ActAnimationAnimSequenceDB = GetDataBinding(UAnimSequence**, "ActAnimation/AnimSequence");
 	if (ActAnimationAnimSequenceDB)
 	{
 		ActAnimationAnimSequenceDB->UnBind(OnAnimSequenceChangedHandle);

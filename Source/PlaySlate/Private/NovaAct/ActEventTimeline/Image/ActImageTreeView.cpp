@@ -2,7 +2,7 @@
 
 #include "PlaySlate.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTreeViewTableRow.h"
-#include "NovaAct/ActEventTimeline/Image/ActImageTrackAreaPanel.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageAreaPanel.h"
 
 #include "Common/NovaDataBinding.h"
 #include "NovaAct/Assets/ActAnimation.h"
@@ -17,7 +17,7 @@ SActImageTreeView::~SActImageTreeView()
 	}
 }
 
-void SActImageTreeView::Construct(const FArguments& InArgs, const TSharedRef<SActImageTrackAreaPanel>& InActImageTrackAreaPanel)
+void SActImageTreeView::Construct(const FArguments& InArgs, const TSharedRef<SActImageAreaPanel>& InActImageTrackAreaPanel)
 {
 	ActImageTrackAreaPanel = InActImageTrackAreaPanel;
 
@@ -93,7 +93,7 @@ void SActImageTreeView::OnHitBoxesChanged(UActAnimation* InActAnimation)
 	TSharedPtr<SActImageTreeViewTableRow> HitBoxesFolder;
 	if (!FindElement)
 	{
-		HitBoxesFolder = SNew(SActImageTreeViewTableRow, SharedThis(this), HitBoxesFolderName, ENovaTreeViewNodeType::Folder);
+		HitBoxesFolder = SNew(SActImageTreeViewTableRow, SharedThis(this), HitBoxesFolderName, ENovaTreeViewTableRowType::Folder);
 		DisplayedRootNodes.Add(HitBoxesFolder.ToSharedRef());
 	}
 	else
@@ -106,7 +106,8 @@ void SActImageTreeView::OnHitBoxesChanged(UActAnimation* InActAnimation)
 		FName HitBoxName("HitBox");
 		for (int32 count = HitBoxTreeViewNodeCount; count < InHitBoxData.Num(); ++count)
 		{
-			TSharedRef<SActImageTreeViewTableRow> NewTreeViewNode = SNew(SActImageTreeViewTableRow, SharedThis(this), HitBoxName, ENovaTreeViewNodeType::State);
+			// ** TODO: fix
+			TSharedRef<SActImageTreeViewTableRow> NewTreeViewNode = SNew(SActImageTreeViewTableRow, SharedThis(this), HitBoxName, ENovaTreeViewTableRowType::Notifies);
 			NewTreeViewNode->SetParent(HitBoxesFolder);
 			// DisplayedRootNodes.Add(NewTreeViewNode);
 		}
@@ -126,15 +127,15 @@ void SActImageTreeView::OnHitBoxesChanged(UActAnimation* InActAnimation)
 }
 
 
-TSharedRef<ITableRow> SActImageTreeView::OnGenerateRow(TSharedRef<SActImageTreeViewTableRow> InTreeViewNode, const TSharedRef<STableViewBase>& OwnerTable)
+TSharedRef<ITableRow> SActImageTreeView::OnGenerateRow(TSharedRef<SActImageTreeViewTableRow> InTreeViewTableRow, const TSharedRef<STableViewBase>& OwnerTable)
 {
 	// Ensure the track area is kept up to date with the virtualized scroll of the tree view
-	TSharedPtr<SActImageTrackLaneWidget> TrackLane = TreeViewTableRow2TrackLaneWidget.FindRef(InTreeViewNode).Pin();
+	TSharedPtr<SActImageTrackLaneWidget> TrackLane = TreeViewTableRow2TrackLaneWidget.FindRef(InTreeViewTableRow).Pin();
 	if (!TrackLane.IsValid())
 	{
 		// Add a track slot for the row
-		TrackLane = ActImageTrackAreaPanel->MakeTrackLane(InTreeViewNode);
-		TreeViewTableRow2TrackLaneWidget.Add(InTreeViewNode, TrackLane);
+		TrackLane = ActImageTrackAreaPanel->MakeTrackLane(InTreeViewTableRow);
+		TreeViewTableRow2TrackLaneWidget.Add(InTreeViewTableRow, TrackLane);
 	}
-	return InTreeViewNode;
+	return InTreeViewTableRow;
 }

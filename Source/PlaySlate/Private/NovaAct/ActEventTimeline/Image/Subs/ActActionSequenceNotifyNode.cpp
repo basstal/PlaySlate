@@ -1,5 +1,6 @@
 ﻿#include "ActActionSequenceNotifyNode.h"
 
+#include "ActNotifiesPanelLaneWidget.h"
 #include "SCurveEditor.h"
 #include "Common/NovaEnum.h"
 #include "Common/NovaConst.h"
@@ -11,9 +12,9 @@
 
 using namespace NovaStruct;
 
-void SActActionSequenceNotifyNode::Construct(const FArguments& InArgs, const TSharedRef<SActImageTrackLaneWidget>& InTrackAreaSlot)
+void SActActionSequenceNotifyNode::Construct(const FArguments& InArgs, const TSharedRef<SActNotifiesPanelLaneWidget>& InActNotifiesPanelLaneWidget)
 {
-	ActActionTrackAreaSlot = InTrackAreaSlot;
+	ActNotifiesPanelLaneWidget = InActNotifiesPanelLaneWidget;
 	// Font = FCoreStyle::GetDefaultFontStyle("Regular", 10);
 	bBeingDragged = false;
 	CurrentDragHandle = ENovaNotifyStateHandleHit::None;
@@ -30,7 +31,7 @@ void SActActionSequenceNotifyNode::Construct(const FArguments& InArgs, const TSh
 	SetClipping(EWidgetClipping::ClipToBounds);
 	SetToolTipText(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateLambda([this]()
 	{
-		return ActActionTrackAreaSlot.Pin()->GetNodeTooltip();
+		return ActNotifiesPanelLaneWidget.Pin()->GetNodeTooltip();
 	})));
 }
 
@@ -38,7 +39,7 @@ int32 SActActionSequenceNotifyNode::OnPaint(const FPaintArgs& Args, const FGeome
 {
 	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = DB->GetData();
-	// const FActActionTrackAreaArgs& TrackAreaArgs = ActActionTrackAreaSlot.Pin()->GetActActionTrackAreaArgs();
+	// const FActActionTrackAreaArgs& TrackAreaArgs = ActNotifiesPanelLaneWidget.Pin()->GetActActionTrackAreaArgs();
 	int32 MarkerLayer = LayerId + 1;
 	int32 ScrubHandleID = MarkerLayer + 1;
 	int32 TextLayerID = ScrubHandleID + 1;
@@ -66,7 +67,7 @@ int32 SActActionSequenceNotifyNode::OnPaint(const FPaintArgs& Args, const FGeome
 
 		// float EndTime = TrackAreaArgs.GetEndTime();
 		float EndTime = 0;
-		if (EndTime != ActActionTrackAreaSlot.Pin()->GetPlayLength())//Don't render offset when we are at the end of the sequence, doesnt help the user
+		if (EndTime != ActNotifiesPanelLaneWidget.Pin()->GetPlayLength())//Don't render offset when we are at the end of the sequence, doesnt help the user
 		{
 			// ScrubHandle
 			float HandleCentre = NotifyDurationSizeX + (ScrubHandleSize.X - 2.0f);
@@ -149,7 +150,7 @@ int32 SActActionSequenceNotifyNode::OnPaint(const FPaintArgs& Args, const FGeome
 
 	// float BeginTime = TrackAreaArgs.BeginTime;
 	float BeginTime = 0;
-	if (BeginTime > 0.f && BeginTime != ActActionTrackAreaSlot.Pin()->GetPlayLength())//Don't render offset when we are at the start/end of the sequence, doesn't help the user
+	if (BeginTime > 0.f && BeginTime != ActNotifiesPanelLaneWidget.Pin()->GetPlayLength())//Don't render offset when we are at the start/end of the sequence, doesn't help the user
 	{
 		DrawHandleOffset(0.5f, NotifyScrubHandleCentre, OutDrawElements, MarkerLayer, AllottedGeometry, MyCullingRect, NodeColor);
 	}
@@ -217,17 +218,17 @@ FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, co
 	}
 	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = DB->GetData();
-	// const FActActionTrackAreaArgs& TrackAreaArgs = ActActionTrackAreaSlot.Pin()->GetActActionTrackAreaArgs();
+	// const FActActionTrackAreaArgs& TrackAreaArgs = ActNotifiesPanelLaneWidget.Pin()->GetActActionTrackAreaArgs();
 	// float ViewMinInput = ActEventTimelineArgs->ClampRange.GetLowerBoundValue();
 	// float ViewMaxInput = ActEventTimelineArgs->ClampRange.GetUpperBoundValue();
 	// FTrackScaleInfo ScaleInfo(ViewMinInput, ViewMaxInput, 0, 0, CachedAllottedGeometrySize);
-	float PlayLength = ActActionTrackAreaSlot.Pin()->GetPlayLength();
+	float PlayLength = ActNotifiesPanelLaneWidget.Pin()->GetPlayLength();
 	float XPositionInTrack = MyGeometry.AbsolutePosition.X - CachedTrackGeometry.AbsolutePosition.X;
 	float TrackScreenSpaceXPosition = MyGeometry.AbsolutePosition.X - XPositionInTrack;
 	// float TrackScreenSpaceOrigin = CachedTrackGeometry.LocalToAbsolute(FVector2D(ScaleInfo.InputToLocalX(0.0f), 0.0f)).X;
 	// float TrackScreenSpaceLimit = CachedTrackGeometry.LocalToAbsolute(FVector2D(ScaleInfo.InputToLocalX(PlayLength), 0.0f)).X;
 	float TickResolutionInterval = (float)ActEventTimelineArgs->TickResolution.AsInterval();
-	TSharedRef<SActImageTreeViewTableRow> ActActionSequenceTreeViewNode = ActActionTrackAreaSlot.Pin()->GetActActionSequenceTreeViewNode();
+	// TSharedRef<SActImageTreeViewTableRow> ActActionSequenceTreeViewNode = ActNotifiesPanelLaneWidget.Pin()->GetActActionSequenceTreeViewNode();
 	if (CurrentDragHandle == ENovaNotifyStateHandleHit::Start)
 	{
 		// Check track bounds
@@ -391,12 +392,12 @@ void SActActionSequenceNotifyNode::Tick(const FGeometry& AllottedGeometry, const
 FText SActActionSequenceNotifyNode::GetNotifyText() const
 {
 	// Combine comment from notify struct and from function on object
-	return FText::FromName(ActActionTrackAreaSlot.Pin()->GetName());
+	return FText::FromName(ActNotifiesPanelLaneWidget.Pin()->GetName());
 }
 
 FLinearColor SActActionSequenceNotifyNode::GetNotifyColor() const
 {
-	TOptional<FLinearColor> Color = ActActionTrackAreaSlot.Pin()->GetEditorColor();
+	TOptional<FLinearColor> Color = ActNotifiesPanelLaneWidget.Pin()->GetEditorColor();
 	FLinearColor BaseColor = Color.Get(FLinearColor(1, 1, 0.5f));
 	BaseColor.A = 0.67f;
 	return BaseColor;
@@ -407,7 +408,7 @@ void SActActionSequenceNotifyNode::UpdateSizeAndPosition(const FGeometry& Allott
 {
 	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = DB->GetData();
-	// FActActionTrackAreaArgs& ActActionTrackAreaArgs = ActActionTrackAreaSlot.Pin()->GetActActionTrackAreaArgs();
+	// FActActionTrackAreaArgs& ActActionTrackAreaArgs = ActNotifiesPanelLaneWidget.Pin()->GetActActionTrackAreaArgs();
 	FTrackScaleInfo ScaleInfo(ActEventTimelineArgs->ClampRange.GetLowerBoundValue(), ActEventTimelineArgs->ClampRange.GetUpperBoundValue(), 0, 0, AllottedGeometry.Size);
 	// float TickResolutionInterval = (float)ActEventTimelineArgs->TickResolution.AsInterval();
 	// Cache the geometry information, the allotted geometry is the same size as the track.
@@ -424,7 +425,7 @@ void SActActionSequenceNotifyNode::UpdateSizeAndPosition(const FGeometry& Allott
 	TextSize = FontMeasureService->Measure(GetNotifyText(), Font);
 	LabelWidth = TextSize.X + (TextBorderSize.X * 2.f) + (ScrubHandleSize.X / 2.f);
 
-	bool bDrawBranchingPoint = ActActionTrackAreaSlot.Pin()->IsBranchingPoint();
+	bool bDrawBranchingPoint = ActNotifiesPanelLaneWidget.Pin()->IsBranchingPoint();
 	BranchingPointIconSize = FVector2D(TextSize.Y, TextSize.Y);
 	if (bDrawBranchingPoint)
 	{
@@ -647,4 +648,9 @@ FVector2D SActActionSequenceNotifyNode::GetNotifyPositionOffset() const
 FVector2D SActActionSequenceNotifyNode::GetNotifyPosition() const
 {
 	return FVector2D(NotifyTimePositionX, NovaConst::NotifyHeightOffset);
+}
+
+FVector2D SActActionSequenceNotifyNode::GetWidgetSize() const
+{
+	return WidgetSize;
 }

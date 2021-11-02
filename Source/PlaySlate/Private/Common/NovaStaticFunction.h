@@ -212,4 +212,25 @@ public:
 																							 TickResolutionAttrLambda));
 		return ActEventTimelineArgs;
 	}
+
+	static FName GetNewTrackName(UAnimSequenceBase* InAnimSequenceBase)
+	{
+		TArray<FName> TrackNames;
+		TrackNames.Reserve(50);
+
+		for (const FAnimNotifyTrack& Track : InAnimSequenceBase->AnimNotifyTracks)
+		{
+			TrackNames.Add(Track.TrackName);
+		}
+
+		FName NameToTest;
+		int32 TrackIndex = 1;
+	
+		do 
+		{
+			NameToTest = *FString::FromInt(TrackIndex++);
+		} while (TrackNames.Contains(NameToTest));
+
+		return NameToTest;
+	}
 };

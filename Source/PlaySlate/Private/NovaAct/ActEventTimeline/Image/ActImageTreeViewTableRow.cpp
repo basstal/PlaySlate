@@ -1,7 +1,9 @@
 ﻿#include "ActImageTreeViewTableRow.h"
 
 #include "ActActionSequenceSectionBase.h"
-#include "ActImageTrackAreaPanel.h"
+#include "ActImageAreaPanel.h"
+#include "ActImageTrackPanel.h"
+#include "Animation/AnimMontage.h"
 #include "Common/NovaConst.h"
 
 #include "NovaAct/NovaActEditor.h"
@@ -9,15 +11,20 @@
 
 #include "NovaAct/Assets/ActAnimation.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTreeView.h"
+#include "Subs/NovaActUICommandInfo.h"
 #include "Widgets/Text/SInlineEditableTextBlock.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
+using namespace NovaConst;
 
-void SActImageTreeViewTableRow::Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& OwnerTableView, FName InNodeName, ENovaTreeViewNodeType InNodeType)
+void SActImageTreeViewTableRow::Construct(const FArguments& InArgs,
+                                          const TSharedRef<STableViewBase>& OwnerTableView,
+                                          FName InNodeName,
+                                          ENovaTreeViewTableRowType InNodeType)
 {
 	NodeName = InNodeName;
-	NodeType = InNodeType;
+	TableRowType = InNodeType;
 	FArguments MultiColumnTableRowArgs;
 	{
 		// MultiColumnTableRowArgs._OnDragDetected.BindRaw(this, &SActActionSequenceTreeViewRow::OnDragDetected);
@@ -30,249 +37,164 @@ void SActImageTreeViewTableRow::Construct(const FArguments& InArgs, const TShare
 	SMultiColumnTableRow::Construct(InArgs, OwnerTableView);
 }
 
-
-TSharedRef<SWidget> SActImageTreeViewTableRow::MakeOutlinerWidget()
+TSharedRef<SWidget> SActImageTreeViewTableRow::GenerateWidgetForColumn(const FName& InColumnName)
 {
-	// TSharedRef<SWidget> Widget =
-	// 	SNew(SHorizontalBox)
-	// 	// .ToolTipText(this, &FAnimTimelineTrack::GetToolTipText)
-	// 	+ SHorizontalBox::Slot()
-	// 	[
-	// 		SAssignNew(OutlinerWidget, SVerticalBox)
-	// 	];
-	//
-	// RefreshOutlinerWidget();
-	//
-	// return Widget;
-	// ActActionOutlinerTreeNode = SNew(SActActionOutlinerTreeNode, SharedThis(this), InRow)
-	// .IconBrush(this, &SActImageTreeViewTableRow::GetIconBrush)
-	// .IconColor(this, &SActImageTreeViewTableRow::GetDisplayNameColor)
-	// .IconOverlayBrush(this, &SActImageTreeViewTableRow::GetIconOverlayBrush)
-	// .IconToolTipText(this, &SActImageTreeViewTableRow::GetIconToolTipText)
-	// .CustomContent()
-	// [
-	// 	OutlinerContent ? OutlinerContent.ToSharedRef() : SNullWidget::NullWidget
-	// ];
-	TSharedRef<SWidget> OutlinerWidget = SNew(SBorder)
-	.ToolTipText(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateLambda([this]()
-	                                                  {
-		                                                  FFormatNamedArguments Args;
-		                                                  {
-			                                                  Args.Add("NodeName", FText::FromString(*this->NodeName.ToString()));
-		                                                  }
-		                                                  return FText::Format(LOCTEXT("FolderToolTipText", "ToolTip {NodeName}"), Args);
-	                                                  })))
-	.BorderImage(FEditorStyle::GetBrush("Sequencer.Section.BackgroundTint"))
-	.BorderBackgroundColor(FEditorStyle::GetColor("AnimTimeline.Outliner.ItemColor"))
-	[
-		SNew(SHorizontalBox)
+	switch (TableRowType)
+	{
+	case ENovaTreeViewTableRowType::None: break;
+	case ENovaTreeViewTableRowType::Folder:
+		{
+			return SNew(SOverlay)
+				+ SOverlay::Slot()
+				[
+					SNew(SBorder)
+					.ToolTipText_Lambda([this]()
+					             {
+						             FFormatNamedArguments Args;
+						             {
+							             Args.Add("NodeName", FText::FromString(*this->NodeName.ToString()));
+						             }
+						             return FText::Format(LOCTEXT("FolderToolTipText", "ToolTip {NodeName}"), Args);
+					             })
+					.BorderImage(FEditorStyle::GetBrush("Sequencer.Section.BackgroundTint"))
+					.BorderBackgroundColor(FEditorStyle::GetColor("AnimTimeline.Outliner.ItemColor"))
+					[
+						SNew(SHorizontalBox)
 
-		+ SHorizontalBox::Slot()
-		  .VAlign(VAlign_Center)
-		  .AutoWidth()
-		  .Padding(4.0f, 1.0f)
-		[
-			SNew(SExpanderArrow, SharedThis(this))
-		]
+						+ SHorizontalBox::Slot()
+						  .VAlign(VAlign_Center)
+						  .AutoWidth()
+						  .Padding(4.0f, 1.0f)
+						[
+							SNew(SExpanderArrow, SharedThis(this))
+						]
 
-		+ SHorizontalBox::Slot()
-		  .VAlign(VAlign_Center)
-		  .HAlign(HAlign_Left)
-		  .Padding(2.0f, 1.0f)
-		  .FillWidth(1.0f)
-		[
-			SNew(STextBlock)
-			.TextStyle(&FEditorStyle::Get().GetWidgetStyle<FTextBlockStyle>("AnimTimeline.Outliner.Label"))
-			.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateLambda([this]()
-			{
-				FFormatNamedArguments Args;
-				{
-					Args.Add("NodeName", FText::FromString(*this->NodeName.ToString()));
-				}
-				return FText::Format(LOCTEXT("FolderTextBlock", "{NodeName}"), Args);
-			})))
-		]
-	];
-	return OutlinerWidget;
+						+ SHorizontalBox::Slot()
+						  .VAlign(VAlign_Center)
+						  .HAlign(HAlign_Left)
+						  .Padding(2.0f, 1.0f)
+						  .FillWidth(1.0f)
+						[
+							SNew(STextBlock)
+							.TextStyle(&FEditorStyle::Get().GetWidgetStyle<FTextBlockStyle>("AnimTimeline.Outliner.Label"))
+							.Text_Lambda([this]()
+							{
+								FFormatNamedArguments Args;
+								{
+									Args.Add("NodeName", FText::FromString(*this->NodeName.ToString()));
+								}
+								return FText::Format(LOCTEXT("FolderTextBlock", "{NodeName}"), Args);
+							})
+						]
+					]
+				];
+		}
+	case ENovaTreeViewTableRowType::Notifies:
+		{
+			auto NotifiesBox = SNew(SHorizontalBox)
+				.ToolTipText(FText::GetEmpty())
+				+ SHorizontalBox::Slot()
+				[
+					SAssignNew(NotifiesPanelTableRow, SVerticalBox)
+				];
+
+			RefreshNotifiesPanelTableRow();
+			return NotifiesBox;
+		}
+	default: ;
+	}
+	return SNullWidget::NullWidget;
 }
-
-// TSharedRef<SActTrackPanel> SActImageTreeViewTableRow::GetActTrackPanel()
-// {
-// 	if (!ActTrackPanel.IsValid())
-// 	{
-// 		// UAnimMontage* AnimMontage = Cast<UAnimMontage>();
-// 		// bool bChildAnimMontage = AnimMontage && AnimMontage->HasParentAsset();
-//
-// 		auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
-//
-// 		// ActTrackPanel = SNew(SActTrackPanel)
-// 		// 	// .IsEnabled(!bChildAnimMontage)
-// 		// 	.Sequence(ActAnimationDB->GetData()->AnimSequence);
-// 		// .InputMin(this, &FAnimTimelineTrack_NotifiesPanel::GetMinInput)
-// 		// .InputMax(this, &FAnimTimelineTrack_NotifiesPanel::GetMaxInput)
-// 		// .ViewInputMin(this, &FAnimTimelineTrack_NotifiesPanel::GetViewMinInput)
-// 		// .ViewInputMax(this, &FAnimTimelineTrack_NotifiesPanel::GetViewMaxInput);
-// 		// .OnGetScrubValue(this, &FAnimTimelineTrack_NotifiesPanel::GetScrubValue)
-// 		// .OnSelectionChanged(this, &FAnimTimelineTrack_NotifiesPanel::SelectObjects)
-// 		// .OnSetInputViewRange(this, &FAnimTimelineTrack_NotifiesPanel::OnSetInputViewRange)
-// 		// .OnInvokeTab(GetModel()->OnInvokeTab)
-// 		// .OnSnapPosition(&GetModel().Get(), &FAnimModel::Snap)
-// 		// .OnGetTimingNodeVisibility(this, &FAnimTimelineTrack_NotifiesPanel::OnGetTimingNodeVisibility)
-// 		// .OnNotifiesChanged_Lambda([this]()
-// 		//                                    {
-// 		//                                     Update();
-// 		//                                     GetModel()->OnTracksChanged().Broadcast();
-// 		//
-// 		//                                     if (StatusBarMessageHandle.IsValid())
-// 		//                                     {
-// 		// 	                                    if (UStatusBarSubsystem* StatusBarSubsystem = GEditor->GetEditorSubsystem<UStatusBarSubsystem>())
-// 		// 	                                    {
-// 		// 		                                    StatusBarSubsystem->PopStatusBarMessage(AnimationEditorStatusBarName, StatusBarMessageHandle);
-// 		// 		                                    StatusBarMessageHandle.Reset();
-// 		// 	                                    }
-// 		//                                     }
-// 		//                                    })
-// 		// .OnNotifyStateHandleBeingDragged_Lambda([this](TSharedPtr<SAnimNotifyNode> NotifyNode, const FPointerEvent& Event, ENotifyStateHandleHit::Type Handle, float Time)
-// 		//                                    {
-// 		//                                     if (Event.IsShiftDown())
-// 		//                                     {
-// 		// 	                                    const FFrameTime FrameTime = FFrameTime::FromDecimal(Time * (double)GetModel()->GetTickResolution());
-// 		// 	                                    GetModel()->SetScrubPosition(FrameTime);
-// 		//                                     }
-// 		//
-// 		//                                     if (!StatusBarMessageHandle.IsValid())
-// 		//                                     {
-// 		// 	                                    if (UStatusBarSubsystem* StatusBarSubsystem = GEditor->GetEditorSubsystem<UStatusBarSubsystem>())
-// 		// 	                                    {
-// 		// 		                                    StatusBarMessageHandle = StatusBarSubsystem->PushStatusBarMessage(AnimationEditorStatusBarName,
-// 		// 		                                                                                                      LOCTEXT("AutoScrubNotifyStateHandle", "Hold SHIFT while dragging a notify state Begin or End handle to auto scrub the timeline."));
-// 		// 	                                    }
-// 		//                                     }
-// 		//                                    })
-// 		// .OnNotifyNodesBeingDragged_Lambda([this](const TArray<TSharedPtr<SAnimNotifyNode>>& NotifyNodes, const class FDragDropEvent& Event, float DragXPosition, float DragTime)
-// 		//                                    {
-// 		//                                     if (Event.IsShiftDown())
-// 		//                                     {
-// 		// 	                                    const FFrameTime FrameTime = FFrameTime::FromDecimal(DragTime * (double)GetModel()->GetTickResolution());
-// 		// 	                                    GetModel()->SetScrubPosition(FrameTime);
-// 		//                                     }
-// 		//
-// 		//                                     if (!StatusBarMessageHandle.IsValid())
-// 		//                                     {
-// 		// 	                                    if (UStatusBarSubsystem* StatusBarSubsystem = GEditor->GetEditorSubsystem<UStatusBarSubsystem>())
-// 		// 	                                    {
-// 		// 		                                    StatusBarMessageHandle = StatusBarSubsystem->PushStatusBarMessage(AnimationEditorStatusBarName,
-// 		// 		                                                                                                      LOCTEXT("AutoScrubNotify", "Hold SHIFT while dragging a notify to auto scrub the timeline."));
-// 		// 	                                    }
-// 		//                                     }
-// 		//                                    });
-//
-// 		// GetModel()->GetAnimSequenceBase()->RegisterOnNotifyChanged(UAnimSequenceBase::FOnNotifyChanged::CreateSP(this, &FAnimTimelineTrack_NotifiesPanel::HandleNotifyChanged));
-// 	}
-//
-// 	return ActTrackPanel.ToSharedRef();
-// }
-
 
 void SActImageTreeViewTableRow::HandleNotifyChanged()
 {
 	auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
 
 	SetHeight((float)ActAnimationDB->GetData()->AnimSequence->AnimNotifyTracks.Num() * NovaConst::NotifyHeight);
-	RefreshOutlinerWidget();
+	// RefreshNotifiesPanelTableRow();
 }
 
-void SActImageTreeViewTableRow::RefreshOutlinerWidget()
+void SActImageTreeViewTableRow::RefreshNotifiesPanelTableRow()
 {
-	// OutlinerWidget->ClearChildren();
-	//
-	// int32 TrackIndex = 0;
-	// auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
-	//
-	// UAnimSequenceBase* AnimSequence = ActAnimationDB->GetData()->AnimSequence;
-	// // for (FAnimNotifyTrack& AnimNotifyTrack : AnimSequence->AnimNotifyTracks)
-	// // {
-	// // 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
-	// // 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
-	// // 	return ActEventTimelineArgs->ViewRange.GetLowerBoundValue();
-	// // };
-	// ActActionTrackAreaArgs.ViewInputMax.Bind(TAttribute<float>::FGetter::CreateLambda([this]()
-	// {
-	// 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
-	// 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
-	// 	return ActEventTimelineArgs->ViewRange.GetUpperBoundValue();
-	// }));
-	// auto TickResolutionLambda = TAttribute<FFrameRate>::FGetter::CreateLambda([this]()
-	// {
-	// 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
-	// 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
-	// 	return ActEventTimelineArgs->TickResolution;
-	// });
-	// ActActionTrackAreaArgs.TickResolution.Bind(TickResolutionLambda);
-	// ActActionSectionWidget = SNew(SActActionSequenceCombinedKeysTrack, SharedThis(this))
-	// 	.Visibility(EVisibility::Visible)
-	// 	.TickResolution(ActActionTrackAreaArgs.TickResolution);
-	// ActActionTrackAreaSlot = MakeShareable(new SActImageTrackLaneWidget(SharedThis(this)));
-	// ActActionTrackAreaSlot->MakeTrackLane();
-	// TSharedPtr<SBox> SlotBox;
-	// TSharedPtr<SInlineEditableTextBlock> InlineEditableTextBlock;
-	//
-	// OutlinerWidget->AddSlot()
-	//               .AutoHeight()
-	// [
-	// 	SAssignNew(SlotBox, SBox)
-	// 	.HeightOverride(NovaConst::NotifyHeight)
-	// ];
-	//
-	// TSharedPtr<SHorizontalBox> HorizontalBox;
-	// SlotBox->SetContent(
-	// 	SNew(SBorder)
-	// 		.BorderImage(FEditorStyle::GetBrush("Sequencer.Section.BackgroundTint"))
-	// 		.BorderBackgroundColor(FEditorStyle::GetColor("AnimTimeline.Outliner.ItemColor"))
-	// 	[
-	// 		SAssignNew(HorizontalBox, SHorizontalBox)
-	// 		+ SHorizontalBox::Slot()
-	// 		  .FillWidth(1.0f)
-	// 		  .VAlign(VAlign_Center)
-	// 		  .HAlign(HAlign_Left)
-	// 		  .Padding(30.0f, 0.0f, 0.0f, 0.0f)
-	// 		[
-	// 			SAssignNew(InlineEditableTextBlock, SInlineEditableTextBlock)
-	// 				.Text_Lambda([TrackIndex, AnimSequence]()
-	// 			                                                             {
-	// 				                                                             if (AnimSequence->AnimNotifyTracks.Num() > 0 && AnimSequence->AnimNotifyTracks.IsValidIndex(TrackIndex))
-	// 				                                                             {
-	// 					                                                             return FText::FromName(AnimSequence->AnimNotifyTracks[TrackIndex].TrackName);
-	// 				                                                             }
-	// 				                                                             return FText::GetEmpty();
-	// 			                                                             })
-	// 				.IsSelected(FIsSelected::CreateLambda([]() { return true; }))
-	// 				.OnTextCommitted(this, &SActImageTreeViewTableRow::OnCommitTrackName, TrackIndex)
-	// 		]
-	//
-	// 	]
-	// );
-	//
-	// // UAnimMontage* AnimMontage = Cast<UAnimMontage>(GetModel()->GetAnimSequenceBase());
-	// // if (!(AnimMontage && AnimMontage->HasParentAsset()))
-	// // {
-	// // 	HorizontalBox->AddSlot()
-	// // 	             .AutoWidth()
-	// // 	             .VAlign(VAlign_Center)
-	// // 	             .HAlign(HAlign_Right)
-	// // 	             .Padding(NovaConst::OutlinerRightPadding, 1.0f)
-	// // 	[
-	// // 		NovaStaticFunction::MakeTrackButton(LOCTEXT("AddTrackButtonText", "Track"), FOnGetContent::CreateSP(this, &SActImageTreeViewTableRow::BuildNotifiesPanelSubMenu, TrackIndex), MakeAttributeSP(SlotBox.Get(), &SWidget::IsHovered))
-	// // 	];
-	// // }
-	//
-	// if (PendingRenameTrackIndex == TrackIndex)
-	// {
-	// 	TWeakPtr<SInlineEditableTextBlock> WeakInlineEditableTextBlock = InlineEditableTextBlock;
-	// 	InlineEditableTextBlock->RegisterActiveTimer(0.0f, FWidgetActiveTimerDelegate::CreateSP(this, &SActImageTreeViewTableRow::HandlePendingRenameTimer, WeakInlineEditableTextBlock));
-	// }
-	//
-	// TrackIndex++;
+	if (TableRowType != ENovaTreeViewTableRowType::Notifies)
+	{
+		return;
+	}
+	NotifiesPanelTableRow->ClearChildren();
+
+	int32 TrackIndex = 0;
+	auto DB = GetDataBinding(UAnimSequenceBase**, "ActAnimation/AnimSequence");
+
+	UAnimSequenceBase* AnimSequenceBase = *(DB->GetData());
+	for (FAnimNotifyTrack& AnimNotifyTrack : AnimSequenceBase->AnimNotifyTracks)
+	{
+		TSharedPtr<SBox> SlotBox;
+		TSharedPtr<SInlineEditableTextBlock> InlineEditableTextBlock;
+
+		NotifiesPanelTableRow->AddSlot()
+		                     .AutoHeight()
+		[
+			SAssignNew(SlotBox, SBox)
+			.HeightOverride(NotifyHeight)
+		];
+
+		TSharedPtr<SHorizontalBox> HorizontalBox;
+
+		auto TextLambda = [TrackIndex, AnimSequenceBase]()
+		{
+			return AnimSequenceBase->AnimNotifyTracks.IsValidIndex(TrackIndex) ?
+				       FText::FromName(AnimSequenceBase->AnimNotifyTracks[TrackIndex].TrackName) :
+				       FText::GetEmpty();
+		};
+		SlotBox->SetContent(SNew(SBorder)
+			.BorderImage(FEditorStyle::GetBrush("Sequencer.Section.BackgroundTint"))
+			.BorderBackgroundColor(FEditorStyle::GetColor("AnimTimeline.Outliner.ItemColor"))
+			[
+				SAssignNew(HorizontalBox, SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				  .FillWidth(1.0f)
+				  .VAlign(VAlign_Center)
+				  .HAlign(HAlign_Left)
+				  .Padding(30.0f, 0.0f, 0.0f, 0.0f)
+				[
+					SAssignNew(InlineEditableTextBlock, SInlineEditableTextBlock)
+					.Text_Lambda(TextLambda)
+					.IsSelected_Lambda([]() { return true; })
+					.OnTextCommitted(this, &SActImageTreeViewTableRow::OnCommitTrackName, TrackIndex)
+				]
+
+			]
+		);
+
+		UAnimMontage* AnimMontage = Cast<UAnimMontage>(AnimSequenceBase);
+		// 非 Montage 资源且有 ParentAsset 的情况下 都可以添加 TrackLane
+		if (!(AnimMontage && AnimMontage->HasParentAsset()))
+		{
+			HorizontalBox->AddSlot()
+			             .AutoWidth()
+			             .VAlign(VAlign_Center)
+			             .HAlign(HAlign_Right)
+			             .Padding(OutlinerRightPadding, 1.0f)
+			[
+				NovaStaticFunction::MakeTrackButton(LOCTEXT("AddTrackButtonText", "Track"),
+				                                    FOnGetContent::CreateSP(this,
+				                                                            &SActImageTreeViewTableRow::BuildNotifiesPanelSubMenu,
+				                                                            TrackIndex),
+				                                    MakeAttributeSP(SlotBox.Get(), &SWidget::IsHovered))
+			];
+		}
+
+		if (PendingRenameTrackIndex == TrackIndex)
+		{
+			TWeakPtr<SInlineEditableTextBlock> WeakInlineEditableTextBlock = InlineEditableTextBlock;
+			InlineEditableTextBlock->RegisterActiveTimer(0.0f,
+			                                             FWidgetActiveTimerDelegate::CreateSP(this,
+			                                                                                  &SActImageTreeViewTableRow::HandlePendingRenameTimer,
+			                                                                                  WeakInlineEditableTextBlock));
+		}
+
+		TrackIndex++;
+	}
 }
 
 
@@ -294,34 +216,30 @@ void SActImageTreeViewTableRow::OnCommitTrackName(const FText& InText, ETextComm
 
 TSharedRef<SWidget> SActImageTreeViewTableRow::BuildNotifiesPanelSubMenu(int32 InTrackIndex)
 {
-	auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
+	auto DB = GetDataBinding(UAnimSequenceBase**, "ActAnimation/AnimSequence");
+	UAnimSequenceBase* AnimSequenceBase = *(DB->GetData());
 
-	// UAnimSequenceBase* AnimSequence = ActAnimationDB->GetData()->AnimSequence;
-
-	FMenuBuilder MenuBuilder(true, nullptr);
+	auto HostAppDB = GetDataBindingSP(FNovaActEditor, "NovaActEditor");
+	FMenuBuilder MenuBuilder(true, HostAppDB->GetData()->GetToolkitCommands());
 
 	MenuBuilder.BeginSection("NotifyTrack", LOCTEXT("NotifyTrackMenuSection", "Notify Track"));
 	{
 		// MenuBuilder.AddMenuEntry(
-		// 	FAnimSequenceTimelineCommands::Get().InsertNotifyTrack->GetLabel(),
-		// 	FAnimSequenceTimelineCommands::Get().InsertNotifyTrack->GetDescription(),
-		// 	FAnimSequenceTimelineCommands::Get().InsertNotifyTrack->GetIcon(),
-		// 	FUIAction(
-		// 		FExecuteAction::CreateSP(this, &FAnimTimelineTrack_NotifiesPanel::InsertTrack, InTrackIndex)
-		// 	)
+		// 	FNovaActUICommandInfo::Get().InsertNotifyTrack->GetLabel(),
+		// 	FNovaActUICommandInfo::Get().InsertNotifyTrack->GetDescription(),
+		// 	FNovaActUICommandInfo::Get().InsertNotifyTrack->GetIcon(),
+		// 	FUIAction(FExecuteAction::CreateSP(this, &SActImageTreeViewTableRow::InsertTrack, InTrackIndex))
 		// );
-		//
-		// if (AnimSequence->AnimNotifyTracks.Num() > 1)
-		// {
-		// 	MenuBuilder.AddMenuEntry(
-		// 		FAnimSequenceTimelineCommands::Get().RemoveNotifyTrack->GetLabel(),
-		// 		FAnimSequenceTimelineCommands::Get().RemoveNotifyTrack->GetDescription(),
-		// 		FAnimSequenceTimelineCommands::Get().RemoveNotifyTrack->GetIcon(),
-		// 		FUIAction(
-		// 			FExecuteAction::CreateSP(this, &FAnimTimelineTrack_NotifiesPanel::RemoveTrack, InTrackIndex)
-		// 		)
-		// 	);
-		// }
+
+		if (AnimSequenceBase->AnimNotifyTracks.Num() > 1)
+		{
+			// MenuBuilder.AddMenuEntry(
+			// 	FNovaActUICommandInfo::Get().RemoveNotifyTrack->GetLabel(),
+			// 	FNovaActUICommandInfo::Get().RemoveNotifyTrack->GetDescription(),
+			// 	FNovaActUICommandInfo::Get().RemoveNotifyTrack->GetIcon(),
+			// 	FUIAction(FExecuteAction::CreateSP(this, &SActImageTreeViewTableRow::RemoveTrack, InTrackIndex))
+			// );
+		}
 	}
 	MenuBuilder.EndSection();
 
@@ -329,7 +247,49 @@ TSharedRef<SWidget> SActImageTreeViewTableRow::BuildNotifiesPanelSubMenu(int32 I
 }
 
 
-EActiveTimerReturnType SActImageTreeViewTableRow::HandlePendingRenameTimer(double InCurrentTime, float InDeltaTime, TWeakPtr<SInlineEditableTextBlock> InInlineEditableTextBlock)
+void SActImageTreeViewTableRow::NotifiesPanelInsertTrack(int32 InTrackIndexToInsert)
+{
+	auto DB = GetDataBinding(UAnimSequenceBase**, "ActAnimation/AnimSequence");
+	UAnimSequenceBase* AnimSequence = *(DB->GetData());
+
+	FScopedTransaction Transaction(LOCTEXT("InsertNotifyTrack", "Insert Notify Track"));
+	AnimSequence->Modify();
+
+	// before insert, make sure everything behind is fixed
+	for (int32 TrackIndex = InTrackIndexToInsert; TrackIndex < AnimSequence->AnimNotifyTracks.Num(); ++TrackIndex)
+	{
+		FAnimNotifyTrack& Track = AnimSequence->AnimNotifyTracks[TrackIndex];
+
+		const int32 NewTrackIndex = TrackIndex + 1;
+
+		for (FAnimNotifyEvent* Notify : Track.Notifies)
+		{
+			// fix notifies indices
+			Notify->TrackIndex = NewTrackIndex;
+		}
+
+		for (FAnimSyncMarker* SyncMarker : Track.SyncMarkers)
+		{
+			// fix notifies indices
+			SyncMarker->TrackIndex = NewTrackIndex;
+		}
+	}
+
+	FAnimNotifyTrack NewItem;
+	NewItem.TrackName = NovaStaticFunction::GetNewTrackName(AnimSequence);
+	NewItem.TrackColor = FLinearColor::White;
+
+	AnimSequence->AnimNotifyTracks.Insert(NewItem, InTrackIndexToInsert);
+
+	// Request a rename on rebuild
+	PendingRenameTrackIndex = InTrackIndexToInsert;
+
+	Update();
+}
+
+EActiveTimerReturnType SActImageTreeViewTableRow::HandlePendingRenameTimer(double InCurrentTime,
+                                                                           float InDeltaTime,
+                                                                           TWeakPtr<SInlineEditableTextBlock> InInlineEditableTextBlock)
 {
 	if (InInlineEditableTextBlock.IsValid())
 	{
@@ -403,9 +363,9 @@ bool SActImageTreeViewTableRow::IsVisible() const
 	return true;
 }
 
-// ENovaTreeViewNodeType SActImageTreeViewTableRow::GetType() const
+// ENovaTreeViewTableRowType SActImageTreeViewTableRow::GetType() const
 // {
-// 	return NodeType;
+// 	return TableRowType;
 // }
 
 void SActImageTreeViewTableRow::RemoveFromParent()
@@ -542,7 +502,7 @@ TSharedRef<SActImageTreeViewTableRow> SActImageTreeViewTableRow::FindOrCreateFol
 	if (!FindNode)
 	{
 		// ** TODO:
-		// TSharedRef<SActImageTreeViewTableRow> Folder = MakeShareable(new SActImageTreeViewTableRow(InName, ENovaTreeViewNodeType::Folder));
+		// TSharedRef<SActImageTreeViewTableRow> Folder = MakeShareable(new SActImageTreeViewTableRow(InName, ENovaTreeViewTableRowType::Folder));
 		// Folder->SetParent(SharedThis(this), 0);
 		// return Folder;
 	}
@@ -592,49 +552,22 @@ float SActImageTreeViewTableRow::ComputeTrackPosition()
 	return CachedGeometryOutlinerTreeNode.AbsolutePosition.Y - CachedGeometryTrackArea.AbsolutePosition.Y;
 }
 
-TSharedRef<SWidget> SActImageTreeViewTableRow::GenerateWidgetForColumn(const FName& InColumnName)
-{
-	TSharedPtr<SWidget> ColumnWidget = SNullWidget::NullWidget;
-	if (InColumnName == "Outliner")
-	{
-		ColumnWidget = MakeOutlinerWidget();
-	}
 
-	return SNew(SOverlay)
-		+ SOverlay::Slot()
-		[
-			ColumnWidget.ToSharedRef()
-		];
+void SActImageTreeViewTableRow::Update()
+{
+	auto DB = GetDataBinding(UAnimSequence**, "ActAnimation/AnimSequence");
+	UAnimSequence* AnimSequence = *(DB->GetData());
+	SetHeight((float)(AnimSequence->AnimNotifyTracks.Num() * NotifyHeight));
+	RefreshNotifiesPanelTableRow();
+	if (ActImageTrackPanel.IsValid())
+	{
+		ActImageTrackPanel->Update();
+	}
 }
 
-// TSharedPtr<SActImageTreeViewTableRow> SActImageTreeViewTableRow::GetRoot()
-// {
-// 	if (IsTreeViewRoot())
-// 	{
-// 		return AsShared();
-// 	}
-//
-// 	TSharedPtr<SActImageTreeViewTableRow> RootNode = AsShared();
-// 	while (!RootNode->IsTreeViewRoot())
-// 	{
-// 		RootNode = RootNode->GetParentNode();
-// 	}
-// 	return RootNode.ToSharedRef();
-// }
-
-// EVisibility SActImageTreeViewTableRow::GetVisibility() const
-// {
-// 	if (ActActionOutlinerTreeNode.IsValid())
-// 	{
-// 		return ActActionOutlinerTreeNode->GetVisibility();
-// 	}
-// }
-
-
-// TSharedRef<SWidget> SActImageTreeViewTableRow::GenerateWidgetFromColumn(const TSharedRef<SActImageTreeViewTableRow>& InNode, const FName& ColumnId, const TSharedRef<SActActionSequenceTreeViewRow>& Row)
-// {
-
-// }
-
+ENovaTreeViewTableRowType SActImageTreeViewTableRow::GetTableRowType() const
+{
+	return TableRowType;
+}
 
 #undef LOCTEXT_NAMESPACE

@@ -2,14 +2,14 @@
 
 #include "ActImageTrackLaneWidget.h"
 
-class SActImageTrackAreaPanel : public SPanel
+class SActImageAreaPanel : public SPanel
 {
 public:
-	SLATE_BEGIN_ARGS(SActImageTrackAreaPanel) { }
+	SLATE_BEGIN_ARGS(SActImageAreaPanel) { }
 	SLATE_END_ARGS()
 
-	SActImageTrackAreaPanel();
-	virtual ~SActImageTrackAreaPanel() override;
+	SActImageAreaPanel();
+	virtual ~SActImageAreaPanel() override;
 
 	void Construct(const FArguments& InArgs);
 

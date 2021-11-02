@@ -1,8 +1,11 @@
 ﻿#pragma once
+#include "Common/NovaStruct.h"
 #include "NovaAct/ActEventTimeline/Image/Subs/ActActionSequenceNotifyNode.h"
 
 class SActImageTreeViewTableRow;
 class SActImageTreeView;
+
+using namespace NovaStruct;
 
 class SActImageTrackCarWidget : public SCompoundWidget
 {
@@ -32,7 +35,10 @@ public:
 	FReply OnNotifyNodeDragStarted(TSharedRef<SActActionSequenceNotifyNode> InNotifyNode, const FPointerEvent& MouseEvent, const FVector2D& ScreenNodePosition, const bool bDragOnMarker);
 	/** TODO: */
 	FMargin GetNotifyTrackPadding() const;
-	
+	/** TODO: */
+	const TArray<int32>& GetSelectedNotifyIndices() const;
+
+	TSharedRef<FActImageTrackCarNotifyNode> GetActImageTrackCarNotifyNode() const;
 protected:
 	/** Controller */
 	TWeakPtr<SActImageTrackLaneWidget> ActActionTrackAreaSlot;
@@ -53,4 +59,8 @@ protected:
 	OnGetDraggedNodePosDelegate OnGetDraggedNodePos;
 	/** Cached for drag drop handling code */
 	FGeometry CachedGeometry;
+	/** Nodes that are currently selected */
+	TArray<int32> SelectedNodeIndices;
+	/** Node object interface */
+	TSharedPtr<FActImageTrackCarNotifyNode> ActImageTrackCarNotifyNode;
 };

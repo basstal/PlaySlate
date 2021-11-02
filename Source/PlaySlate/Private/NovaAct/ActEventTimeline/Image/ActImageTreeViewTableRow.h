@@ -1,15 +1,17 @@
 ﻿#pragma once
 
+#include "ActImageTrackLaneWidget.h"
 #include "Common/NovaStruct.h"
 #include "Common/NovaStaticFunction.h"
 #include "NovaAct/Assets/ActActionSequenceStructs.h"
-#include "ActImageTrackLaneWidget.h"
 
+class SActImageTrackLaneWidget;
+class SActImageTrackPanel;
 class FActActionSequenceSectionBase;
 class SActActionSequenceTreeViewRow;
 class SActActionOutlinerTreeNode;
 class SActImageTreeView;
-class SActImageTrackAreaPanel;
+class SActImageAreaPanel;
 // class SActImageTrackLaneWidget;
 class SActImageTrackCarWidget;
 
@@ -24,31 +26,35 @@ class SActImageTreeViewTableRow : public SMultiColumnTableRow<TSharedRef<SActIma
 public:
 	typedef SMultiColumnTableRow::FArguments FArguments;
 
-	void Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& OwnerTableView, FName InNodeName = NAME_None, ENovaTreeViewNodeType InNodeType = ENovaTreeViewNodeType::Root);
+	void Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& OwnerTableView, FName InNodeName = NAME_None, ENovaTreeViewTableRowType InNodeType = ENovaTreeViewTableRowType::None);
 
-	// /**
-	//  * 构造节点的Widget
-	//  */
-	// void MakeActActionSequenceTreeView(const TSharedRef<SScrollBar>& ScrollBar);
-	//
-	// /**
-	//  * 构造Pinned节点的Widget
-	//  */
-	// void MakeActActionSequenceTreeViewPinned(const TSharedRef<SScrollBar>& ScrollBar);
-
-	/**
-	 * 构造节点的Outliner的Widget
-	 *
-	 * @return 输出包装用Outliner Widget
-	 */
-	TSharedRef<SWidget> MakeOutlinerWidget();
-	// TSharedRef<SActTrackPanel> GetActTrackPanel();
+	
+	//~Begin SMultiColumnTableRow interface
+	virtual TSharedRef<SWidget> GenerateWidgetForColumn(const FName& InColumnName) override;
+	//~End SMultiColumnTableRow interface
 
 	/** 当Notify节点有改变时触发的回调 */
 	void HandleNotifyChanged();
-	void RefreshOutlinerWidget();
+	/** 刷新 Notifies 的行内显示内容 */
+	void RefreshNotifiesPanelTableRow();
+	/**
+	 * 重命名 Track 的回调
+	 * @param InText
+	 * @param CommitInfo
+	 * @param TrackIndexToName 
+	 */
 	void OnCommitTrackName(const FText& InText, ETextCommit::Type CommitInfo, int32 TrackIndexToName);
+	/**
+	 * 构造 Notifies 的子菜单
+	 * @param InTrackIndex 子菜单选择对象在整个 panel 中的位置
+	 * @return 返回的菜单 Widget
+	 */
 	TSharedRef<SWidget> BuildNotifiesPanelSubMenu(int32 InTrackIndex);
+	/**
+	 * 插入 Track 的回调
+	 * @param InTrackIndexToInsert
+	 */
+	void NotifiesPanelInsertTrack(int32 InTrackIndexToInsert);
 	EActiveTimerReturnType HandlePendingRenameTimer(double InCurrentTime, float InDeltaTime, TWeakPtr<SInlineEditableTextBlock> InInlineEditableTextBlock);
 
 	// /** TODO: */
@@ -101,7 +107,7 @@ public:
 	/**
 	 * @return 当前节点的类型
 	 */
-	// ENovaTreeViewNodeType GetType() const;
+	// ENovaTreeViewTableRowType GetType() const;
 
 	/**
 	 * 重新挂载Parent并调整其在Parent中的节点顺序
@@ -192,6 +198,7 @@ public:
 	// void SetVisible(EVisibility InVisibility);
 	/** 计算当前Track的纵向间距 */
 	float ComputeTrackPosition();
+	void Update();
 	/** 获得根节点 */
 	// TSharedPtr<SActImageTreeViewTableRow> GetRoot();
 	/** 获得当前节点的可见性，节点可见性由Outliner的可见性决定 */
@@ -205,12 +212,11 @@ public:
 	//  */
 	// TSharedRef<SWidget> GenerateWidgetFromColumn(const TSharedRef<SActImageTreeViewTableRow>& InNode, const FName& ColumnId, const TSharedRef<SActActionSequenceTreeViewRow>& Row);
 
-	//~Begin SMultiColumnTableRow interface
-	virtual TSharedRef<SWidget> GenerateWidgetForColumn(const FName& InColumnName) override;
-	//~End SMultiColumnTableRow interface
-
+	ENovaTreeViewTableRowType GetTableRowType() const;
 
 protected:
+	/** The legacy notify panel */
+	TSharedPtr<SActImageTrackPanel> ActImageTrackPanel;
 	/**
 	 * 该节点的父节点，如果没有父节点则认为是树的根节点
 	 */
@@ -236,7 +242,7 @@ protected:
 	/**
 	 * Widget TreeView 对应的TrackArea，
 	 */
-	TSharedPtr<SActImageTrackAreaPanel> TrackArea;
+	TSharedPtr<SActImageAreaPanel> TrackArea;
 	/**
 	 * (Pinned)这个Controller的Widget
 	 */
@@ -244,17 +250,17 @@ protected:
 	/**
 	 * (Pinned)Widget TreeView 对应的TrackArea
 	 */
-	TSharedPtr<SActImageTrackAreaPanel> TrackAreaPinned;
+	TSharedPtr<SActImageAreaPanel> TrackAreaPinned;
 	/**
 	 * 从树的数据中复制和缓存的根节点信息
 	 */
 	TArray<TSharedRef<SActImageTreeViewTableRow>> DisplayedRootNodes;
-	/** 节点类型 */
-	ENovaTreeViewNodeType NodeType;
+	/** 节点类型，决定节点的显示方式 */
+	ENovaTreeViewTableRowType TableRowType;
 	/** 当前节点的Outliner实际内容 */
 	TSharedPtr<SWidget> OutlinerContent;
 	/** TrackAreaSlot Controller */
-	// TSharedPtr<SActImageTrackLaneWidget> ActActionTrackAreaSlot;
+	// TSharedPtr<SActImageTrackLaneWidget> ActNotifiesPanelLaneWidget;
 	/** TrackArea所使用的参数 */
 	FActActionTrackAreaArgs ActActionTrackAreaArgs;
 	/** TODO:临时存这里 */
@@ -268,6 +274,8 @@ protected:
 	// /** The outliner widget to allow for dynamic refresh */
 	// TSharedPtr<SVerticalBox> OutlinerWidget;
 	int32 PendingRenameTrackIndex;
+	/** Notifies 类型的包装 Widget */
+	TSharedPtr<SVerticalBox>  NotifiesPanelTableRow;
 public:
 	FName GetNodeName() const
 	{
@@ -298,7 +306,7 @@ public:
 
 	// TSharedRef<SActImageTrackLaneWidget> GetActActionTrackAreaSlot() const
 	// {
-	// 	return ActActionTrackAreaSlot.ToSharedRef();
+	// 	return ActNotifiesPanelLaneWidget.ToSharedRef();
 	// }
 
 	TArray<TSharedRef<SActImageTreeViewTableRow>>& GetDisplayedRootNodes()
@@ -338,12 +346,12 @@ public:
 		return TreeViewPinned.ToSharedRef();
 	}
 
-	TSharedRef<SActImageTrackAreaPanel> GetTrackAreaPinned() const
+	TSharedRef<SActImageAreaPanel> GetTrackAreaPinned() const
 	{
 		return TrackAreaPinned.ToSharedRef();
 	}
 
-	TSharedRef<SActImageTrackAreaPanel> GetTrackArea() const
+	TSharedRef<SActImageAreaPanel> GetTrackArea() const
 	{
 		return TrackArea.ToSharedRef();
 	}

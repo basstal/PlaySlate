@@ -4,7 +4,7 @@
 
 #include "NovaAct/ActEventTimeline/Image/ActImageTreeView.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTreeViewTableRow.h"
-#include "NovaAct/ActEventTimeline/Image/ActImageTrackAreaPanel.h"
+#include "NovaAct/ActEventTimeline/Image/ActImageAreaPanel.h"
 
 #include "Widgets/Layout/SScrollBorder.h"
 
@@ -21,10 +21,10 @@ void SActImageHorizontalBox::Construct(const FArguments& InArgs)
 		.Thickness(FVector2D(9.0f, 9.0f));
 	const TSharedRef<SScrollBar> PinnedAreaScrollBar = SNew(SScrollBar)
 		.Thickness(FVector2D(9.0f, 9.0f));
-	ActImageTrackAreaPanel = SNew(SActImageTrackAreaPanel);
+	ActImageTrackAreaPanel = SNew(SActImageAreaPanel);
 	ActImageTreeView = SNew(SActImageTreeView, ActImageTrackAreaPanel.ToSharedRef())
 		.ExternalScrollbar(ScrollBar);
-	PinnedActImageTrackAreaPanel = SNew(SActImageTrackAreaPanel);
+	PinnedActImageTrackAreaPanel = SNew(SActImageAreaPanel);
 	PinnedActImageTreeView = SNew(SActImageTreeView, PinnedActImageTrackAreaPanel.ToSharedRef())
 		.ExternalScrollbar(PinnedAreaScrollBar);
 

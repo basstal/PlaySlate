@@ -51,6 +51,7 @@ FNovaActEditor::~FNovaActEditor()
 	NovaDB::Delete("ColumnFillCoefficientsLeft");
 	NovaDB::Delete("ActAnimation/AnimSequence");
 	NovaDB::Delete("ActAnimation/AnimBlueprint");
+	NovaDB::Delete("NovaActEditor");
 }
 
 void FNovaActEditor::CreateEditorWindow(const TSharedPtr<IToolkitHost>& InIToolkitHost)
@@ -209,12 +210,15 @@ void FNovaActEditor::OnAnimSequenceChanged(UAnimSequence** InAnimSequence)
 	UE_LOG(LogNovaAct, Log, TEXT("InTotalLength : %f"), CalculateSequenceLength);
 	// ** 限制显示的最大长度为当前的Sequence总时长
 	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
-	auto ActEventTimelineArgs = DB->GetData();
-	ActEventTimelineArgs->ClampRange = TRange<double>(0, CalculateSequenceLength);
-	ActEventTimelineArgs->SetViewRangeClamped(0, CalculateSequenceLength);
-	NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
-	ActEventTimelineArgs->TickResolution = AnimSequence->GetSamplingFrameRate();
-	NovaDB::Trigger("ActEventTimelineArgs");
+	if (DB)
+	{
+		auto ActEventTimelineArgs = DB->GetData();
+		ActEventTimelineArgs->ClampRange = TRange<double>(0, CalculateSequenceLength);
+		ActEventTimelineArgs->SetViewRangeClamped(0, CalculateSequenceLength);
+		NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
+		ActEventTimelineArgs->TickResolution = AnimSequence->GetSamplingFrameRate();
+		NovaDB::Trigger("ActEventTimelineArgs");
+	}
 }
 
 TSharedRef<SWidget> FNovaActEditor::MakeEditTabContent(UAnimationAsset* InAnimationAsset)
@@ -379,7 +383,7 @@ void FNovaActEditor::OpenNewAnimationAssetEditTab(UAnimationAsset** InAnimationA
 		// OpenedTab->SetLabel(NameAttribute);
 		// OpenedTab->SetLeftContent(IDocumentation::Get()->CreateAnchor(DocumentLink));
 	}
-	else
+	else if (TabManager)
 	{
 		// OpenedTab = 
 		// .OnTabClosed_Lambda([this](TSharedRef<SDockTab> InTab)

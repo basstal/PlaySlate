@@ -41,6 +41,11 @@ public:
 	virtual FVector2D ComputeDesiredSize(float LayoutScaleMultiplier) const override;
 	//~End SCompoundWidget interface
 
+	/**
+	 * 添加 TrackCar Widget 到轨道上
+	 */
+	void AddTrackCarWidget();
+
 	/** 获得节点的Tooltip */
 	FText GetNodeTooltip();
 
@@ -71,6 +76,14 @@ public:
 	/** Get the desired physical vertical position of this track */
 	float GetPhysicalPosition() const;
 	/**
+	 * this just refresh notify tracks - UI purpose only do not call this from here. This gets called by asset.
+	 */
+	void RefreshNotifyTracks();
+	/**
+	 * Called when a track changes it's selection; iterates all tracks collecting selected items
+	 */
+	void OnTrackSelectionChanged();
+	/**
 	 * 设置该节点对应的Widget的可见性
 	 *
 	 * @param InVisibility
@@ -86,8 +99,15 @@ protected:
 
 	// FAnimNotifyEvent* AnimNotifyEvent;
 	/** Get the height of this track */
+	/** 所有已被添加的 TrackCar Widget */
+	TArray<TSharedRef<SActImageTrackCarWidget>> ActImageTrackCarWidgets;
+	/** TrackCar Widget Container */
+	TSharedPtr<SBorder> ActImageTrackCarWidgetBorder;
+	/** Recursion guard for selection */
+	bool bIsSelecting;
 public:
 	float Height;
+
 	TSharedRef<SActImageTreeViewTableRow> GetActActionSequenceTreeViewNode() const
 	{
 		return ActImageTreeViewTableRow.Pin().ToSharedRef();

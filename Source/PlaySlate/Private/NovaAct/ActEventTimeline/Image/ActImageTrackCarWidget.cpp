@@ -86,31 +86,31 @@ FVector2D SActImageTrackCarWidget::ComputeDesiredSize(float LayoutScaleMultiplie
 
 void SActImageTrackCarWidget::Update()
 {
-	TrackArea->SetContent(
-		SAssignNew(NodeSlots, SOverlay)
-	);
-
-	// if (ActActionTrackAreaSlot.IsValid() && ActActionTrackAreaSlot.Pin()->GetNotifyEvent())
-	if (ActActionTrackAreaSlot.IsValid() && ActActionTrackAreaSlot.Pin()->HasNotifyNode())
-	{
-		NotifyNode = SNew(SActActionSequenceNotifyNode, ActActionTrackAreaSlot.Pin().ToSharedRef())
-			.OnNodeDragStarted(this, &SActImageTrackCarWidget::OnNotifyNodeDragStarted);
-
-		// .OnNotifyStateHandleBeingDragged(OnNotifyStateHandleBeingDragged)
-		// .OnUpdatePanel(OnUpdatePanel)
-		// .PanTrackRequest(OnRequestTrackPan)
-		// .ViewInputMin(ViewInputMin)
-		// .ViewInputMax(ViewInputMax)
-		// .OnSnapPosition(OnSnapPosition)
-		// .OnSelectionChanged(OnSelectionChanged)
-		// .StateEndTimingNode(EndTimingNode);
-
-		NodeSlots->AddSlot()
-		         .Padding(TAttribute<FMargin>::Create(TAttribute<FMargin>::FGetter::CreateSP(this, &SActImageTrackCarWidget::GetNotifyTrackPadding)))
-		[
-			NotifyNode.ToSharedRef()
-		];
-	}
+	// TrackArea->SetContent(
+	// 	SAssignNew(NodeSlots, SOverlay)
+	// );
+	//
+	// // if (ActNotifiesPanelLaneWidget.IsValid() && ActNotifiesPanelLaneWidget.Pin()->GetNotifyEvent())
+	// if (ActActionTrackAreaSlot.IsValid() && ActActionTrackAreaSlot.Pin()->HasNotifyNode())
+	// {
+	// 	NotifyNode = SNew(SActActionSequenceNotifyNode, ActActionTrackAreaSlot.Pin().ToSharedRef())
+	// 		.OnNodeDragStarted(this, &SActImageTrackCarWidget::OnNotifyNodeDragStarted);
+	//
+	// 	// .OnNotifyStateHandleBeingDragged(OnNotifyStateHandleBeingDragged)
+	// 	// .OnUpdatePanel(OnUpdatePanel)
+	// 	// .PanTrackRequest(OnRequestTrackPan)
+	// 	// .ViewInputMin(ViewInputMin)
+	// 	// .ViewInputMax(ViewInputMax)
+	// 	// .OnSnapPosition(OnSnapPosition)
+	// 	// .OnSelectionChanged(OnSelectionChanged)
+	// 	// .StateEndTimingNode(EndTimingNode);
+	//
+	// 	NodeSlots->AddSlot()
+	// 	         .Padding(TAttribute<FMargin>::Create(TAttribute<FMargin>::FGetter::CreateSP(this, &SActImageTrackCarWidget::GetNotifyTrackPadding)))
+	// 	[
+	// 		NotifyNode.ToSharedRef()
+	// 	];
+	// }
 }
 
 FReply SActImageTrackCarWidget::OnNotifyNodeDragStarted(TSharedRef<SActActionSequenceNotifyNode> InNotifyNode, const FPointerEvent& MouseEvent, const FVector2D& ScreenNodePosition, const bool bDragOnMarker)
@@ -126,3 +126,12 @@ FMargin SActImageTrackCarWidget::GetNotifyTrackPadding() const
 	return FMargin(LeftMargin, 0, RightMargin, 0);
 }
 
+const TArray<int32>& SActImageTrackCarWidget::GetSelectedNotifyIndices() const
+{
+	return SelectedNodeIndices;
+}
+
+TSharedRef<FActImageTrackCarNotifyNode> SActImageTrackCarWidget::GetActImageTrackCarNotifyNode() const
+{
+	return ActImageTrackCarNotifyNode.ToSharedRef();
+}

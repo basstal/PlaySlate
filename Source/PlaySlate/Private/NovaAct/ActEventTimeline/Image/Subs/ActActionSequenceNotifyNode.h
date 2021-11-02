@@ -3,6 +3,7 @@
 #include "Common/NovaDelegate.h"
 
 class SActImageTrackLaneWidget;
+class SActNotifiesPanelLaneWidget;
 
 using namespace NovaDelegate;
 
@@ -20,7 +21,7 @@ public:
 		SLATE_EVENT(OnSnapPositionDelegate, OnSnapPosition)
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, const TSharedRef<SActImageTrackLaneWidget>& InTrackAreaSlot);
+	void Construct(const FArguments& InArgs, const TSharedRef<SActNotifiesPanelLaneWidget>& InActNotifiesPanelLaneWidget);
 
 	//~Begin SWidget interface
 	virtual int32        OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
@@ -54,9 +55,10 @@ public:
 	/** TODO: */
 	FVector2D GetNotifyPositionOffset() const;
 	FVector2D GetNotifyPosition() const;
+	FVector2D GetWidgetSize() const;
 protected:
 	/** Controller 弱引用 */
-	TWeakPtr<SActImageTrackLaneWidget> ActActionTrackAreaSlot;
+	TWeakPtr<SActNotifiesPanelLaneWidget> ActNotifiesPanelLaneWidget;
 
 	/** 是否正在拖拽 */
 	bool bBeingDragged;
@@ -116,10 +118,10 @@ public:
 		return bBeingDragged;
 	}
 
-	TSharedRef<SActImageTrackLaneWidget> GetActActionTrackAreaSlot() const
-	{
-		return ActActionTrackAreaSlot.Pin().ToSharedRef();
-	}
+	// TSharedRef<SActImageTrackLaneWidget> GetActActionTrackAreaSlot() const
+	// {
+	// 	return ActNotifiesPanelLaneWidget.Pin().ToSharedRef();
+	// }
 
 public:
 	const FVector2D      ScrubHandleSize = FVector2D(12.0f, 12.0f);

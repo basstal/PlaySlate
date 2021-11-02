@@ -9,16 +9,13 @@ namespace NovaEnum
 		Backwards
 	};
 
-	enum class ENovaTreeViewNodeType : uint8
+	enum class ENovaTreeViewTableRowType : uint8
 	{
 		// 根节点，不作任何显示
-		Root,
+		None,
 		// 包含某个类型的可伸缩节点，仅做显示用
 		Folder,
-		// 包含开始时间和结束时间的节点
-		State,
-		// 仅包含开始时间的节点
-		Notify,
+		Notifies
 	};
 
 	/** If we are dragging a scrubber or dragging to set the time range */

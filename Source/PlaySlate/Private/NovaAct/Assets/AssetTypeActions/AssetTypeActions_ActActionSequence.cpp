@@ -1,6 +1,7 @@
 ﻿#include "AssetTypeActions_ActActionSequence.h"
 
 // #include "PlaySlate.h"
+#include "Common/NovaDataBinding.h"
 #include "NovaAct/NovaActEditor.h"
 #include "NovaAct/Assets/ActAnimation.h"
 
@@ -32,7 +33,8 @@ void FAssetTypeActions_ActActionSequence::OpenAssetEditor(const TArray<UObject*>
 			/**
 			 * TODO:这里是否允许多开？目前不允许
 			 */
-			TSharedRef<FNovaActEditor> NovaActEditor(new FNovaActEditor(ActAnimation));
+			TSharedPtr<FNovaActEditor> NovaActEditor(new FNovaActEditor(ActAnimation));
+			NovaDB::CreateSP("NovaActEditor", NovaActEditor);
 			NovaActEditor->CreateEditorWindow(EditWithinLevelEditor);
 			return;
 		}
