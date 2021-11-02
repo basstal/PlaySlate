@@ -2,6 +2,7 @@
 
 
 #include "Common/NovaStruct.h"
+#include "Misc/TextFilterExpressionEvaluator.h"
 
 class UActAnimation;
 class SActImageTrackCarWidget;
@@ -46,11 +47,17 @@ public:
 	void OnHitBoxesChanged(UActAnimation* InActAnimation);
 	/**
 	 * 依据特定的数据生成一行 TableRow，供TreeView回调使用，同时在TrackAreaPanel也生成一个对应的TrackLaneWidget 
-	 * @param InTreeViewTableRow
+	 * @param InActImageTreeViewTableRow
 	 * @param OwnerTable
 	 * @return 
 	 */
-	TSharedRef<ITableRow> OnGenerateRow(TSharedRef<SActImageTreeViewTableRow> InTreeViewTableRow, const TSharedRef<STableViewBase>& OwnerTable);
+	TSharedRef<ITableRow> OnTreeViewGenerateRow(TSharedRef<SActImageTreeViewTableRow> InActImageTreeViewTableRow, const TSharedRef<STableViewBase>& OwnerTable);
+	/**
+	 * TreeView 过滤文本改变的绑定函数
+	 *
+	 * @param InFilterText 传入的过滤文本
+	 */
+	void OnFilterChanged(FText InFilterText);
 protected:
 	TSharedPtr<SActImageAreaPanel> ActImageAreaPanel;
 	/** 从树的数据中复制和缓存的根节点信息 */
@@ -62,4 +69,8 @@ protected:
 	TMap<TSharedPtr<SActImageTrackPanel>, TWeakPtr<SActImageTreeViewTableRow>> TrackPanel2TreeViewTableRow;
 
 	FDelegateHandle OnHitBoxesChangedHandle;
+	FDelegateHandle OnFilterChangedHandle;
+	/** Compiled filter search terms. */
+	TSharedPtr<FTextFilterExpressionEvaluator> TextFilter;
 };
+

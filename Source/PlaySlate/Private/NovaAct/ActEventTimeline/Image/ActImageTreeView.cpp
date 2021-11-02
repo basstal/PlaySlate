@@ -6,6 +6,7 @@
 #include "NovaAct/ActEventTimeline/Image/ActImageAreaPanel.h"
 
 #include "Common/NovaDataBinding.h"
+#include "Misc/TextFilterExpressionEvaluator.h"
 #include "NovaAct/Assets/ActAnimation.h"
 
 
@@ -22,6 +23,8 @@ void SActImageTreeView::Construct(const FArguments& InArgs, const TSharedRef<SAc
 {
 	ActImageAreaPanel = InActImageTrackAreaPanel;
 
+	TextFilter = MakeShareable(new FTextFilterExpressionEvaluator(ETextFilterExpressionEvaluatorMode::BasicString));
+	
 	HeaderRow = SNew(SHeaderRow)
 		.Visibility(EVisibility::Collapsed)
 		+ SHeaderRow::Column(FName("Outliner"))
@@ -37,11 +40,12 @@ void SActImageTreeView::Construct(const FArguments& InArgs, const TSharedRef<SAc
 		TreeViewArgs._OnGetChildren.BindRaw(this, &SActImageTreeView::OnGetChildren);
 		TreeViewArgs._OnExpansionChanged.BindRaw(this, &SActImageTreeView::OnExpansionChanged);
 		TreeViewArgs._ExternalScrollbar = InArgs._ExternalScrollbar;
-		TreeViewArgs._OnGenerateRow.BindRaw(this, &SActImageTreeView::OnGenerateRow);
+		TreeViewArgs._OnGenerateRow.BindRaw(this, &SActImageTreeView::OnTreeViewGenerateRow);
 	}
 	STreeView::Construct(TreeViewArgs);
 
 	DataBindingUObjectBindRaw(UActAnimation, "ActAnimation", this, &SActImageTreeView::OnHitBoxesChanged, OnHitBoxesChangedHandle);
+	DataBindingBindRaw(FText, "TreeViewFilterText", this, &SActImageTreeView::OnFilterChanged, OnFilterChangedHandle);
 }
 
 void SActImageTreeView::OnGetChildren(TSharedRef<SActImageTreeViewTableRow> InParent, TArray<TSharedRef<SActImageTreeViewTableRow>>& OutChildren) const
@@ -128,18 +132,18 @@ void SActImageTreeView::OnHitBoxesChanged(UActAnimation* InActAnimation)
 }
 
 
-TSharedRef<ITableRow> SActImageTreeView::OnGenerateRow(TSharedRef<SActImageTreeViewTableRow> InTreeViewTableRow, const TSharedRef<STableViewBase>& OwnerTable)
+TSharedRef<ITableRow> SActImageTreeView::OnTreeViewGenerateRow(TSharedRef<SActImageTreeViewTableRow> InActImageTreeViewTableRow, const TSharedRef<STableViewBase>& OwnerTable)
 {
 	// Ensure the track area is kept up to date with the virtualized scroll of the tree view
 	// TSharedPtr<SAnimTrack> TrackWidget = TreeViewTableRow2TrackPanel->FindTrackSlot(InTrack);
-	TSharedPtr<SActImageTrackPanel> TrackPanel = TreeViewTableRow2TrackPanel.FindRef(InTreeViewTableRow).Pin();
+	TSharedPtr<SActImageTrackPanel> TrackPanel = TreeViewTableRow2TrackPanel.FindRef(InActImageTreeViewTableRow).Pin();
 
 	if (!TrackPanel.IsValid())
 	{
 		// Add a track slot for the row
-		TrackPanel = ActImageAreaPanel->MakeTrackPanel(InTreeViewTableRow);
-		TreeViewTableRow2TrackPanel.Add(InTreeViewTableRow, TrackPanel);
-		TrackPanel2TreeViewTableRow.Add(TrackPanel, InTreeViewTableRow);
+		TrackPanel = ActImageAreaPanel->MakeTrackPanel(InActImageTreeViewTableRow);
+		TreeViewTableRow2TrackPanel.Add(InActImageTreeViewTableRow, TrackPanel);
+		TrackPanel2TreeViewTableRow.Add(TrackPanel, InActImageTreeViewTableRow);
 		// TrackArea->AddTrackSlot(InTrack, TrackWidget);
 	}
 
@@ -148,12 +152,23 @@ TSharedRef<ITableRow> SActImageTreeView::OnGenerateRow(TSharedRef<SActImageTreeV
 	// 	Row->AddTrackAreaReference(TrackWidget);
 	// }
 
-	return InTreeViewTableRow;
+	return InActImageTreeViewTableRow;
 	// Ensure the track area is kept up to date with the virtualized scroll of the tree view
 	// if (!TrackLane.IsValid())
 	// {
 	// 	// Add a track slot for the row
-	// 	TrackLane = ActImageAreaPanel->MakeTrackPanel(InTreeViewTableRow);
+	// 	TrackLane = ActImageAreaPanel->MakeTrackPanel(InActImageTreeViewTableRow);
 	// }
-	// return InTreeViewTableRow;
+	// return InActImageTreeViewTableRow;
+}
+
+
+void SActImageTreeView::OnFilterChanged(FText InFilterText)
+{
+	if (InFilterText.IsEmpty())
+	{
+		return;
+	}
+	TextFilter->SetFilterText(InFilterText);
+	RequestTreeRefresh();
 }

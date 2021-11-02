@@ -32,6 +32,7 @@ SActEventTimelineWidget::~SActEventTimelineWidget()
 	UE_LOG(LogNovaAct, Log, TEXT("SActEventTimelineWidget::~SActEventTimelineWidget"));
 	TrackEditors.Empty();
 	TrackEditorDelegates.Empty();
+	NovaDB::Delete("TreeViewFilterText");
 }
 
 void SActEventTimelineWidget::Construct(const FArguments& InArgs)
@@ -101,7 +102,7 @@ void SActEventTimelineWidget::Construct(const FArguments& InArgs)
 							[
 								SNew(SSearchBox)
 								.HintText(LOCTEXT("SearchNodesHint", "Search Tracks"))
-								.OnTextChanged(this, &SActEventTimelineWidget::OnOutlinerSearchChanged)
+								.OnTextChanged(this, &SActEventTimelineWidget::OnTreeViewFilterChanged)
 							]
 						]
 					]
@@ -196,9 +197,14 @@ void SActEventTimelineWidget::Construct(const FArguments& InArgs)
 	}
 }
 
-void SActEventTimelineWidget::OnOutlinerSearchChanged(const FText& Filter)
+void SActEventTimelineWidget::OnTreeViewFilterChanged(const FText& InFilter)
 {
-	InFilter = Filter;
+	auto DB = GetDataBinding(FText, "TreeViewFilterText");
+	if (!DB)
+	{
+		DB = NovaDB::Create("TreeViewFilterText", InFilter);
+	}
+	DB->SetData(InFilter);
 }
 
 TSharedRef<SWidget> SActEventTimelineWidget::BuildAddTrackMenuWidget()

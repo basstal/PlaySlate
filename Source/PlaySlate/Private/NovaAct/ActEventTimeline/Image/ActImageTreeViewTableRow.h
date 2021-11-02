@@ -5,6 +5,7 @@
 #include "Common/NovaStaticFunction.h"
 #include "NovaAct/Assets/ActActionSequenceStructs.h"
 
+class IActTreeViewTableRowBase;
 class SActImageTrackLaneWidget;
 class SActImageTrackPanel;
 class FActActionSequenceSectionBase;
@@ -26,6 +27,7 @@ class SActImageTreeViewTableRow : public SMultiColumnTableRow<TSharedRef<SActIma
 public:
 	typedef SMultiColumnTableRow::FArguments FArguments;
 
+	SActImageTreeViewTableRow();
 	void Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& OwnerTableView, FName InNodeName = NAME_None, ENovaTreeViewTableRowType InNodeType = ENovaTreeViewTableRowType::None);
 
 	
@@ -35,26 +37,7 @@ public:
 
 	/** 当Notify节点有改变时触发的回调 */
 	void HandleNotifyChanged();
-	/** 刷新 Notifies 的行内显示内容 */
-	void RefreshNotifiesPanelTableRow();
-	/**
-	 * 重命名 Track 的回调
-	 * @param InText
-	 * @param CommitInfo
-	 * @param TrackIndexToName 
-	 */
-	void OnCommitTrackName(const FText& InText, ETextCommit::Type CommitInfo, int32 TrackIndexToName);
-	/**
-	 * 构造 Notifies 的子菜单
-	 * @param InTrackIndex 子菜单选择对象在整个 panel 中的位置
-	 * @return 返回的菜单 Widget
-	 */
-	TSharedRef<SWidget> BuildNotifiesPanelSubMenu(int32 InTrackIndex);
-	/**
-	 * 插入 Track 的回调
-	 * @param InTrackIndexToInsert
-	 */
-	void NotifiesPanelInsertTrack(int32 InTrackIndexToInsert);
+	
 	EActiveTimerReturnType HandlePendingRenameTimer(double InCurrentTime, float InDeltaTime, TWeakPtr<SInlineEditableTextBlock> InInlineEditableTextBlock);
 
 	// /** TODO: */
@@ -274,8 +257,9 @@ protected:
 	// /** The outliner widget to allow for dynamic refresh */
 	// TSharedPtr<SVerticalBox> OutlinerWidget;
 	int32 PendingRenameTrackIndex;
-	/** Notifies 类型的包装 Widget */
-	TSharedPtr<SVerticalBox>  NotifiesPanelTableRow;
+	
+
+	TSharedPtr<IActTreeViewTableRowBase> TreeViewTableRowComponent;
 public:
 	FName GetNodeName() const
 	{
@@ -365,4 +349,6 @@ public:
 	{
 		Height = InHeight;
 	}
+	/** Text to highlight when searching */
+	TAttribute<FText> HighlightText;
 };

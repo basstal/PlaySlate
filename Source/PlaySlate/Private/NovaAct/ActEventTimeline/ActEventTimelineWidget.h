@@ -26,9 +26,9 @@ public:
 
 	/**
 	 * 搜素框内文本改变的回调
-	 * @param Filter 回调的文本框内内容
+	 * @param InFilter 回调的文本框内内容
 	 */
-	void OnOutlinerSearchChanged(const FText& Filter);
+	void OnTreeViewFilterChanged(const FText& InFilter);
 	/**
 	 * 构造AddTrack菜单Widget
 	 * @return 菜单Widget
@@ -36,8 +36,6 @@ public:
 	TSharedRef<SWidget> BuildAddTrackMenuWidget();
 protected:
 	TSharedPtr<SActSliderWidget> ActEventTimelineSliderWidget;
-	/** 过滤用的关键字 */
-	FText InFilter;
 	/** 所有已注册的CreateTrackEditor代理方法，在FActActionTrackEditorBase的子类中实现 */
 	TArray<OnCreateTrackEditorDelegate> TrackEditorDelegates;
 	/** List of tools we own */

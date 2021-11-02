@@ -1,7 +1,7 @@
 ﻿#include "ActImageTreeViewTableRow.h"
 
 #include "ActActionSequenceSectionBase.h"
-#include "ActImageAreaPanel.h"
+// #include "ActImageAreaPanel.h"
 #include "ActImageTrackPanel.h"
 #include "Animation/AnimMontage.h"
 #include "Common/NovaConst.h"
@@ -11,12 +11,20 @@
 
 #include "NovaAct/Assets/ActAnimation.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTreeView.h"
-#include "Subs/NovaActUICommandInfo.h"
+// #include "Subs/NovaActUICommandInfo.h"
+#include "NovaAct/ActEventTimeline/Image/TreeViewTableRowTypes/ActTreeViewTableRowFolder.h"
 #include "Widgets/Text/SInlineEditableTextBlock.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
 using namespace NovaConst;
+
+SActImageTreeViewTableRow::SActImageTreeViewTableRow()
+	: TableRowType(),
+	  ActActionTrackAreaArgs(),
+	  CachedHitBox(nullptr),
+	  Height(0),
+	  PendingRenameTrackIndex(0) { }
 
 void SActImageTreeViewTableRow::Construct(const FArguments& InArgs,
                                           const TSharedRef<STableViewBase>& OwnerTableView,
@@ -25,6 +33,17 @@ void SActImageTreeViewTableRow::Construct(const FArguments& InArgs,
 {
 	NodeName = InNodeName;
 	TableRowType = InNodeType;
+	switch (TableRowType)
+	{
+	case ENovaTreeViewTableRowType::None: break;
+	case ENovaTreeViewTableRowType::Folder:
+		{
+			TreeViewTableRowComponent = MakeShared<FActTreeViewTableRowFolder>();
+			break;
+		}
+	case ENovaTreeViewTableRowType::Notifies: break;
+	default: ;
+	}
 	FArguments MultiColumnTableRowArgs;
 	{
 		// MultiColumnTableRowArgs._OnDragDetected.BindRaw(this, &SActActionSequenceTreeViewRow::OnDragDetected);
@@ -39,71 +58,15 @@ void SActImageTreeViewTableRow::Construct(const FArguments& InArgs,
 
 TSharedRef<SWidget> SActImageTreeViewTableRow::GenerateWidgetForColumn(const FName& InColumnName)
 {
-	switch (TableRowType)
+	if (!TreeViewTableRowComponent.IsValid())
 	{
-	case ENovaTreeViewTableRowType::None: break;
-	case ENovaTreeViewTableRowType::Folder:
-		{
-			return SNew(SOverlay)
-				+ SOverlay::Slot()
-				[
-					SNew(SBorder)
-					.ToolTipText_Lambda([this]()
-					             {
-						             FFormatNamedArguments Args;
-						             {
-							             Args.Add("NodeName", FText::FromString(*this->NodeName.ToString()));
-						             }
-						             return FText::Format(LOCTEXT("FolderToolTipText", "ToolTip {NodeName}"), Args);
-					             })
-					.BorderImage(FEditorStyle::GetBrush("Sequencer.Section.BackgroundTint"))
-					.BorderBackgroundColor(FEditorStyle::GetColor("AnimTimeline.Outliner.ItemColor"))
-					[
-						SNew(SHorizontalBox)
-
-						+ SHorizontalBox::Slot()
-						  .VAlign(VAlign_Center)
-						  .AutoWidth()
-						  .Padding(4.0f, 1.0f)
-						[
-							SNew(SExpanderArrow, SharedThis(this))
-						]
-
-						+ SHorizontalBox::Slot()
-						  .VAlign(VAlign_Center)
-						  .HAlign(HAlign_Left)
-						  .Padding(2.0f, 1.0f)
-						  .FillWidth(1.0f)
-						[
-							SNew(STextBlock)
-							.TextStyle(&FEditorStyle::Get().GetWidgetStyle<FTextBlockStyle>("AnimTimeline.Outliner.Label"))
-							.Text_Lambda([this]()
-							{
-								FFormatNamedArguments Args;
-								{
-									Args.Add("NodeName", FText::FromString(*this->NodeName.ToString()));
-								}
-								return FText::Format(LOCTEXT("FolderTextBlock", "{NodeName}"), Args);
-							})
-						]
-					]
-				];
-		}
-	case ENovaTreeViewTableRowType::Notifies:
-		{
-			auto NotifiesBox = SNew(SHorizontalBox)
-				.ToolTipText(FText::GetEmpty())
-				+ SHorizontalBox::Slot()
-				[
-					SAssignNew(NotifiesPanelTableRow, SVerticalBox)
-				];
-
-			RefreshNotifiesPanelTableRow();
-			return NotifiesBox;
-		}
-	default: ;
+		return SNullWidget::NullWidget;
 	}
-	return SNullWidget::NullWidget;
+	return SNew(SOverlay)
+		+ SOverlay::Slot()
+		[
+			TreeViewTableRowComponent->GenerateContentWidgetForTableRow(SharedThis(this))
+		];
 }
 
 void SActImageTreeViewTableRow::HandleNotifyChanged()
@@ -114,178 +77,7 @@ void SActImageTreeViewTableRow::HandleNotifyChanged()
 	// RefreshNotifiesPanelTableRow();
 }
 
-void SActImageTreeViewTableRow::RefreshNotifiesPanelTableRow()
-{
-	if (TableRowType != ENovaTreeViewTableRowType::Notifies)
-	{
-		return;
-	}
-	NotifiesPanelTableRow->ClearChildren();
 
-	int32 TrackIndex = 0;
-	auto DB = GetDataBinding(UAnimSequenceBase**, "ActAnimation/AnimSequence");
-
-	UAnimSequenceBase* AnimSequenceBase = *(DB->GetData());
-	for (FAnimNotifyTrack& AnimNotifyTrack : AnimSequenceBase->AnimNotifyTracks)
-	{
-		TSharedPtr<SBox> SlotBox;
-		TSharedPtr<SInlineEditableTextBlock> InlineEditableTextBlock;
-
-		NotifiesPanelTableRow->AddSlot()
-		                     .AutoHeight()
-		[
-			SAssignNew(SlotBox, SBox)
-			.HeightOverride(NotifyHeight)
-		];
-
-		TSharedPtr<SHorizontalBox> HorizontalBox;
-
-		auto TextLambda = [TrackIndex, AnimSequenceBase]()
-		{
-			return AnimSequenceBase->AnimNotifyTracks.IsValidIndex(TrackIndex) ?
-				       FText::FromName(AnimSequenceBase->AnimNotifyTracks[TrackIndex].TrackName) :
-				       FText::GetEmpty();
-		};
-		SlotBox->SetContent(SNew(SBorder)
-			.BorderImage(FEditorStyle::GetBrush("Sequencer.Section.BackgroundTint"))
-			.BorderBackgroundColor(FEditorStyle::GetColor("AnimTimeline.Outliner.ItemColor"))
-			[
-				SAssignNew(HorizontalBox, SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				  .FillWidth(1.0f)
-				  .VAlign(VAlign_Center)
-				  .HAlign(HAlign_Left)
-				  .Padding(30.0f, 0.0f, 0.0f, 0.0f)
-				[
-					SAssignNew(InlineEditableTextBlock, SInlineEditableTextBlock)
-					.Text_Lambda(TextLambda)
-					.IsSelected_Lambda([]() { return true; })
-					.OnTextCommitted(this, &SActImageTreeViewTableRow::OnCommitTrackName, TrackIndex)
-				]
-
-			]
-		);
-
-		UAnimMontage* AnimMontage = Cast<UAnimMontage>(AnimSequenceBase);
-		// 非 Montage 资源且有 ParentAsset 的情况下 都可以添加 TrackLane
-		if (!(AnimMontage && AnimMontage->HasParentAsset()))
-		{
-			HorizontalBox->AddSlot()
-			             .AutoWidth()
-			             .VAlign(VAlign_Center)
-			             .HAlign(HAlign_Right)
-			             .Padding(OutlinerRightPadding, 1.0f)
-			[
-				NovaStaticFunction::MakeTrackButton(LOCTEXT("AddTrackButtonText", "Track"),
-				                                    FOnGetContent::CreateSP(this,
-				                                                            &SActImageTreeViewTableRow::BuildNotifiesPanelSubMenu,
-				                                                            TrackIndex),
-				                                    MakeAttributeSP(SlotBox.Get(), &SWidget::IsHovered))
-			];
-		}
-
-		if (PendingRenameTrackIndex == TrackIndex)
-		{
-			TWeakPtr<SInlineEditableTextBlock> WeakInlineEditableTextBlock = InlineEditableTextBlock;
-			InlineEditableTextBlock->RegisterActiveTimer(0.0f,
-			                                             FWidgetActiveTimerDelegate::CreateSP(this,
-			                                                                                  &SActImageTreeViewTableRow::HandlePendingRenameTimer,
-			                                                                                  WeakInlineEditableTextBlock));
-		}
-
-		TrackIndex++;
-	}
-}
-
-
-void SActImageTreeViewTableRow::OnCommitTrackName(const FText& InText, ETextCommit::Type CommitInfo, int32 TrackIndexToName)
-{
-	auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
-
-	UAnimSequenceBase* AnimSequence = ActAnimationDB->GetData()->AnimSequence;
-	if (AnimSequence->AnimNotifyTracks.IsValidIndex(TrackIndexToName))
-	{
-		FScopedTransaction Transaction(FText::Format(LOCTEXT("RenameNotifyTrack", "Rename Notify Track to '{0}'"), InText));
-		AnimSequence->Modify();
-
-		FText TrimText = FText::TrimPrecedingAndTrailing(InText);
-		AnimSequence->AnimNotifyTracks[TrackIndexToName].TrackName = FName(*TrimText.ToString());
-	}
-}
-
-
-TSharedRef<SWidget> SActImageTreeViewTableRow::BuildNotifiesPanelSubMenu(int32 InTrackIndex)
-{
-	auto DB = GetDataBinding(UAnimSequenceBase**, "ActAnimation/AnimSequence");
-	UAnimSequenceBase* AnimSequenceBase = *(DB->GetData());
-
-	auto HostAppDB = GetDataBindingSP(FNovaActEditor, "NovaActEditor");
-	FMenuBuilder MenuBuilder(true, HostAppDB->GetData()->GetToolkitCommands());
-
-	MenuBuilder.BeginSection("NotifyTrack", LOCTEXT("NotifyTrackMenuSection", "Notify Track"));
-	{
-		// MenuBuilder.AddMenuEntry(
-		// 	FNovaActUICommandInfo::Get().InsertNotifyTrack->GetLabel(),
-		// 	FNovaActUICommandInfo::Get().InsertNotifyTrack->GetDescription(),
-		// 	FNovaActUICommandInfo::Get().InsertNotifyTrack->GetIcon(),
-		// 	FUIAction(FExecuteAction::CreateSP(this, &SActImageTreeViewTableRow::InsertTrack, InTrackIndex))
-		// );
-
-		if (AnimSequenceBase->AnimNotifyTracks.Num() > 1)
-		{
-			// MenuBuilder.AddMenuEntry(
-			// 	FNovaActUICommandInfo::Get().RemoveNotifyTrack->GetLabel(),
-			// 	FNovaActUICommandInfo::Get().RemoveNotifyTrack->GetDescription(),
-			// 	FNovaActUICommandInfo::Get().RemoveNotifyTrack->GetIcon(),
-			// 	FUIAction(FExecuteAction::CreateSP(this, &SActImageTreeViewTableRow::RemoveTrack, InTrackIndex))
-			// );
-		}
-	}
-	MenuBuilder.EndSection();
-
-	return MenuBuilder.MakeWidget();
-}
-
-
-void SActImageTreeViewTableRow::NotifiesPanelInsertTrack(int32 InTrackIndexToInsert)
-{
-	auto DB = GetDataBinding(UAnimSequenceBase**, "ActAnimation/AnimSequence");
-	UAnimSequenceBase* AnimSequence = *(DB->GetData());
-
-	FScopedTransaction Transaction(LOCTEXT("InsertNotifyTrack", "Insert Notify Track"));
-	AnimSequence->Modify();
-
-	// before insert, make sure everything behind is fixed
-	for (int32 TrackIndex = InTrackIndexToInsert; TrackIndex < AnimSequence->AnimNotifyTracks.Num(); ++TrackIndex)
-	{
-		FAnimNotifyTrack& Track = AnimSequence->AnimNotifyTracks[TrackIndex];
-
-		const int32 NewTrackIndex = TrackIndex + 1;
-
-		for (FAnimNotifyEvent* Notify : Track.Notifies)
-		{
-			// fix notifies indices
-			Notify->TrackIndex = NewTrackIndex;
-		}
-
-		for (FAnimSyncMarker* SyncMarker : Track.SyncMarkers)
-		{
-			// fix notifies indices
-			SyncMarker->TrackIndex = NewTrackIndex;
-		}
-	}
-
-	FAnimNotifyTrack NewItem;
-	NewItem.TrackName = NovaStaticFunction::GetNewTrackName(AnimSequence);
-	NewItem.TrackColor = FLinearColor::White;
-
-	AnimSequence->AnimNotifyTracks.Insert(NewItem, InTrackIndexToInsert);
-
-	// Request a rename on rebuild
-	PendingRenameTrackIndex = InTrackIndexToInsert;
-
-	Update();
-}
 
 EActiveTimerReturnType SActImageTreeViewTableRow::HandlePendingRenameTimer(double InCurrentTime,
                                                                            float InDeltaTime,
@@ -558,7 +350,7 @@ void SActImageTreeViewTableRow::Update()
 	auto DB = GetDataBinding(UAnimSequence**, "ActAnimation/AnimSequence");
 	UAnimSequence* AnimSequence = *(DB->GetData());
 	SetHeight((float)(AnimSequence->AnimNotifyTracks.Num() * NotifyHeight));
-	RefreshNotifiesPanelTableRow();
+	// RefreshNotifiesPanelTableRow();
 	if (ActImageTrackPanel.IsValid())
 	{
 		ActImageTrackPanel->Update();
