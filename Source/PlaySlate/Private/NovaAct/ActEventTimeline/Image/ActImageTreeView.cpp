@@ -1,5 +1,6 @@
 ﻿#include "ActImageTreeView.h"
 
+#include "ActImageTrackPanel.h"
 #include "PlaySlate.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTreeViewTableRow.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageAreaPanel.h"
@@ -19,7 +20,7 @@ SActImageTreeView::~SActImageTreeView()
 
 void SActImageTreeView::Construct(const FArguments& InArgs, const TSharedRef<SActImageAreaPanel>& InActImageTrackAreaPanel)
 {
-	ActImageTrackAreaPanel = InActImageTrackAreaPanel;
+	ActImageAreaPanel = InActImageTrackAreaPanel;
 
 	HeaderRow = SNew(SHeaderRow)
 		.Visibility(EVisibility::Collapsed)
@@ -59,10 +60,10 @@ void SActImageTreeView::OnExpansionChanged(TSharedRef<SActImageTreeViewTableRow>
 	UE_LOG(LogNovaAct, Log, TEXT("InDisplayNode->GetPathName : %s, bIsExpanded : %d"), *InDisplayNode->GetPathName(), bIsExpanded);
 	for (const TSharedRef<SActImageTreeViewTableRow>& ChildNode : InDisplayNode->GetChildNodes())
 	{
-		TWeakPtr<SActImageTrackLaneWidget>* WeakTrackLanePtr = TreeViewTableRow2TrackLaneWidget.Find(ChildNode);
-		if (WeakTrackLanePtr && WeakTrackLanePtr->IsValid())
+		TWeakPtr<SActImageTrackPanel>* WeakTrackPanelPtr = TreeViewTableRow2TrackPanel.Find(ChildNode);
+		if (WeakTrackPanelPtr && WeakTrackPanelPtr->IsValid())
 		{
-			TreeViewTableRow2TrackLaneWidget.FindChecked(ChildNode).Pin()->SetVisibility(bIsExpanded ? EVisibility::Visible : EVisibility::Collapsed);
+			TreeViewTableRow2TrackPanel.FindChecked(ChildNode).Pin()->SetVisibility(bIsExpanded ? EVisibility::Visible : EVisibility::Collapsed);
 		}
 	}
 }
@@ -130,12 +131,29 @@ void SActImageTreeView::OnHitBoxesChanged(UActAnimation* InActAnimation)
 TSharedRef<ITableRow> SActImageTreeView::OnGenerateRow(TSharedRef<SActImageTreeViewTableRow> InTreeViewTableRow, const TSharedRef<STableViewBase>& OwnerTable)
 {
 	// Ensure the track area is kept up to date with the virtualized scroll of the tree view
-	TSharedPtr<SActImageTrackLaneWidget> TrackLane = TreeViewTableRow2TrackLaneWidget.FindRef(InTreeViewTableRow).Pin();
-	if (!TrackLane.IsValid())
+	// TSharedPtr<SAnimTrack> TrackWidget = TreeViewTableRow2TrackPanel->FindTrackSlot(InTrack);
+	TSharedPtr<SActImageTrackPanel> TrackPanel = TreeViewTableRow2TrackPanel.FindRef(InTreeViewTableRow).Pin();
+
+	if (!TrackPanel.IsValid())
 	{
 		// Add a track slot for the row
-		TrackLane = ActImageTrackAreaPanel->MakeTrackLane(InTreeViewTableRow);
-		TreeViewTableRow2TrackLaneWidget.Add(InTreeViewTableRow, TrackLane);
+		TrackPanel = ActImageAreaPanel->MakeTrackPanel(InTreeViewTableRow);
+		TreeViewTableRow2TrackPanel.Add(InTreeViewTableRow, TrackPanel);
+		TrackPanel2TreeViewTableRow.Add(TrackPanel, InTreeViewTableRow);
+		// TrackArea->AddTrackSlot(InTrack, TrackWidget);
 	}
+
+	// if (ensure(TrackPanel.IsValid()))
+	// {
+	// 	Row->AddTrackAreaReference(TrackWidget);
+	// }
+
 	return InTreeViewTableRow;
+	// Ensure the track area is kept up to date with the virtualized scroll of the tree view
+	// if (!TrackLane.IsValid())
+	// {
+	// 	// Add a track slot for the row
+	// 	TrackLane = ActImageAreaPanel->MakeTrackPanel(InTreeViewTableRow);
+	// }
+	// return InTreeViewTableRow;
 }

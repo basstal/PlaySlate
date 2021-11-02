@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "ActImageTrackLaneWidget.h"
+#include "ActImageTrackPanel.h"
 
 class SActImageAreaPanel : public SPanel
 {
@@ -25,8 +26,8 @@ public:
 	 * @param InActImageTreeViewTableRow 
 	 * @return
 	 */
-	TSharedRef<SActImageTrackLaneWidget> MakeTrackLane(const TSharedRef<SActImageTreeViewTableRow>& InActImageTreeViewTableRow);
+	TSharedRef<SActImageTrackPanel> MakeTrackPanel(const TSharedRef<SActImageTreeViewTableRow>& InActImageTreeViewTableRow);
 
 protected:
-	TPanelChildren<SActImageTrackLaneWidget::Slot> Children;// ** The track area's children.
+	TPanelChildren<SActImageTrackPanel::Slot> Children;// ** The track area's children.
 };

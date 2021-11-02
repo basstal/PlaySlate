@@ -8,6 +8,24 @@ class SActImageTreeViewTableRow;
 class SActImageTrackPanel : public SCompoundWidget
 {
 public:
+	// ** 使用 TPanelChildren 必须有的结构
+	class Slot : public TSlotBase<Slot>
+	{
+	public:
+		Slot(const TSharedRef<SActImageTrackPanel>& InSlotContent);
+
+		/** @return Get the vertical position of this slot inside its parent. */
+		float GetVerticalOffset() const;
+
+		/** NOTE:必须是public的因为LayoutUtils.h在用这个字段，Horizontal alignment for the slot. */
+		EHorizontalAlignment HAlignment;
+		/** NOTE:必须是public的因为LayoutUtils.h在用这个字段，Vertical alignment for the slot. */
+		EVerticalAlignment VAlignment;
+
+	protected:
+		/** Slot 的具体 Widget 内容，这里是WeakPtr是因为基类有对 Widget 的管理 */
+		TSharedPtr<SActImageTrackPanel> SlotContent;
+	};
 	SLATE_BEGIN_ARGS(SActImageTrackPanel) {}
 		// : _ViewInputMin()
 		// , _ViewInputMax()
@@ -31,8 +49,10 @@ public:
 	// virtual float GetSequenceLength() const { return 0.0f; }
 
 	void Update();
-protected:
 
+	/** Get the desired physical vertical position of this track */
+	float GetPhysicalPosition() const;
+protected:
 	// ENovaTreeViewTableRowType TableRowType;
 	// // Calls out to notify of a range change, can be overridden by derived classes to respond
 	// // but they must call this version too after processing range changes
@@ -51,5 +71,5 @@ protected:
 	// float WidgetWidth;
 
 	TSharedPtr<SWidget> ChildPanel;
-	TSharedRef<SActImageTreeViewTableRow> ActImageTreeViewTableRow;
+	TSharedPtr<SActImageTreeViewTableRow> ActImageTreeViewTableRow;
 };

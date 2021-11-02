@@ -9,6 +9,7 @@ class SActImageAreaPanel;
 class SActImageTreeViewTableRow;
 class SActImageHorizontalBox;
 class SActImageTrackLaneWidget;
+class SActImageTrackPanel;
 
 class SActImageTreeView : public STreeView<TSharedRef<SActImageTreeViewTableRow>>
 {
@@ -51,13 +52,14 @@ public:
 	 */
 	TSharedRef<ITableRow> OnGenerateRow(TSharedRef<SActImageTreeViewTableRow> InTreeViewTableRow, const TSharedRef<STableViewBase>& OwnerTable);
 protected:
-	TSharedPtr<SActImageAreaPanel> ActImageTrackAreaPanel;
+	TSharedPtr<SActImageAreaPanel> ActImageAreaPanel;
 	/** 从树的数据中复制和缓存的根节点信息 */
 	TArray<TSharedRef<SActImageTreeViewTableRow>> DisplayedRootNodes;
 	/** List of children belonging to this node */
 	TArray<TSharedRef<SActImageTreeViewTableRow>> ChildNodes;
 	/** A map of child slot content that exist in our view. */
-	TMap<TSharedPtr<SActImageTreeViewTableRow>, TWeakPtr<SActImageTrackLaneWidget>> TreeViewTableRow2TrackLaneWidget;
+	TMap<TSharedPtr<SActImageTreeViewTableRow>, TWeakPtr<SActImageTrackPanel>> TreeViewTableRow2TrackPanel;
+	TMap<TSharedPtr<SActImageTrackPanel>, TWeakPtr<SActImageTreeViewTableRow>> TrackPanel2TreeViewTableRow;
 
 	FDelegateHandle OnHitBoxesChangedHandle;
 };
