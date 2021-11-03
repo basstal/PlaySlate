@@ -42,23 +42,23 @@ namespace NovaStruct
 	struct FActSliderScrubRangeToScreen
 	{
 		FActSliderScrubRangeToScreen(const TRange<double>& InViewInput, const FVector2D& InWidgetSize);
-
 		/**
 		 * Local Widget Space -> Curve InputTime domain.
 		 *
-		 * @param ScreenX
+		 * @param ScreenX 屏幕坐标
 		 */
 		double LocalXToInput(double ScreenX) const;
-
 		/**
 		 * Curve InputTime domain -> local Widget Space
 		 *
-		 * @param InputTime
+		 * @param InputTime 时间，单位秒
 		 */
 		double InputToLocalX(double InputTime) const;
 
 		// InViewInput 对应的起点时间
 		double ViewStart;
+		// InViewInput 对应的终点时间
+		double ViewEnd;
 		// 每单位时间（秒）对应的 UI 距离
 		double PixelsPerInput;
 	};
@@ -102,9 +102,8 @@ namespace NovaStruct
 
 		/** Whether or not to only draw major ticks */
 		bool bOnlyDrawMajorTicks;
-
-		/** Whether or not to mirror labels */
-		bool bMirrorLabels;
+		// 当前 ActEventTimeline 相关参数
+		TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs;
 	};
 
 	/**
@@ -126,6 +125,7 @@ namespace NovaStruct
 		/** Padding to be applied to the bottom of the track */
 		float Bottom;
 	};
+
 	struct FActImageTrackArgs
 	{
 		// Track 类型
@@ -146,6 +146,7 @@ namespace NovaStruct
 		bool bIsHeaderTableRow : 1;
 		FActImageTrackPadding Padding;
 	};
+
 	struct FActActionTrackAreaArgs
 	{
 		int32 BeginTime;// ** 开始时间

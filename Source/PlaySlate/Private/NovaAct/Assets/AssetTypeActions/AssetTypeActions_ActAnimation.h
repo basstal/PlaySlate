@@ -2,7 +2,7 @@
 
 #include "AssetTypeActions_Base.h"
 
-class FAssetTypeActions_ActActionSequence : public FAssetTypeActions_Base
+class FAssetTypeActions_ActAnimation : public FAssetTypeActions_Base
 {
 public:
 	//~Begin IAssetTypeActions interface

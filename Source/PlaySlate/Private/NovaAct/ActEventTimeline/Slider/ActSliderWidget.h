@@ -28,6 +28,7 @@ public:
 	virtual FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual FVector2D ComputeDesiredSize(float LayoutScaleMultiplier) const override;
 	//~End SWidget interface
 
 	/**
@@ -82,35 +83,29 @@ public:
 	 * 绘制帧显示
 	 *
 	 * @param OutDrawElements 待绘制的元素列表
-	 * @param ViewRange	当前绘制帧的显示范围
-	 * @param RangeToScreen	当前显示范围换算成屏幕像素
-	 * @param InArgs 其他参数
+	 * @param RangeToScreen	当前显示范围，以及换算成屏幕像素的相关方法
+	 * @param InArgs 其他相关参数
 	 */
 	static void DrawTicks(
 		FSlateWindowElementList& OutDrawElements,
-		const TRange<double>& ViewRange,
 		const FActSliderScrubRangeToScreen& RangeToScreen,
 		const FActDrawTickArgs& InArgs);
 
+protected:
 	/**
-	 * @return 获得 EventTimeline 共享参数
+	 * @return 获得 EventTimeline 共享参数，仅批量修改时用
 	 */
 	TSharedRef<FActEventTimelineArgs> GetActEventTimelineArgs() const;
-protected:
 	/** 鼠标拖拽的累计距离，Total mouse delta during dragging */
 	float DistanceDragged;
 	/** 当前鼠标的拖拽状态，是在拖拽时间平移还是改变时间范围 */
 	ENovaDragType MouseDragType;
-	/** 鼠标按下时是否在指定区域内，If mouse down was in time scrubbing region, only allow setting time when mouse is pressed down in the region */
-	// bool bMouseDownInRegion;
 	/** 当前是否在拖拽平移的过程中，If we are currently panning the panel */
 	bool bPanning;
-	/** 将 Tick 的标记上下镜像，If we should mirror the labels on the timeline */
-	bool bMirrorLabels;
 	/** 鼠标按下的位置范围值，Mouse down position range */
 	FVector2D MouseDownPosition[2];
 	/** 给 DRAG_SETTING_RANGE Zoom 功能使用，Range stack */
 	TArray<TRange<double>> ViewRangeZoomStack;
-	/** 记录鼠标按下时传入的Geometry，Geometry on mouse down */
+	/** 记录鼠标按下时传入的 Geometry，Geometry on mouse down */
 	FGeometry MouseDownGeometry;
 };

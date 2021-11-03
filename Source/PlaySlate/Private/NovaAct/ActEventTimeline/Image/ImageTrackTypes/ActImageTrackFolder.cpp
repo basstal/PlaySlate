@@ -12,7 +12,7 @@ using namespace NovaConst;
 
 FActImageTrackFolder::FActImageTrackFolder()
 {
-	ActImageTrackArgs = MakeShared<FActImageTrackArgs>();
+	ActImageTrackArgs = MakeShareable(new FActImageTrackArgs());
 	{
 		ActImageTrackArgs->DisplayName = LOCTEXT("NovaAct_TreeViewTableRowFolderDisplayName",
 		                                         "Tree view table row folder display name.");

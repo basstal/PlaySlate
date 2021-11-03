@@ -1,7 +1,5 @@
 ﻿#pragma once
 
-#include "ActActionSequenceStructs.h"
-
 #include "ActAnimation.generated.h"
 
 UCLASS()
@@ -17,11 +15,4 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	UAnimSequence* AnimSequence;
-
-	// /** The resolution at which all frame numbers within this data are stored */
-	// UPROPERTY(EditAnywhere)
-	// FFrameRate TickResolution;
-
-	UPROPERTY(EditAnywhere)
-	TArray<FActActionHitBoxData> ActActionHitBoxes;
 };

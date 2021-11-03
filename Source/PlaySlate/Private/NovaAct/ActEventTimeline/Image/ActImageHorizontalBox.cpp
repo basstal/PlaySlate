@@ -22,12 +22,12 @@ SActImageHorizontalBox::~SActImageHorizontalBox()
 void SActImageHorizontalBox::Construct(const FArguments& InArgs)
 {
 	// ImageTack 到 LaneWidget 的映射关系
-	TSharedPtr<TMap<TSharedPtr<IActImageTrackBase>, TWeakPtr<SActImagePoolWidget>>> ImageTrack2LaneWidget =
-		MakeShared<TMap<TSharedPtr<IActImageTrackBase>, TWeakPtr<SActImagePoolWidget>>>();
+	typedef TMap<TSharedPtr<IActImageTrackBase>, TWeakPtr<SActImagePoolWidget>> PoolWidgetMap;
+	TSharedPtr<PoolWidgetMap> ImageTrack2LaneWidget = MakeShareable(new PoolWidgetMap());
 	NovaDB::CreateSP("ImageTrack2LaneWidget", ImageTrack2LaneWidget);
 	// ImageTrack 到 TableRow 的映射关系
-	TSharedPtr<TMap<TSharedPtr<IActImageTrackBase>, TWeakPtr<SActImageTreeViewTableRow>>> ImageTrack2TableRow =
-		MakeShared<TMap<TSharedPtr<IActImageTrackBase>, TWeakPtr<SActImageTreeViewTableRow>>>();
+	typedef TMap<TSharedPtr<IActImageTrackBase>, TWeakPtr<SActImageTreeViewTableRow>> TableRowMap;
+	TSharedPtr<TableRowMap> ImageTrack2TableRow = MakeShareable(new TableRowMap());
 	NovaDB::CreateSP("ImageTrack2TableRow", ImageTrack2TableRow);
 
 	const TSharedRef<SScrollBar> ScrollBar = SNew(SScrollBar)
@@ -40,13 +40,13 @@ void SActImageHorizontalBox::Construct(const FArguments& InArgs)
 		.ExternalScrollbar(ScrollBar)
 		.TreeItemsSource(&TreeViewItemSource);
 	// ** 初始化 TreeView 的 ItemSource 添加 NotifyFolder 和 Notifies
-	TSharedRef<FActImageTrackFolder> ActImageTrackFolder = MakeShared<FActImageTrackFolder>();
+	TSharedRef<FActImageTrackFolder> ActImageTrackFolder = MakeShareable(new FActImageTrackFolder());
 	TSharedRef<SActImageTreeViewTableRow> NotifyFolder = SNew(SActImageTreeViewTableRow,
 	                                                          ActImageTreeView.ToSharedRef(),
 	                                                          ActImageTrackFolder);
 	TreeViewItemSource.Add(NotifyFolder);
 	ImageTrack2TableRow->Add(ActImageTrackFolder, NotifyFolder);
-	TSharedRef<FActImageTrackNotify> ActImageTrackNotify = MakeShared<FActImageTrackNotify>();
+	TSharedRef<FActImageTrackNotify> ActImageTrackNotify = MakeShareable(new FActImageTrackNotify());
 	TSharedRef<SActImageTreeViewTableRow> Notifies = SNew(SActImageTreeViewTableRow,
 	                                                      ActImageTreeView.ToSharedRef(),
 	                                                      ActImageTrackNotify);

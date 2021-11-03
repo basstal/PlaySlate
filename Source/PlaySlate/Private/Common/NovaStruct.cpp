@@ -40,6 +40,7 @@ namespace NovaStruct
 	{
 		const double ViewInputRange = InViewInput.Size<double>();
 		ViewStart = InViewInput.GetLowerBoundValue();
+		ViewEnd = InViewInput.GetUpperBoundValue();
 		PixelsPerInput = ViewInputRange > 0 ? (InWidgetSize.X / ViewInputRange) : 0;
 	}
 

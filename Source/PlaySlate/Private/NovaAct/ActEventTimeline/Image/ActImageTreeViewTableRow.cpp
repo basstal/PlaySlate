@@ -1,18 +1,14 @@
 ﻿#include "ActImageTreeViewTableRow.h"
 
 #include "ActActionSequenceSectionBase.h"
-// #include "ActImageAreaPanel.h"
 #include "ActImagePoolWidget.h"
 #include "Animation/AnimMontage.h"
 #include "Common/NovaConst.h"
 
 #include "NovaAct/NovaActEditor.h"
-#include "NovaAct/Assets/ActActionSequenceStructs.h"
 
 #include "NovaAct/Assets/ActAnimation.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTreeView.h"
-// #include "Subs/NovaActUICommandInfo.h"
-#include "NovaAct/ActEventTimeline/Image/ImageTrackTypes/ActImageTrackFolder.h"
 #include "ImageTrackTypes/ActImageTrackNotify.h"
 #include "Widgets/Text/SInlineEditableTextBlock.h"
 
@@ -23,7 +19,7 @@ using namespace NovaConst;
 SActImageTreeViewTableRow::SActImageTreeViewTableRow()
 	: TableRowType(EActImageTrackType::None),
 	  ActActionTrackAreaArgs(),
-	  CachedHitBox(nullptr),
+	  // CachedHitBox(nullptr),
 	  Height(0),
 	  PendingRenameTrackIndex(0) { }
 
@@ -32,23 +28,6 @@ void SActImageTreeViewTableRow::Construct(const FArguments& InArgs,
                                           const TSharedRef<IActImageTrackBase>& InActImageTrack)
 {
 	ActImageTrack = InActImageTrack;
-	// NodeName = InNodeName;
-	// TableRowType = InNodeType;
-	// switch (TableRowType)
-	// {
-	// case EActImageTrackType::None: break;
-	// case EActImageTrackType::Folder:
-	// 	{
-	// 		ActImageTrack = MakeShared<FActImageTrackFolder>();
-	// 		break;
-	// 	}
-	// case EActImageTrackType::Notify:
-	// 	{
-	// 		ActImageTrack = MakeShared<FActImageTrackNotify>();
-	// 		break;
-	// 	}
-	// default: ;
-	// }
 	FArguments MultiColumnTableRowArgs;
 	{
 		// MultiColumnTableRowArgs._OnDragDetected.BindRaw(this, &SActActionSequenceTreeViewRow::OnDragDetected);
@@ -291,19 +270,19 @@ void SActImageTreeViewTableRow::Refresh()
 // 	return *FindNode;
 // }
 
-void SActImageTreeViewTableRow::SetContentAsHitBox(FActActionHitBoxData& InHitBox)
-{
-	// ** TODO:临时先把对象存这里
-	CachedHitBox = &InHitBox;
-	// ActActionTrackAreaArgs.Begin.Bind(TAttribute<int32>::FGetter::CreateLambda([this]()
-	// {
-	// 	return CachedHitBox->Begin;
-	// }));
-	// ActActionTrackAreaArgs.End.Bind(TAttribute<int32>::FGetter::CreateLambda([this]()
-	// {
-	// 	return CachedHitBox->End;
-	// }));
-}
+// void SActImageTreeViewTableRow::SetContentAsHitBox(FActActionHitBoxData& InHitBox)
+// {
+// 	// ** TODO:临时先把对象存这里
+// 	CachedHitBox = &InHitBox;
+// 	// ActActionTrackAreaArgs.Begin.Bind(TAttribute<int32>::FGetter::CreateLambda([this]()
+// 	// {
+// 	// 	return CachedHitBox->Begin;
+// 	// }));
+// 	// ActActionTrackAreaArgs.End.Bind(TAttribute<int32>::FGetter::CreateLambda([this]()
+// 	// {
+// 	// 	return CachedHitBox->End;
+// 	// }));
+// }
 
 //
 // void SActImageTreeViewTableRow::SetVisible(EVisibility InVisibility)

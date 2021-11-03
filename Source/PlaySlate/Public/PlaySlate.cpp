@@ -1,10 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 #include "PlaySlate.h"
 
-#include "NovaAct/Assets/AssetTypeActions/AssetTypeActions_ActActionSequence.h"
+#include "NovaAct/Assets/AssetTypeActions/AssetTypeActions_ActAnimation.h"
 #include "NovaBlueprint/Assets/AssetTypeActions/AssetTypeActions_ActActionBlueprint.h"
-
-#include "AssetToolsModule.h"
 
 DEFINE_LOG_CATEGORY(LogNovaAct)
 
@@ -18,7 +16,7 @@ void FPlaySlateModule::StartupModule()
 	// ** 用AssetTools注册FAssetTypeActions_ActActionBlueprint工厂类型
 	RegisterAssetTypeActions(MakeShareable(new FAssetTypeActions_ActActionBlueprint));
 	// ** 用AssetTools注册FAssetTypeActions_ActActionSequence工厂类型
-	RegisterAssetTypeActions(MakeShareable(new FAssetTypeActions_ActActionSequence));
+	RegisterAssetTypeActions(MakeShareable(new FAssetTypeActions_ActAnimation));
 }
 
 void FPlaySlateModule::ShutdownModule()

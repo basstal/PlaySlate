@@ -8,7 +8,7 @@ class FWorkflowCentricApplication;
 class FNovaActEditorMode : public FApplicationMode
 {
 public:
-	FNovaActEditorMode(const TSharedRef<FWorkflowCentricApplication>& InHostingApp);
+	FNovaActEditorMode(const TSharedRef<FWorkflowCentricApplication>& InWorkflowCentricApplication);
 
 	//~Begin FApplicationMode interface
 	virtual void RegisterTabFactories(TSharedPtr<FTabManager> InTabManager) override;
@@ -16,7 +16,7 @@ public:
 	//~End FApplicationMode interface
 protected:
 	/** The hosting app */
-	TWeakPtr<FWorkflowCentricApplication> HostingAppPtr;
+	TWeakPtr<FWorkflowCentricApplication> WeakWorkflowCentricApplication;
 	/** The tab factories we support */
 	FWorkflowAllowedTabSet TabFactories;
 };

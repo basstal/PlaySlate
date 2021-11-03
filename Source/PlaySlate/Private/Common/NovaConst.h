@@ -1,7 +1,11 @@
 #pragma once
 
+#define LOCTEXT_NAMESPACE "NovaAct"
+
 namespace NovaConst
 {
+	const FText NovaActEditor_ActEventTimeline = LOCTEXT("ActEventTimeline", "NovaActEditor ActEventTimeline tab name.");
+
 	const FName NovaActAppName(TEXT("NovaAct"));
 	const FName NovaActEditorMode(TEXT("NovaActEditorMode"));
 
@@ -14,9 +18,9 @@ namespace NovaConst
 		TEXT("ActViewport4")
 	});
 
-	const FName ActViewportTab2Id();
-	const FName ActViewportTab3Id();
-	const FName ActViewportTab4Id();
+	const FName ActViewportTab2Id = FName();
+	const FName ActViewportTab3Id = FName();
+	const FName ActViewportTab4Id = FName();
 
 	const FName ActAssetDetailsTabId(TEXT("ActAssetDetails"));
 	/** Notify State 最短持续时间，单位帧 */
@@ -37,3 +41,5 @@ namespace NovaConst
 	const FVector2D ScrubHandleSize = FVector2D(12.0f, 12.0f);
 	const FVector2D TextBorderSize = FVector2D(1.f, 1.f);
 }
+
+#undef LOCTEXT_NAMESPACE

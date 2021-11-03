@@ -13,44 +13,32 @@
 #include "FrameNumberNumericInterface.h"
 #include "Common/NovaDataBinding.h"
 #include "Image/ActImageScrubPosition.h"
-#include "Image/Subs/NovaActUICommandInfo.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageThickLine.h"
-#include "NovaAct/Assets/Tracks/ActActionHitBoxTrack.h"
 #include "Widgets/Input/SSearchBox.h"
 #include "Widgets/Layout/SGridPanel.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
-SActEventTimelineWidget::SActEventTimelineWidget()
-{
-	UE_LOG(LogNovaAct, Log, TEXT("SActEventTimelineWidget::SActEventTimelineWidget"));
-	// ** 将能编辑的所有TrackEditor注册，以便能够使用AddTrackEditor以及AddTrackMenu
-	TrackEditorDelegates.Add(OnCreateTrackEditorDelegate::CreateStatic(FActActionHitBoxTrack::CreateTrackEditor));
-}
-
 SActEventTimelineWidget::~SActEventTimelineWidget()
 {
 	UE_LOG(LogNovaAct, Log, TEXT("SActEventTimelineWidget::~SActEventTimelineWidget"));
-	TrackEditors.Empty();
-	TrackEditorDelegates.Empty();
 	NovaDB::Delete("TreeViewFilterText");
 }
 
 void SActEventTimelineWidget::Construct(const FArguments& InArgs)
 {
-	FNovaActUICommandInfo::Register();
-	auto FillLeftAttr = TAttribute<float>::Create(TAttribute<float>::FGetter::CreateLambda([]()
+	TAttribute<float> FillLeftAttr = TAttribute<float>::Create(TAttribute<float>::FGetter::CreateLambda([]()
 	{
 		auto DB = GetDataBinding(float, "ColumnFillCoefficientsLeft");
 		return DB ? DB->GetData() : 0;
 	}));
-	auto FillRightAttr = TAttribute<float>::Create(TAttribute<float>::FGetter::CreateLambda([]()
+	TAttribute<float> FillRightAttr = TAttribute<float>::Create(TAttribute<float>::FGetter::CreateLambda([]()
 	{
 		auto DB = GetDataBinding(float, "ColumnFillCoefficientsLeft");
 		return DB ? (1 - DB->GetData()) : 1;
 	}));
 
-	TSharedPtr<SGridPanel> GridPanel;
+	TSharedPtr<SGridPanel> GridPanel = nullptr;
 
 	ChildSlot
 	[
@@ -88,17 +76,6 @@ void SActEventTimelineWidget::Construct(const FArguments& InArgs)
 						.Clipping(EWidgetClipping::ClipToBounds)
 						[
 							SNew(SHorizontalBox)
-							+ SHorizontalBox::Slot()
-							  .AutoWidth()
-							  .VAlign(VAlign_Center)
-							  .Padding(FMargin(0, 0, 0.3f, 0))
-							[
-								SNew(SEditorHeaderButton)
-								.OnGetMenuContent(this, &SActEventTimelineWidget::BuildAddTrackMenuWidget)
-								.Icon(FAppStyle::Get().GetBrush("Icons.Plus"))
-								.Text(LOCTEXT("Track", "Track"))
-							]
-
 							+ SHorizontalBox::Slot()
 							.VAlign(VAlign_Center)
 							[
@@ -188,15 +165,6 @@ void SActEventTimelineWidget::Construct(const FArguments& InArgs)
 	{
 		ActEventTimelineSliderWidget = SNew(SActSliderWidget, GridPanel.ToSharedRef());
 	}
-
-	// 调用已注册的TrackEditor的Create代理，并收集创建的TrackEditor实例
-	for (int32 DelegateIndex = 0; DelegateIndex < TrackEditorDelegates.Num(); ++DelegateIndex)
-	{
-		check(TrackEditorDelegates[DelegateIndex].IsBound());
-		// Tools may exist in other modules, call a delegate that will create one for us 
-		TSharedRef<FActActionTrackEditorBase> TrackEditor = TrackEditorDelegates[DelegateIndex].Execute(SharedThis(this));
-		TrackEditors.Add(TrackEditor);
-	}
 }
 
 void SActEventTimelineWidget::OnTreeViewFilterChanged(const FText& InFilter)
@@ -207,19 +175,6 @@ void SActEventTimelineWidget::OnTreeViewFilterChanged(const FText& InFilter)
 		DB = NovaDB::Create("TreeViewFilterText", InFilter);
 	}
 	DB->SetData(InFilter);
-}
-
-TSharedRef<SWidget> SActEventTimelineWidget::BuildAddTrackMenuWidget()
-{
-	FMenuBuilder MenuBuilder(true, nullptr);
-	// ** 填充AddTrack菜单
-	MenuBuilder.BeginSection("AddTracks");
-	for (int32 i = 0; i < TrackEditors.Num(); ++i)
-	{
-		TrackEditors[i]->BuildAddTrackMenu(MenuBuilder);
-	}
-	MenuBuilder.EndSection();
-	return MenuBuilder.MakeWidget();
 }
 
 #undef LOCTEXT_NAMESPACE

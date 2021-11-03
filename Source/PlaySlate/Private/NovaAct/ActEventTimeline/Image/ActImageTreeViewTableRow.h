@@ -3,7 +3,6 @@
 #include "ActImageTrackLaneWidget.h"
 #include "Common/NovaStruct.h"
 #include "Common/NovaStaticFunction.h"
-#include "NovaAct/Assets/ActActionSequenceStructs.h"
 
 class IActImageTrackBase;
 class SActImageTrackLaneWidget;
@@ -167,12 +166,12 @@ public:
 	//  */
 	// TSharedRef<SActImageTreeViewTableRow> FindOrCreateFolder(const FName& InName);
 
-	/**
-	 * 设置节点为HitBox显示节点
-	 *
-	 * @param InHitBox 作为填充内容的数据
-	 */
-	void SetContentAsHitBox(FActActionHitBoxData& InHitBox);
+	// /**
+	//  * 设置节点为HitBox显示节点
+	//  *
+	//  * @param InHitBox 作为填充内容的数据
+	//  */
+	// void SetContentAsHitBox(FActActionHitBoxData& InHitBox);
 
 	// /**
 	//  * 设置节点的可见性
@@ -252,8 +251,8 @@ protected:
 	// TSharedPtr<SActImageTrackLaneWidget> ActNotifiesPanelLaneWidget;
 	/** TrackArea所使用的参数 */
 	FActActionTrackAreaArgs ActActionTrackAreaArgs;
-	/** TODO:临时存这里 */
-	FActActionHitBoxData* CachedHitBox;
+	// /** TODO:临时存这里 */
+	// FActActionHitBoxData* CachedHitBox;
 	/** TrackAreaSlot 对应到 Geometry 信息 */
 	TMap<TSharedRef<SActImageTrackLaneWidget>, FActActionCachedGeometry> CachedTrackGeometry;
 	// /** 代表一行Track区域 */
@@ -271,22 +270,22 @@ public:
 	// 	return NodeName;
 	// }
 
-	/** TODO:临时放到这里 */
-	void SetHitBoxBegin(int32 InBegin)
-	{
-		if (CachedHitBox)
-		{
-			CachedHitBox->Begin = InBegin;
-		}
-	}
-
-	void SetHitBoxDuration(int32 InDuration)
-	{
-		if (CachedHitBox)
-		{
-			CachedHitBox->End = InDuration - CachedHitBox->Begin;
-		}
-	}
+	// /** TODO:临时放到这里 */
+	// void SetHitBoxBegin(int32 InBegin)
+	// {
+	// 	if (CachedHitBox)
+	// 	{
+	// 		CachedHitBox->Begin = InBegin;
+	// 	}
+	// }
+	//
+	// void SetHitBoxDuration(int32 InDuration)
+	// {
+	// 	if (CachedHitBox)
+	// 	{
+	// 		CachedHitBox->End = InDuration - CachedHitBox->Begin;
+	// 	}
+	// }
 
 	FActActionTrackAreaArgs& GetActActionTrackAreaArgs()
 	{

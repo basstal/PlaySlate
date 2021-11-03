@@ -6,7 +6,7 @@
 struct FActAssetDetailsTabSummoner : public FWorkflowTabFactory
 {
 public:
-	FActAssetDetailsTabSummoner(const TSharedPtr<FAssetEditorToolkit> InHostingApp);
+	FActAssetDetailsTabSummoner(const TSharedRef<FAssetEditorToolkit>& InAssetEditorToolkit);
 
 	//~Begin FWorkflowTabFactory interface
 	virtual TSharedRef<SWidget> CreateTabBody(const FWorkflowTabSpawnInfo& Info) const override;
@@ -14,36 +14,17 @@ public:
 	//~End FWorkflowTabFactory interface
 
 protected:
-	TSharedPtr<SActAssetDetailsWidget> DetailsWidget;
+	TSharedPtr<SActAssetDetailsWidget> ActAssetDetailsWidget;
 };
 
 
 struct FActViewportSummoner : public FWorkflowTabFactory
 {
 public:
-	FActViewportSummoner(TSharedPtr<FAssetEditorToolkit> InHostingApp, int32 InViewportIndex);
+	FActViewportSummoner(const TSharedRef<FAssetEditorToolkit>& InAssetEditorToolkit, int32 InViewportIndex);
 
 	//~Begin FWorkflowTabFactory interface
 	virtual FTabSpawnerEntry& RegisterTabSpawner(TSharedRef<FTabManager> TabManager, const FApplicationMode* CurrentApplicationMode) const override;
 	virtual TSharedRef<SWidget> CreateTabBody(const FWorkflowTabSpawnInfo& Info) const override;
 	//~End FWorkflowTabFactory interface
-
-protected:
-	// TWeakPtr<ISkeletonTree> SkeletonTree;
-	// TWeakPtr<IPersonaPreviewScene> PreviewScene;
-	// TWeakPtr<FBlueprintEditor> BlueprintEditor;
-	// FOnViewportCreated OnViewportCreated;
-	// FOnGetViewportText OnGetViewportText;
-	// TArray<TSharedPtr<FExtender>> Extenders;
-	// FName ContextName;
-	// int32 ViewportIndex;
-	// bool bShowShowMenu;
-	// bool bShowLODMenu;
-	// bool bShowPlaySpeedMenu;
-	// bool bShowTimeline;
-	// bool bShowStats;
-	// bool bAlwaysShowTransformToolbar;
-	// bool bShowFloorOptions;
-	// bool bShowTurnTable;
-	// bool bShowPhysicsMenu;
 };

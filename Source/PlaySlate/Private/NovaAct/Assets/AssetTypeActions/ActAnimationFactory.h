@@ -1,14 +1,14 @@
 ﻿#pragma once
 
 
-#include "ActActionSequenceFactory.generated.h"
+#include "ActAnimationFactory.generated.h"
 
 UCLASS(MinimalAPI)
-class UActActionSequenceFactory : public UFactory
+class UActAnimationFactory : public UFactory
 {
 	GENERATED_BODY()
 public:
-	UActActionSequenceFactory();
+	UActAnimationFactory();
 
 	//~Begin UFactory interface
 	virtual bool ConfigureProperties() override;

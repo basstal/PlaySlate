@@ -1,4 +1,4 @@
-﻿#include "AssetTypeActions_ActActionSequence.h"
+﻿#include "AssetTypeActions_ActAnimation.h"
 
 // #include "PlaySlate.h"
 #include "Common/NovaDataBinding.h"
@@ -7,22 +7,22 @@
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
-FText FAssetTypeActions_ActActionSequence::GetName() const
+FText FAssetTypeActions_ActAnimation::GetName() const
 {
-	return NSLOCTEXT("AssetTypeActions", "AssetTypeActions_ActActionSequence", "Act Action Sequence");
+	return LOCTEXT("AssetTypeActions_ActActionSequence", "Act Action Sequence");
 }
 
-FColor FAssetTypeActions_ActActionSequence::GetTypeColor() const
+FColor FAssetTypeActions_ActAnimation::GetTypeColor() const
 {
 	return FColor(100, 123, 72);
 }
 
-UClass* FAssetTypeActions_ActActionSequence::GetSupportedClass() const
+UClass* FAssetTypeActions_ActAnimation::GetSupportedClass() const
 {
 	return UActAnimation::StaticClass();
 }
 
-void FAssetTypeActions_ActActionSequence::OpenAssetEditor(const TArray<UObject*>& InObjects, TSharedPtr<IToolkitHost> EditWithinLevelEditor)
+void FAssetTypeActions_ActAnimation::OpenAssetEditor(const TArray<UObject*>& InObjects, TSharedPtr<IToolkitHost> EditWithinLevelEditor)
 {
 	for (auto ObjIt = InObjects.CreateConstIterator(); ObjIt; ++ObjIt)
 	{
@@ -41,7 +41,7 @@ void FAssetTypeActions_ActActionSequence::OpenAssetEditor(const TArray<UObject*>
 	}
 }
 
-uint32 FAssetTypeActions_ActActionSequence::GetCategories()
+uint32 FAssetTypeActions_ActAnimation::GetCategories()
 {
 	/**
 	 * 资源分类，隶属于哪个资源类型
@@ -49,7 +49,7 @@ uint32 FAssetTypeActions_ActActionSequence::GetCategories()
 	return EAssetTypeCategories::Gameplay;
 }
 
-bool FAssetTypeActions_ActActionSequence::HasActions(const TArray<UObject*>& InObjects) const
+bool FAssetTypeActions_ActAnimation::HasActions(const TArray<UObject*>& InObjects) const
 {
 	/**
 	 * 是否在AssetActions中有自定义的Action

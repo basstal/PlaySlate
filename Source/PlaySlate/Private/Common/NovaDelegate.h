@@ -19,7 +19,7 @@ namespace NovaDelegate
 	// Replaced by FOnGetContent
 	// DECLARE_DELEGATE_RetVal(TSharedRef<SWidget>, OnBuildAddTrackMenuWidgetDelegate);
 	
-	DECLARE_DELEGATE_RetVal_OneParam(TSharedRef<FActActionTrackEditorBase>, OnCreateTrackEditorDelegate, TSharedRef<SActEventTimelineWidget>);
+	// DECLARE_DELEGATE_RetVal_OneParam(TSharedRef<FActActionTrackEditorBase>, OnCreateTrackEditorDelegate, TSharedRef<SActEventTimelineWidget>);
 	/** A delegate which will create an auto-key handler. */
 	DECLARE_DELEGATE_RetVal_TwoParams(FFrameNumber, OnGetNearestKeyDelegate, FFrameTime, bool)
 	DECLARE_DELEGATE_RetVal_ThreeParams(TSharedRef<SWidget>, OnGenerateWidgetForColumnDelegate, const TSharedRef<SActImageTreeViewTableRow>&, const FName&, const TSharedRef<SActActionSequenceTreeViewRow>&);
@@ -48,5 +48,4 @@ namespace NovaDelegate
 	DECLARE_DELEGATE_FourParams(OnNotifyStateHandleBeingDraggedDelegate, TSharedPtr<SActNotifyPoolNotifyNodeWidget> /*NotifyNode*/, const FPointerEvent& /*PointerEvent*/, ENovaNotifyStateHandleHit /*Handle*/, float /*Time*/)
 
 	DECLARE_MULTICAST_DELEGATE_OneParam(OnAssetPropertiesModifiedMulticastDelegate, UObject*);
-	DECLARE_MULTICAST_DELEGATE_OneParam(OnHitBoxesChangedMulticastDelegate, TArray<FActActionHitBoxData>&);
 }

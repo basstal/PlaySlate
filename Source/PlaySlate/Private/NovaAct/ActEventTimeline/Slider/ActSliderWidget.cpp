@@ -4,7 +4,6 @@
 #include "Common/NovaConst.h"
 #include "Common/NovaStaticFunction.h"
 #include "Common/NovaStruct.h"
-#include "NovaAct/NovaActEditor.h"
 // ReSharper disable once CppUnusedIncludeDirective
 #include "ITransportControl.h"
 #include "NovaAct/ActEventTimeline/Slider/ActSliderViewRangeWidget.h"
@@ -12,12 +11,12 @@
 #include "LevelEditorViewport.h"
 #include "Widgets/Layout/SGridPanel.h"
 
+using namespace NovaConst;
+
 SActSliderWidget::SActSliderWidget()
 	: DistanceDragged(0),
 	  MouseDragType(ENovaDragType::DRAG_NONE),
-	  // bMouseDownInRegion(false),
-	  bPanning(false),
-	  bMirrorLabels(false) {}
+	  bPanning(false) {}
 
 SActSliderWidget::~SActSliderWidget()
 {
@@ -39,14 +38,14 @@ void SActSliderWidget::Construct(const FArguments& InArgs, const TSharedRef<SGri
 		.Padding(0)
 		.Clipping(EWidgetClipping::ClipToBounds)
 		[
-			this->AsShared()
+			AsShared()
 		]
 	];
 
 
 	// play range slider
 	InParentGridPanel->AddSlot(1, 2, SGridPanel::Layer(10))
-	                 .Padding(NovaConst::ResizeBarPadding)
+	                 .Padding(ResizeBarPadding)
 	[
 		SNew(SBorder)
 		.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
@@ -68,36 +67,33 @@ int32 SActSliderWidget::OnPaint(const FPaintArgs& Args,
                                 bool bParentEnabled) const
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
-	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
-	auto ViewRange = *ActEventTimelineArgs->ViewRange;
-	const double LocalSequenceLength = ViewRange.Size<double>();
-	if (LocalSequenceLength <= 0)
+	if (!ActEventTimelineArgsDB)
 	{
-		return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
+		return LayerId;
 	}
-
-	FActSliderScrubRangeToScreen RangeToScreen(ViewRange, AllottedGeometry.Size);
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
+	FActSliderScrubRangeToScreen RangeToScreen(*ActEventTimelineArgs->ViewRange, AllottedGeometry.Size);
 
 	// ** draw tick marks
 	FActDrawTickArgs DrawTickArgs;
 	{
 		DrawTickArgs.AllottedGeometry = AllottedGeometry;
-		DrawTickArgs.bMirrorLabels = bMirrorLabels;
 		DrawTickArgs.bOnlyDrawMajorTicks = false;
-		DrawTickArgs.TickColor = FLinearColor::White;
+		DrawTickArgs.TickColor = FLinearColor::White.CopyWithNewOpacity(0.7f);
 		DrawTickArgs.CullingRect = MyCullingRect;
 		DrawTickArgs.DrawEffects = bParentEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 		// Draw major ticks under sections
 		DrawTickArgs.StartLayer = LayerId;
 		// Draw the tick the entire height of the section area
 		DrawTickArgs.MajorTickHeight = 9.0f;
-		DrawTickArgs.TickOffset = bMirrorLabels ? 0.0f : FMath::Abs(AllottedGeometry.Size.Y - DrawTickArgs.MajorTickHeight);
+		DrawTickArgs.TickOffset = FMath::Abs(AllottedGeometry.Size.Y - DrawTickArgs.MajorTickHeight);
+		DrawTickArgs.ActEventTimelineArgs = ActEventTimelineArgs;
 	}
-	DrawTicks(OutDrawElements, ViewRange, RangeToScreen, DrawTickArgs);
+	DrawTicks(OutDrawElements, RangeToScreen, DrawTickArgs);
 
 	// Draw the scrub handle
 	const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
-	FQualifiedFrameTime ScrubPosition = FQualifiedFrameTime(FFrameTime(ActEventTimelineArgs->CurrentTime->GetFrame()), TickResolution);
+	FQualifiedFrameTime ScrubPosition = FQualifiedFrameTime(*ActEventTimelineArgs->CurrentTime, TickResolution);
 	FActSliderScrubberMetrics ScrubberMetrics = NovaStaticFunction::MakePixelScrubberMetrics(TickResolution, ScrubPosition, RangeToScreen);
 	const float HandleStart = ScrubberMetrics.HandleRangePx.GetLowerBoundValue();
 	const float HandleEnd = ScrubberMetrics.HandleRangePx.GetUpperBoundValue();
@@ -108,18 +104,12 @@ int32 SActSliderWidget::OnPaint(const FPaintArgs& Args,
 	ScrubColor.A *= 0.75f;
 	ScrubColor.B *= 0.1f;
 	ScrubColor.G *= 0.2f;
-	const FSlateBrush* FrameBlockScrubHandleUpBrush = FEditorStyle::GetBrush(TEXT("Sequencer.Timeline.FrameBlockScrubHandleUp"));
-	const FSlateBrush* FrameBlockScrubHandleDownBrush = FEditorStyle::GetBrush(TEXT("Sequencer.Timeline.FrameBlockScrubHandleDown"));
-	const FSlateBrush* VanillaScrubHandleUpBrush = FEditorStyle::GetBrush(TEXT("Sequencer.Timeline.VanillaScrubHandleUp"));
-	const FSlateBrush* VanillaScrubHandleDownBrush = FEditorStyle::GetBrush(TEXT("Sequencer.Timeline.VanillaScrubHandleDown"));
-	const FSlateBrush* Brush =
-		ScrubberMetrics.Style == EActSliderScrubberStyle::Vanilla ?
-			(bMirrorLabels ? VanillaScrubHandleUpBrush : VanillaScrubHandleDownBrush) :
-			(bMirrorLabels ? FrameBlockScrubHandleUpBrush : FrameBlockScrubHandleDownBrush);
-	const int32 ArrowLayer = LayerId + 2;
+	const FSlateBrush* Brush = ScrubberMetrics.Style == EActSliderScrubberStyle::Vanilla
+		                           ? FEditorStyle::GetBrush(TEXT("Sequencer.Timeline.VanillaScrubHandleDown"))
+		                           : FEditorStyle::GetBrush(TEXT("Sequencer.Timeline.FrameBlockScrubHandleDown"));
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
-		ArrowLayer,
+		LayerId + 2,
 		PaintGeometry,
 		Brush,
 		DrawTickArgs.DrawEffects,
@@ -135,10 +125,10 @@ int32 SActSliderWidget::OnPaint(const FPaintArgs& Args,
 	// Flip the text position if getting near the end of the view range
 	bool bDrawLeft = (AllottedGeometry.Size.X - HandleEnd) < (TextSize.X + 12.0f);
 	float TextPosition = bDrawLeft ? (HandleStart - TextSize.X - 2.0f) : (HandleEnd + 2.0f);
-	FVector2D TextOffset(TextPosition, bMirrorLabels ? (DrawTickArgs.AllottedGeometry.Size.Y - TextSize.Y) : 0.0f);
+	FVector2D TextOffset(TextPosition, 0.0f);
 	FSlateDrawElement::MakeText(
 		OutDrawElements,
-		DrawTickArgs.StartLayer + 1,
+		LayerId + 1,
 		DrawTickArgs.AllottedGeometry.ToPaintGeometry(TextOffset, TextSize),
 		FrameString,
 		SmallLayoutFont,
@@ -149,7 +139,7 @@ int32 SActSliderWidget::OnPaint(const FPaintArgs& Args,
 	if (MouseDragType == ENovaDragType::DRAG_SETTING_RANGE)
 	{
 		// ** 按下 Ctrl 的情况下 在 时间轴 上拖拽选择一段时间，可以缩放至这段时间的功能
-		FActSliderScrubRangeToScreen MouseDownRange(ViewRange, MouseDownGeometry.Size);
+		FActSliderScrubRangeToScreen MouseDownRange(*ActEventTimelineArgs->ViewRange, MouseDownGeometry.Size);
 		FFrameTime DownPosition0Time = NovaStaticFunction::ComputeFrameTimeFromMouse(MouseDownGeometry,
 		                                                                             MouseDownPosition[0],
 		                                                                             MouseDownRange,
@@ -166,13 +156,13 @@ int32 SActSliderWidget::OnPaint(const FPaintArgs& Args,
 			OutDrawElements,
 			LayerId + 1,
 			AllottedGeometry.ToPaintGeometry(FVector2D(RangePosX, 0.0f), FVector2D(RangeSizeX, AllottedGeometry.Size.Y)),
-			bMirrorLabels ? VanillaScrubHandleDownBrush : VanillaScrubHandleUpBrush,
+			FEditorStyle::GetBrush(TEXT("Sequencer.Timeline.VanillaScrubHandleUp")),
 			DrawTickArgs.DrawEffects,
 			MouseStartPosX < MouseEndPosX ? FLinearColor(0.5f, 0.5f, 0.5f) : FLinearColor(0.25f, 0.3f, 0.3f)
 		);
 	}
 
-	return ArrowLayer;
+	return LayerId + 2;
 }
 
 
@@ -183,21 +173,14 @@ FReply SActSliderWidget::OnMouseButtonDown(const FGeometry& MyGeometry, const FP
 	MouseDownPosition[0] = MouseDownPosition[1] = MouseEvent.GetScreenSpacePosition();
 	MouseDownGeometry = MyGeometry;
 
-	// bMouseDownInRegion = false;
-	// const FVector2D CursorPos = MouseEvent.GetScreenSpacePosition();
-	// const FVector2D LocalPos = MouseDownGeometry.AbsoluteToLocal(CursorPos);
-	// if (LocalPos.Y >= 0 && LocalPos.Y < MouseDownGeometry.GetLocalSize().Y)
-	// {
-	// 	bMouseDownInRegion = true;
-	// }
-
-	return FReply::Unhandled();
+	return FReply::Handled().CaptureMouse(AsShared()).PreventThrottling();
 }
 
 FReply SActSliderWidget::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
 	const bool bHasMouseCapture = HasMouseCapture();
+	UE_LOG(LogNovaAct, Log, TEXT("bHasMouseCapture : %d"), bHasMouseCapture)
 	const bool bHandleLeftMouseButton = MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton && bHasMouseCapture;
 	const bool bHandleRightMouseButton = MouseEvent.GetEffectingButton() == EKeys::RightMouseButton && bHasMouseCapture && ActEventTimelineArgs->
 		AllowZoom;
@@ -371,6 +354,11 @@ FReply SActSliderWidget::OnMouseWheel(const FGeometry& MyGeometry, const FPointe
 	return FReply::Unhandled();
 }
 
+FVector2D SActSliderWidget::ComputeDesiredSize(float LayoutScaleMultiplier) const
+{
+	return FVector2D(100, 22);
+}
+
 
 void SActSliderWidget::CommitScrubPosition(FFrameTime NewValue, bool bIsScrubbing)
 {
@@ -490,22 +478,23 @@ void SActSliderWidget::PanByDelta(float InDelta) const
 }
 
 void SActSliderWidget::DrawTicks(FSlateWindowElementList& OutDrawElements,
-                                 const TRange<double>& ViewRange,
                                  const FActSliderScrubRangeToScreen& RangeToScreen,
                                  const FActDrawTickArgs& InArgs)
 {
-	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
-	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
-	const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
+	if (!InArgs.ActEventTimelineArgs)
+	{
+		UE_LOG(LogNovaAct, Warning, TEXT("FActDrawTickArgs.ActEventTimelineArgs not assigned!"));
+		return;
+	}
 	const FPaintGeometry PaintGeometry = InArgs.AllottedGeometry.ToPaintGeometry();
 	const FSlateFontInfo SmallLayoutFont = FCoreStyle::GetDefaultFontStyle("Regular", 8);
 
 	double MajorGridStep = 0.0;
 	int32 MinorDivisions = 0;
-	if (!NovaStaticFunction::GetGridMetrics(ActEventTimelineArgs->NumericTypeInterface,
+	if (!NovaStaticFunction::GetGridMetrics(InArgs.ActEventTimelineArgs->NumericTypeInterface,
 	                                        InArgs.AllottedGeometry.Size.X,
-	                                        ViewRange.GetLowerBoundValue(),
-	                                        ViewRange.GetUpperBoundValue(),
+	                                        RangeToScreen.ViewStart,
+	                                        RangeToScreen.ViewEnd,
 	                                        MajorGridStep,
 	                                        MinorDivisions))
 	{
@@ -520,9 +509,10 @@ void SActSliderWidget::DrawTicks(FSlateWindowElementList& OutDrawElements,
 	TArray<FVector2D> LinePoints;
 	LinePoints.SetNumUninitialized(2);
 
-	const double FirstMajorLine = FMath::FloorToDouble(ViewRange.GetLowerBoundValue() / MajorGridStep) * MajorGridStep;
-	const double LastMajorLine = FMath::CeilToDouble(ViewRange.GetUpperBoundValue() / MajorGridStep) * MajorGridStep;
-	const FFrameNumber FrameNumber = ConvertFrameTime(*ActEventTimelineArgs->CurrentTime, TickResolution, TickResolution).FloorToFrame();
+	const double FirstMajorLine = FMath::FloorToDouble(RangeToScreen.ViewStart / MajorGridStep) * MajorGridStep;
+	const double LastMajorLine = FMath::CeilToDouble(RangeToScreen.ViewEnd / MajorGridStep) * MajorGridStep;
+	const FFrameRate TickResolution = InArgs.ActEventTimelineArgs->TickResolution;
+	const FFrameNumber FrameNumber = ConvertFrameTime(*InArgs.ActEventTimelineArgs->CurrentTime, TickResolution, TickResolution).FloorToFrame();
 	const float FlooredScrubPx = RangeToScreen.InputToLocalX(FrameNumber / TickResolution);
 	for (double CurrentMajorLine = FirstMajorLine; CurrentMajorLine < LastMajorLine; CurrentMajorLine += MajorGridStep)
 	{
@@ -544,11 +534,13 @@ void SActSliderWidget::DrawTicks(FSlateWindowElementList& OutDrawElements,
 
 		if (!InArgs.bOnlyDrawMajorTicks && !FMath::IsNearlyEqual(MajorLinePx, FlooredScrubPx, 3.f))
 		{
-			FString FrameString = ActEventTimelineArgs->NumericTypeInterface->ToString((CurrentMajorLine * TickResolution).RoundToFrame().Value);
+			FString FrameString = InArgs.ActEventTimelineArgs->NumericTypeInterface
+				                      ? InArgs.ActEventTimelineArgs->NumericTypeInterface->ToString(
+					                      (CurrentMajorLine * TickResolution).RoundToFrame().Value)
+				                      : FString();
 
 			// Space the text between the tick mark but slightly above
-			FVector2D TextOffset(MajorLinePx + 5.f,
-			                     InArgs.bMirrorLabels ? 1.f : FMath::Abs(InArgs.AllottedGeometry.Size.Y - (InArgs.MajorTickHeight + 3.f)));
+			FVector2D TextOffset(MajorLinePx + 5.f, FMath::Abs(InArgs.AllottedGeometry.Size.Y - (InArgs.MajorTickHeight + 3.f)));
 			FSlateDrawElement::MakeText(
 				OutDrawElements,
 				InArgs.StartLayer + 1,
@@ -566,7 +558,7 @@ void SActSliderWidget::DrawTicks(FSlateWindowElementList& OutDrawElements,
 			const float MinorTickHeight = ((MinorDivisions % 2 == 0) && (Step % (MinorDivisions / 2)) == 0) ? 6.0f : 2.0f;
 			const float MinorLinePx = RangeToScreen.InputToLocalX(CurrentMajorLine + Step * MajorGridStep / MinorDivisions);
 
-			LinePoints[0] = FVector2D(MinorLinePx, InArgs.bMirrorLabels ? 0.0f : FMath::Abs(InArgs.AllottedGeometry.Size.Y - MinorTickHeight));
+			LinePoints[0] = FVector2D(MinorLinePx, FMath::Abs(InArgs.AllottedGeometry.Size.Y - MinorTickHeight));
 			LinePoints[1] = FVector2D(MinorLinePx, LinePoints[0].Y + MinorTickHeight);
 
 			// Draw each sub mark

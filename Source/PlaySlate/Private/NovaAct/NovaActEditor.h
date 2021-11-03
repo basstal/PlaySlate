@@ -1,14 +1,12 @@
 ﻿#pragma once
 
 #include "IAnimationEditor.h"
-// #include "Common/NovaDataBinding.h"
 #include "Common/NovaStruct.h"
 
 class FActAssetDetailsNotifyHook;
 class FActViewportPreviewScene;
 class UActAnimation;
 class FActViewportClient;
-
 class FActAssetDetailsBrain;
 
 using namespace NovaDelegate;
@@ -22,13 +20,6 @@ class FNovaActEditor : public FWorkflowCentricApplication, public FGCObject, pub
 public:
 	FNovaActEditor(UActAnimation* InActAnimation);
 	virtual ~FNovaActEditor() override;
-
-	/**
-	 * 构造编辑器窗口，设置当前编辑的资源实例及相关参数
-	 *
-	 * @param InIToolkitHost 仅透传到对应接口，无实际作用
-	 */
-	void CreateEditorWindow(const TSharedPtr<IToolkitHost>& InIToolkitHost);
 
 	//~Begin FGCObject interface
 	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
@@ -51,57 +42,40 @@ public:
 	//~End FTickableEditorObject interface
 
 	/**
-	 * 生成 Viewport Tab
+	 * 构造编辑器窗口，设置当前编辑的资源实例及相关参数
 	 *
-	 * @param SpawnTabArgs
-	 * @return 生成的 Widget
+	 * @param InIToolkitHost 仅透传到对应接口，无实际作用
 	 */
-	TSharedRef<SDockTab> OnActViewportTabSpawn(const FSpawnTabArgs& SpawnTabArgs);
+	void CreateEditorWindow(const TSharedPtr<IToolkitHost> InIToolkitHost);
 	/**
-	 * 生成 EventTimeline Tab
+	 * 生成 EventTimeline Tab 的回调注册函数,
 	 *
-	 * @param SpawnTabArgs
-	 * @return 生成的 Widget
+	 * @param SpawnTabArgs 生成 Tab 使用的参数
+	 * @return 生成的 Tab Widget
 	 */
 	TSharedRef<SDockTab> OnActEventTimelineTabSpawn(const FSpawnTabArgs& SpawnTabArgs);
 	/**
-	 * 生成 AssetDetails Tab
+	 * 数据绑定 AnimSequence 数据改变的回调
 	 *
-	 * @param SpawnTabArgs
-	 * @return 生成的 Widget
-	 */
-	TSharedRef<SDockTab> OnActAssetDetailsTabSpawn(const FSpawnTabArgs& SpawnTabArgs);
-	
-	/**
-	 * 设置AnimSequence的相关数据
-	 *
-	 * @param InAnimSequence
+	 * @param InAnimSequence 数据绑定传入参数
 	 */
 	void OnAnimSequenceChanged(UAnimSequence** InAnimSequence);
 	/**
 	 * 根据 AnimationAsset 资源类型创建 Tab 界面的内容
 	 * @param InAnimationAsset
-	 * @return Tab 内容 Widget
+	 * @return 具体创建的对应资源类型编辑 Widget 填充在 ActEventTimelineTab 中
 	 */
 	TSharedRef<SWidget> MakeEditTabContent(UAnimationAsset* InAnimationAsset);
-
 	/**
-	 * 打开资源对应的编辑Tab
+	 * 打开资源类型对应的编辑 Tab，目前仅有 AnimSequence 的编辑界面，这也是数据绑定到 AnimSequenceBase 上的
 	 *
 	 * @param InAnimationAsset
 	 */
 	void OpenNewAnimationAssetEditTab(UAnimationAsset** InAnimationAsset);
 
 protected:
-	/** 当前编辑的 Animation 资源引用 */
-	// UAnimationAsset* AnimationAsset;
-
-	/** Viewport Controller，Editor没有销毁的情况下不会为空 */
+	/** PreviewScene , Editor 没有销毁的情况下不会为空 */
 	TSharedPtr<FActViewportPreviewScene> ActViewportPreviewScene;
-	/** EventTimeline Widget Container */
+	/** EventTimeline Dock Tab */
 	TSharedPtr<SDockTab> ActEventTimelineParentDockTab;
-	/** Viewport Widget Container */
-	TSharedPtr<SDockTab> ActViewportParentDockTab;
-	/** AssetDetails Widget Container */
-	TSharedPtr<SDockTab> ActAssetDetailsParentDockTab;
 };

@@ -19,7 +19,7 @@ using namespace NovaConst;
 FActImageTrackNotify::FActImageTrackNotify()
 	: PendingRenameTrackIndex(INDEX_NONE)
 {
-	ActImageTrackArgs = MakeShared<FActImageTrackArgs>();
+	ActImageTrackArgs = MakeShareable(new FActImageTrackArgs());
 	{
 		ActImageTrackArgs->TrackType = EActImageTrackType::Notify;
 	}

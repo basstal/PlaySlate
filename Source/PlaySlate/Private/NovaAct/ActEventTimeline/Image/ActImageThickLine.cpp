@@ -21,13 +21,11 @@ int32 SActImageThickLine::OnPaint(const FPaintArgs& Args,
 {
 	auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
-	auto LocalViewRange = *ActEventTimelineArgs->ViewRange;
-	const FActSliderScrubRangeToScreen RangeToScreen(LocalViewRange, AllottedGeometry.Size);
+	const FActSliderScrubRangeToScreen RangeToScreen(*ActEventTimelineArgs->ViewRange, AllottedGeometry.Size);
 	// Draw major tick lines in the section area
 	FActDrawTickArgs DrawTickArgs;
 	{
 		DrawTickArgs.AllottedGeometry = AllottedGeometry;
-		DrawTickArgs.bMirrorLabels = false;
 		DrawTickArgs.bOnlyDrawMajorTicks = true;
 		DrawTickArgs.TickColor = FLinearColor::White.CopyWithNewOpacity(0.2f);
 		DrawTickArgs.CullingRect = MyCullingRect;
@@ -37,8 +35,9 @@ int32 SActImageThickLine::OnPaint(const FPaintArgs& Args,
 		// Draw the tick the entire height of the section area
 		DrawTickArgs.TickOffset = 0.0f;
 		DrawTickArgs.MajorTickHeight = AllottedGeometry.Size.Y;
+		DrawTickArgs.ActEventTimelineArgs = ActEventTimelineArgs;
 	}
-	SActSliderWidget::DrawTicks(OutDrawElements, LocalViewRange, RangeToScreen, DrawTickArgs);
+	SActSliderWidget::DrawTicks(OutDrawElements, RangeToScreen, DrawTickArgs);
 
 	return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
 }

@@ -46,7 +46,10 @@ public:
 	 * @param RangeToScreen 屏幕距离到时间的转换结构
 	 * @param TickResolution 时间到帧时间的转换结构
 	 */
-	static FFrameTime ComputeFrameTimeFromMouse(const FGeometry& Geometry, FVector2D ScreenSpacePosition, FActSliderScrubRangeToScreen RangeToScreen, const FFrameRate& TickResolution)
+	static FFrameTime ComputeFrameTimeFromMouse(const FGeometry& Geometry,
+	                                            FVector2D ScreenSpacePosition,
+	                                            FActSliderScrubRangeToScreen RangeToScreen,
+	                                            const FFrameRate& TickResolution)
 	{
 		const FVector2D CursorPos = Geometry.AbsoluteToLocal(ScreenSpacePosition);
 		const double MouseValue = RangeToScreen.LocalXToInput(CursorPos.X);
@@ -114,7 +117,7 @@ public:
 
 		// ** Use the end of the view as the longest number
 		FFrameRate FocusedDisplayRate = FFrameRate();
-		FString TickString = NumericTypeInterface->ToString((InViewEnd * FocusedDisplayRate).FrameNumber.Value);
+		FString TickString = NumericTypeInterface ? NumericTypeInterface->ToString((InViewEnd * FocusedDisplayRate).FrameNumber.Value) : FString();
 		FVector2D MaxTextSize = FontMeasureService->Measure(TickString, SmallLayoutFont);
 
 		float MinTickPx = MaxTextSize.X + 5.f;
@@ -132,7 +135,7 @@ public:
 
 		return false;
 	}
-	
+
 	static TSharedRef<SWidget> MakeTrackButton(FText HoverText, FOnGetContent MenuContent, const TAttribute<bool>& HoverState)
 	{
 		FSlateFontInfo SmallLayoutFont = FCoreStyle::GetDefaultFontStyle("Regular", 8);
@@ -204,12 +207,12 @@ public:
 			return ActEventTimelineArgs->TickResolution;
 		});
 		ActEventTimelineArgs->NumericTypeInterface = MakeShareable(new FFrameNumberInterface(MakeAttributeLambda([]()
-																							 {
-																								 return EFrameNumberDisplayFormats::Frames;
-																							 }),
-																							 0,
-																							 TickResolutionAttrLambda,
-																							 TickResolutionAttrLambda));
+		                                                                                     {
+			                                                                                     return EFrameNumberDisplayFormats::Frames;
+		                                                                                     }),
+		                                                                                     0,
+		                                                                                     TickResolutionAttrLambda,
+		                                                                                     TickResolutionAttrLambda));
 		return ActEventTimelineArgs;
 	}
 
@@ -225,11 +228,12 @@ public:
 
 		FName NameToTest;
 		int32 TrackIndex = 1;
-	
-		do 
+
+		do
 		{
 			NameToTest = *FString::FromInt(TrackIndex++);
-		} while (TrackNames.Contains(NameToTest));
+		}
+		while (TrackNames.Contains(NameToTest));
 
 		return NameToTest;
 	}

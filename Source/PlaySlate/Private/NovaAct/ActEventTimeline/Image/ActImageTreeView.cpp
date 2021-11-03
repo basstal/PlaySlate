@@ -69,14 +69,14 @@ void SActImageTreeView::OnGetChildren(TSharedRef<SActImageTreeViewTableRow> InPa
 void SActImageTreeView::OnExpansionChanged(TSharedRef<SActImageTreeViewTableRow> InDisplayNode, bool bIsExpanded)
 {
 	// UE_LOG(LogNovaAct, Log, TEXT("InDisplayNode->GetPathName : %s, bIsExpanded : %d"), *InDisplayNode->GetPathName(), bIsExpanded);
-	typedef TMap<TSharedPtr<IActImageTrackBase>, TWeakPtr<SActImagePoolWidget>> LaneWidgetMap;
-	auto DB = GetDataBindingSP(LaneWidgetMap, "ImageTrack2LaneWidget");
+	typedef TMap<TSharedPtr<IActImageTrackBase>, TWeakPtr<SActImagePoolWidget>> PoolWidgetMap;
+	auto DB = GetDataBindingSP(PoolWidgetMap, "ImageTrack2LaneWidget");
 	if (!DB)
 	{
 		return;
 	}
 
-	if (TSharedPtr<LaneWidgetMap> ImageTrack2LaneWidget = DB->GetData())
+	if (TSharedPtr<PoolWidgetMap> ImageTrack2LaneWidget = DB->GetData())
 	{
 		for (const TSharedRef<SActImageTreeViewTableRow>& ChildNode : InDisplayNode->GetChildNodes())
 		{
@@ -135,14 +135,14 @@ void SActImageTreeView::OnHitBoxesChanged(UActAnimation* InActAnimation)
 TSharedRef<ITableRow> SActImageTreeView::OnTreeViewGenerateRow(TSharedRef<SActImageTreeViewTableRow> InActImageTreeViewTableRow,
                                                                const TSharedRef<STableViewBase>& OwnerTable)
 {
-	typedef TMap<TSharedPtr<IActImageTrackBase>, TWeakPtr<SActImagePoolWidget>> LaneWidgetMap;
-	auto DB = GetDataBindingSP(LaneWidgetMap, "ImageTrack2LaneWidget");
+	typedef TMap<TSharedPtr<IActImageTrackBase>, TWeakPtr<SActImagePoolWidget>> PoolWidgetMap;
+	auto DB = GetDataBindingSP(PoolWidgetMap, "ImageTrack2LaneWidget");
 	if (!DB)
 	{
 		UE_LOG(LogNovaAct, Error, TEXT("DataBindingSP for type TMap<TSharedPtr<IActImageTrackBase>, TWeakPtr<SActImagePoolWidget>> don't exist"));
 		return InActImageTreeViewTableRow;
 	}
-	TSharedPtr<LaneWidgetMap> ImageTrack2LaneWidget = DB->GetData();
+	TSharedPtr<PoolWidgetMap> ImageTrack2LaneWidget = DB->GetData();
 	if (!ImageTrack2LaneWidget)
 	{
 		UE_LOG(LogNovaAct, Error, TEXT("ImageTrack2LaneWidget is nullptr"));
