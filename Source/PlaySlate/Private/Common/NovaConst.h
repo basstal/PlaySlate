@@ -6,18 +6,18 @@ namespace NovaConst
 	const FName NovaActEditorMode(TEXT("NovaActEditorMode"));
 
 	const FName ActEventTimelineTabId(TEXT("ActEventTimeline"));
-	
+
 	const TArray<FName> ActViewportTabIds = TArray<FName>({
 		TEXT("ActViewport1"),
 		TEXT("ActViewport2"),
 		TEXT("ActViewport3"),
 		TEXT("ActViewport4")
 	});
-	
+
 	const FName ActViewportTab2Id();
 	const FName ActViewportTab3Id();
 	const FName ActViewportTab4Id();
-	
+
 	const FName ActAssetDetailsTabId(TEXT("ActAssetDetails"));
 	/** Notify State 最短持续时间，单位帧 */
 	const int32 ActMinimumNotifyStateFrame = 1;
@@ -32,4 +32,8 @@ namespace NovaConst
 
 	/** FActViewportPreviewScene tick max threshold */
 	const float VisibilityTimeThreshold = 0.25f;
+
+	/** 给 NotifyNodeWidget 使用的常量 用于绘制UI */
+	const FVector2D ScrubHandleSize = FVector2D(12.0f, 12.0f);
+	const FVector2D TextBorderSize = FVector2D(1.f, 1.f);
 }

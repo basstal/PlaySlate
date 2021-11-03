@@ -3,7 +3,7 @@
 #include "SCurveEditor.h"
 #include "Common/NovaConst.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTrackLaneWidget.h"
-#include "NovaAct/ActEventTimeline/Image/Subs/ActActionSequenceNotifyNode.h"
+#include "NovaAct/ActEventTimeline/Image/Subs/ActNotifyPoolNotifyNodeWidget.h"
 
 
 void SActImageTrackCarWidget::Construct(const FArguments& InArgs)
@@ -24,14 +24,20 @@ void SActImageTrackCarWidget::Construct(const FArguments& InArgs)
 	Update();
 }
 
-int32 SActImageTrackCarWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+int32 SActImageTrackCarWidget::OnPaint(const FPaintArgs& Args,
+                                       const FGeometry& AllottedGeometry,
+                                       const FSlateRect& MyCullingRect,
+                                       FSlateWindowElementList& OutDrawElements,
+                                       int32 LayerId,
+                                       const FWidgetStyle& InWidgetStyle,
+                                       bool bParentEnabled) const
 {
 	FPaintGeometry MyGeometry = AllottedGeometry.ToPaintGeometry();
 	int32 CustomLayerId = LayerId + 1;
 	bool bAnyDraggedNodes = false;
 	if (NotifyNode)
 	{
-		if (!NotifyNode.Get()->GetBeingDragged())
+		if (!NotifyNode.Get()->bBeingDragged)
 		{
 			NotifyNode.Get()->UpdateSizeAndPosition(AllottedGeometry);
 		}
@@ -45,7 +51,9 @@ int32 SActImageTrackCarWidget::OnPaint(const FPaintArgs& Args, const FGeometry& 
 		OutDrawElements,
 		CustomLayerId,
 		AllottedGeometry.ToPaintGeometry(),
-		TArray<FVector2D>({FVector2D(0.0f, AllottedGeometry.GetLocalSize().Y), FVector2D(AllottedGeometry.GetLocalSize().X, AllottedGeometry.GetLocalSize().Y)}),
+		TArray<FVector2D>({
+			FVector2D(0.0f, AllottedGeometry.GetLocalSize().Y), FVector2D(AllottedGeometry.GetLocalSize().X, AllottedGeometry.GetLocalSize().Y)
+		}),
 		ESlateDrawEffect::None,
 		FLinearColor(0.1f, 0.1f, 0.1f, 0.3f)
 	);
@@ -93,7 +101,7 @@ void SActImageTrackCarWidget::Update()
 	// // if (ActNotifiesPanelLaneWidget.IsValid() && ActNotifiesPanelLaneWidget.Pin()->GetNotifyEvent())
 	// if (ActActionTrackAreaSlot.IsValid() && ActActionTrackAreaSlot.Pin()->HasNotifyNode())
 	// {
-	// 	NotifyNode = SNew(SActActionSequenceNotifyNode, ActActionTrackAreaSlot.Pin().ToSharedRef())
+	// 	NotifyNode = SNew(SActNotifyPoolNotifyNodeWidget, ActActionTrackAreaSlot.Pin().ToSharedRef())
 	// 		.OnNodeDragStarted(this, &SActImageTrackCarWidget::OnNotifyNodeDragStarted);
 	//
 	// 	// .OnNotifyStateHandleBeingDragged(OnNotifyStateHandleBeingDragged)
@@ -113,7 +121,10 @@ void SActImageTrackCarWidget::Update()
 	// }
 }
 
-FReply SActImageTrackCarWidget::OnNotifyNodeDragStarted(TSharedRef<SActActionSequenceNotifyNode> InNotifyNode, const FPointerEvent& MouseEvent, const FVector2D& ScreenNodePosition, const bool bDragOnMarker)
+FReply SActImageTrackCarWidget::OnNotifyNodeDragStarted(TSharedRef<SActNotifyPoolNotifyNodeWidget> InNotifyNode,
+                                                        const FPointerEvent& MouseEvent,
+                                                        const FVector2D& ScreenNodePosition,
+                                                        const bool bDragOnMarker)
 {
 	return FReply::Handled().CaptureMouse(InNotifyNode).UseHighPrecisionMouseMovement(InNotifyNode);
 }

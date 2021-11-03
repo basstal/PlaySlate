@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Common/NovaStruct.h"
-#include "NovaAct/ActEventTimeline/Image/Subs/ActActionSequenceNotifyNode.h"
+#include "NovaAct/ActEventTimeline/Image/Subs/ActNotifyPoolNotifyNodeWidget.h"
 
 class SActImageTreeViewTableRow;
 class SActImageTreeView;
@@ -32,7 +32,7 @@ public:
 	*/
 	void Update();
 	/** TODO: */
-	FReply OnNotifyNodeDragStarted(TSharedRef<SActActionSequenceNotifyNode> InNotifyNode, const FPointerEvent& MouseEvent, const FVector2D& ScreenNodePosition, const bool bDragOnMarker);
+	FReply OnNotifyNodeDragStarted(TSharedRef<SActNotifyPoolNotifyNodeWidget> InNotifyNode, const FPointerEvent& MouseEvent, const FVector2D& ScreenNodePosition, const bool bDragOnMarker);
 	/** TODO: */
 	FMargin GetNotifyTrackPadding() const;
 	/** TODO: */
@@ -46,7 +46,7 @@ protected:
 	TSharedPtr<SActImageTreeView> TreeView;
 
 	/** 当前轨道指定的NotifyNode */
-	TSharedPtr<SActActionSequenceNotifyNode> NotifyNode;
+	TSharedPtr<SActNotifyPoolNotifyNodeWidget> NotifyNode;
 	/** Cache the SOverlay used to store all this tracks nodes */
 	TSharedPtr<SOverlay> NodeSlots;
 	/** Target Track Area */

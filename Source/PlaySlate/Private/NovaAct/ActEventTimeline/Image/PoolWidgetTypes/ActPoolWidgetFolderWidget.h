@@ -1,12 +1,14 @@
 ﻿#pragma once
 #include "Common/NovaStruct.h"
 
+class FActImageTrackFolder;
+
 using namespace NovaStruct;
 
-class SActTrackPanelFolderWidget : public SCompoundWidget
+class SActPoolWidgetFolderWidget : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SActTrackPanelFolderWidget) {}
+	SLATE_BEGIN_ARGS(SActPoolWidgetFolderWidget) {}
 
 		// SLATE_DEFAULT_SLOT(FArguments, Content)
 		//
@@ -14,8 +16,8 @@ public:
 
 	SLATE_END_ARGS()
 
-	SActTrackPanelFolderWidget();
-	void Construct(const FArguments& InArgs);
+	SActPoolWidgetFolderWidget();
+	void Construct(const FArguments& InArgs, const TSharedRef<FActImageTrackFolder>& InActImageTrackFolder);
 
 	//~Begin SCompoundWidget interface
 	virtual int32 OnPaint(const FPaintArgs& Args,
@@ -31,8 +33,7 @@ public:
 
 protected:
 	bool bIsVisible;
-	FActImageTrackPadding Padding;
-	float Height;
 	/** Is this widget hovered? */
 	bool bIsHovered : 1;
+	TSharedPtr<FActImageTrackFolder> ActImageTrackFolder;
 };

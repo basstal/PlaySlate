@@ -3,14 +3,14 @@
 
 
 class SActImageTrackCarWidget;
-class SActNotifiesPanelLaneWidget;
-class SActNotifiesPanelEditorLaneWidget;
+class SActNotifyPoolLaneWidget;
+class SActNotifyPoolEditorLaneWidget;
 class IActImageTrackBase;
 
-class SActTrackPanelNotifyTrackWidget : public SCompoundWidget, public FEditorUndoClient
+class SActPoolWidgetNotifyWidget : public SCompoundWidget, public FEditorUndoClient
 {
 public:
-	SLATE_BEGIN_ARGS(SActTrackPanelNotifyTrackWidget) {}
+	SLATE_BEGIN_ARGS(SActPoolWidgetNotifyWidget) {}
 		// 	: _Sequence()
 		// 	, _CurrentPosition()
 		// 	, _ViewInputMin()
@@ -45,6 +45,10 @@ public:
 
 	void Construct(const FArguments& InArgs, const TSharedRef<FActImageTrackNotify>& InActImageTrackNotify);
 
+	//~Begin SCompoundWidget interface
+	virtual FVector2D ComputeDesiredSize(float LayoutScaleMultiplier) const override;
+	//~End SCompoundWidget interface
+	
 	/** Handler for delete command */
 	void OnDeletePressed();
 
@@ -70,10 +74,10 @@ protected:
 	TSharedPtr<FActImageTrackNotify> ActImageTrackNotify;
 	
 	/** Cached list of anim tracks for notify node drag drop */
-	TArray<TSharedPtr<SActNotifiesPanelLaneWidget>> NotifyTracks;
+	TArray<TSharedPtr<SActNotifyPoolLaneWidget>> NotifyTracks;
 
 	/** Cached list of Notify editor tracks */
-	TArray<TSharedPtr<SActNotifiesPanelEditorLaneWidget>> NotifyEditorTracks;
+	TArray<TSharedPtr<SActNotifyPoolEditorLaneWidget>> NotifyEditorTracks;
 
 	/** 所有已被添加的 TrackCar Widget */
 	TArray<TSharedRef<SActImageTrackCarWidget>> ActImageTrackCarWidgets;

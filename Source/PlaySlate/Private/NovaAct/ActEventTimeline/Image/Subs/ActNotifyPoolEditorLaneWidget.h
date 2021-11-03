@@ -1,10 +1,10 @@
 ﻿#pragma once
-#include "ActNotifiesPanelLaneWidget.h"
+#include "ActNotifyPoolLaneWidget.h"
 
-class SActNotifiesPanelEditorLaneWidget : public SCompoundWidget
+class SActNotifyPoolEditorLaneWidget : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SActNotifiesPanelEditorLaneWidget)
+	SLATE_BEGIN_ARGS(SActNotifyPoolEditorLaneWidget)
 			: _TrackIndex(INDEX_NONE) {}
 
 		// 		, _AnimNotifyPanel()
@@ -50,7 +50,7 @@ public:
 
 	void Construct(const FArguments& InArgs);
 
-	TSharedRef<SActNotifiesPanelLaneWidget> GetNotifyTrack() const;
+	TSharedRef<SActNotifyPoolLaneWidget> GetNotifyTrack() const;
 
 protected:
 	/** Index of Track in Sequence **/
@@ -60,7 +60,7 @@ protected:
 	// UAnimSequenceBase* Sequence;
 
 	/** Pointer to actual anim notify track */
-	TSharedPtr<SActNotifiesPanelLaneWidget> NotifyTrack;
+	TSharedPtr<SActNotifyPoolLaneWidget> NotifyTrack;
 
 	/** Pointer to notify panel for drawing*/
 	// TWeakPtr<SAnimNotifyPanel>			AnimPanelPtr;

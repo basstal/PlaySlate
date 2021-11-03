@@ -2,7 +2,7 @@
 
 #include "ActActionSequenceSectionBase.h"
 // #include "ActImageAreaPanel.h"
-#include "ActImageTrackPanel.h"
+#include "ActImagePoolWidget.h"
 #include "Animation/AnimMontage.h"
 #include "Common/NovaConst.h"
 
@@ -21,7 +21,7 @@
 using namespace NovaConst;
 
 SActImageTreeViewTableRow::SActImageTreeViewTableRow()
-	: TableRowType(ENovaTreeViewTableRowType::None),
+	: TableRowType(EActImageTrackType::None),
 	  ActActionTrackAreaArgs(),
 	  CachedHitBox(nullptr),
 	  Height(0),
@@ -29,26 +29,26 @@ SActImageTreeViewTableRow::SActImageTreeViewTableRow()
 
 void SActImageTreeViewTableRow::Construct(const FArguments& InArgs,
                                           const TSharedRef<STableViewBase>& OwnerTableView,
-                                          FName InNodeName,
-                                          ENovaTreeViewTableRowType InNodeType)
+                                          const TSharedRef<IActImageTrackBase>& InActImageTrack)
 {
-	NodeName = InNodeName;
-	TableRowType = InNodeType;
-	switch (TableRowType)
-	{
-	case ENovaTreeViewTableRowType::None: break;
-	case ENovaTreeViewTableRowType::Folder:
-		{
-			ActImageTrack = MakeShared<FActImageTrackFolder>();
-			break;
-		}
-	case ENovaTreeViewTableRowType::Notify:
-		{
-			ActImageTrack = MakeShared<FActImageTrackNotify>();
-			break;
-		}
-	default: ;
-	}
+	ActImageTrack = InActImageTrack;
+	// NodeName = InNodeName;
+	// TableRowType = InNodeType;
+	// switch (TableRowType)
+	// {
+	// case EActImageTrackType::None: break;
+	// case EActImageTrackType::Folder:
+	// 	{
+	// 		ActImageTrack = MakeShared<FActImageTrackFolder>();
+	// 		break;
+	// 	}
+	// case EActImageTrackType::Notify:
+	// 	{
+	// 		ActImageTrack = MakeShared<FActImageTrackNotify>();
+	// 		break;
+	// 	}
+	// default: ;
+	// }
 	FArguments MultiColumnTableRowArgs;
 	{
 		// MultiColumnTableRowArgs._OnDragDetected.BindRaw(this, &SActActionSequenceTreeViewRow::OnDragDetected);
@@ -145,7 +145,7 @@ bool SActImageTreeViewTableRow::IsVisible() const
 	return true;
 }
 
-// ENovaTreeViewTableRowType SActImageTreeViewTableRow::GetType() const
+// EActImageTrackType SActImageTreeViewTableRow::GetType() const
 // {
 // 	return TableRowType;
 // }
@@ -233,11 +233,11 @@ bool SActImageTreeViewTableRow::ValidateDisplayName(const FText& NewDisplayName,
 
 void SActImageTreeViewTableRow::SetDisplayName(const FText& NewDisplayName)
 {
-	FText OutErrorMessage;
-	if (ValidateDisplayName(NewDisplayName, OutErrorMessage))
-	{
-		NodeName = FName(NewDisplayName.ToString());
-	}
+	// FText OutErrorMessage;
+	// if (ValidateDisplayName(NewDisplayName, OutErrorMessage))
+	// {
+	// 	NodeName = FName(NewDisplayName.ToString());
+	// }
 }
 
 const FSlateBrush* SActImageTreeViewTableRow::GetIconBrush() const
@@ -275,21 +275,21 @@ void SActImageTreeViewTableRow::Refresh()
 	TreeView->SetTreeItemsSource(&DisplayedRootNodes);
 }
 
-TSharedRef<SActImageTreeViewTableRow> SActImageTreeViewTableRow::FindOrCreateFolder(const FName& InName)
-{
-	TSharedRef<SActImageTreeViewTableRow>* FindNode = ChildNodes.FindByPredicate([InName](auto ChildNode)
-	{
-		return ChildNode->NodeName == InName;
-	});
-	if (!FindNode)
-	{
-		// ** TODO:
-		// TSharedRef<SActImageTreeViewTableRow> Folder = MakeShareable(new SActImageTreeViewTableRow(InName, ENovaTreeViewTableRowType::Folder));
-		// Folder->SetParent(SharedThis(this), 0);
-		// return Folder;
-	}
-	return *FindNode;
-}
+// TSharedRef<SActImageTreeViewTableRow> SActImageTreeViewTableRow::FindOrCreateFolder(const FName& InName)
+// {
+// 	TSharedRef<SActImageTreeViewTableRow>* FindNode = ChildNodes.FindByPredicate([InName](auto ChildNode)
+// 	{
+// 		return ChildNode->NodeName == InName;
+// 	});
+// 	if (!FindNode)
+// 	{
+// 		// ** TODO:
+// 		// TSharedRef<SActImageTreeViewTableRow> Folder = MakeShareable(new SActImageTreeViewTableRow(InName, EActImageTrackType::Folder));
+// 		// Folder->SetParent(SharedThis(this), 0);
+// 		// return Folder;
+// 	}
+// 	return *FindNode;
+// }
 
 void SActImageTreeViewTableRow::SetContentAsHitBox(FActActionHitBoxData& InHitBox)
 {
@@ -335,7 +335,7 @@ float SActImageTreeViewTableRow::ComputeTrackPosition()
 }
 
 
-ENovaTreeViewTableRowType SActImageTreeViewTableRow::GetTableRowType() const
+EActImageTrackType SActImageTreeViewTableRow::GetTableRowType() const
 {
 	return TableRowType;
 }

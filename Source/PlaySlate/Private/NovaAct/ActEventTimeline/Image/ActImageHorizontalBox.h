@@ -7,7 +7,7 @@ class FActActionSequenceSectionBase;
 class SActActionSequenceTreeViewRow;
 class SActActionOutlinerTreeNode;
 class SActImageTreeView;
-class SActImageAreaPanel;
+class SActImagePoolAreaPanel;
 class SActImageTrackLaneWidget;
 class SActImageTrackCarWidget;
 class SActTrackPanel;
@@ -27,10 +27,13 @@ public:
 
 	void Construct(const FArguments& InArgs);
 protected:
+	/** TreeView Item Source */
+	TArray<TSharedRef<SActImageTreeViewTableRow>> TreeViewItemSource;
+	
 	/** Track 区域 Panel 面板，用于构建 TrackLaneWidget */
-	TSharedPtr<SActImageAreaPanel> ActImageTrackAreaPanel;
+	TSharedPtr<SActImagePoolAreaPanel> ActImageTrackAreaPanel;
 	TSharedPtr<SActImageTreeView> ActImageTreeView;
 	/** Track 区域 Panel 面板，用于构建 TrackLaneWidget */
-	TSharedPtr<SActImageAreaPanel> PinnedActImageTrackAreaPanel;
+	TSharedPtr<SActImagePoolAreaPanel> PinnedActImageTrackAreaPanel;
 	TSharedPtr<SActImageTreeView> PinnedActImageTreeView;
 };

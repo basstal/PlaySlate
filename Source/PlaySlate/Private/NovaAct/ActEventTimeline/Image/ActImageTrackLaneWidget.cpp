@@ -159,7 +159,7 @@ FLinearColor SActImageTrackLaneWidget::GetEditorColor()
 // 	const FFrameRate& FrameRate = TrackAreaArgs.TickResolution.Get();
 // 	OutTime = 0;
 // 	OutFrame = 0;
-// 	if (ActImageTreeViewTableRow.Pin()->GetType() == ENovaTreeViewTableRowType::State)
+// 	if (ActImageTreeViewTableRow.Pin()->GetType() == EActImageTrackType::State)
 // 	{
 // 		OutTime = FMath::Max(OutTime, (float)(TrackAreaArgs.Begin.Get() * FrameRate.AsInterval()));
 // 		OutFrame = FMath::Max(OutFrame, TrackAreaArgs.Begin.Get());
@@ -172,7 +172,7 @@ FLinearColor SActImageTrackLaneWidget::GetEditorColor()
 // 	const FFrameRate& FrameRate = TrackAreaArgs.TickResolution.Get();
 // 	OutTime = NovaConst::ActMinimumNotifyStateFrame * FrameRate.AsInterval();
 // 	OutFrame = NovaConst::ActMinimumNotifyStateFrame;
-// 	if (ActImageTreeViewTableRow.Pin()->GetType() == ENovaTreeViewTableRowType::State)
+// 	if (ActImageTreeViewTableRow.Pin()->GetType() == EActImageTrackType::State)
 // 	{
 // 		OutTime = FMath::Max(OutTime, (float)((TrackAreaArgs.End.Get() - TrackAreaArgs.Begin.Get()) * FrameRate.AsInterval()));
 // 		OutFrame = FMath::Max(OutFrame, TrackAreaArgs.End.Get() - TrackAreaArgs.Begin.Get());
@@ -186,8 +186,8 @@ bool SActImageTrackLaneWidget::IsBranchingPoint()
 
 bool SActImageTrackLaneWidget::HasNotifyNode()
 {
-	// ENovaTreeViewTableRowType TableRowType = ActImageTreeViewTableRow.Pin()->GetType();
-	// return TableRowType != ENovaTreeViewTableRowType::None && TableRowType != ENovaTreeViewTableRowType::Folder;
+	// EActImageTrackType TableRowType = ActImageTreeViewTableRow.Pin()->GetType();
+	// return TableRowType != EActImageTrackType::None && TableRowType != EActImageTrackType::Folder;
 	return true;
 }
 

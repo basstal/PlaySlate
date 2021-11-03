@@ -1,25 +1,25 @@
-﻿#include "ActImageAreaPanel.h"
+﻿#include "ActImagePoolAreaPanel.h"
 
 #include "PlaySlate.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTreeViewTableRow.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTrackLaneWidget.h"
 
 
-SActImageAreaPanel::SActImageAreaPanel()
+SActImagePoolAreaPanel::SActImagePoolAreaPanel()
 	: Children(this) {}
 
-SActImageAreaPanel::~SActImageAreaPanel()
+SActImagePoolAreaPanel::~SActImagePoolAreaPanel()
 {
-	UE_LOG(LogNovaAct, Log, TEXT("SActImageAreaPanel::~SActImageAreaPanel "));
+	UE_LOG(LogNovaAct, Log, TEXT("SActImagePoolAreaPanel::~SActImagePoolAreaPanel "));
 }
 
-void SActImageAreaPanel::Construct(const FArguments& InArgs) {}
+void SActImagePoolAreaPanel::Construct(const FArguments& InArgs) {}
 
-void SActImageAreaPanel::OnArrangeChildren(const FGeometry& AllottedGeometry, FArrangedChildren& ArrangedChildren) const
+void SActImagePoolAreaPanel::OnArrangeChildren(const FGeometry& AllottedGeometry, FArrangedChildren& ArrangedChildren) const
 {
 	for (int32 ChildIndex = 0; ChildIndex < Children.Num(); ++ChildIndex)
 	{
-		const SActImageTrackPanel::Slot& CurrentChild = Children[ChildIndex];
+		const SActImagePoolWidget::Slot& CurrentChild = Children[ChildIndex];
 
 		const EVisibility ChildVisibility = CurrentChild.GetWidget()->GetVisibility();
 		if (!ArrangedChildren.Accepts(ChildVisibility))
@@ -47,12 +47,12 @@ void SActImageAreaPanel::OnArrangeChildren(const FGeometry& AllottedGeometry, FA
 	}
 }
 
-FVector2D SActImageAreaPanel::ComputeDesiredSize(float) const
+FVector2D SActImagePoolAreaPanel::ComputeDesiredSize(float) const
 {
 	FVector2D MaxSize(0.0f, 0.0f);
 	for (int32 ChildIndex = 0; ChildIndex < Children.Num(); ++ChildIndex)
 	{
-		const SActImageTrackPanel::Slot& CurrentChild = Children[ChildIndex];
+		const SActImagePoolWidget::Slot& CurrentChild = Children[ChildIndex];
 
 		const EVisibility ChildVisibility = CurrentChild.GetWidget()->GetVisibility();
 		if (ChildVisibility != EVisibility::Collapsed)
@@ -66,14 +66,14 @@ FVector2D SActImageAreaPanel::ComputeDesiredSize(float) const
 	return MaxSize;
 }
 
-FChildren* SActImageAreaPanel::GetChildren()
+FChildren* SActImagePoolAreaPanel::GetChildren()
 {
 	return &Children;
 }
 
-TSharedRef<SActImageTrackPanel> SActImageAreaPanel::MakeTrackPanel(const TSharedRef<SActImageTreeViewTableRow>& InActImageTreeViewTableRow)
+TSharedRef<SActImagePoolWidget> SActImagePoolAreaPanel::MakeLaneWidgetForTrack(const TSharedRef<IActImageTrackBase>& InActImageTrack)
 {
-	TSharedRef<SActImageTrackPanel> TrackPanel = SNew(SActImageTrackPanel, InActImageTreeViewTableRow);
-	Children.Add(new SActImageTrackPanel::Slot(TrackPanel));
-	return TrackPanel;
+	TSharedRef<SActImagePoolWidget> LaneWidget = SNew(SActImagePoolWidget, InActImageTrack);
+	Children.Add(new SActImagePoolWidget::Slot(LaneWidget));
+	return LaneWidget;
 }

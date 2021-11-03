@@ -8,7 +8,7 @@
 class SActSliderWidget;
 class SActImageTreeView;
 class SActActionTimeSliderWidget;
-class SActImageAreaPanel;
+class SActImagePoolAreaPanel;
 
 using namespace NovaDelegate;
 /**

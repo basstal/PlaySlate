@@ -36,7 +36,7 @@ FNovaActEditor::FNovaActEditor(UActAnimation* InActAnimation)
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = NovaStaticFunction::MakeActEventTimelineArgs();
 	NovaDB::CreateSP("ActEventTimelineArgs", ActEventTimelineArgs);
 	// ** TODO:存储在配置中
-	NovaDB::Create("ColumnFillCoefficientsLeft", 0.3f);
+	NovaDB::Create("ColumnFillCoefficientsLeft", 0.17f);
 }
 
 FNovaActEditor::~FNovaActEditor()

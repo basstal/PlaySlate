@@ -10,6 +10,7 @@
 #include "PlaySlate.h"
 #include "Common/NovaDataBinding.h"
 #include "Common/NovaStaticFunction.h"
+#include "NovaAct/ActEventTimeline/Image/PoolWidgetTypes/ActPoolWidgetNotifyWidget.h"
 
 using namespace NovaConst;
 
@@ -19,6 +20,9 @@ FActImageTrackNotify::FActImageTrackNotify()
 	: PendingRenameTrackIndex(INDEX_NONE)
 {
 	ActImageTrackArgs = MakeShared<FActImageTrackArgs>();
+	{
+		ActImageTrackArgs->TrackType = EActImageTrackType::Notify;
+	}
 }
 
 FActImageTrackNotify::~FActImageTrackNotify()
@@ -38,8 +42,17 @@ TSharedRef<SWidget> FActImageTrackNotify::GenerateContentWidgetForTableRow(const
 
 	auto DB = GetDataBindingSP(IActImageTrackBase, "ActImageTrack/Refresh");
 	DB->SetData(SharedThis(this));
-	DataBindingSPBindRaw(IActImageTrackBase, "ActImageTrack/Refresh", this, &FActImageTrackNotify::OnTreeViewContentRefresh, OnTreeViewContentRefreshHandle);
+	DataBindingSPBindRaw(IActImageTrackBase,
+	                     "ActImageTrack/Refresh",
+	                     this,
+	                     &FActImageTrackNotify::OnTreeViewContentRefresh,
+	                     OnTreeViewContentRefreshHandle);
 	return GenerateContent;
+}
+
+TSharedRef<SWidget> FActImageTrackNotify::GenerateContentWidgetForLaneWidget(const TSharedRef<SActImagePoolWidget>& InLaneWidget)
+{
+	return SNew(SActPoolWidgetNotifyWidget, SharedThis(this));
 }
 
 
@@ -76,7 +89,9 @@ void FActImageTrackNotify::OnTreeViewContentRefresh(TSharedPtr<IActImageTrackBas
 			if (DB)
 			{
 				UAnimSequenceBase* AnimSequenceBase = *(DB->GetData());
-				return AnimSequenceBase->AnimNotifyTracks.IsValidIndex(TrackIndex) ? FText::FromName(AnimSequenceBase->AnimNotifyTracks[TrackIndex].TrackName) : FText::GetEmpty();
+				return AnimSequenceBase->AnimNotifyTracks.IsValidIndex(TrackIndex) ?
+					       FText::FromName(AnimSequenceBase->AnimNotifyTracks[TrackIndex].TrackName) :
+					       FText::GetEmpty();
 			}
 			return FText::GetEmpty();
 		};
@@ -131,6 +146,7 @@ void FActImageTrackNotify::OnTreeViewContentRefresh(TSharedPtr<IActImageTrackBas
 			                                                                                   WeakInlineEditableTextBlock));
 		}
 	}
+	ActImageTrackArgs->Height = NotifyTrackCount * NotifyHeight;
 }
 
 
@@ -174,12 +190,12 @@ TSharedRef<SWidget> FActImageTrackNotify::BuildSubMenu(int32 InTrackIndex)
 
 		if (AnimSequenceBase->AnimNotifyTracks.Num() > 1)
 		{
-			// MenuBuilder.AddMenuEntry(
-			// 	FNovaActUICommandInfo::Get().RemoveNotifyTrack->GetLabel(),
-			// 	FNovaActUICommandInfo::Get().RemoveNotifyTrack->GetDescription(),
-			// 	FNovaActUICommandInfo::Get().RemoveNotifyTrack->GetIcon(),
-			// 	FUIAction(FExecuteAction::CreateRaw(this, &SActImageTreeViewTableRow::RemoveTrack, InTrackIndex))
-			// );
+			MenuBuilder.AddMenuEntry(
+				FNovaActUICommandInfo::Get().RemoveNotifyTrack->GetLabel(),
+				FNovaActUICommandInfo::Get().RemoveNotifyTrack->GetDescription(),
+				FNovaActUICommandInfo::Get().RemoveNotifyTrack->GetIcon(),
+				FUIAction(FExecuteAction::CreateRaw(this, &FActImageTrackNotify::RemoveTrack, InTrackIndex))
+			);
 		}
 	}
 	MenuBuilder.EndSection();
@@ -229,7 +245,55 @@ void FActImageTrackNotify::InsertNewTrack(int32 InTrackIndexToInsert)
 	// Request a rename on rebuild
 	PendingRenameTrackIndex = InTrackIndexToInsert;
 
-	Update();
+	// ** 触发刷新
+	auto TrackRefreshDB = GetDataBindingSP(IActImageTrackBase, "ActImageTrack/Refresh");
+	TSharedPtr<FActImageTrackNotify> ActImageTrackNotify = SharedThis(this);
+	TrackRefreshDB->SetData(ActImageTrackNotify);
+}
+
+void FActImageTrackNotify::RemoveTrack(int32 InTrackIndexToRemove)
+{
+	auto DB = GetDataBinding(UAnimSequenceBase**, "ActAnimation/AnimSequence");
+	if (!DB)
+	{
+		return;
+	}
+	UAnimSequenceBase* AnimSequence = *(DB->GetData());
+
+	if (AnimSequence->AnimNotifyTracks.IsValidIndex(InTrackIndexToRemove))
+	{
+		if (AnimSequence->AnimNotifyTracks[InTrackIndexToRemove].Notifies.Num() == 0)
+		{
+			FScopedTransaction Transaction(LOCTEXT("RemoveNotifyTrack", "Remove Notify Track"));
+			AnimSequence->Modify();
+
+			// before remove, make sure everything behind is fixed
+			for (int32 TrackIndex = InTrackIndexToRemove + 1; TrackIndex < AnimSequence->AnimNotifyTracks.Num(); ++TrackIndex)
+			{
+				FAnimNotifyTrack& Track = AnimSequence->AnimNotifyTracks[TrackIndex];
+				const int32 NewTrackIndex = TrackIndex - 1;
+
+				for (FAnimNotifyEvent* Notify : Track.Notifies)
+				{
+					// fix notifies indices
+					Notify->TrackIndex = NewTrackIndex;
+				}
+
+				for (FAnimSyncMarker* SyncMarker : Track.SyncMarkers)
+				{
+					// fix notifies indices
+					SyncMarker->TrackIndex = NewTrackIndex;
+				}
+			}
+
+			AnimSequence->AnimNotifyTracks.RemoveAt(InTrackIndexToRemove);
+
+			// ** 触发刷新
+			auto TrackRefreshDB = GetDataBindingSP(IActImageTrackBase, "ActImageTrack/Refresh");
+			TSharedPtr<FActImageTrackNotify> ActImageTrackNotify = SharedThis(this);
+			TrackRefreshDB->SetData(ActImageTrackNotify);
+		}
+	}
 }
 
 EActiveTimerReturnType FActImageTrackNotify::PendingRenameTimer(double InCurrentTime,
@@ -244,20 +308,6 @@ EActiveTimerReturnType FActImageTrackNotify::PendingRenameTimer(double InCurrent
 	PendingRenameTrackIndex = INDEX_NONE;
 
 	return EActiveTimerReturnType::Stop;
-}
-
-void FActImageTrackNotify::Update()
-{
-	auto DB = GetDataBinding(UAnimSequence**, "ActAnimation/AnimSequence");
-	if (!DB)
-	{
-		return;
-	}
-	UAnimSequence* AnimSequence = *(DB->GetData());
-	ActImageTrackArgs->Height = AnimSequence->AnimNotifyTracks.Num() * NotifyHeight;
-	auto TrackRefreshDB = GetDataBindingSP(IActImageTrackBase, "ActImageTrack/Refresh");
-	TSharedPtr<FActImageTrackNotify> ActImageTrackNotify = SharedThis(this);
-	TrackRefreshDB->SetData(ActImageTrackNotify);
 }
 
 #undef LOCTEXT_NAMESPACE

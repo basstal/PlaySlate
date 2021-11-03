@@ -6,10 +6,11 @@ class FActImageTrackNotify : public IActImageTrackBase
 {
 public:
 	FActImageTrackNotify();
-	
+
 	//~Begin IActImageTrackBase interface
 	virtual ~FActImageTrackNotify() override;
 	virtual TSharedRef<SWidget> GenerateContentWidgetForTableRow(const TSharedRef<SActImageTreeViewTableRow>& InTableRow) override;
+	virtual TSharedRef<SWidget> GenerateContentWidgetForLaneWidget(const TSharedRef<SActImagePoolWidget>& InLaneWidget) override;
 	//~End IActImageTrackBase interface
 
 	/**
@@ -36,7 +37,11 @@ public:
 	 * @param InTrackIndexToInsert
 	 */
 	void InsertNewTrack(int32 InTrackIndexToInsert);
-
+	/**
+	 * 删除 Track 的回调
+	 * @param InTrackIndexToRemove
+	 */
+	void RemoveTrack(int32 InTrackIndexToRemove);
 	/**
 	 * 进入重命名编辑器的定时触发
 	 * 
@@ -46,13 +51,11 @@ public:
 	 * @return
 	 */
 	EActiveTimerReturnType PendingRenameTimer(double InCurrentTime, float InDeltaTime, TWeakPtr<SInlineEditableTextBlock> InInlineEditableTextBlock);
-	/** 刷新所有数据 */
-	void Update();
 protected:
-	/** 共享参数 */
-	TSharedPtr<FActImageTrackArgs> ActImageTrackArgs;
 	/** Notify Widget 所从属的 Box */
 	TSharedPtr<SVerticalBox> NotifyContainerBox;
+	/** 重命名聚焦的 Track Index */
 	int32 PendingRenameTrackIndex;
+	// ** 数据绑定解绑使用的Handle
 	FDelegateHandle OnTreeViewContentRefreshHandle;
 };

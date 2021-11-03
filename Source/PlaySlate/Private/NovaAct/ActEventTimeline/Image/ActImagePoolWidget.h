@@ -4,15 +4,16 @@
 using namespace NovaEnum;
 
 class SActImageTreeViewTableRow;
+class IActImageTrackBase;
 
-class SActImageTrackPanel : public SCompoundWidget
+class SActImagePoolWidget : public SCompoundWidget
 {
 public:
 	// ** 使用 TPanelChildren 必须有的结构
 	class Slot : public TSlotBase<Slot>
 	{
 	public:
-		Slot(const TSharedRef<SActImageTrackPanel>& InSlotContent);
+		Slot(const TSharedRef<SActImagePoolWidget>& InSlotContent);
 
 		/** @return Get the vertical position of this slot inside its parent. */
 		float GetVerticalOffset() const;
@@ -24,9 +25,9 @@ public:
 
 	protected:
 		/** Slot 的具体 Widget 内容，这里是WeakPtr是因为基类有对 Widget 的管理 */
-		TSharedPtr<SActImageTrackPanel> SlotContent;
+		TSharedPtr<SActImagePoolWidget> SlotContent;
 	};
-	SLATE_BEGIN_ARGS(SActImageTrackPanel) {}
+	SLATE_BEGIN_ARGS(SActImagePoolWidget) {}
 		// : _ViewInputMin()
 		// , _ViewInputMax()
 		// , _InputMin()
@@ -42,7 +43,7 @@ public:
 		// SLATE_EVENT( FOnSetInputViewRange, OnSetInputViewRange )
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, const TSharedRef<SActImageTreeViewTableRow>& InActImageTreeViewTableRow);
+	void Construct(const FArguments& InArgs, const TSharedRef<IActImageTrackBase>& InActImageTack);
 	//
 	// void PanInputViewRange(int32 ScreenDelta, FVector2D ScreenViewSize);
 	//
@@ -53,7 +54,9 @@ public:
 	/** Get the desired physical vertical position of this track */
 	float GetPhysicalPosition() const;
 protected:
-	// ENovaTreeViewTableRowType TableRowType;
+	/** Track 相关数据结构 */
+	TSharedPtr<IActImageTrackBase> ActImageTrack;
+	// EActImageTrackType TableRowType;
 	// // Calls out to notify of a range change, can be overridden by derived classes to respond
 	// // but they must call this version too after processing range changes
 	// virtual void InputViewRangeChanged(float ViewMin, float ViewMax);
@@ -70,6 +73,6 @@ protected:
 	// /** Controls the width of the tracks column */
 	// float WidgetWidth;
 
-	TSharedPtr<SWidget> ChildPanel;
-	TSharedPtr<SActImageTreeViewTableRow> ActImageTreeViewTableRow;
+	// TSharedPtr<SWidget> ChildPanel;
+	// TSharedPtr<SActImageTreeViewTableRow> ActImageTreeViewTableRow;
 };

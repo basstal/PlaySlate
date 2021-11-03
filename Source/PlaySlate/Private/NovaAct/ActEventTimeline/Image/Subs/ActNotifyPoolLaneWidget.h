@@ -1,11 +1,11 @@
 ﻿#pragma once
 
-class SActActionSequenceNotifyNode;
+class SActNotifyPoolNotifyNodeWidget;
 
-class SActNotifiesPanelLaneWidget : public SCompoundWidget
+class SActNotifyPoolLaneWidget : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SActNotifiesPanelLaneWidget)
+	SLATE_BEGIN_ARGS(SActNotifyPoolLaneWidget)
 			: _TrackIndex(INDEX_NONE) {}
 
 		// : _Sequence(NULL)
@@ -71,6 +71,17 @@ public:
 	SLATE_END_ARGS()
 	/** Type used for list widget of tracks */
 	void Construct(const FArguments& InArgs);
+
+	//~Begin SCompoundWidget interface
+	virtual int32 OnPaint(const FPaintArgs& Args,
+	                      const FGeometry& AllottedGeometry,
+	                      const FSlateRect& MyCullingRect,
+	                      FSlateWindowElementList& OutDrawElements,
+	                      int32 LayerId,
+	                      const FWidgetStyle& InWidgetStyle,
+	                      bool bParentEnabled) const override;
+	//~End SCompoundWidget interface
+
 	void Update();
 	FMargin GetNotifyTrackPadding(int32 NotifyIndex) const;
 	FText GetNodeTooltip();
@@ -89,6 +100,6 @@ protected:
 
 	/** Cached for drag drop handling code */
 	FGeometry CachedGeometry;
-	
-	TArray<TSharedPtr<SActActionSequenceNotifyNode>> NotifyNodes;
+
+	TArray<TSharedPtr<SActNotifyPoolNotifyNodeWidget>> NotifyWidgets;
 };

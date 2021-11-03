@@ -4,13 +4,14 @@
 #include "Common/NovaStruct.h"
 #include "Misc/TextFilterExpressionEvaluator.h"
 
+class IActImageTrackBase;
 class UActAnimation;
 class SActImageTrackCarWidget;
-class SActImageAreaPanel;
+class SActImagePoolAreaPanel;
 class SActImageTreeViewTableRow;
 class SActImageHorizontalBox;
 class SActImageTrackLaneWidget;
-class SActImageTrackPanel;
+class SActImagePoolWidget;
 
 class SActImageTreeView : public STreeView<TSharedRef<SActImageTreeViewTableRow>>
 {
@@ -19,7 +20,7 @@ public:
 
 	virtual ~SActImageTreeView() override;
 	// ReSharper disable once CppHidingFunction
-	void Construct(const FArguments& InArgs, const TSharedRef<SActImageAreaPanel>& InActImageTrackAreaPanel);
+	void Construct(const FArguments& InArgs, const TSharedRef<SActImagePoolAreaPanel>& InActImageTrackAreaPanel);
 
 
 	/**
@@ -59,14 +60,12 @@ public:
 	 */
 	void OnFilterChanged(FText InFilterText);
 protected:
-	TSharedPtr<SActImageAreaPanel> ActImageAreaPanel;
-	/** 从树的数据中复制和缓存的根节点信息 */
-	TArray<TSharedRef<SActImageTreeViewTableRow>> DisplayedRootNodes;
+	TSharedPtr<SActImagePoolAreaPanel> ActImageAreaPanel;
+	
 	/** List of children belonging to this node */
 	TArray<TSharedRef<SActImageTreeViewTableRow>> ChildNodes;
-	/** A map of child slot content that exist in our view. */
-	TMap<TSharedPtr<SActImageTreeViewTableRow>, TWeakPtr<SActImageTrackPanel>> TreeViewTableRow2TrackPanel;
-	TMap<TSharedPtr<SActImageTrackPanel>, TWeakPtr<SActImageTreeViewTableRow>> TrackPanel2TreeViewTableRow;
+	
+	// TMap<TSharedPtr<SActImagePoolWidget>, TWeakPtr<SActImageTreeViewTableRow>> TrackPanel2TreeViewTableRow;
 
 	FDelegateHandle OnHitBoxesChangedHandle;
 	FDelegateHandle OnFilterChangedHandle;

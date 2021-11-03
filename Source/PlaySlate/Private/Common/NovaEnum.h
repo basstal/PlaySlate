@@ -9,7 +9,7 @@ namespace NovaEnum
 		Backwards
 	};
 
-	enum class ENovaTreeViewTableRowType : uint8
+	enum class EActImageTrackType : uint8
 	{
 		// 根节点，不作任何显示
 		None,

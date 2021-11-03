@@ -1,8 +1,8 @@
-﻿#include "ActNotifiesPanelEditorLaneWidget.h"
+﻿#include "ActNotifyPoolEditorLaneWidget.h"
 
 #include "Common/NovaDataBinding.h"
 
-void SActNotifiesPanelEditorLaneWidget::Construct(const FArguments& InArgs)
+void SActNotifyPoolEditorLaneWidget::Construct(const FArguments& InArgs)
 {
 	// Sequence = InArgs._Sequence;
 	TrackIndex = InArgs._TrackIndex;
@@ -26,7 +26,7 @@ void SActNotifiesPanelEditorLaneWidget::Construct(const FArguments& InArgs)
 		.FillWidth(1)
 		[
 			// Notification editor panel
-			SAssignNew(NotifyTrack, SActNotifiesPanelLaneWidget)
+			SAssignNew(NotifyTrack, SActNotifyPoolLaneWidget)
 			.TrackIndex(TrackIndex)
 			// .Sequence(Sequence)
 			// .AnimNotifies(Track.Notifies)
@@ -62,7 +62,7 @@ void SActNotifiesPanelEditorLaneWidget::Construct(const FArguments& InArgs)
 	];
 }
 
-TSharedRef<SActNotifiesPanelLaneWidget> SActNotifiesPanelEditorLaneWidget::GetNotifyTrack() const
+TSharedRef<SActNotifyPoolLaneWidget> SActNotifyPoolEditorLaneWidget::GetNotifyTrack() const
 {
 	return NotifyTrack.ToSharedRef();
 }

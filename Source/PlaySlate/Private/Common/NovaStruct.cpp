@@ -55,7 +55,9 @@ namespace NovaStruct
 
 	//~End FActSliderScrubRangeToScreen
 
-	TRange<FFrameTime> FActActionEvaluationRange::CalculateEvaluationRange(FFrameTime CurrentTime, FFrameTime PreviousTime, bool bInclusivePreviousTime)
+	TRange<FFrameTime> FActActionEvaluationRange::CalculateEvaluationRange(FFrameTime CurrentTime,
+	                                                                       FFrameTime PreviousTime,
+	                                                                       bool bInclusivePreviousTime)
 	{
 		if (CurrentTime == PreviousTime)
 		{
@@ -96,7 +98,9 @@ namespace NovaStruct
 			// If there is a sub frame on the start time, we're actually beyond that frame number, so it needs incrementing
 			if (LowerTime.GetSubFrame() != 0.0f || InFrameTimeRange.GetLowerBound().IsExclusive())
 			{
-				LowerTime.FrameNumber = (!UpperTime.IsSet() || LowerTime.FrameNumber < UpperTime.GetValue().FrameNumber) ? LowerTime.FrameNumber + 1 : LowerTime.FrameNumber;
+				LowerTime.FrameNumber = (!UpperTime.IsSet() || LowerTime.FrameNumber < UpperTime.GetValue().FrameNumber) ?
+					                        LowerTime.FrameNumber + 1 :
+					                        LowerTime.FrameNumber;
 			}
 			FrameNumberRange.SetLowerBound(TRangeBound<FFrameNumber>::Inclusive(LowerTime.FrameNumber));
 		}
@@ -114,7 +118,9 @@ namespace NovaStruct
 			const FFrameNumber FrameNumber = InFrameTimeRange.GetLowerBoundValue();
 
 			FrameTimeRange.SetLowerBound(
-				InFrameTimeRange.GetLowerBound().IsExclusive() ? TRangeBound<FFrameTime>::Exclusive(FrameNumber) : TRangeBound<FFrameTime>::Inclusive(FrameNumber)
+				InFrameTimeRange.GetLowerBound().IsExclusive() ?
+					TRangeBound<FFrameTime>::Exclusive(FrameNumber) :
+					TRangeBound<FFrameTime>::Inclusive(FrameNumber)
 			);
 		}
 
@@ -123,7 +129,9 @@ namespace NovaStruct
 			const FFrameNumber FrameNumber = InFrameTimeRange.GetUpperBoundValue();
 
 			FrameTimeRange.SetUpperBound(
-				InFrameTimeRange.GetUpperBound().IsExclusive() ? TRangeBound<FFrameTime>::Exclusive(FrameNumber) : TRangeBound<FFrameTime>::Inclusive(FrameNumber)
+				InFrameTimeRange.GetUpperBound().IsExclusive() ?
+					TRangeBound<FFrameTime>::Exclusive(FrameNumber) :
+					TRangeBound<FFrameTime>::Inclusive(FrameNumber)
 			);
 		}
 
@@ -231,7 +239,8 @@ namespace NovaStruct
 
 	void FActActionPlaybackPosition::CheckInvariants() const
 	{
-		checkf(InputRate.IsValid() && OutputRate.IsValid(), TEXT("Invalid input or output rate. SetTimeBase must be called before any use of this class."))
+		checkf(InputRate.IsValid() && OutputRate.IsValid(),
+		       TEXT("Invalid input or output rate. SetTimeBase must be called before any use of this class."))
 	}
 
 	FActImageTrackCarNotifyNode::FActImageTrackCarNotifyNode(FAnimNotifyEvent* InAnimNotifyEvent)
@@ -269,7 +278,10 @@ namespace NovaStruct
 
 		if (NotifyToDisplayClassOf != nullptr)
 		{
-			ToolTipText = FText::Format(LOCTEXT("AnimNotify_ToolTipNotifyClass", "{0}\nClass: {1}"), ToolTipText, NotifyToDisplayClassOf->GetClass()->GetDisplayNameText());
+			ToolTipText = FText::Format(
+				LOCTEXT("AnimNotify_ToolTipNotifyClass", "{0}\nClass: {1}"),
+				ToolTipText,
+				NotifyToDisplayClassOf->GetClass()->GetDisplayNameText());
 		}
 
 		return ToolTipText;

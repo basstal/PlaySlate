@@ -107,8 +107,29 @@ namespace NovaStruct
 		bool bMirrorLabels;
 	};
 
+	/**
+	 * Structure used to define padding for a track
+	 */
+	struct FActImageTrackPadding
+	{
+		FActImageTrackPadding(float InUniform = 0.0f);
+		FActImageTrackPadding(float InTop, float InBottom);
+
+
+		/** @return The sum total of the separate padding values */
+		float Combined() const;
+
+
+		/** Padding to be applied to the top of the track */
+		float Top;
+
+		/** Padding to be applied to the bottom of the track */
+		float Bottom;
+	};
 	struct FActImageTrackArgs
 	{
+		// Track 类型
+		EActImageTrackType TrackType;
 		/** Display name to use */
 		FText DisplayName;
 		/** Tooltip text to use */
@@ -123,6 +144,7 @@ namespace NovaStruct
 		bool bIsExpanded : 1;
 		/** Whether this is a header track */
 		bool bIsHeaderTableRow : 1;
+		FActImageTrackPadding Padding;
 	};
 	struct FActActionTrackAreaArgs
 	{
@@ -302,7 +324,8 @@ namespace NovaStruct
 	/** Structure used to define a column in the tree view */
 	struct FActActionSequenceTreeViewColumn
 	{
-		typedef TFunction<TSharedRef<SWidget>(const TSharedRef<SActImageTreeViewTableRow>&, const TSharedRef<SActActionSequenceTreeViewRow>&)> FOnGenerate;
+		typedef TFunction<TSharedRef<SWidget>(const TSharedRef<SActImageTreeViewTableRow>&, const TSharedRef<SActActionSequenceTreeViewRow>&)>
+		FOnGenerate;
 
 		FActActionSequenceTreeViewColumn(const FOnGenerate& InOnGenerate, const TAttribute<float>& InWidth)
 			: Generator(InOnGenerate),
@@ -616,27 +639,5 @@ namespace NovaStruct
 		static FText MakeTooltipFromTime(const UAnimSequenceBase* InSequence, float InSeconds, float InDuration);
 
 		static void RemoveInvalidNotifies(UAnimSequenceBase* SeqBase);
-	};
-
-	/**
-	 * Structure used to define padding for a track
-	 */
-	struct FActImageTrackPadding
-	{
-		FActImageTrackPadding(float InUniform);
-
-
-		FActImageTrackPadding(float InTop, float InBottom);
-
-
-		/** @return The sum total of the separate padding values */
-		float Combined() const;
-
-
-		/** Padding to be applied to the top of the track */
-		float Top;
-
-		/** Padding to be applied to the bottom of the track */
-		float Bottom;
 	};
 }

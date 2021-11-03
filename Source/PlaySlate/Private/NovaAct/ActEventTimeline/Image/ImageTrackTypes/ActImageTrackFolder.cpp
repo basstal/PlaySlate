@@ -1,10 +1,14 @@
 ﻿#include "ActImageTrackFolder.h"
 
 #include "PlaySlate.h"
+#include "Common/NovaConst.h"
 #include "Common/NovaDataBinding.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTreeViewTableRow.h"
+#include "NovaAct/ActEventTimeline/Image/PoolWidgetTypes/ActPoolWidgetFolderWidget.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
+
+using namespace NovaConst;
 
 FActImageTrackFolder::FActImageTrackFolder()
 {
@@ -15,6 +19,8 @@ FActImageTrackFolder::FActImageTrackFolder()
 		ActImageTrackArgs->ToolTipText = LOCTEXT("NovaAct_TreeViewTableRowFolderToolTipText",
 		                                         "Tree view table row folder tool tip text.");
 		ActImageTrackArgs->bIsHeaderTableRow = false;
+		ActImageTrackArgs->TrackType = EActImageTrackType::Folder;
+		ActImageTrackArgs->Height = NotifyHeight;
 	}
 }
 
@@ -63,6 +69,11 @@ TSharedRef<SWidget> FActImageTrackFolder::GenerateContentWidgetForTableRow(
 			                })
 		]
 	];
+}
+
+TSharedRef<SWidget> FActImageTrackFolder::GenerateContentWidgetForLaneWidget(const TSharedRef<SActImagePoolWidget>& InLaneWidget)
+{
+	return SNew(SActPoolWidgetFolderWidget, SharedThis(this));
 }
 
 

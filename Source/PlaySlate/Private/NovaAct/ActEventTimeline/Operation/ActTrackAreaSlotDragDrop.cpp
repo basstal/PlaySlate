@@ -3,7 +3,7 @@
 #include "SCurveEditor.h"
 #include "Common/NovaStruct.h"
 #include "Common/NovaDataBinding.h"
-#include "NovaAct/ActEventTimeline/Image/Subs/ActActionSequenceNotifyNode.h"
+#include "NovaAct/ActEventTimeline/Image/Subs/ActNotifyPoolNotifyNodeWidget.h"
 // #include "NovaAct/ActEventTimeline/Image/ActImageTrackLaneWidget.h"
 
 
@@ -28,7 +28,7 @@ void FActTrackAreaSlotDragDrop::OnDrop(bool bDropWasHandled, const FPointerEvent
 
 		const FScopedTransaction Transaction(LOCTEXT("MoveNotifiesEvent", "Move Anim Notifies"));
 		// Sequence->Modify();
-		// TSharedPtr<SActActionSequenceNotifyNode> Node = SelectedNodes[CurrentNode];
+		// TSharedPtr<SActNotifyPoolNotifyNodeWidget> Node = SelectedNodes[CurrentNode];
 		// float NodePositionOffset = NodeXOffsets[CurrentNode];
 		// const FTrackClampInfo& ClampInfo = GetTrackClampInfo(Node->GetScreenPosition());
 		ensure(SelectedNode.IsValid());
@@ -242,7 +242,7 @@ void FActTrackAreaSlotDragDrop::OnDragged(const FDragDropEvent& DragDropEvent)
 // 	
 // }
 
-TSharedRef<FActTrackAreaSlotDragDrop> FActTrackAreaSlotDragDrop::New(TSharedRef<SActActionSequenceNotifyNode> NotifyNode,
+TSharedRef<FActTrackAreaSlotDragDrop> FActTrackAreaSlotDragDrop::New(TSharedRef<SActNotifyPoolNotifyNodeWidget> NotifyNode,
                                                                      TSharedPtr<SWidget> Decorator,
                                                                      const FVector2D& CursorPosition,
                                                                      const FVector2D& SelectionScreenPosition,

@@ -1,16 +1,18 @@
 ﻿#pragma once
 
 #include "ActImageTrackLaneWidget.h"
-#include "ActImageTrackPanel.h"
+#include "ActImagePoolWidget.h"
 
-class SActImageAreaPanel : public SPanel
+class IActImageTrackBase;
+
+class SActImagePoolAreaPanel : public SPanel
 {
 public:
-	SLATE_BEGIN_ARGS(SActImageAreaPanel) { }
+	SLATE_BEGIN_ARGS(SActImagePoolAreaPanel) { }
 	SLATE_END_ARGS()
 
-	SActImageAreaPanel();
-	virtual ~SActImageAreaPanel() override;
+	SActImagePoolAreaPanel();
+	virtual ~SActImagePoolAreaPanel() override;
 
 	void Construct(const FArguments& InArgs);
 
@@ -23,11 +25,11 @@ public:
 	/**
 	 * Add a new track slot to this area for the given node. The slot will be automatically cleaned up when all external references to the supplied slot are removed.
 	 *
-	 * @param InActImageTreeViewTableRow 
+	 * @param InActImageTrack 
 	 * @return
 	 */
-	TSharedRef<SActImageTrackPanel> MakeTrackPanel(const TSharedRef<SActImageTreeViewTableRow>& InActImageTreeViewTableRow);
+	TSharedRef<SActImagePoolWidget> MakeLaneWidgetForTrack(const TSharedRef<IActImageTrackBase>& InActImageTrack);
 
 protected:
-	TPanelChildren<SActImageTrackPanel::Slot> Children;// ** The track area's children.
+	TPanelChildren<SActImagePoolWidget::Slot> Children;// ** The track area's children.
 };

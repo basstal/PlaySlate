@@ -1,25 +1,59 @@
-﻿#include "ActActionSequenceNotifyNode.h"
+﻿#include "ActNotifyPoolNotifyNodeWidget.h"
 
-#include "ActNotifiesPanelLaneWidget.h"
+#include "ActNotifyPoolLaneWidget.h"
 #include "SCurveEditor.h"
+#include "Animation/AnimNotifies/AnimNotify.h"
+#include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "Common/NovaEnum.h"
 #include "Common/NovaConst.h"
 #include "Common/NovaDataBinding.h"
 #include "Common/NovaStruct.h"
 #include "Fonts/FontMeasure.h"
 #include "NovaAct/ActEventTimeline/Operation/ActTrackAreaSlotDragDrop.h"
-#include "NovaAct/ActEventTimeline/Image/ActImageTrackLaneWidget.h"
+// #include "NovaAct/ActEventTimeline/Image/ActImageTrackLaneWidget.h"
 
 using namespace NovaStruct;
+using namespace NovaConst;
 
-void SActActionSequenceNotifyNode::Construct(const FArguments& InArgs, const TSharedRef<SActNotifiesPanelLaneWidget>& InActNotifiesPanelLaneWidget)
+void SActNotifyPoolNotifyNodeWidget::Construct(const FArguments& InArgs,
+                                               const TSharedRef<SActNotifyPoolLaneWidget>& InActNotifiesPanelLaneWidget)
 {
+	AnimNotifyEvent = InArgs._AnimNotifyEvent;
+	check(AnimNotifyEvent)
+	if (AnimNotifyEvent->Notify)
+	{
+		CachedNotifyName = FName(*AnimNotifyEvent->Notify->GetNotifyName());
+	}
+	else if (AnimNotifyEvent->NotifyStateClass)
+	{
+		CachedNotifyName = FName(*AnimNotifyEvent->NotifyStateClass->GetNotifyName());
+	}
+	else
+	{
+		CachedNotifyName = AnimNotifyEvent->NotifyName;
+	}
+
+	if (AnimNotifyEvent->Notify)
+	{
+		NotifyEditorColor = AnimNotifyEvent->Notify->GetEditorColor();
+	}
+	else if (AnimNotifyEvent->NotifyStateClass)
+	{
+		NotifyEditorColor = AnimNotifyEvent->NotifyStateClass->GetEditorColor();
+	}
+	else
+	{
+		NotifyEditorColor = FLinearColor(1, 1, 0.5f);
+	}
+	NotifyEditorColor.A = 0.67f;
+
 	ActNotifiesPanelLaneWidget = InActNotifiesPanelLaneWidget;
 	// Font = FCoreStyle::GetDefaultFontStyle("Regular", 10);
 	bBeingDragged = false;
 	CurrentDragHandle = ENovaNotifyStateHandleHit::None;
 	bDrawTooltipToRight = true;
 	bSelected = false;
+
 
 	// OnNodeDragStarted = InArgs._OnNodeDragStarted;
 	OnNotifyStateHandleBeingDragged = InArgs._OnNotifyStateHandleBeingDragged;
@@ -35,26 +69,28 @@ void SActActionSequenceNotifyNode::Construct(const FArguments& InArgs, const TSh
 	})));
 }
 
-int32 SActActionSequenceNotifyNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+int32 SActNotifyPoolNotifyNodeWidget::OnPaint(const FPaintArgs& Args,
+                                              const FGeometry& AllottedGeometry,
+                                              const FSlateRect& MyCullingRect,
+                                              FSlateWindowElementList& OutDrawElements,
+                                              int32 LayerId,
+                                              const FWidgetStyle& InWidgetStyle,
+                                              bool bParentEnabled) const
 {
-	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
-	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = DB->GetData();
-	// const FActActionTrackAreaArgs& TrackAreaArgs = ActNotifiesPanelLaneWidget.Pin()->GetActActionTrackAreaArgs();
-	int32 MarkerLayer = LayerId + 1;
-	int32 ScrubHandleID = MarkerLayer + 1;
-	int32 TextLayerID = ScrubHandleID + 1;
-	int32 BranchPointLayerID = TextLayerID + 1;
+	auto DB = GetDataBinding(UAnimSequence**, "ActAnimation/AnimSequence");
+	if (!DB)
+	{
+		return LayerId;
+	}
 	const FSlateBrush* StyleInfo = FEditorStyle::GetBrush(TEXT("SpecialEditableTextImageNormal"));
-	FText Text = GetNotifyText();
-	FLinearColor NodeColor = GetNotifyColor();
-	FLinearColor BoxColor = bSelected ? FEditorStyle::GetSlateColor("SelectionColor").GetSpecifiedColor() : GetNotifyColor();
-	// float TickResolutionInterval = (float)ActEventTimelineArgs->TickResolution.AsInterval();
+
+	FLinearColor BoxColor = bSelected ? FEditorStyle::GetSlateColor("SelectionColor").GetSpecifiedColor() : NotifyEditorColor;
 	float HalfScrubHandleWidth = ScrubHandleSize.X / 2.0f;
 	// Show duration of AnimNotifyState
 	if (NotifyDurationSizeX > 0.f)
 	{
 		FVector2D DurationBoxSize = FVector2D(NotifyDurationSizeX, TextSize.Y + TextBorderSize.Y * 2.f);
-		FVector2D DurationBoxPosition = FVector2D(NotifyScrubHandleCentre, (NovaConst::NotifyHeight - TextSize.Y) * 0.5f);
+		FVector2D DurationBoxPosition = FVector2D(NotifyScrubHandleCentre, (NotifyHeight - TextSize.Y) * 0.5f);
 		FSlateDrawElement::MakeBox(
 			OutDrawElements,
 			LayerId,
@@ -63,28 +99,43 @@ int32 SActActionSequenceNotifyNode::OnPaint(const FPaintArgs& Args, const FGeome
 			ESlateDrawEffect::None,
 			BoxColor);
 
-		DrawScrubHandle(DurationBoxPosition.X + DurationBoxSize.X, OutDrawElements, ScrubHandleID, AllottedGeometry, MyCullingRect, NodeColor);
+		DrawScrubHandle(DurationBoxPosition.X + DurationBoxSize.X,
+		                OutDrawElements,
+		                LayerId + 2,
+		                AllottedGeometry,
+		                MyCullingRect,
+		                NotifyEditorColor);
 
-		// float EndTime = TrackAreaArgs.GetEndTime();
-		float EndTime = 0;
-		if (EndTime != ActNotifiesPanelLaneWidget.Pin()->GetPlayLength())//Don't render offset when we are at the end of the sequence, doesnt help the user
+		// Render offsets if necessary
+		// Do we have an offset to render?
+		if (AnimNotifyEvent && AnimNotifyEvent->EndTriggerTimeOffset != 0.f)
 		{
-			// ScrubHandle
-			float HandleCentre = NotifyDurationSizeX + (ScrubHandleSize.X - 2.0f);
-			DrawHandleOffset(0.5f, HandleCentre, OutDrawElements, MarkerLayer, AllottedGeometry, MyCullingRect, NodeColor);
+			float EndTime = AnimNotifyEvent->GetTime() + AnimNotifyEvent->GetDuration();
+			//Don't render offset when we are at the end of the sequence, doesnt help the user
+			UAnimSequence* AnimSequence = *(DB->GetData());
+			if (EndTime != AnimSequence->GetPlayLength())
+			{
+				float HandleCentre = NotifyDurationSizeX + (ScrubHandleSize.X - 2.0f);
+				DrawHandleOffset(AnimNotifyEvent->EndTriggerTimeOffset,
+				                 HandleCentre,
+				                 OutDrawElements,
+				                 LayerId + 1,
+				                 AllottedGeometry,
+				                 MyCullingRect,
+				                 NotifyEditorColor);
+			}
 		}
 	}
 
 	// Branching point
-	// bool bDrawBranchingPoint = AnimNotifyEvent && AnimNotifyEvent->IsBranchingPoint();
-	bool bDrawBranchingPoint = false;
+	bool bDrawBranchingPoint = AnimNotifyEvent && AnimNotifyEvent->IsBranchingPoint();
 
 	// Background
 	FVector2D LabelSize = TextSize + TextBorderSize * 2.f;
-	// LabelSize.X += HalfScrubHandleWidth + (bDrawBranchingPoint ? (BranchingPointIconSize.X + TextBorderSize.X * 2.f) : 0.f);
-	LabelSize.X += HalfScrubHandleWidth;
+	LabelSize.X += HalfScrubHandleWidth + (bDrawBranchingPoint ? (BranchingPointIconSize.X + TextBorderSize.X * 2.f) : 0.f);
 
-	FVector2D LabelPosition(bDrawTooltipToRight ? NotifyScrubHandleCentre : NotifyScrubHandleCentre - LabelSize.X, (NovaConst::NotifyHeight - TextSize.Y) * 0.5f);
+	FVector2D LabelPosition(bDrawTooltipToRight ? NotifyScrubHandleCentre : NotifyScrubHandleCentre - LabelSize.X,
+	                        (NotifyHeight - TextSize.Y) * 0.5f);
 
 	if (NotifyDurationSizeX == 0.f)
 	{
@@ -104,9 +155,8 @@ int32 SActActionSequenceNotifyNode::OnPaint(const FPaintArgs& Args, const FGeome
 		TextPosition.X += HalfScrubHandleWidth;
 	}
 
-	FVector2D DrawTextSize;
-	DrawTextSize.X = (NotifyDurationSizeX > 0.0f ? FMath::Min(NotifyDurationSizeX - (ScrubHandleSize.X + (bDrawBranchingPoint ? BranchingPointIconSize.X : 0)), TextSize.X) : TextSize.X);
-	DrawTextSize.Y = TextSize.Y;
+	float ValueX = NotifyDurationSizeX - ScrubHandleSize.X - (bDrawBranchingPoint ? BranchingPointIconSize.X : 0);
+	FVector2D DrawTextSize((NotifyDurationSizeX > 0.0f ? FMath::Min(ValueX, TextSize.X) : TextSize.X), TextSize.Y);
 
 	if (bDrawBranchingPoint)
 	{
@@ -118,9 +168,9 @@ int32 SActActionSequenceNotifyNode::OnPaint(const FPaintArgs& Args, const FGeome
 
 	FSlateDrawElement::MakeText(
 		OutDrawElements,
-		TextLayerID,
+		LayerId + 3,
 		TextGeometry,
-		Text,
+		GetNotifyText(),
 		Font,
 		ESlateDrawEffect::None,
 		FLinearColor::Black
@@ -138,7 +188,7 @@ int32 SActActionSequenceNotifyNode::OnPaint(const FPaintArgs& Args, const FGeome
 		}
 		FSlateDrawElement::MakeBox(
 			OutDrawElements,
-			BranchPointLayerID,
+			LayerId + 4,
 			AllottedGeometry.ToPaintGeometry(BranchPointIconPos, BranchingPointIconSize),
 			FEditorStyle::GetBrush(TEXT("AnimNotifyEditor.BranchingPoint")),
 			ESlateDrawEffect::None,
@@ -146,19 +196,30 @@ int32 SActActionSequenceNotifyNode::OnPaint(const FPaintArgs& Args, const FGeome
 		);
 	}
 
-	DrawScrubHandle(NotifyScrubHandleCentre, OutDrawElements, ScrubHandleID, AllottedGeometry, MyCullingRect, NodeColor);
+	DrawScrubHandle(NotifyScrubHandleCentre, OutDrawElements, LayerId + 2, AllottedGeometry, MyCullingRect, NotifyEditorColor);
 
-	// float BeginTime = TrackAreaArgs.BeginTime;
-	float BeginTime = 0;
-	if (BeginTime > 0.f && BeginTime != ActNotifiesPanelLaneWidget.Pin()->GetPlayLength())//Don't render offset when we are at the start/end of the sequence, doesn't help the user
+	//Do we have an offset to render?
+	if (AnimNotifyEvent && AnimNotifyEvent->TriggerTimeOffset != 0.f)
 	{
-		DrawHandleOffset(0.5f, NotifyScrubHandleCentre, OutDrawElements, MarkerLayer, AllottedGeometry, MyCullingRect, NodeColor);
+		float NotifyTime = AnimNotifyEvent->GetTime();
+		UAnimSequence* AnimSequence = *(DB->GetData());
+		//Don't render offset when we are at the start/end of the sequence, doesn't help the user
+		if (NotifyTime != 0.f && NotifyTime != AnimSequence->GetPlayLength())
+		{
+			DrawHandleOffset(AnimNotifyEvent->TriggerTimeOffset,
+			                 NotifyScrubHandleCentre,
+			                 OutDrawElements,
+			                 LayerId + 1,
+			                 AllottedGeometry,
+			                 MyCullingRect,
+			                 NotifyEditorColor);
+		}
 	}
 
-	return TextLayerID;
+	return LayerId + 3;
 }
 
-FReply SActActionSequenceNotifyNode::OnDragDetected(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply SActNotifyPoolNotifyNodeWidget::OnDragDetected(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	FVector2D ScreenNodePosition = MyGeometry.AbsolutePosition;
 
@@ -183,7 +244,7 @@ FReply SActActionSequenceNotifyNode::OnDragDetected(const FGeometry& MyGeometry,
 }
 
 
-FCursorReply SActActionSequenceNotifyNode::OnCursorQuery(const FGeometry& MyGeometry, const FPointerEvent& CursorEvent) const
+FCursorReply SActNotifyPoolNotifyNodeWidget::OnCursorQuery(const FGeometry& MyGeometry, const FPointerEvent& CursorEvent) const
 {
 	// Show resize cursor if the cursor is hovering over either of the scrub handles of a notify state node
 	if (IsHovered() && NotifyDurationSizeX > 0.0f)
@@ -202,7 +263,7 @@ FCursorReply SActActionSequenceNotifyNode::OnCursorQuery(const FGeometry& MyGeom
 	return FCursorReply::Unhandled();
 }
 
-FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply SActNotifyPoolNotifyNodeWidget::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	// Don't do scrub handle dragging if we haven't captured the mouse.
 	if (!this->HasMouseCapture())
@@ -236,21 +297,22 @@ FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, co
 		// float DurationTime = TrackAreaArgs.Duration;
 		// float OldDisplayTime = 0;
 		float DurationTime = 0;
-		if (MouseEvent.GetScreenSpacePosition().X >= TrackScreenSpaceXPosition && MouseEvent.GetScreenSpacePosition().X <= TrackScreenSpaceXPosition + CachedAllottedGeometrySize.X)
+		if (MouseEvent.GetScreenSpacePosition().X >= TrackScreenSpaceXPosition && MouseEvent.GetScreenSpacePosition().X <= TrackScreenSpaceXPosition +
+			CachedAllottedGeometrySize.X)
 		{
 			// float NewDisplayTime = ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X);
 			// float NewDuration = OldDisplayTime - NewDisplayTime;
 			// Check to make sure the duration is not less than the minimum allowed
-			// if (NewDuration < NovaConst::ActMinimumNotifyStateFrame)
+			// if (NewDuration < ActMinimumNotifyStateFrame)
 			// {
-			// 	NewDisplayTime -= NovaConst::ActMinimumNotifyStateFrame - NewDuration;
+			// 	NewDisplayTime -= ActMinimumNotifyStateFrame - NewDuration;
 			// }
 			// NewDisplayTime = FMath::Max(0.0f, NewDisplayTime);
 			// ActActionSequenceTreeViewNode->SetHitBoxBegin((int32)(NewDisplayTime / TickResolutionInterval));
 			// float NewDurationTime = DurationTime + OldDisplayTime - NewDisplayTime;
 			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int32)(NewDurationTime / TickResolutionInterval));
 		}
-		else if (DurationTime > NovaConst::ActMinimumNotifyStateFrame)
+		else if (DurationTime > ActMinimumNotifyStateFrame)
 		{
 			// float Overflow = HandleOverflowPan(MouseEvent.GetScreenSpacePosition(), TrackScreenSpaceXPosition, TrackScreenSpaceOrigin, TrackScreenSpaceLimit);
 			// Update scale info to the new view inputs after panning
@@ -263,11 +325,11 @@ FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, co
 			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int32)(NewDurationTime / TickResolutionInterval));
 
 			// Adjust in case we went under the minimum
-			// if ((int32)(NewDurationTime / TickResolutionInterval) < NovaConst::ActMinimumNotifyStateFrame)
+			// if ((int32)(NewDurationTime / TickResolutionInterval) < ActMinimumNotifyStateFrame)
 			// {
 			// 	float EndTimeBefore = NodeObjectInterface->GetTime() + NodeObjectInterface->GetDuration();
-			// 	NodeObjectInterface->SetTime(NodeObjectInterface->GetTime() + NodeObjectInterface->GetDuration() - NovaConst::ActMinimumNotifyStateFrame);
-			// 	NodeObjectInterface->SetDuration(NovaConst::ActMinimumNotifyStateFrame);
+			// 	NodeObjectInterface->SetTime(NodeObjectInterface->GetTime() + NodeObjectInterface->GetDuration() - ActMinimumNotifyStateFrame);
+			// 	NodeObjectInterface->SetDuration(ActMinimumNotifyStateFrame);
 			// 	float EndTimeAfter = NodeObjectInterface->GetTime() + NodeObjectInterface->GetDuration();
 			// }
 		}
@@ -302,13 +364,14 @@ FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, co
 		// float DurationTime = TrackAreaArgs.Duration;
 		float BeginTime = 0;
 		float DurationTime = 0;
-		if (MouseEvent.GetScreenSpacePosition().X >= TrackScreenSpaceXPosition && MouseEvent.GetScreenSpacePosition().X <= TrackScreenSpaceXPosition + CachedAllottedGeometrySize.X)
+		if (MouseEvent.GetScreenSpacePosition().X >= TrackScreenSpaceXPosition && MouseEvent.GetScreenSpacePosition().X <= TrackScreenSpaceXPosition +
+			CachedAllottedGeometrySize.X)
 		{
 			// float NewDurationTime = ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X) - BeginTime;
-			// NewDurationTime = FMath::Max(NewDurationTime, (float)(NovaConst::ActMinimumNotifyStateFrame * TickResolutionInterval));
+			// NewDurationTime = FMath::Max(NewDurationTime, (float)(ActMinimumNotifyStateFrame * TickResolutionInterval));
 			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int32)(NewDurationTime / TickResolutionInterval));
 		}
-		else if ((int32)(DurationTime / TickResolutionInterval) > NovaConst::ActMinimumNotifyStateFrame)
+		else if ((int32)(DurationTime / TickResolutionInterval) > ActMinimumNotifyStateFrame)
 		{
 			// float Overflow = HandleOverflowPan(MouseEvent.GetScreenSpacePosition(), TrackScreenSpaceXPosition, TrackScreenSpaceOrigin, TrackScreenSpaceLimit);
 			// Update scale info to the new view inputs after panning
@@ -316,7 +379,7 @@ FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, co
 			// ScaleInfo.ViewMaxInput = ViewMaxInput;
 
 			// float NewDurationTime = ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X) - BeginTime;
-			// NewDurationTime = FMath::Max(NewDurationTime, (float)(NovaConst::ActMinimumNotifyStateFrame * TickResolutionInterval));
+			// NewDurationTime = FMath::Max(NewDurationTime, (float)(ActMinimumNotifyStateFrame * TickResolutionInterval));
 			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int32)(NewDurationTime / TickResolutionInterval));
 		}
 		if (BeginTime + DurationTime > PlayLength)
@@ -349,7 +412,7 @@ FReply SActActionSequenceNotifyNode::OnMouseMove(const FGeometry& MyGeometry, co
 	return FReply::Handled();
 }
 
-FReply SActActionSequenceNotifyNode::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply SActNotifyPoolNotifyNodeWidget::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	bool bLeftButton = MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton;
 
@@ -378,63 +441,53 @@ FReply SActActionSequenceNotifyNode::OnMouseButtonUp(const FGeometry& MyGeometry
 }
 
 
-FVector2D SActActionSequenceNotifyNode::ComputeDesiredSize(float) const
+FVector2D SActNotifyPoolNotifyNodeWidget::ComputeDesiredSize(float) const
 {
 	return WidgetSize;
 }
 
-void SActActionSequenceNotifyNode::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
+void SActNotifyPoolNotifyNodeWidget::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
 {
 	CachedTrackGeometry = AllottedGeometry;
 	ScreenPosition = AllottedGeometry.AbsolutePosition;
 }
 
-FText SActActionSequenceNotifyNode::GetNotifyText() const
+FText SActNotifyPoolNotifyNodeWidget::GetNotifyText() const
 {
 	// Combine comment from notify struct and from function on object
-	return FText::FromName(ActNotifiesPanelLaneWidget.Pin()->GetName());
+	return FText::FromName(CachedNotifyName);
 }
 
-FLinearColor SActActionSequenceNotifyNode::GetNotifyColor() const
+void SActNotifyPoolNotifyNodeWidget::UpdateSizeAndPosition(const FGeometry& AllottedGeometry)
 {
-	TOptional<FLinearColor> Color = ActNotifiesPanelLaneWidget.Pin()->GetEditorColor();
-	FLinearColor BaseColor = Color.Get(FLinearColor(1, 1, 0.5f));
-	BaseColor.A = 0.67f;
-	return BaseColor;
-}
-
-
-void SActActionSequenceNotifyNode::UpdateSizeAndPosition(const FGeometry& AllottedGeometry)
-{
-	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
-	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = DB->GetData();
-	// FActActionTrackAreaArgs& ActActionTrackAreaArgs = ActNotifiesPanelLaneWidget.Pin()->GetActActionTrackAreaArgs();
-	FTrackScaleInfo ScaleInfo(ActEventTimelineArgs->ClampRange.GetLowerBoundValue(), ActEventTimelineArgs->ClampRange.GetUpperBoundValue(), 0, 0, AllottedGeometry.Size);
-	// float TickResolutionInterval = (float)ActEventTimelineArgs->TickResolution.AsInterval();
+	auto DB = GetDataBindingSP(TRange<double>, "ActEventTimelineArgs/ViewRange");
+	if (!DB)
+	{
+		return;
+	}
+	TSharedPtr<TRange<double>> ActEventTimelineArgs = DB->GetData();
+	FTrackScaleInfo ScaleInfo(ActEventTimelineArgs->GetLowerBoundValue(),
+	                          ActEventTimelineArgs->GetUpperBoundValue(),
+	                          0,
+	                          0,
+	                          AllottedGeometry.Size);
 	// Cache the geometry information, the allotted geometry is the same size as the track.
 	CachedAllottedGeometrySize = AllottedGeometry.Size * AllottedGeometry.Scale;
-
-	// float BeginTime = ActActionTrackAreaArgs.BeginTime;
-	// float DurationTime = ActActionTrackAreaArgs.Duration;
-	float BeginTime = 0;
-	float DurationTime = 0;
-	NotifyTimePositionX = ScaleInfo.InputToLocalX(BeginTime);
-	NotifyDurationSizeX = ScaleInfo.PixelsPerInput * DurationTime;
-
+	NotifyTimePositionX = ScaleInfo.InputToLocalX(AnimNotifyEvent->GetTime());
+	NotifyDurationSizeX = ScaleInfo.PixelsPerInput * AnimNotifyEvent->GetDuration();
 	const TSharedRef<FSlateFontMeasure> FontMeasureService = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
 	TextSize = FontMeasureService->Measure(GetNotifyText(), Font);
-	LabelWidth = TextSize.X + (TextBorderSize.X * 2.f) + (ScrubHandleSize.X / 2.f);
+	float LabelWidth = TextSize.X + (TextBorderSize.X * 2.f) + (ScrubHandleSize.X / 2.f);
 
-	bool bDrawBranchingPoint = ActNotifiesPanelLaneWidget.Pin()->IsBranchingPoint();
-	BranchingPointIconSize = FVector2D(TextSize.Y, TextSize.Y);
+	bool bDrawBranchingPoint = AnimNotifyEvent->IsBranchingPoint();
 	if (bDrawBranchingPoint)
 	{
+		BranchingPointIconSize = FVector2D(TextSize.Y, TextSize.Y);
 		LabelWidth += BranchingPointIconSize.X + TextBorderSize.X * 2.f;
 	}
 
 	//Calculate scrub handle box size (the notional box around the scrub handle and the alignment marker)
 	float NotifyHandleBoxWidth = FMath::Max(ScrubHandleSize.X, AlignmentMarkerSize.X * 2);
-
 	// Work out where we will have to draw the tool tip
 	float LeftEdgeToNotify = NotifyTimePositionX;
 	float RightEdgeToNotify = AllottedGeometry.Size.X - NotifyTimePositionX;
@@ -442,15 +495,23 @@ void SActActionSequenceNotifyNode::UpdateSizeAndPosition(const FGeometry& Allott
 
 	// Calculate widget width/position based on where we are drawing the tool tip
 	WidgetX = bDrawTooltipToRight ? (NotifyTimePositionX - (NotifyHandleBoxWidth / 2.f)) : (NotifyTimePositionX - LabelWidth);
-	WidgetSize = bDrawTooltipToRight ? FVector2D((NotifyDurationSizeX > 0.0f ? NotifyDurationSizeX : FMath::Max(LabelWidth, NotifyDurationSizeX)), NovaConst::NotifyHeight) : FVector2D((LabelWidth + NotifyDurationSizeX), NovaConst::NotifyHeight);
+	WidgetSize = bDrawTooltipToRight ?
+		             FVector2D((NotifyDurationSizeX > 0.0f ? NotifyDurationSizeX : FMath::Max(LabelWidth, NotifyDurationSizeX)),
+		                       NotifyHeight) :
+		             FVector2D((LabelWidth + NotifyDurationSizeX), NotifyHeight);
 	WidgetSize.X += NotifyHandleBoxWidth;
 	// Widget position of the notify marker
 	NotifyScrubHandleCentre = bDrawTooltipToRight ? NotifyHandleBoxWidth / 2.f : LabelWidth;
 }
 
-void SActActionSequenceNotifyNode::DrawScrubHandle(float ScrubHandleCentre, FSlateWindowElementList& OutDrawElements, int32 ScrubHandleID, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FLinearColor NodeColour) const
+void SActNotifyPoolNotifyNodeWidget::DrawScrubHandle(float ScrubHandleCentre,
+                                                     FSlateWindowElementList& OutDrawElements,
+                                                     int32 ScrubHandleID,
+                                                     const FGeometry& AllottedGeometry,
+                                                     const FSlateRect& MyCullingRect,
+                                                     FLinearColor NodeColour) const
 {
-	FVector2D ScrubHandlePosition(ScrubHandleCentre - ScrubHandleSize.X / 2.0f, (NovaConst::NotifyHeight - ScrubHandleSize.Y) / 2.f);
+	FVector2D ScrubHandlePosition(ScrubHandleCentre - ScrubHandleSize.X / 2.0f, (NotifyHeight - ScrubHandleSize.Y) / 2.f);
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		ScrubHandleID,
@@ -471,18 +532,24 @@ void SActActionSequenceNotifyNode::DrawScrubHandle(float ScrubHandleCentre, FSla
 }
 
 
-void SActActionSequenceNotifyNode::DrawHandleOffset(const float& Offset, const float& HandleCentre, FSlateWindowElementList& OutDrawElements, int32 MarkerLayer, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FLinearColor NodeColor) const
+void SActNotifyPoolNotifyNodeWidget::DrawHandleOffset(const float& Offset,
+                                                      const float& HandleCentre,
+                                                      FSlateWindowElementList& OutDrawElements,
+                                                      int32 MarkerLayer,
+                                                      const FGeometry& AllottedGeometry,
+                                                      const FSlateRect& MyCullingRect,
+                                                      FLinearColor NodeColor) const
 {
 	FVector2D MarkerPosition;
 	FVector2D MarkerSize = AlignmentMarkerSize;
 
 	if (Offset < 0.f)
 	{
-		MarkerPosition.Set(HandleCentre - AlignmentMarkerSize.X, (NovaConst::NotifyHeight - AlignmentMarkerSize.Y) / 2.f);
+		MarkerPosition.Set(HandleCentre - AlignmentMarkerSize.X, (NotifyHeight - AlignmentMarkerSize.Y) / 2.f);
 	}
 	else
 	{
-		MarkerPosition.Set(HandleCentre + AlignmentMarkerSize.X, (NovaConst::NotifyHeight - AlignmentMarkerSize.Y) / 2.f);
+		MarkerPosition.Set(HandleCentre + AlignmentMarkerSize.X, (NotifyHeight - AlignmentMarkerSize.Y) / 2.f);
 		MarkerSize.X = -AlignmentMarkerSize.X;
 	}
 
@@ -497,7 +564,7 @@ void SActActionSequenceNotifyNode::DrawHandleOffset(const float& Offset, const f
 }
 
 
-ENovaNotifyStateHandleHit SActActionSequenceNotifyNode::DurationHandleHitTest(const FVector2D& CursorTrackPosition) const
+ENovaNotifyStateHandleHit SActNotifyPoolNotifyNodeWidget::DurationHandleHitTest(const FVector2D& CursorTrackPosition) const
 {
 	ENovaNotifyStateHandleHit MarkerHit = ENovaNotifyStateHandleHit::None;
 
@@ -509,9 +576,9 @@ ENovaNotifyStateHandleHit SActActionSequenceNotifyNode::DurationHandleHitTest(co
 
 		// Position and size of the notify node including the scrub handles
 		FVector2D NotifyNodePosition(NotifyScrubHandleCentre - ScrubHandleHalfWidth, 0.0f);
-		FVector2D NotifyNodeSize(NotifyDurationSizeX + ScrubHandleHalfWidth * 2.0f, NovaConst::NotifyHeight);
+		FVector2D NotifyNodeSize(NotifyDurationSizeX + ScrubHandleHalfWidth * 2.0f, NotifyHeight);
 
-		FVector2D MouseRelativePosition(CursorTrackPosition - FVector2D(WidgetX, NovaConst::NotifyHeightOffset));
+		FVector2D MouseRelativePosition(CursorTrackPosition - FVector2D(WidgetX, NotifyHeightOffset));
 
 		if (MouseRelativePosition > NotifyNodePosition && MouseRelativePosition < (NotifyNodePosition + NotifyNodeSize))
 		{
@@ -533,13 +600,16 @@ ENovaNotifyStateHandleHit SActActionSequenceNotifyNode::DurationHandleHitTest(co
 }
 
 /** @return the Node's position within the track */
-FVector2D SActActionSequenceNotifyNode::GetWidgetPosition() const
+FVector2D SActNotifyPoolNotifyNodeWidget::GetWidgetPosition() const
 {
-	return FVector2D(WidgetX, NovaConst::NotifyHeightOffset);
+	return FVector2D(WidgetX, NotifyHeightOffset);
 }
 
 
-float SActActionSequenceNotifyNode::HandleOverflowPan(const FVector2D& ScreenCursorPos, float TrackScreenSpaceXPosition, float TrackScreenSpaceMin, float TrackScreenSpaceMax)
+float SActNotifyPoolNotifyNodeWidget::HandleOverflowPan(const FVector2D& ScreenCursorPos,
+                                                        float TrackScreenSpaceXPosition,
+                                                        float TrackScreenSpaceMin,
+                                                        float TrackScreenSpaceMax)
 {
 	float Overflow = 0.0f;
 
@@ -548,7 +618,8 @@ float SActActionSequenceNotifyNode::HandleOverflowPan(const FVector2D& ScreenCur
 		// Overflow left edge
 		Overflow = FMath::Min(ScreenCursorPos.X - TrackScreenSpaceXPosition, -10.0f);
 	}
-	else if (ScreenCursorPos.X > CachedAllottedGeometrySize.X && (TrackScreenSpaceXPosition + CachedAllottedGeometrySize.X) < TrackScreenSpaceMax + 10.0f)
+	else if (ScreenCursorPos.X > CachedAllottedGeometrySize.X && (TrackScreenSpaceXPosition + CachedAllottedGeometrySize.X) < TrackScreenSpaceMax +
+		10.0f)
 	{
 		// Overflow right edge
 		Overflow = FMath::Max(ScreenCursorPos.X - (TrackScreenSpaceXPosition + CachedAllottedGeometrySize.X), 10.0f);
@@ -560,7 +631,9 @@ float SActActionSequenceNotifyNode::HandleOverflowPan(const FVector2D& ScreenCur
 }
 
 
-FReply SActActionSequenceNotifyNode::OnNotifyNodeDragStarted(const FPointerEvent& MouseEvent, const FVector2D& InScreenNodePosition, const bool bDragOnMarker)
+FReply SActNotifyPoolNotifyNodeWidget::OnNotifyNodeDragStarted(const FPointerEvent& MouseEvent,
+                                                               const FVector2D& InScreenNodePosition,
+                                                               const bool bDragOnMarker)
 {
 	// Check to see if we've already selected the triggering node
 	// if (!NotifyNode->bSelected)
@@ -571,20 +644,20 @@ FReply SActActionSequenceNotifyNode::OnNotifyNodeDragStarted(const FPointerEvent
 	// Sort our nodes so we're accessing them in time order
 	// SelectedNodeIndices.Sort([this](const int32& A, const int32& B)
 	// {
-	// 	float TimeA = NotifyNodes[A]->NodeObjectInterface->GetTime();
-	// 	float TimeB = NotifyNodes[B]->NodeObjectInterface->GetTime();
+	// 	float TimeA = NotifyWidgets[A]->NodeObjectInterface->GetTime();
+	// 	float TimeB = NotifyWidgets[B]->NodeObjectInterface->GetTime();
 	// 	return TimeA < TimeB;
 	// });
 
 	// If we're dragging one of the direction markers we don't need to call any further as we don't want the drag drop op
 	if (!bDragOnMarker)
 	{
-		// TArray<TSharedPtr<SActActionSequenceNotifyNode>> NodesToDrag;
+		// TArray<TSharedPtr<SActNotifyPoolNotifyNodeWidget>> NodesToDrag;
 		// const float FirstNodeX = GetWidgetPosition().X;
 		//
 		// for (auto Iter = SelectedNodeIndices.CreateIterator(); Iter; ++Iter)
 		// {
-		// 	TSharedPtr<SActActionSequenceNotifyNode> Node = NotifyNodes[*Iter];
+		// 	TSharedPtr<SActNotifyPoolNotifyNodeWidget> Node = NotifyWidgets[*Iter];
 		// 	NodesToDrag.Add(Node);
 		// }
 
@@ -631,7 +704,12 @@ FReply SActActionSequenceNotifyNode::OnNotifyNodeDragStarted(const FPointerEvent
 
 		// FPanTrackRequest PanRequestDelegate = FPanTrackRequest::CreateSP(this, &SAnimNotifyPanel::PanInputViewRange);
 		// FOnUpdatePanel UpdateDelegate = FOnUpdatePanel::CreateSP(this, &SAnimNotifyPanel::Update);
-		return FReply::Handled().BeginDragDrop(FActTrackAreaSlotDragDrop::New(SharedThis(this), NodeDragDecorator, ScreenCursorPos, OverlayOrigin, OverlayExtents, CurrentDragXPosition));
+		return FReply::Handled().BeginDragDrop(FActTrackAreaSlotDragDrop::New(SharedThis(this),
+		                                                                      NodeDragDecorator,
+		                                                                      ScreenCursorPos,
+		                                                                      OverlayOrigin,
+		                                                                      OverlayExtents,
+		                                                                      CurrentDragXPosition));
 	}
 	else
 	{
@@ -640,17 +718,17 @@ FReply SActActionSequenceNotifyNode::OnNotifyNodeDragStarted(const FPointerEvent
 	}
 }
 
-FVector2D SActActionSequenceNotifyNode::GetNotifyPositionOffset() const
+FVector2D SActNotifyPoolNotifyNodeWidget::GetNotifyPositionOffset() const
 {
 	return GetNotifyPosition() - GetWidgetPosition();
 }
 
-FVector2D SActActionSequenceNotifyNode::GetNotifyPosition() const
+FVector2D SActNotifyPoolNotifyNodeWidget::GetNotifyPosition() const
 {
-	return FVector2D(NotifyTimePositionX, NovaConst::NotifyHeightOffset);
+	return FVector2D(NotifyTimePositionX, NotifyHeightOffset);
 }
 
-FVector2D SActActionSequenceNotifyNode::GetWidgetSize() const
+FVector2D SActNotifyPoolNotifyNodeWidget::GetWidgetSize() const
 {
 	return WidgetSize;
 }

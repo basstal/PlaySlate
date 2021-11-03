@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-class SActActionSequenceNotifyNode;
+class SActNotifyPoolNotifyNodeWidget;
 struct FTrackScaleInfo;
 
 class FActTrackAreaSlotDragDrop : public FDragDropOperation
@@ -10,7 +10,7 @@ class FActTrackAreaSlotDragDrop : public FDragDropOperation
 	// {
 	// 	int32 TrackPos;
 	// 	int32 TrackSnapTestPos;
-	// 	TSharedPtr<SActActionSequenceNotifyNode> Notify;
+	// 	TSharedPtr<SActNotifyPoolNotifyNodeWidget> Notify;
 	// };
 public:
 	FActTrackAreaSlotDragDrop(float& InCurrentDragXPosition);
@@ -24,7 +24,7 @@ public:
 
 	// FNovaTrackClampInfo& GetTrackClampInfo(const FVector2D NodePos);
 
-	static TSharedRef<FActTrackAreaSlotDragDrop> New(TSharedRef<SActActionSequenceNotifyNode> NotifyNode,
+	static TSharedRef<FActTrackAreaSlotDragDrop> New(TSharedRef<SActNotifyPoolNotifyNodeWidget> NotifyNode,
 	                                                 TSharedPtr<SWidget> Decorator,
 	                                                 const FVector2D& CursorPosition,
 	                                                 const FVector2D& SelectionScreenPosition,
@@ -41,7 +41,7 @@ protected:
 	FVector2D NodeGroupSize;                              // Size of the entire selection
 	FVector2D DragOffset;                                 // Offset from the mouse to place the decorator
 	TSharedPtr<SWidget> Decorator;                        // The widget to display when dragging
-	TSharedPtr<SActActionSequenceNotifyNode> SelectedNode;// The node that are in the current selection
+	TSharedPtr<SActNotifyPoolNotifyNodeWidget> SelectedNode;// The node that are in the current selection
 	int32 TrackSpan;                                      // Number of tracks that the selection spans
 	float NodeTimeOffset;                                 // Time offset from the beginning of the selection to the nodes.
 	float NodeTime;                                       // Time to drop each selected node at

@@ -1,6 +1,6 @@
-﻿#include "ActTrackPanelNotifyTrackWidget.h"
+﻿#include "ActPoolWidgetNotifyWidget.h"
 
-#include "NovaAct/ActEventTimeline/Image/Subs/ActNotifiesPanelEditorLaneWidget.h"
+#include "NovaAct/ActEventTimeline/Image/Subs/ActNotifyPoolEditorLaneWidget.h"
 #include "NovaAct/ActEventTimeline/Image/Subs/NovaActUICommandInfo.h"
 #include "Animation/EditorNotifyObject.h"
 #include "Common/NovaDataBinding.h"
@@ -9,7 +9,7 @@
 #include "NovaAct/ActEventTimeline/Image/ImageTrackTypes/ActImageTrackBase.h"
 
 
-void SActTrackPanelNotifyTrackWidget::Construct(const FArguments& InArgs, const TSharedRef<FActImageTrackNotify>& InActImageTrackNotify)
+void SActPoolWidgetNotifyWidget::Construct(const FArguments& InArgs, const TSharedRef<FActImageTrackNotify>& InActImageTrackNotify)
 {
 	// SAnimTrackPanel::Construct(SAnimTrackPanel::FArguments()
 	//                            .WidgetWidth(InArgs._WidgetWidth)
@@ -41,20 +41,20 @@ void SActTrackPanelNotifyTrackWidget::Construct(const FArguments& InArgs, const 
 	const FNovaActNotifiesPanelCommands& Commands = FNovaActNotifiesPanelCommands::Get();
 	CommandList->MapAction(
 		Commands.DeleteNotify,
-		FExecuteAction::CreateSP(this, &SActTrackPanelNotifyTrackWidget::OnDeletePressed));
+		FExecuteAction::CreateSP(this, &SActPoolWidgetNotifyWidget::OnDeletePressed));
 
 	// CommandList->MapAction(
 	// 	Commands.CopyNotifies,
-	// 	FExecuteAction::CreateSP(this, &SActTrackPanelNotifyTrackWidget::CopySelectedNodesToClipboard));
+	// 	FExecuteAction::CreateSP(this, &SActPoolWidgetNotifyWidget::CopySelectedNodesToClipboard));
 
 	// CommandList->MapAction(
 	// 	Commands.PasteNotifies,
-	// 	FExecuteAction::CreateSP(this, &SActTrackPanelNotifyTrackWidget::OnPasteNodes, (SAnimNotifyTrack*)nullptr, -1.0f, ENotifyPasteMode::MousePosition, ENotifyPasteMultipleMode::Absolute));
+	// 	FExecuteAction::CreateSP(this, &SActPoolWidgetNotifyWidget::OnPasteNodes, (SAnimNotifyTrack*)nullptr, -1.0f, ENotifyPasteMode::MousePosition, ENotifyPasteMultipleMode::Absolute));
 
 	auto DB = GetDataBinding(UAnimSequenceBase**, "ActAnimation/AnimSequence");
 	UAnimSequenceBase* AnimSequenceBase = *(DB->GetData());
 	AnimSequenceBase->RegisterOnNotifyChanged(
-		UAnimSequenceBase::FOnNotifyChanged::CreateSP(this, &SActTrackPanelNotifyTrackWidget::RefreshNotifyTracks));
+		UAnimSequenceBase::FOnNotifyChanged::CreateSP(this, &SActPoolWidgetNotifyWidget::RefreshNotifyTracks));
 	//
 	// InModel->GetEditableSkeleton()->RegisterOnNotifiesChanged(FSimpleDelegate::CreateSP(this, &SAnimNotifyPanel::RefreshNotifyTracks));
 	// InModel->OnTracksChanged().Add(FSimpleDelegate::CreateSP(this, &SAnimNotifyPanel::RefreshNotifyTracks));
@@ -94,10 +94,15 @@ void SActTrackPanelNotifyTrackWidget::Construct(const FArguments& InArgs, const 
 	// Update();
 
 	FDelegateHandle _;
-	DataBindingSPBindRaw(IActImageTrackBase, "ActImageTrack/Refresh", this, &SActTrackPanelNotifyTrackWidget::OnLaneContentRefresh, _)
+	DataBindingSPBindRaw(IActImageTrackBase, "ActImageTrack/Refresh", this, &SActPoolWidgetNotifyWidget::OnLaneContentRefresh, _)
 }
 
-void SActTrackPanelNotifyTrackWidget::OnDeletePressed()
+FVector2D SActPoolWidgetNotifyWidget::ComputeDesiredSize(float LayoutScaleMultiplier) const
+{
+	return FVector2D(100.0f, ActImageTrackNotify->ActImageTrackArgs->Height);
+}
+
+void SActPoolWidgetNotifyWidget::OnDeletePressed()
 {
 	// If there's no focus on the panel it's likely the user is not editing notifies
 	// so don't delete anything when the key is pressed.
@@ -107,7 +112,7 @@ void SActTrackPanelNotifyTrackWidget::OnDeletePressed()
 	}
 }
 
-void SActTrackPanelNotifyTrackWidget::DeleteSelectedNodeObjects()
+void SActPoolWidgetNotifyWidget::DeleteSelectedNodeObjects()
 {
 	// TArray<INodeObjectInterface*> SelectedNodes;
 	// for (TSharedPtr<SAnimNotifyTrack> Track : NotifyTracks)
@@ -145,9 +150,13 @@ void SActTrackPanelNotifyTrackWidget::DeleteSelectedNodeObjects()
 	// Update();
 }
 
-void SActTrackPanelNotifyTrackWidget::RefreshNotifyTracks()
+void SActPoolWidgetNotifyWidget::RefreshNotifyTracks()
 {
 	auto DB = GetDataBinding(UAnimSequenceBase**, "ActAnimation/AnimSequence");
+	if (!DB)
+	{
+		return;
+	}
 	UAnimSequenceBase* AnimSequenceBase = *(DB->GetData());
 	if (AnimSequenceBase)
 	{
@@ -160,25 +169,26 @@ void SActTrackPanelNotifyTrackWidget::RefreshNotifyTracks()
 
 		// Clear node tool tips to stop slate referencing them and possibly
 		// causing a crash if the notify has gone away
-		for (TSharedPtr<SActNotifiesPanelLaneWidget> Track : NotifyTracks)
-		{
-			// Track->ClearNodeTooltips();
-		}
+		// for (TSharedPtr<SActNotifyPoolLaneWidget> Track : NotifyTracks)
+		// {
+		// 	// Track->ClearNodeTooltips();
+		// }
 
 		NotifyTracks.Empty();
 		NotifyEditorTracks.Empty();
 
 		for (int32 TrackIndex = 0; TrackIndex < AnimSequenceBase->AnimNotifyTracks.Num(); TrackIndex++)
 		{
-			FAnimNotifyTrack& Track = AnimSequenceBase->AnimNotifyTracks[TrackIndex];
-			TSharedPtr<SActNotifiesPanelEditorLaneWidget> EdTrack;
-
+			// FAnimNotifyTrack& Track = AnimSequenceBase->AnimNotifyTracks[TrackIndex];
+			TSharedRef<SActNotifyPoolEditorLaneWidget> EditorLaneWidget =
+				SNew(SActNotifyPoolEditorLaneWidget)
+				.TrackIndex(TrackIndex);
 			NotifySlots->AddSlot()
 			           .AutoHeight()
 			           .VAlign(VAlign_Center)
 			[
-				SAssignNew(EdTrack, SActNotifiesPanelEditorLaneWidget)
-				.TrackIndex(TrackIndex)
+				EditorLaneWidget
+
 				// .Sequence(AnimSequenceBase)
 				// .AnimNotifyPanel(SharedThis(this))
 				// .WidgetWidth(WidgetWidth)
@@ -205,8 +215,8 @@ void SActTrackPanelNotifyTrackWidget::RefreshNotifyTracks()
 				// .OnInvokeTab(OnInvokeTab)
 			];
 
-			NotifyTracks.Add(EdTrack->GetNotifyTrack());
-			NotifyEditorTracks.Add(EdTrack);
+			NotifyTracks.Add(EditorLaneWidget->GetNotifyTrack());
+			NotifyEditorTracks.Add(EditorLaneWidget);
 		}
 	}
 
@@ -215,7 +225,7 @@ void SActTrackPanelNotifyTrackWidget::RefreshNotifyTracks()
 }
 
 
-void SActTrackPanelNotifyTrackWidget::OnTrackSelectionChanged()
+void SActPoolWidgetNotifyWidget::OnTrackSelectionChanged()
 {
 	if (!bIsSelecting)
 	{
@@ -251,7 +261,7 @@ void SActTrackPanelNotifyTrackWidget::OnTrackSelectionChanged()
 	}
 }
 
-void SActTrackPanelNotifyTrackWidget::OnLaneContentRefresh(TSharedPtr<IActImageTrackBase> InActImageTrack)
+void SActPoolWidgetNotifyWidget::OnLaneContentRefresh(TSharedPtr<IActImageTrackBase> InActImageTrack)
 {
 	if (InActImageTrack != ActImageTrackNotify)
 	{

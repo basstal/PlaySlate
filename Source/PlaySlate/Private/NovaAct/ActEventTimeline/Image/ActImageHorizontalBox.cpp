@@ -1,10 +1,12 @@
 ﻿#include "ActImageHorizontalBox.h"
 
 #include "Common/NovaConst.h"
+#include "ImageTrackTypes/ActImageTrackFolder.h"
+#include "ImageTrackTypes/ActImageTrackNotify.h"
 
 #include "NovaAct/ActEventTimeline/Image/ActImageTreeView.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTreeViewTableRow.h"
-#include "NovaAct/ActEventTimeline/Image/ActImageAreaPanel.h"
+#include "NovaAct/ActEventTimeline/Image/ActImagePoolAreaPanel.h"
 
 #include "Widgets/Layout/SScrollBorder.h"
 
@@ -13,21 +15,48 @@
 SActImageHorizontalBox::~SActImageHorizontalBox()
 {
 	UE_LOG(LogNovaAct, Log, TEXT("SActImageHorizontalBox::~SActImageHorizontalBox"));
+	NovaDB::Delete("ImageTrack2LaneWidget");
+	NovaDB::Delete("ImageTrack2TableRow");
 }
 
 void SActImageHorizontalBox::Construct(const FArguments& InArgs)
 {
+	// ImageTack 到 LaneWidget 的映射关系
+	TSharedPtr<TMap<TSharedPtr<IActImageTrackBase>, TWeakPtr<SActImagePoolWidget>>> ImageTrack2LaneWidget =
+		MakeShared<TMap<TSharedPtr<IActImageTrackBase>, TWeakPtr<SActImagePoolWidget>>>();
+	NovaDB::CreateSP("ImageTrack2LaneWidget", ImageTrack2LaneWidget);
+	// ImageTrack 到 TableRow 的映射关系
+	TSharedPtr<TMap<TSharedPtr<IActImageTrackBase>, TWeakPtr<SActImageTreeViewTableRow>>> ImageTrack2TableRow =
+		MakeShared<TMap<TSharedPtr<IActImageTrackBase>, TWeakPtr<SActImageTreeViewTableRow>>>();
+	NovaDB::CreateSP("ImageTrack2TableRow", ImageTrack2TableRow);
+
 	const TSharedRef<SScrollBar> ScrollBar = SNew(SScrollBar)
 		.Thickness(FVector2D(9.0f, 9.0f));
 	const TSharedRef<SScrollBar> PinnedAreaScrollBar = SNew(SScrollBar)
 		.Thickness(FVector2D(9.0f, 9.0f));
-	ActImageTrackAreaPanel = SNew(SActImageAreaPanel);
+
+	ActImageTrackAreaPanel = SNew(SActImagePoolAreaPanel);
 	ActImageTreeView = SNew(SActImageTreeView, ActImageTrackAreaPanel.ToSharedRef())
-		.ExternalScrollbar(ScrollBar);
-	PinnedActImageTrackAreaPanel = SNew(SActImageAreaPanel);
+		.ExternalScrollbar(ScrollBar)
+		.TreeItemsSource(&TreeViewItemSource);
+	// ** 初始化 TreeView 的 ItemSource 添加 NotifyFolder 和 Notifies
+	TSharedRef<FActImageTrackFolder> ActImageTrackFolder = MakeShared<FActImageTrackFolder>();
+	TSharedRef<SActImageTreeViewTableRow> NotifyFolder = SNew(SActImageTreeViewTableRow,
+	                                                          ActImageTreeView.ToSharedRef(),
+	                                                          ActImageTrackFolder);
+	TreeViewItemSource.Add(NotifyFolder);
+	ImageTrack2TableRow->Add(ActImageTrackFolder, NotifyFolder);
+	TSharedRef<FActImageTrackNotify> ActImageTrackNotify = MakeShared<FActImageTrackNotify>();
+	TSharedRef<SActImageTreeViewTableRow> Notifies = SNew(SActImageTreeViewTableRow,
+	                                                      ActImageTreeView.ToSharedRef(),
+	                                                      ActImageTrackNotify);
+	Notifies->SetParent(NotifyFolder);
+	ImageTrack2TableRow->Add(ActImageTrackNotify, Notifies);
+
+
+	PinnedActImageTrackAreaPanel = SNew(SActImagePoolAreaPanel);
 	PinnedActImageTreeView = SNew(SActImageTreeView, PinnedActImageTrackAreaPanel.ToSharedRef())
 		.ExternalScrollbar(PinnedAreaScrollBar);
-
 
 	auto FillLeftAttr = TAttribute<float>::Create(TAttribute<float>::FGetter::CreateLambda([]()
 	{

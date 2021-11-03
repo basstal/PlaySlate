@@ -3,16 +3,16 @@
 #include "Common/NovaDelegate.h"
 
 class SActImageTrackLaneWidget;
-class SActNotifiesPanelLaneWidget;
+class SActNotifyPoolLaneWidget;
 
 using namespace NovaDelegate;
 
-class SActActionSequenceNotifyNode : public SLeafWidget
+class SActNotifyPoolNotifyNodeWidget : public SLeafWidget
 {
 	friend class FActTrackAreaSlotDragDrop;
 public:
-	SLATE_BEGIN_ARGS(SActActionSequenceNotifyNode) { }
-
+	SLATE_BEGIN_ARGS(SActNotifyPoolNotifyNodeWidget) { }
+		SLATE_ARGUMENT(FAnimNotifyEvent*, AnimNotifyEvent)
 		SLATE_EVENT(OnNotifyNodeDragStartedDelegate, OnNodeDragStarted)
 		SLATE_EVENT(OnNotifyStateHandleBeingDraggedDelegate, OnNotifyStateHandleBeingDragged)
 		SLATE_EVENT(FSimpleDelegate, OnUpdatePanel)
@@ -21,16 +21,22 @@ public:
 		SLATE_EVENT(OnSnapPositionDelegate, OnSnapPosition)
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, const TSharedRef<SActNotifiesPanelLaneWidget>& InActNotifiesPanelLaneWidget);
+	void Construct(const FArguments& InArgs, const TSharedRef<SActNotifyPoolLaneWidget>& InActNotifiesPanelLaneWidget);
 
 	//~Begin SWidget interface
-	virtual int32        OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
-	virtual FReply       OnDragDetected(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual int32 OnPaint(const FPaintArgs& Args,
+	                      const FGeometry& AllottedGeometry,
+	                      const FSlateRect& MyCullingRect,
+	                      FSlateWindowElementList& OutDrawElements,
+	                      int32 LayerId,
+	                      const FWidgetStyle& InWidgetStyle,
+	                      bool bParentEnabled) const override;
+	virtual FReply OnDragDetected(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FCursorReply OnCursorQuery(const FGeometry& MyGeometry, const FPointerEvent& CursorEvent) const override;
-	virtual FReply       OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
-	virtual FReply       OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
-	virtual FVector2D    ComputeDesiredSize(float) const override;
-	virtual void         Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
+	virtual FReply OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual FVector2D ComputeDesiredSize(float) const override;
+	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 	//~End SWidget interface
 
 	/** 获得描述文本 */
@@ -40,9 +46,20 @@ public:
 	/** 更新大小和位置信息 */
 	void UpdateSizeAndPosition(const FGeometry& AllottedGeometry);
 	/** 绘制拖拽按钮 */
-	void DrawScrubHandle(float ScrubHandleCentre, FSlateWindowElementList& OutDrawElements, int32 ScrubHandleID, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FLinearColor NodeColour) const;
+	void DrawScrubHandle(float ScrubHandleCentre,
+	                     FSlateWindowElementList& OutDrawElements,
+	                     int32 ScrubHandleID,
+	                     const FGeometry& AllottedGeometry,
+	                     const FSlateRect& MyCullingRect,
+	                     FLinearColor NodeColour) const;
 	/** 拖拽按钮的Offset */
-	void DrawHandleOffset(const float& Offset, const float& HandleCentre, FSlateWindowElementList& OutDrawElements, int32 MarkerLayer, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FLinearColor NodeColor) const;
+	void DrawHandleOffset(const float& Offset,
+	                      const float& HandleCentre,
+	                      FSlateWindowElementList& OutDrawElements,
+	                      int32 MarkerLayer,
+	                      const FGeometry& AllottedGeometry,
+	                      const FSlateRect& MyCullingRect,
+	                      FLinearColor NodeColor) const;
 	/** TODO: */
 	ENovaNotifyStateHandleHit DurationHandleHitTest(const FVector2D& CursorTrackPosition) const;
 	/** TODO: */
@@ -58,10 +75,8 @@ public:
 	FVector2D GetWidgetSize() const;
 protected:
 	/** Controller 弱引用 */
-	TWeakPtr<SActNotifiesPanelLaneWidget> ActNotifiesPanelLaneWidget;
-
-	/** 是否正在拖拽 */
-	bool bBeingDragged;
+	TWeakPtr<SActNotifyPoolLaneWidget> ActNotifiesPanelLaneWidget;
+	FAnimNotifyEvent* AnimNotifyEvent;
 
 	/** 当前拖拽的状态 */
 	ENovaNotifyStateHandleHit CurrentDragHandle;
@@ -84,7 +99,7 @@ protected:
 	FSimpleDelegate OnSelectionChanged;
 	/** Delegate used to snap when dragging */
 	OnSnapPositionDelegate OnSnapPosition;
-	/** 缓存的已分配大小 */
+	/** 缓存的已分配 Widget 大小 */
 	FVector2D CachedAllottedGeometrySize;
 	/** TODO: */
 	float NotifyTimePositionX;
@@ -92,8 +107,6 @@ protected:
 	float NotifyDurationSizeX;
 	/** TODO: */
 	FVector2D TextSize;
-	/** TODO: */
-	float LabelWidth;
 	/** TODO: */
 	FVector2D BranchingPointIconSize;
 	/** TODO: */
@@ -110,13 +123,14 @@ protected:
 	FVector2D ScreenPosition;
 	/** Store the position of a currently dragged node for display across tracks */
 	float CurrentDragXPosition;
-	float						LastSnappedTime;
+	float LastSnappedTime;
+	/** AnimNotifyEvent 决定的 NotifyNode 缓存名称 */
+	FName CachedNotifyName;
+	FLinearColor NotifyEditorColor;
 
 public:
-	bool GetBeingDragged() const
-	{
-		return bBeingDragged;
-	}
+	/** 是否正在拖拽 */
+	bool bBeingDragged;
 
 	// TSharedRef<SActImageTrackLaneWidget> GetActActionTrackAreaSlot() const
 	// {
@@ -124,8 +138,6 @@ public:
 	// }
 
 public:
-	const FVector2D      ScrubHandleSize = FVector2D(12.0f, 12.0f);
-	const FVector2D      TextBorderSize = FVector2D(1.f, 1.f);
-	const FVector2D      AlignmentMarkerSize = FVector2D(10.f, 20.f);
+	const FVector2D AlignmentMarkerSize = FVector2D(10.f, 20.f);
 	const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle("Regular", 10);
 };

@@ -1,18 +1,20 @@
-﻿#include "ActTrackPanelFolderWidget.h"
+﻿#include "ActPoolWidgetFolderWidget.h"
 
 #include "Common/NovaConst.h"
+#include "NovaAct/ActEventTimeline/Image/ImageTrackTypes/ActImageTrackFolder.h"
 
 using namespace NovaConst;
 
-SActTrackPanelFolderWidget::SActTrackPanelFolderWidget()
+SActPoolWidgetFolderWidget::SActPoolWidgetFolderWidget()
 	: bIsVisible(false),
-	  Padding(0.0f),
-	  Height(NotifyHeight),
 	  bIsHovered(false) {}
 
-void SActTrackPanelFolderWidget::Construct(const FArguments& InArgs) { }
+void SActPoolWidgetFolderWidget::Construct(const FArguments& InArgs, const TSharedRef<FActImageTrackFolder>& InActImageTrackFolder)
+{
+	ActImageTrackFolder = InActImageTrackFolder;
+}
 
-int32 SActTrackPanelFolderWidget::OnPaint(const FPaintArgs& Args,
+int32 SActPoolWidgetFolderWidget::OnPaint(const FPaintArgs& Args,
                                           const FGeometry& AllottedGeometry,
                                           const FSlateRect& MyCullingRect,
                                           FSlateWindowElementList& OutDrawElements,
@@ -22,7 +24,8 @@ int32 SActTrackPanelFolderWidget::OnPaint(const FPaintArgs& Args,
 {
 	static const FName BorderName("AnimTimeline.Outliner.DefaultBorder");
 
-	float TotalNodeHeight = Height + Padding.Combined();
+	TSharedPtr<FActImageTrackArgs> ActImageTrackArgs = ActImageTrackFolder->ActImageTrackArgs;
+	float TotalNodeHeight = ActImageTrackArgs->Height + ActImageTrackArgs->Padding.Combined();
 
 	// draw hovered
 	if (bIsHovered)
@@ -55,7 +58,7 @@ int32 SActTrackPanelFolderWidget::OnPaint(const FPaintArgs& Args,
 	return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId + 1, InWidgetStyle, bParentEnabled);
 }
 
-FVector2D SActTrackPanelFolderWidget::ComputeDesiredSize(float LayoutScaleMultiplier) const
+FVector2D SActPoolWidgetFolderWidget::ComputeDesiredSize(float LayoutScaleMultiplier) const
 {
-	return FVector2D(100.0f, Height);
+	return FVector2D(100.0f, ActImageTrackFolder->ActImageTrackArgs->Height);
 }

@@ -2,7 +2,7 @@
 
 class SActImageTreeViewTableRow;
 class SActImageTrackCarWidget;
-class SActActionSequenceNotifyNode;
+class SActNotifyPoolNotifyNodeWidget;
 
 class SActImageTrackLaneWidget : public SCompoundWidget
 {
@@ -95,7 +95,7 @@ protected:
 	// /** The track lane that we represent. */
 	// TSharedPtr<SActImageTrackCarWidget> TrackLane;
 	/** Notify Node */
-	TSharedPtr<SActActionSequenceNotifyNode> NotifyNode;
+	TSharedPtr<SActNotifyPoolNotifyNodeWidget> NotifyNode;
 
 	// FAnimNotifyEvent* AnimNotifyEvent;
 	/** Get the height of this track */
