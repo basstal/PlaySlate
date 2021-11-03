@@ -15,7 +15,7 @@
 SActSliderWidget::SActSliderWidget()
 	: DistanceDragged(0),
 	  MouseDragType(ENovaDragType::DRAG_NONE),
-	  bMouseDownInRegion(false),
+	  // bMouseDownInRegion(false),
 	  bPanning(false),
 	  bMirrorLabels(false) {}
 
@@ -150,8 +150,14 @@ int32 SActSliderWidget::OnPaint(const FPaintArgs& Args,
 	{
 		// ** 按下 Ctrl 的情况下 在 时间轴 上拖拽选择一段时间，可以缩放至这段时间的功能
 		FActSliderScrubRangeToScreen MouseDownRange(ViewRange, MouseDownGeometry.Size);
-		FFrameTime DownPosition0Time = NovaStaticFunction::ComputeFrameTimeFromMouse(MouseDownGeometry, MouseDownPosition[0], MouseDownRange, TickResolution);
-		FFrameTime DownPosition1Time = NovaStaticFunction::ComputeFrameTimeFromMouse(MouseDownGeometry, MouseDownPosition[1], MouseDownRange, TickResolution);
+		FFrameTime DownPosition0Time = NovaStaticFunction::ComputeFrameTimeFromMouse(MouseDownGeometry,
+		                                                                             MouseDownPosition[0],
+		                                                                             MouseDownRange,
+		                                                                             TickResolution);
+		FFrameTime DownPosition1Time = NovaStaticFunction::ComputeFrameTimeFromMouse(MouseDownGeometry,
+		                                                                             MouseDownPosition[1],
+		                                                                             MouseDownRange,
+		                                                                             TickResolution);
 		float MouseStartPosX = RangeToScreen.InputToLocalX(DownPosition0Time / TickResolution);
 		float MouseEndPosX = RangeToScreen.InputToLocalX(DownPosition1Time / TickResolution);
 		float RangePosX = MouseStartPosX < MouseEndPosX ? MouseStartPosX : MouseEndPosX;
@@ -175,15 +181,15 @@ FReply SActSliderWidget::OnMouseButtonDown(const FGeometry& MyGeometry, const FP
 	MouseDragType = ENovaDragType::DRAG_NONE;
 	DistanceDragged = 0;
 	MouseDownPosition[0] = MouseDownPosition[1] = MouseEvent.GetScreenSpacePosition();
-	bMouseDownInRegion = false;
 	MouseDownGeometry = MyGeometry;
 
-	const FVector2D CursorPos = MouseEvent.GetScreenSpacePosition();
-	const FVector2D LocalPos = MouseDownGeometry.AbsoluteToLocal(CursorPos);
-	if (LocalPos.Y >= 0 && LocalPos.Y < MouseDownGeometry.GetLocalSize().Y)
-	{
-		bMouseDownInRegion = true;
-	}
+	// bMouseDownInRegion = false;
+	// const FVector2D CursorPos = MouseEvent.GetScreenSpacePosition();
+	// const FVector2D LocalPos = MouseDownGeometry.AbsoluteToLocal(CursorPos);
+	// if (LocalPos.Y >= 0 && LocalPos.Y < MouseDownGeometry.GetLocalSize().Y)
+	// {
+	// 	bMouseDownInRegion = true;
+	// }
 
 	return FReply::Unhandled();
 }
@@ -193,24 +199,25 @@ FReply SActSliderWidget::OnMouseButtonUp(const FGeometry& MyGeometry, const FPoi
 	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = GetActEventTimelineArgs();
 	const bool bHasMouseCapture = HasMouseCapture();
 	const bool bHandleLeftMouseButton = MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton && bHasMouseCapture;
-	const bool bHandleRightMouseButton = MouseEvent.GetEffectingButton() == EKeys::RightMouseButton && bHasMouseCapture && ActEventTimelineArgs->AllowZoom;
-	const FActSliderScrubRangeToScreen RangeToScreen = FActSliderScrubRangeToScreen(*ActEventTimelineArgs->ViewRange, MyGeometry.Size);
+	const bool bHandleRightMouseButton = MouseEvent.GetEffectingButton() == EKeys::RightMouseButton && bHasMouseCapture && ActEventTimelineArgs->
+		AllowZoom;
+	const FActSliderScrubRangeToScreen RangeToScreen(*ActEventTimelineArgs->ViewRange, MyGeometry.Size);
 	const FFrameRate TickResolution = ActEventTimelineArgs->TickResolution;
-	const FFrameTime MouseTime = NovaStaticFunction::ComputeFrameTimeFromMouse(MyGeometry, MouseEvent.GetScreenSpacePosition(), RangeToScreen, TickResolution);
+	const FFrameTime MouseTime = NovaStaticFunction::ComputeFrameTimeFromMouse(MyGeometry,
+	                                                                           MouseEvent.GetScreenSpacePosition(),
+	                                                                           RangeToScreen,
+	                                                                           TickResolution);
 
 	if (bHandleRightMouseButton)
 	{
-		if (!bPanning)
+		if (!bPanning && DistanceDragged == 0.0f)
 		{
 			// return unhandled in case our parent wants to use our right mouse button to open a context menu
-			if (DistanceDragged == 0.0f)
-			{
-				return FReply::Unhandled().ReleaseMouseCapture();
-			}
+			return FReply::Unhandled().ReleaseMouseCapture();
 		}
 
 		bPanning = false;
-		bMouseDownInRegion = false;
+		DistanceDragged = 0.f;
 
 		return FReply::Handled().ReleaseMouseCapture();
 	}
@@ -219,7 +226,11 @@ FReply SActSliderWidget::OnMouseButtonUp(const FGeometry& MyGeometry, const FPoi
 		if (MouseDragType == ENovaDragType::DRAG_SETTING_RANGE)
 		{
 			// Zooming
-			const FFrameTime MouseDownStart = NovaStaticFunction::ComputeFrameTimeFromMouse(MyGeometry, MouseDownPosition[0], RangeToScreen, TickResolution);
+			const FFrameTime MouseDownStart = NovaStaticFunction::ComputeFrameTimeFromMouse(
+				MyGeometry,
+				MouseDownPosition[0],
+				RangeToScreen,
+				TickResolution);
 
 			const bool bCanZoomIn = MouseTime > MouseDownStart;
 			const bool bCanZoomOut = ViewRangeZoomStack.Num() > 0;
@@ -241,7 +252,7 @@ FReply SActSliderWidget::OnMouseButtonUp(const FGeometry& MyGeometry, const FPoi
 				NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
 			}
 		}
-		else if (bMouseDownInRegion)
+		else
 		{
 			OnEndScrubberMovement();
 			CommitScrubPosition(MouseTime, /*bIsScrubbing=*/false);
@@ -249,12 +260,10 @@ FReply SActSliderWidget::OnMouseButtonUp(const FGeometry& MyGeometry, const FPoi
 
 		MouseDragType = ENovaDragType::DRAG_NONE;
 		DistanceDragged = 0.0f;
-		bMouseDownInRegion = false;
 
 		return FReply::Handled().ReleaseMouseCapture();
 	}
 
-	bMouseDownInRegion = false;
 	return FReply::Unhandled();
 }
 
@@ -299,7 +308,7 @@ FReply SActSliderWidget::OnMouseMove(const FGeometry& MyGeometry, const FPointer
 				{
 					MouseDragType = ENovaDragType::DRAG_SETTING_RANGE;
 				}
-				else if (bMouseDownInRegion)
+				else
 				{
 					MouseDragType = ENovaDragType::DRAG_SCRUBBING_TIME;
 					auto DB = GetDataBinding(EPlaybackMode::Type, "PreviewInstancePlaybackMode");
@@ -310,7 +319,10 @@ FReply SActSliderWidget::OnMouseMove(const FGeometry& MyGeometry, const FPointer
 		}
 		else
 		{
-			FFrameTime ScrubTime = NovaStaticFunction::ComputeFrameTimeFromMouse(MyGeometry, MouseEvent.GetScreenSpacePosition(), RangeToScreen, TickResolution);
+			FFrameTime ScrubTime = NovaStaticFunction::ComputeFrameTimeFromMouse(MyGeometry,
+			                                                                     MouseEvent.GetScreenSpacePosition(),
+			                                                                     RangeToScreen,
+			                                                                     TickResolution);
 
 			if (MouseDragType == ENovaDragType::DRAG_SCRUBBING_TIME)
 			{

@@ -102,7 +102,7 @@ protected:
 	/** 当前鼠标的拖拽状态，是在拖拽时间平移还是改变时间范围 */
 	ENovaDragType MouseDragType;
 	/** 鼠标按下时是否在指定区域内，If mouse down was in time scrubbing region, only allow setting time when mouse is pressed down in the region */
-	bool bMouseDownInRegion;
+	// bool bMouseDownInRegion;
 	/** 当前是否在拖拽平移的过程中，If we are currently panning the panel */
 	bool bPanning;
 	/** 将 Tick 的标记上下镜像，If we should mirror the labels on the timeline */
