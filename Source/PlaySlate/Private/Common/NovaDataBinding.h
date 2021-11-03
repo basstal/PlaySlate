@@ -76,6 +76,12 @@ public:
 	virtual void Trigger(const FDelegateHandle& InDelegateHandle = FDelegateHandle()) = 0;
 	/** 解除对数据原型、绑定函数等相关资源的引用 */
 	virtual void Release() = 0;
+	/**
+	 * 解绑函数
+	 *
+	 * @param InDelegateHandle 传入绑定函数FDelegate的Handle，用于查找内部存储的对应Delegate实例并解除绑定
+	 */
+	virtual bool UnBind(FDelegateHandle InDelegateHandle) = 0;
 	virtual ~IDataBinding() = default;
 protected:
 	IDataBinding(FName InName)
@@ -102,12 +108,7 @@ public:
 	 * @return 绑定函数FDelegate的Handle，用于解绑时作为参数传入
 	 */
 	FDelegateHandle Bind(DelegateType InDelegate);
-	/**
-	 * 解绑函数
-	 *
-	 * @param InDelegateHandle 传入绑定函数FDelegate的Handle，用于查找内部存储的对应Delegate实例并解除绑定
-	 */
-	bool UnBind(FDelegateHandle InDelegateHandle);
+
 	/**
 	 * 获得数据原型
 	 *
@@ -122,6 +123,7 @@ public:
 	void SetData(TSharedPtr<AbstractData> InData);
 
 	//~Begin IDataBinding interface
+	virtual bool UnBind(FDelegateHandle InDelegateHandle) override;
 	virtual void Trigger(const FDelegateHandle& InDelegateHandle = FDelegateHandle()) override;
 	virtual void Release() override;
 	//~End IDataBinding interface
@@ -152,12 +154,6 @@ public:
 	 */
 	FDelegateHandle Bind(DelegateType InDelegate);
 	/**
-	 * 解绑函数
-	 *
-	 * @param InDelegateHandle 传入绑定函数FDelegate的Handle，用于查找内部存储的对应Delegate实例并解除绑定
-	 */
-	bool UnBind(FDelegateHandle InDelegateHandle);
-	/**
 	 * 获得数据原型
 	 *
 	 * @return 内部的数据原型
@@ -170,6 +166,7 @@ public:
 	 */
 	void SetData(AbstractData* InData);
 	//~Begin IDataBinding interface
+	virtual bool UnBind(FDelegateHandle InDelegateHandle) override;
 	virtual void Trigger(const FDelegateHandle& InDelegateHandle = FDelegateHandle()) override;
 	virtual void Release() override;
 	//~End IDataBinding interface
@@ -199,12 +196,6 @@ public:
 	 */
 	FDelegateHandle Bind(DelegateType InDelegate);
 	/**
-	 * 解绑函数
-	 *
-	 * @param InDelegateHandle 传入绑定函数FDelegate的Handle，用于查找内部存储的对应Delegate实例并解除绑定
-	 */
-	bool UnBind(FDelegateHandle InDelegateHandle);
-	/**
 	 * 获得数据原型
 	 *
 	 * @return 内部的数据原型
@@ -217,6 +208,7 @@ public:
 	 */
 	void SetData(AbstractData InData);
 	//~Begin IDataBinding interface
+	virtual bool UnBind(FDelegateHandle InDelegateHandle) override;
 	virtual void Trigger(const FDelegateHandle& InDelegateHandle = FDelegateHandle()) override;
 	virtual void Release() override;
 	//~End IDataBinding interface
@@ -241,6 +233,13 @@ public:
 	 */
 	static TSharedPtr<IDataBinding> Get(FName InName);
 
+	/**
+	 * 给指定数据绑定解绑函数
+	 * @param InName
+	 * @param InDelegateHandle
+	 * @return
+	 */
+	static bool UnBind(FName InName, FDelegateHandle InDelegateHandle);
 	/**
 	 * 构造指定名称的数据绑定，并传入数据原型，
 	 * 推荐UObject及其子类模板加裸指针，其他类型结构模板加TSharedPtr，基本数据类型可直接使用
@@ -371,7 +370,6 @@ bool TDataBindingSP<AbstractData>::UnBind(FDelegateHandle InDelegateHandle)
 	}
 	return false;
 }
-
 
 template <typename AbstractData>
 bool TDataBindingUObject<AbstractData>::UnBind(FDelegateHandle InDelegateHandle)

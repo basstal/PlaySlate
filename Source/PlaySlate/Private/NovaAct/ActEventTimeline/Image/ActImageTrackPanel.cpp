@@ -1,7 +1,8 @@
 ﻿#include "ActImageTrackPanel.h"
 
 #include "ActImageTreeViewTableRow.h"
-#include "Subs/ActTrackPanelNotifiesPanel.h"
+#include "NovaAct/ActEventTimeline/Image/TrackPanelTypes/ActTrackPanelNotifyTrackWidget.h"
+#include "NovaAct/ActEventTimeline/Image/TrackPanelTypes/ActTrackPanelFolderWidget.h"
 #include "Widgets/SWeakWidget.h"
 
 SActImageTrackPanel::Slot::Slot(const TSharedRef<SActImageTrackPanel>& InSlotContent)
@@ -30,12 +31,22 @@ void SActImageTrackPanel::Construct(const FArguments& InArgs, const TSharedRef<S
 	switch (Type)
 	{
 	case ENovaTreeViewTableRowType::None: break;
-	case ENovaTreeViewTableRowType::Folder: break;
-	case ENovaTreeViewTableRowType::Notifies:
+	case ENovaTreeViewTableRowType::Folder:
 		{
+			ChildPanel = SNew(SActTrackPanelFolderWidget);
 			ChildSlot
 			[
-				SAssignNew(ChildPanel, SActTrackPanelNotifiesPanel)
+				ChildPanel.ToSharedRef()
+			];
+			break;
+		}
+	case ENovaTreeViewTableRowType::Notify:
+		{
+			ChildPanel = SNew(SActTrackPanelNotifyTrackWidget,
+			                  StaticCastSharedRef<FActImageTrackNotify>(InActImageTreeViewTableRow->GetActImageTrack()));
+			ChildSlot
+			[
+				ChildPanel.ToSharedRef()
 			];
 			break;
 		}
@@ -43,30 +54,28 @@ void SActImageTrackPanel::Construct(const FArguments& InArgs, const TSharedRef<S
 	}
 }
 
-void SActImageTrackPanel::Update()
-{
-	// ** TODO:改成数据绑定就不需要类型转换了
-	ENovaTreeViewTableRowType Type = ActImageTreeViewTableRow->GetTableRowType();
-	switch (Type)
-	{
-	case ENovaTreeViewTableRowType::None: break;
-	case ENovaTreeViewTableRowType::Folder: break;
-	case ENovaTreeViewTableRowType::Notifies:
-		{
-			StaticCastSharedPtr<SActTrackPanelNotifiesPanel>(ChildPanel)->Update();
-			break;
-		}
-	default: ;
-	}
-}
+// void SActImageTrackPanel::Update()
+// {
+// 	// ** TODO:改成数据绑定就不需要类型转换了
+// 	ENovaTreeViewTableRowType Type = ActImageTreeViewTableRow->GetTableRowType();
+// 	switch (Type)
+// 	{
+// 	case ENovaTreeViewTableRowType::None: break;
+// 	case ENovaTreeViewTableRowType::Folder: break;
+// 	case ENovaTreeViewTableRowType::Notify:
+// 		{
+// 			StaticCastSharedPtr<SActTrackPanelNotifyTrackWidget>(ChildPanel)->Update();
+// 			break;
+// 		}
+// 	default: ;
+// 	}
+// }
 
 float SActImageTrackPanel::GetPhysicalPosition() const
 {
-	// TODO:
-	// TSharedPtr<FAnimTimelineTrack> Track = WeakTrack.Pin();
-	// if (Track.IsValid())
-	// {
-	// return ActImageTreeViewTableRow->ComputeTrackPosition(Track.ToSharedRef()).Get(0.0f);
-	// }
+	if (ActImageTreeViewTableRow.IsValid())
+	{
+		return ActImageTreeViewTableRow->ComputeTrackPosition();
+	}
 	return 0.0f;
 }

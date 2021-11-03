@@ -12,7 +12,8 @@
 #include "NovaAct/Assets/ActAnimation.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTreeView.h"
 // #include "Subs/NovaActUICommandInfo.h"
-#include "NovaAct/ActEventTimeline/Image/TreeViewTableRowTypes/ActTreeViewTableRowFolder.h"
+#include "NovaAct/ActEventTimeline/Image/ImageTrackTypes/ActImageTrackFolder.h"
+#include "ImageTrackTypes/ActImageTrackNotify.h"
 #include "Widgets/Text/SInlineEditableTextBlock.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
@@ -20,7 +21,7 @@
 using namespace NovaConst;
 
 SActImageTreeViewTableRow::SActImageTreeViewTableRow()
-	: TableRowType(),
+	: TableRowType(ENovaTreeViewTableRowType::None),
 	  ActActionTrackAreaArgs(),
 	  CachedHitBox(nullptr),
 	  Height(0),
@@ -38,10 +39,14 @@ void SActImageTreeViewTableRow::Construct(const FArguments& InArgs,
 	case ENovaTreeViewTableRowType::None: break;
 	case ENovaTreeViewTableRowType::Folder:
 		{
-			TreeViewTableRowComponent = MakeShared<FActTreeViewTableRowFolder>();
+			ActImageTrack = MakeShared<FActImageTrackFolder>();
 			break;
 		}
-	case ENovaTreeViewTableRowType::Notifies: break;
+	case ENovaTreeViewTableRowType::Notify:
+		{
+			ActImageTrack = MakeShared<FActImageTrackNotify>();
+			break;
+		}
 	default: ;
 	}
 	FArguments MultiColumnTableRowArgs;
@@ -49,7 +54,7 @@ void SActImageTreeViewTableRow::Construct(const FArguments& InArgs,
 		// MultiColumnTableRowArgs._OnDragDetected.BindRaw(this, &SActActionSequenceTreeViewRow::OnDragDetected);
 		// MultiColumnTableRowArgs._OnCanAcceptDrop.BindRaw(this, &SActActionSequenceTreeViewRow::OnCanAcceptDrop);
 		// MultiColumnTableRowArgs._OnAcceptDrop.BindRaw(this, &SActActionSequenceTreeViewRow::OnAcceptDrop);
-		MultiColumnTableRowArgs._ShowSelection = IsSelectable();
+		MultiColumnTableRowArgs._ShowSelection = true;
 		// MultiColumnTableRowArgs._Padding.BindRaw(this, &SActActionSequenceTreeViewRow::GetRowPadding);
 	}
 
@@ -58,14 +63,14 @@ void SActImageTreeViewTableRow::Construct(const FArguments& InArgs,
 
 TSharedRef<SWidget> SActImageTreeViewTableRow::GenerateWidgetForColumn(const FName& InColumnName)
 {
-	if (!TreeViewTableRowComponent.IsValid())
+	if (!ActImageTrack.IsValid())
 	{
 		return SNullWidget::NullWidget;
 	}
 	return SNew(SOverlay)
 		+ SOverlay::Slot()
 		[
-			TreeViewTableRowComponent->GenerateContentWidgetForTableRow(SharedThis(this))
+			ActImageTrack->GenerateContentWidgetForTableRow(SharedThis(this))
 		];
 }
 
@@ -77,21 +82,6 @@ void SActImageTreeViewTableRow::HandleNotifyChanged()
 	// RefreshNotifiesPanelTableRow();
 }
 
-
-
-EActiveTimerReturnType SActImageTreeViewTableRow::HandlePendingRenameTimer(double InCurrentTime,
-                                                                           float InDeltaTime,
-                                                                           TWeakPtr<SInlineEditableTextBlock> InInlineEditableTextBlock)
-{
-	if (InInlineEditableTextBlock.IsValid())
-	{
-		InInlineEditableTextBlock.Pin()->EnterEditingMode();
-	}
-
-	PendingRenameTrackIndex = INDEX_NONE;
-
-	return EActiveTimerReturnType::Stop;
-}
 
 //
 // TSharedRef<SActTrackPanel> SActImageTreeViewTableRow::MakeWidgetForTrackArea()
@@ -345,21 +335,14 @@ float SActImageTreeViewTableRow::ComputeTrackPosition()
 }
 
 
-void SActImageTreeViewTableRow::Update()
-{
-	auto DB = GetDataBinding(UAnimSequence**, "ActAnimation/AnimSequence");
-	UAnimSequence* AnimSequence = *(DB->GetData());
-	SetHeight((float)(AnimSequence->AnimNotifyTracks.Num() * NotifyHeight));
-	// RefreshNotifiesPanelTableRow();
-	if (ActImageTrackPanel.IsValid())
-	{
-		ActImageTrackPanel->Update();
-	}
-}
-
 ENovaTreeViewTableRowType SActImageTreeViewTableRow::GetTableRowType() const
 {
 	return TableRowType;
+}
+
+TSharedRef<IActImageTrackBase> SActImageTreeViewTableRow::GetActImageTrack() const
+{
+	return ActImageTrack.ToSharedRef();
 }
 
 #undef LOCTEXT_NAMESPACE

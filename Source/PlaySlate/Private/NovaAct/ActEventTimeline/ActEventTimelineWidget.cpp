@@ -13,6 +13,7 @@
 #include "FrameNumberNumericInterface.h"
 #include "Common/NovaDataBinding.h"
 #include "Image/ActImageScrubPosition.h"
+#include "Image/Subs/NovaActUICommandInfo.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageThickLine.h"
 #include "NovaAct/Assets/Tracks/ActActionHitBoxTrack.h"
 #include "Widgets/Input/SSearchBox.h"
@@ -37,6 +38,7 @@ SActEventTimelineWidget::~SActEventTimelineWidget()
 
 void SActEventTimelineWidget::Construct(const FArguments& InArgs)
 {
+	FNovaActUICommandInfo::Register();
 	auto FillLeftAttr = TAttribute<float>::Create(TAttribute<float>::FGetter::CreateLambda([]()
 	{
 		auto DB = GetDataBinding(float, "ColumnFillCoefficientsLeft");

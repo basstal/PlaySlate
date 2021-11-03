@@ -36,6 +36,7 @@ public:
 	//~End FGCObject interface
 
 	//~Begin FWorkflowCentricApplication interface
+	virtual bool OnRequestClose() override;
 	virtual FName GetToolkitFName() const override;
 	virtual FText GetBaseToolkitName() const override;
 	virtual void RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;

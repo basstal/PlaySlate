@@ -82,7 +82,7 @@ void SActNotifiesPanelLaneWidget::Update()
 			// 	{
 			// 		// Only the notify type will return the type flags above
 			// 		FTimingRelevantElement_Notify* NotifyElement = static_cast<FTimingRelevantElement_Notify*>(Element.Get());
-			// 		if (Event == &Sequence->Notifies[NotifyElement->NotifyIndex])
+			// 		if (Event == &Sequence->Notify[NotifyElement->NotifyIndex])
 			// 		{
 			// 			break;
 			// 		}
@@ -117,7 +117,7 @@ void SActNotifiesPanelLaneWidget::Update()
 			// 		if (ElementToTest.IsValid() && ElementToTest->GetType() == ETimingElementType::NotifyStateEnd)
 			// 		{
 			// 			FTimingRelevantElement_NotifyStateEnd* StateElement = static_cast<FTimingRelevantElement_NotifyStateEnd*>(ElementToTest.Get());
-			// 			return &(StateElement->Sequence->Notifies[StateElement->NotifyIndex]) == Event;
+			// 			return &(StateElement->Sequence->Notify[StateElement->NotifyIndex]) == Event;
 			// 		}
 			// 		return false;
 			// 	});

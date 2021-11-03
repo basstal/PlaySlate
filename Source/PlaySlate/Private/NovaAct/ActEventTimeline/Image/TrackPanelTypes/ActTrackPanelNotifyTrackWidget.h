@@ -1,14 +1,16 @@
 ﻿#pragma once
+#include "NovaAct/ActEventTimeline/Image/ImageTrackTypes/ActImageTrackNotify.h"
 
 
 class SActImageTrackCarWidget;
 class SActNotifiesPanelLaneWidget;
 class SActNotifiesPanelEditorLaneWidget;
+class IActImageTrackBase;
 
-class SActTrackPanelNotifiesPanel : public SCompoundWidget, public FEditorUndoClient
+class SActTrackPanelNotifyTrackWidget : public SCompoundWidget, public FEditorUndoClient
 {
 public:
-	SLATE_BEGIN_ARGS(SActTrackPanelNotifiesPanel) {}
+	SLATE_BEGIN_ARGS(SActTrackPanelNotifyTrackWidget) {}
 		// 	: _Sequence()
 		// 	, _CurrentPosition()
 		// 	, _ViewInputMin()
@@ -41,7 +43,7 @@ public:
 
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs);
+	void Construct(const FArguments& InArgs, const TSharedRef<FActImageTrackNotify>& InActImageTrackNotify);
 
 	/** Handler for delete command */
 	void OnDeletePressed();
@@ -56,8 +58,17 @@ public:
 	 * Called when a track changes it's selection; iterates all tracks collecting selected items
 	 */
 	void OnTrackSelectionChanged();
-	void Update();
+
+	/**
+	 * 刷新 Lane 显示的内容
+	 *
+	 * @param InActImageTrack
+	 */
+	void OnLaneContentRefresh(TSharedPtr<IActImageTrackBase> InActImageTrack);
+
 protected:
+	TSharedPtr<FActImageTrackNotify> ActImageTrackNotify;
+	
 	/** Cached list of anim tracks for notify node drag drop */
 	TArray<TSharedPtr<SActNotifiesPanelLaneWidget>> NotifyTracks;
 

@@ -12,6 +12,12 @@ TSharedPtr<IDataBinding> NovaDataBinding::Get(FName InName)
 	return nullptr;
 }
 
+bool NovaDataBinding::UnBind(FName InName, FDelegateHandle InDelegateHandle)
+{
+	auto DataBinding = NovaDataBinding::Get(InName);
+	return DataBinding->UnBind(InDelegateHandle);
+}
+
 bool NovaDataBinding::Delete(FName InName)
 {
 	auto ValueTypePtr = NovaDataBinding::DataBindingMap.Find(InName);

@@ -2,6 +2,7 @@
 
 // #include "Common/NovaDataBinding.h"
 #include "Common/NovaDelegate.h"
+#include "Widgets/SCompoundWidget.h"
 
 
 class SActSliderWidget;

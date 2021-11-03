@@ -12,6 +12,7 @@
 
 SActImageTreeView::~SActImageTreeView()
 {
+	NovaDB::Delete("ActImageTrack/Refresh");
 	auto DB = GetDataBindingUObject(UActAnimation, "ActAnimation");
 	if (DB)
 	{
@@ -21,6 +22,7 @@ SActImageTreeView::~SActImageTreeView()
 
 void SActImageTreeView::Construct(const FArguments& InArgs, const TSharedRef<SActImageAreaPanel>& InActImageTrackAreaPanel)
 {
+	NovaDB::CreateSP<IActImageTrackBase>("ActImageTrack/Refresh", nullptr);
 	ActImageAreaPanel = InActImageTrackAreaPanel;
 
 	TextFilter = MakeShareable(new FTextFilterExpressionEvaluator(ETextFilterExpressionEvaluatorMode::BasicString));
@@ -52,7 +54,8 @@ void SActImageTreeView::Construct(const FArguments& InArgs, const TSharedRef<SAc
 	DataBindingBindRaw(FText, "TreeViewFilterText", this, &SActImageTreeView::OnFilterChanged, OnFilterChangedHandle);
 }
 
-void SActImageTreeView::OnGetChildren(TSharedRef<SActImageTreeViewTableRow> InParent, TArray<TSharedRef<SActImageTreeViewTableRow>>& OutChildren) const
+void SActImageTreeView::OnGetChildren(TSharedRef<SActImageTreeViewTableRow> InParent,
+                                      TArray<TSharedRef<SActImageTreeViewTableRow>>& OutChildren) const
 {
 	for (const auto& Node : InParent->GetChildNodes())
 	{
@@ -109,34 +112,46 @@ void SActImageTreeView::OnHitBoxesChanged(UActAnimation* InActAnimation)
 	{
 		HitBoxesFolder = *FindElement;
 	}
+	auto FindElement1 = DisplayedRootNodes.FindByPredicate([](TSharedRef<SActImageTreeViewTableRow> InNode)
+	{
+		return InNode->GetNodeName() == FName("HitBox");
+	});
+	if (!FindElement1)
+	{
+		TSharedRef<SActImageTreeViewTableRow> NewTreeViewNode = SNew(SActImageTreeViewTableRow,
+		                                                             SharedThis(this),
+		                                                             FName("HitBox"),
+		                                                             ENovaTreeViewTableRowType::Notify);
+		NewTreeViewNode->SetParent(HitBoxesFolder);
+		// DisplayedRootNodes.Add(NewTreeViewNode);
+	}
+
 	int32 HitBoxTreeViewNodeCount = HitBoxesFolder->GetChildNodes().Num();
 	if (HitBoxTreeViewNodeCount < InHitBoxData.Num())
 	{
 		FName HitBoxName("HitBox");
 		for (int32 count = HitBoxTreeViewNodeCount; count < InHitBoxData.Num(); ++count)
 		{
-			// ** TODO: fix
-			TSharedRef<SActImageTreeViewTableRow> NewTreeViewNode = SNew(SActImageTreeViewTableRow, SharedThis(this), HitBoxName, ENovaTreeViewTableRowType::Notifies);
-			NewTreeViewNode->SetParent(HitBoxesFolder);
 			// DisplayedRootNodes.Add(NewTreeViewNode);
 		}
 	}
-	int32 Index = 0;
-	for (FActActionHitBoxData& InHitBox : InHitBoxData)
-	{
-		HitBoxesFolder->GetChildByIndex(Index++)->SetContentAsHitBox(InHitBox);
-	}
-	int32 ChildCount = HitBoxesFolder->GetChildNodes().Num();
-	while (Index < ChildCount)
-	{
-		HitBoxesFolder->GetChildByIndex(Index++)->RemoveFromParent();
-	}
+	// int32 Index = 0;
+	// for (FActActionHitBoxData& InHitBox : InHitBoxData)
+	// {
+	// 	HitBoxesFolder->GetChildByIndex(Index++)->SetContentAsHitBox(InHitBox);
+	// }
+	// int32 ChildCount = HitBoxesFolder->GetChildNodes().Num();
+	// while (Index < ChildCount)
+	// {
+	// 	HitBoxesFolder->GetChildByIndex(Index++)->RemoveFromParent();
+	// }
 	// SetTreeItemsSource(&DisplayedRootNodes);
 	RequestListRefresh();
 }
 
 
-TSharedRef<ITableRow> SActImageTreeView::OnTreeViewGenerateRow(TSharedRef<SActImageTreeViewTableRow> InActImageTreeViewTableRow, const TSharedRef<STableViewBase>& OwnerTable)
+TSharedRef<ITableRow> SActImageTreeView::OnTreeViewGenerateRow(TSharedRef<SActImageTreeViewTableRow> InActImageTreeViewTableRow,
+                                                               const TSharedRef<STableViewBase>& OwnerTable)
 {
 	// Ensure the track area is kept up to date with the virtualized scroll of the tree view
 	// TSharedPtr<SAnimTrack> TrackWidget = TreeViewTableRow2TrackPanel->FindTrackSlot(InTrack);

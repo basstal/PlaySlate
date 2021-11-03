@@ -48,7 +48,7 @@ public:
 	//
 	// virtual float GetSequenceLength() const { return 0.0f; }
 
-	void Update();
+	// void Update();
 
 	/** Get the desired physical vertical position of this track */
 	float GetPhysicalPosition() const;

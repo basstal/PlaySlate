@@ -69,7 +69,7 @@ void FActTrackAreaSlotDragDrop::OnDragged(const FDragDropEvent& DragDropEvent)
 	NodeGroupPosition = DragDropEvent.GetScreenSpacePosition() + DragOffset;
 
 	// FTrackClampInfo* SelectionPositionClampInfo = &GetTrackClampInfo(DragDropEvent.GetScreenSpacePosition());
-	// if ((SelectionPositionClampInfo->NotifyTrack->GetTrackIndex() + TrackSpan) >= ClampInfos.Num())
+	// if ((SelectionPositionClampInfo->Notify->GetTrackIndex() + TrackSpan) >= ClampInfos.Num())
 	// {
 	// 	// Our selection has moved off the bottom of the notify panel, adjust the clamping information to keep it on the panel
 	// 	SelectionPositionClampInfo = &ClampInfos[ClampInfos.Num() - TrackSpan - 1];
@@ -151,7 +151,7 @@ void FActTrackAreaSlotDragDrop::OnDragged(const FDragDropEvent& DragDropEvent)
 	// 			SnapTime = TrackScaleInfo.LocalXToInput(SnapX);
 	// 			// SnappedNode = CurrentNode;
 	// 		}
-	// 		EventPosition = NodeClamp.NotifyTrack->GetCachedGeometry().LocalToAbsolute(TrackNodePos);
+	// 		EventPosition = NodeClamp.Notify->GetCachedGeometry().LocalToAbsolute(TrackNodePos);
 	// 	}
 	// 	else
 	// 	{
@@ -276,8 +276,8 @@ TSharedRef<FActTrackAreaSlotDragDrop> FActTrackAreaSlotDragDrop::New(TSharedRef<
 	// for (int32 i = 0; i < NotifyTracks.Num(); ++i)
 	// {
 	// 	FTrackClampInfo Info;
-	// 	Info.NotifyTrack = NotifyTracks[i];
-	// 	const FGeometry& CachedGeometry = Info.NotifyTrack->GetCachedGeometry();
+	// 	Info.Notify = NotifyTracks[i];
+	// 	const FGeometry& CachedGeometry = Info.Notify->GetCachedGeometry();
 	// 	Info.TrackPos = CachedGeometry.AbsolutePosition.Y;
 	// 	Info.TrackSnapTestPos = Info.TrackPos + (CachedGeometry.Size.Y / 2);
 	// 	Operation->ClampInfos.Add(Info);

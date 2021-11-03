@@ -1,14 +1,15 @@
-﻿#include "ActTrackPanelNotifiesPanel.h"
+﻿#include "ActTrackPanelNotifyTrackWidget.h"
 
-#include "ActNotifiesPanelEditorLaneWidget.h"
-#include "NovaActUICommandInfo.h"
+#include "NovaAct/ActEventTimeline/Image/Subs/ActNotifiesPanelEditorLaneWidget.h"
+#include "NovaAct/ActEventTimeline/Image/Subs/NovaActUICommandInfo.h"
 #include "Animation/EditorNotifyObject.h"
 #include "Common/NovaDataBinding.h"
 #include "NovaAct/NovaActEditor.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTrackCarWidget.h"
+#include "NovaAct/ActEventTimeline/Image/ImageTrackTypes/ActImageTrackBase.h"
 
 
-void SActTrackPanelNotifiesPanel::Construct(const FArguments& InArgs)
+void SActTrackPanelNotifyTrackWidget::Construct(const FArguments& InArgs, const TSharedRef<FActImageTrackNotify>& InActImageTrackNotify)
 {
 	// SAnimTrackPanel::Construct(SAnimTrackPanel::FArguments()
 	//                            .WidgetWidth(InArgs._WidgetWidth)
@@ -26,6 +27,8 @@ void SActTrackPanelNotifiesPanel::Construct(const FArguments& InArgs)
 	// OnSnapPosition = InArgs._OnSnapPosition;
 	// OnNotifyStateHandleBeingDragged = InArgs._OnNotifyStateHandleBeingDragged;
 	// OnNotifyNodesBeingDragged = InArgs._OnNotifyNodesBeingDragged;
+	ActImageTrackNotify = InActImageTrackNotify;
+
 	bIsSelecting = false;
 	bIsUpdating = false;
 
@@ -38,19 +41,20 @@ void SActTrackPanelNotifiesPanel::Construct(const FArguments& InArgs)
 	const FNovaActNotifiesPanelCommands& Commands = FNovaActNotifiesPanelCommands::Get();
 	CommandList->MapAction(
 		Commands.DeleteNotify,
-		FExecuteAction::CreateSP(this, &SActTrackPanelNotifiesPanel::OnDeletePressed));
+		FExecuteAction::CreateSP(this, &SActTrackPanelNotifyTrackWidget::OnDeletePressed));
 
 	// CommandList->MapAction(
 	// 	Commands.CopyNotifies,
-	// 	FExecuteAction::CreateSP(this, &SActTrackPanelNotifiesPanel::CopySelectedNodesToClipboard));
+	// 	FExecuteAction::CreateSP(this, &SActTrackPanelNotifyTrackWidget::CopySelectedNodesToClipboard));
 
 	// CommandList->MapAction(
 	// 	Commands.PasteNotifies,
-	// 	FExecuteAction::CreateSP(this, &SActTrackPanelNotifiesPanel::OnPasteNodes, (SAnimNotifyTrack*)nullptr, -1.0f, ENotifyPasteMode::MousePosition, ENotifyPasteMultipleMode::Absolute));
+	// 	FExecuteAction::CreateSP(this, &SActTrackPanelNotifyTrackWidget::OnPasteNodes, (SAnimNotifyTrack*)nullptr, -1.0f, ENotifyPasteMode::MousePosition, ENotifyPasteMultipleMode::Absolute));
 
 	auto DB = GetDataBinding(UAnimSequenceBase**, "ActAnimation/AnimSequence");
 	UAnimSequenceBase* AnimSequenceBase = *(DB->GetData());
-	AnimSequenceBase->RegisterOnNotifyChanged(UAnimSequenceBase::FOnNotifyChanged::CreateSP(this, &SActTrackPanelNotifiesPanel::RefreshNotifyTracks));
+	AnimSequenceBase->RegisterOnNotifyChanged(
+		UAnimSequenceBase::FOnNotifyChanged::CreateSP(this, &SActTrackPanelNotifyTrackWidget::RefreshNotifyTracks));
 	//
 	// InModel->GetEditableSkeleton()->RegisterOnNotifiesChanged(FSimpleDelegate::CreateSP(this, &SAnimNotifyPanel::RefreshNotifyTracks));
 	// InModel->OnTracksChanged().Add(FSimpleDelegate::CreateSP(this, &SAnimNotifyPanel::RefreshNotifyTracks));
@@ -88,9 +92,12 @@ void SActTrackPanelNotifiesPanel::Construct(const FArguments& InArgs)
 	// PopulateNotifyBlueprintClasses(NotifyStateClassNames);
 	//
 	// Update();
+
+	FDelegateHandle _;
+	DataBindingSPBindRaw(IActImageTrackBase, "ActImageTrack/Refresh", this, &SActTrackPanelNotifyTrackWidget::OnLaneContentRefresh, _)
 }
 
-void SActTrackPanelNotifiesPanel::OnDeletePressed()
+void SActTrackPanelNotifyTrackWidget::OnDeletePressed()
 {
 	// If there's no focus on the panel it's likely the user is not editing notifies
 	// so don't delete anything when the key is pressed.
@@ -100,7 +107,7 @@ void SActTrackPanelNotifiesPanel::OnDeletePressed()
 	}
 }
 
-void SActTrackPanelNotifiesPanel::DeleteSelectedNodeObjects()
+void SActTrackPanelNotifyTrackWidget::DeleteSelectedNodeObjects()
 {
 	// TArray<INodeObjectInterface*> SelectedNodes;
 	// for (TSharedPtr<SAnimNotifyTrack> Track : NotifyTracks)
@@ -138,7 +145,7 @@ void SActTrackPanelNotifiesPanel::DeleteSelectedNodeObjects()
 	// Update();
 }
 
-void SActTrackPanelNotifiesPanel::RefreshNotifyTracks()
+void SActTrackPanelNotifyTrackWidget::RefreshNotifyTracks()
 {
 	auto DB = GetDataBinding(UAnimSequenceBase**, "ActAnimation/AnimSequence");
 	UAnimSequenceBase* AnimSequenceBase = *(DB->GetData());
@@ -208,7 +215,7 @@ void SActTrackPanelNotifiesPanel::RefreshNotifyTracks()
 }
 
 
-void SActTrackPanelNotifiesPanel::OnTrackSelectionChanged()
+void SActTrackPanelNotifyTrackWidget::OnTrackSelectionChanged()
 {
 	if (!bIsSelecting)
 	{
@@ -244,13 +251,21 @@ void SActTrackPanelNotifiesPanel::OnTrackSelectionChanged()
 	}
 }
 
-void SActTrackPanelNotifiesPanel::Update()
+void SActTrackPanelNotifyTrackWidget::OnLaneContentRefresh(TSharedPtr<IActImageTrackBase> InActImageTrack)
 {
+	if (InActImageTrack != ActImageTrackNotify)
+	{
+		return;
+	}
 	if (!bIsUpdating)
 	{
+		auto DB = GetDataBinding(UAnimSequenceBase**, "ActAnimation/AnimSequence");
+		if (!DB)
+		{
+			return;
+		}
 		TGuardValue<bool> ScopeGuard(bIsUpdating, true);
 
-		auto DB = GetDataBinding(UAnimSequenceBase**, "ActAnimation/AnimSequence");
 		UAnimSequenceBase* AnimSequenceBase = *(DB->GetData());
 		if (AnimSequenceBase)
 		{

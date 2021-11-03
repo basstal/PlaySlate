@@ -1,4 +1,4 @@
-﻿#include "ActTreeViewTableRowNotifyTrack.h"
+﻿#include "ActImageTrackNotify.h"
 
 #include "Animation/AnimMontage.h"
 #include "Common/NovaConst.h"
@@ -15,12 +15,19 @@ using namespace NovaConst;
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
-FActTreeViewTableRowNotifyTrack::~FActTreeViewTableRowNotifyTrack()
+FActImageTrackNotify::FActImageTrackNotify()
+	: PendingRenameTrackIndex(INDEX_NONE)
 {
-	UE_LOG(LogNovaAct, Log, TEXT("FActTreeViewTableRowNotifyTrack::~FActTreeViewTableRowNotifyTrack"));
+	ActImageTrackArgs = MakeShared<FActImageTrackArgs>();
 }
 
-TSharedRef<SWidget> FActTreeViewTableRowNotifyTrack::GenerateContentWidgetForTableRow(const TSharedRef<SActImageTreeViewTableRow>& InTableRow)
+FActImageTrackNotify::~FActImageTrackNotify()
+{
+	UE_LOG(LogNovaAct, Log, TEXT("FActImageTrackNotify::~FActImageTrackNotify"));
+	NovaDB::UnBind("ActImageTrack/Refresh", OnTreeViewContentRefreshHandle);
+}
+
+TSharedRef<SWidget> FActImageTrackNotify::GenerateContentWidgetForTableRow(const TSharedRef<SActImageTreeViewTableRow>& InTableRow)
 {
 	TSharedRef<SHorizontalBox> GenerateContent = SNew(SHorizontalBox)
 		.ToolTipText(FText::GetEmpty())
@@ -29,13 +36,19 @@ TSharedRef<SWidget> FActTreeViewTableRowNotifyTrack::GenerateContentWidgetForTab
 			SAssignNew(NotifyContainerBox, SVerticalBox)
 		];
 
-	RefreshTableRow();
+	auto DB = GetDataBindingSP(IActImageTrackBase, "ActImageTrack/Refresh");
+	DB->SetData(SharedThis(this));
+	DataBindingSPBindRaw(IActImageTrackBase, "ActImageTrack/Refresh", this, &FActImageTrackNotify::OnTreeViewContentRefresh, OnTreeViewContentRefreshHandle);
 	return GenerateContent;
 }
 
 
-void FActTreeViewTableRowNotifyTrack::RefreshTableRow()
+void FActImageTrackNotify::OnTreeViewContentRefresh(TSharedPtr<IActImageTrackBase> InActImageTrack)
 {
+	if (InActImageTrack.Get() != this)
+	{
+		return;
+	}
 	auto DB = GetDataBinding(UAnimSequenceBase**, "ActAnimation/AnimSequence");
 	if (!DB)
 	{
@@ -63,9 +76,7 @@ void FActTreeViewTableRowNotifyTrack::RefreshTableRow()
 			if (DB)
 			{
 				UAnimSequenceBase* AnimSequenceBase = *(DB->GetData());
-				return AnimSequenceBase->AnimNotifyTracks.IsValidIndex(TrackIndex)
-					       ? FText::FromName(AnimSequenceBase->AnimNotifyTracks[TrackIndex].TrackName)
-					       : FText::GetEmpty();
+				return AnimSequenceBase->AnimNotifyTracks.IsValidIndex(TrackIndex) ? FText::FromName(AnimSequenceBase->AnimNotifyTracks[TrackIndex].TrackName) : FText::GetEmpty();
 			}
 			return FText::GetEmpty();
 		};
@@ -86,7 +97,7 @@ void FActTreeViewTableRowNotifyTrack::RefreshTableRow()
 					SAssignNew(InlineEditableTextBlock, SInlineEditableTextBlock)
 					.Text_Lambda(TextLambda)
 					.IsSelected_Lambda([] { return true; })
-					.OnTextCommitted(FOnTextCommitted::CreateRaw(this, &FActTreeViewTableRowNotifyTrack::OnCommitName, TrackIndex))
+					.OnTextCommitted(FOnTextCommitted::CreateRaw(this, &FActImageTrackNotify::OnCommitName, TrackIndex))
 				]
 
 			]
@@ -105,25 +116,25 @@ void FActTreeViewTableRowNotifyTrack::RefreshTableRow()
 				[
 					NovaStaticFunction::MakeTrackButton(LOCTEXT("AddTrackButtonText", "Track"),
 					                                    FOnGetContent::CreateRaw(this,
-					                                                             &FActTreeViewTableRowNotifyTrack::BuildSubMenu,
+					                                                             &FActImageTrackNotify::BuildSubMenu,
 					                                                             TrackIndex),
 					                                    MakeAttributeSP(SlotBox.Get(), &SWidget::IsHovered))
 				];
 		}
 
-		// if (PendingRenameTrackIndex == TrackIndex)
-		// {
-		// 	TWeakPtr<SInlineEditableTextBlock> WeakInlineEditableTextBlock = InlineEditableTextBlock;
-		// 	InlineEditableTextBlock->RegisterActiveTimer(0.0f,
-		// 	                                             FWidgetActiveTimerDelegate::CreateRaw(this,
-		// 	                                                                                  &SActImageTreeViewTableRow::HandlePendingRenameTimer,
-		// 	                                                                                  WeakInlineEditableTextBlock));
-		// }
+		if (PendingRenameTrackIndex == TrackIndex)
+		{
+			TWeakPtr<SInlineEditableTextBlock> WeakInlineEditableTextBlock = InlineEditableTextBlock;
+			InlineEditableTextBlock->RegisterActiveTimer(0.0f,
+			                                             FWidgetActiveTimerDelegate::CreateRaw(this,
+			                                                                                   &FActImageTrackNotify::PendingRenameTimer,
+			                                                                                   WeakInlineEditableTextBlock));
+		}
 	}
 }
 
 
-void FActTreeViewTableRowNotifyTrack::OnCommitName(const FText& InText, ETextCommit::Type CommitInfo, int32 TrackIndex)
+void FActImageTrackNotify::OnCommitName(const FText& InText, ETextCommit::Type CommitInfo, int32 TrackIndex)
 {
 	auto DB = GetDataBinding(UAnimSequenceBase**, "ActAnimation/AnimSequence");
 	if (!DB)
@@ -141,7 +152,7 @@ void FActTreeViewTableRowNotifyTrack::OnCommitName(const FText& InText, ETextCom
 	}
 }
 
-TSharedRef<SWidget> FActTreeViewTableRowNotifyTrack::BuildSubMenu(int32 InTrackIndex)
+TSharedRef<SWidget> FActImageTrackNotify::BuildSubMenu(int32 InTrackIndex)
 {
 	auto DB = GetDataBinding(UAnimSequenceBase**, "ActAnimation/AnimSequence");
 	auto HostAppDB = GetDataBindingSP(FNovaActEditor, "NovaActEditor");
@@ -158,7 +169,7 @@ TSharedRef<SWidget> FActTreeViewTableRowNotifyTrack::BuildSubMenu(int32 InTrackI
 			FNovaActUICommandInfo::Get().InsertNotifyTrack->GetLabel(),
 			FNovaActUICommandInfo::Get().InsertNotifyTrack->GetDescription(),
 			FNovaActUICommandInfo::Get().InsertNotifyTrack->GetIcon(),
-			FUIAction(FExecuteAction::CreateRaw(this, &FActTreeViewTableRowNotifyTrack::InsertNewTrack, InTrackIndex))
+			FUIAction(FExecuteAction::CreateRaw(this, &FActImageTrackNotify::InsertNewTrack, InTrackIndex))
 		);
 
 		if (AnimSequenceBase->AnimNotifyTracks.Num() > 1)
@@ -177,7 +188,7 @@ TSharedRef<SWidget> FActTreeViewTableRowNotifyTrack::BuildSubMenu(int32 InTrackI
 }
 
 
-void FActTreeViewTableRowNotifyTrack::InsertNewTrack(int32 InTrackIndexToInsert)
+void FActImageTrackNotify::InsertNewTrack(int32 InTrackIndexToInsert)
 {
 	auto DB = GetDataBinding(UAnimSequenceBase**, "ActAnimation/AnimSequence");
 	if (!DB)
@@ -215,11 +226,38 @@ void FActTreeViewTableRowNotifyTrack::InsertNewTrack(int32 InTrackIndexToInsert)
 
 	AnimSequence->AnimNotifyTracks.Insert(NewAnimNotifyTrack, InTrackIndexToInsert);
 
-	// // Request a rename on rebuild
-	// PendingRenameTrackIndex = InTrackIndexToInsert;
+	// Request a rename on rebuild
+	PendingRenameTrackIndex = InTrackIndexToInsert;
 
-	// Update();
+	Update();
 }
 
+EActiveTimerReturnType FActImageTrackNotify::PendingRenameTimer(double InCurrentTime,
+                                                                float InDeltaTime,
+                                                                TWeakPtr<SInlineEditableTextBlock> InInlineEditableTextBlock)
+{
+	if (InInlineEditableTextBlock.IsValid())
+	{
+		InInlineEditableTextBlock.Pin()->EnterEditingMode();
+	}
+
+	PendingRenameTrackIndex = INDEX_NONE;
+
+	return EActiveTimerReturnType::Stop;
+}
+
+void FActImageTrackNotify::Update()
+{
+	auto DB = GetDataBinding(UAnimSequence**, "ActAnimation/AnimSequence");
+	if (!DB)
+	{
+		return;
+	}
+	UAnimSequence* AnimSequence = *(DB->GetData());
+	ActImageTrackArgs->Height = AnimSequence->AnimNotifyTracks.Num() * NotifyHeight;
+	auto TrackRefreshDB = GetDataBindingSP(IActImageTrackBase, "ActImageTrack/Refresh");
+	TSharedPtr<FActImageTrackNotify> ActImageTrackNotify = SharedThis(this);
+	TrackRefreshDB->SetData(ActImageTrackNotify);
+}
 
 #undef LOCTEXT_NAMESPACE

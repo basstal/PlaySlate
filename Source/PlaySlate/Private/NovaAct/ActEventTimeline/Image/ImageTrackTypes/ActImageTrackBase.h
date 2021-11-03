@@ -1,14 +1,15 @@
 ﻿#pragma once
+#include "Common/NovaStruct.h"
 
 class SActImageTreeViewTableRow;
 
-class IActTreeViewTableRowBase
+using namespace NovaStruct;
+class IActImageTrackBase : public TSharedFromThis<IActImageTrackBase>
 {
 public:
-	IActTreeViewTableRowBase();
-	virtual ~IActTreeViewTableRowBase() = default;
+	virtual ~IActImageTrackBase() = default;
 	/**
-	 * Generate a widget for the outliner for this track
+	 * 根据传入的 TreeView TableRow 生成对应的包装 TableRow 的 Widget
 	 *
 	 * @param InTableRow 传入的 TableRow
 	 * @return 生成的承载具体内容的 Widget

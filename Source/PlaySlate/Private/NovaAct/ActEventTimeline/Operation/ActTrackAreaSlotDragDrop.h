@@ -10,7 +10,7 @@ class FActTrackAreaSlotDragDrop : public FDragDropOperation
 	// {
 	// 	int32 TrackPos;
 	// 	int32 TrackSnapTestPos;
-	// 	TSharedPtr<SActActionSequenceNotifyNode> NotifyTrack;
+	// 	TSharedPtr<SActActionSequenceNotifyNode> Notify;
 	// };
 public:
 	FActTrackAreaSlotDragDrop(float& InCurrentDragXPosition);

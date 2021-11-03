@@ -107,6 +107,23 @@ namespace NovaStruct
 		bool bMirrorLabels;
 	};
 
+	struct FActImageTrackArgs
+	{
+		/** Display name to use */
+		FText DisplayName;
+		/** Tooltip text to use */
+		FText ToolTipText;
+		/** The height of the track */
+		float Height;
+		/** Whether this track is hovered */
+		bool bIsHovered : 1;
+		/** Whether this track is visible */
+		bool bIsVisible : 1;
+		/** Whether this track is expanded */
+		bool bIsExpanded : 1;
+		/** Whether this is a header track */
+		bool bIsHeaderTableRow : 1;
+	};
 	struct FActActionTrackAreaArgs
 	{
 		int32 BeginTime;// ** 开始时间
@@ -572,35 +589,54 @@ namespace NovaStruct
 		FGuid Guid;
 
 		FActImageTrackCarNotifyNode(FAnimNotifyEvent* InAnimNotifyEvent);
-		
+
 		TOptional<FLinearColor> GetEditorColor();
-		
+
 
 		FText GetNodeTooltip(const UAnimSequenceBase* Sequence);
-		
+
 
 		TOptional<UObject*> GetObjectBeingDisplayed();
-		
 
-		
+
 		void HandleDrop(class UAnimSequenceBase* Sequence, float Time, int32 TrackIndex);
-		
+
 
 		void CacheName();
-		
+
 
 		void Delete(UAnimSequenceBase* Seq);
-		
 
 
 		void MarkForDelete(UAnimSequenceBase* Seq);
-		
+
 
 		void ExportForCopy(UAnimSequenceBase* Seq, FString& StrValue) const;
-		
+
 		static FText MakeTooltipFromTime(const UAnimSequenceBase* InSequence, float InSeconds, float InDuration);
-		
+
 		static void RemoveInvalidNotifies(UAnimSequenceBase* SeqBase);
-		
+	};
+
+	/**
+	 * Structure used to define padding for a track
+	 */
+	struct FActImageTrackPadding
+	{
+		FActImageTrackPadding(float InUniform);
+
+
+		FActImageTrackPadding(float InTop, float InBottom);
+
+
+		/** @return The sum total of the separate padding values */
+		float Combined() const;
+
+
+		/** Padding to be applied to the top of the track */
+		float Top;
+
+		/** Padding to be applied to the bottom of the track */
+		float Bottom;
 	};
 }

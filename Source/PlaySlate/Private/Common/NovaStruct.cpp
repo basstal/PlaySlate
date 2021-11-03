@@ -395,6 +395,17 @@ namespace NovaStruct
 		SeqBase->PostEditChange();
 		SeqBase->MarkPackageDirty();
 	}
+
+	FActImageTrackPadding::FActImageTrackPadding(float InUniform)
+		: Top(InUniform), Bottom(InUniform) {}
+
+	FActImageTrackPadding::FActImageTrackPadding(float InTop, float InBottom)
+		: Top(InTop), Bottom(InBottom) {}
+
+	float FActImageTrackPadding::Combined() const
+	{
+		return Top + Bottom;
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

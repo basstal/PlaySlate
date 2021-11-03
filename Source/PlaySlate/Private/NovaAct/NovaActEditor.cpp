@@ -51,7 +51,6 @@ FNovaActEditor::~FNovaActEditor()
 	NovaDB::Delete("ColumnFillCoefficientsLeft");
 	NovaDB::Delete("ActAnimation/AnimSequence");
 	NovaDB::Delete("ActAnimation/AnimBlueprint");
-	NovaDB::Delete("NovaActEditor");
 }
 
 void FNovaActEditor::CreateEditorWindow(const TSharedPtr<IToolkitHost>& InIToolkitHost)
@@ -94,6 +93,13 @@ FString FNovaActEditor::GetReferencerName() const
 	return "NovaActEditor";
 }
 
+bool FNovaActEditor::OnRequestClose()
+{
+	UE_LOG(LogNovaAct, Log, TEXT("FNovaActEditor::OnRequestClose "));
+	NovaDB::Delete("NovaActEditor");
+	return FWorkflowCentricApplication::OnRequestClose();
+}
+
 FName FNovaActEditor::GetToolkitFName() const
 {
 	return "ToolkitName";
@@ -108,7 +114,10 @@ void FNovaActEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabMan
 {
 	WorkspaceMenuCategory = InTabManager->AddLocalWorkspaceMenuCategory(LOCTEXT("WorkspaceMenu_AnimationEditor", "Animation Editor"));
 
-	FTabSpawnerEntry& EventTimelineEntry = InTabManager->RegisterTabSpawner(NovaConst::ActEventTimelineTabId, FOnSpawnTab::CreateRaw(this, &FNovaActEditor::OnActEventTimelineTabSpawn));
+	FTabSpawnerEntry& EventTimelineEntry = InTabManager->RegisterTabSpawner(NovaConst::ActEventTimelineTabId,
+	                                                                        FOnSpawnTab::CreateRaw(
+		                                                                        this,
+		                                                                        &FNovaActEditor::OnActEventTimelineTabSpawn));
 	EventTimelineEntry.SetMenuType(ETabSpawnerMenuType::Hidden);
 	// EventTimelineEntry.SetDisplayName(NovaActEditor_ActEventTimeline);
 

@@ -5,7 +5,7 @@
 #include "Common/NovaStaticFunction.h"
 #include "NovaAct/Assets/ActActionSequenceStructs.h"
 
-class IActTreeViewTableRowBase;
+class IActImageTrackBase;
 class SActImageTrackLaneWidget;
 class SActImageTrackPanel;
 class FActActionSequenceSectionBase;
@@ -28,17 +28,19 @@ public:
 	typedef SMultiColumnTableRow::FArguments FArguments;
 
 	SActImageTreeViewTableRow();
-	void Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& OwnerTableView, FName InNodeName = NAME_None, ENovaTreeViewTableRowType InNodeType = ENovaTreeViewTableRowType::None);
+	void Construct(const FArguments& InArgs,
+	               const TSharedRef<STableViewBase>& OwnerTableView,
+	               FName InNodeName = NAME_None,
+	               ENovaTreeViewTableRowType InNodeType = ENovaTreeViewTableRowType::None);
 
-	
+
 	//~Begin SMultiColumnTableRow interface
 	virtual TSharedRef<SWidget> GenerateWidgetForColumn(const FName& InColumnName) override;
 	//~End SMultiColumnTableRow interface
 
 	/** 当Notify节点有改变时触发的回调 */
 	void HandleNotifyChanged();
-	
-	EActiveTimerReturnType HandlePendingRenameTimer(double InCurrentTime, float InDeltaTime, TWeakPtr<SInlineEditableTextBlock> InInlineEditableTextBlock);
+
 
 	// /** TODO: */
 	// TSharedRef<SActTrackPanel> GetAnimNotifyPanel();
@@ -197,6 +199,9 @@ public:
 
 	ENovaTreeViewTableRowType GetTableRowType() const;
 
+	/** @return 获得当前对应的 ActImageTrack */
+	TSharedRef<IActImageTrackBase> GetActImageTrack() const;
+
 protected:
 	/** The legacy notify panel */
 	TSharedPtr<SActImageTrackPanel> ActImageTrackPanel;
@@ -257,9 +262,9 @@ protected:
 	// /** The outliner widget to allow for dynamic refresh */
 	// TSharedPtr<SVerticalBox> OutlinerWidget;
 	int32 PendingRenameTrackIndex;
-	
 
-	TSharedPtr<IActTreeViewTableRowBase> TreeViewTableRowComponent;
+
+	TSharedPtr<IActImageTrackBase> ActImageTrack;
 public:
 	FName GetNodeName() const
 	{
@@ -349,6 +354,7 @@ public:
 	{
 		Height = InHeight;
 	}
+
 	/** Text to highlight when searching */
 	TAttribute<FText> HighlightText;
 };
