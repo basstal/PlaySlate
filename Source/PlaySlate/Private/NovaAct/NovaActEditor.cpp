@@ -180,8 +180,8 @@ void FNovaActEditor::OnAnimSequenceChanged(UAnimSequence** InAnimSequence)
 	ActEventTimelineArgs->ClampRange = TRange<double>(0, CalculateSequenceLength);
 	ActEventTimelineArgs->SetViewRangeClamped(0, CalculateSequenceLength);
 	ActEventTimelineArgs->TickResolution = AnimSequence->GetSamplingFrameRate();
-	NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
-	NovaDB::Trigger("ActEventTimelineArgs");
+	// NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
+	// NovaDB::Trigger("ActEventTimelineArgs");
 }
 
 TSharedRef<SWidget> FNovaActEditor::MakeEditTabContent(UAnimationAsset* InAnimationAsset)

@@ -2,8 +2,11 @@
 
 #include "FrameNumberNumericInterface.h"
 #include "NovaDataBinding.h"
+#include "SCurveEditor.h"
 #include "Common/NovaStruct.h"
 #include "Fonts/FontMeasure.h"
+
+#define LOCTEXT_NAMESPACE "NovaAct"
 
 using namespace NovaStruct;
 
@@ -237,4 +240,54 @@ public:
 
 		return NameToTest;
 	}
+
+
+	static FText MakeTooltipFromTime(const UAnimSequenceBase* InSequence, float InSeconds, float InDuration)
+	{
+		const FText Frame = FText::AsNumber(InSequence->GetFrameAtTime(InSeconds));
+		const FText Seconds = FText::AsNumber(InSeconds);
+
+		if (InDuration > 0.0f)
+		{
+			const FText Duration = FText::AsNumber(InDuration);
+			return FText::Format(LOCTEXT("NodeToolTipLong", "@ {0} sec (frame {1}) for {2} sec"), Seconds, Frame, Duration);
+		}
+		else
+		{
+			return FText::Format(LOCTEXT("NodeToolTipShort", "@ {0} sec (frame {1})"), Seconds, Frame);
+		}
+	}
+
+	static void OnViewRangePan(float InDeltaPanDistance, const FVector2D& InSize)
+	{
+		auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
+		if (!DB)
+		{
+			return;
+		}
+		TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = DB->GetData();
+		double ViewInputMin = ActEventTimelineArgs->ViewRange->GetLowerBoundValue();
+		double ViewInputMax = ActEventTimelineArgs->ViewRange->GetLowerBoundValue();
+		FTrackScaleInfo ScaleInfo(ViewInputMin,
+		                          ViewInputMax,
+		                          0.f,
+		                          0.f,
+		                          InSize);
+
+		float InputDeltaX = ScaleInfo.PixelsPerInput > 0.0f ? InDeltaPanDistance / ScaleInfo.PixelsPerInput : 0.0f;
+		float NewViewInputMin = ViewInputMin + InputDeltaX;
+		float NewViewInputMax = ViewInputMax + InputDeltaX;
+		ActEventTimelineArgs->SetViewRangeClamped(NewViewInputMin, NewViewInputMax);
+	}
+
+	static bool OnSnapTime(float& InOutTime, float InSnapMargin, TArrayView<const FName> InSkippedSnapTypes)
+	{
+		// TODO: 在工程中 没找到开启 Snap 的 Option
+		// double DoubleTime = (double)InOutTime;
+		// bool bResult = Snap(DoubleTime, (double)InSnapMargin, InSkippedSnapTypes);
+		// InOutTime = DoubleTime;
+		return false;
+	}
 };
+
+#undef LOCTEXT_NAMESPACE

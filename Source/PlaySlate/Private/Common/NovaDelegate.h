@@ -6,7 +6,7 @@ struct FActActionHitBoxData;
 class FActActionTrackEditorBase;
 class SActImageTreeViewTableRow;
 class SActActionSequenceTreeViewRow;
-class SActNotifyPoolNotifyNodeWidget;
+// class SActNotifyPoolNotifyNodeWidget;
 class SActEventTimelineWidget;
 
 namespace NovaDelegate
@@ -24,7 +24,7 @@ namespace NovaDelegate
 	DECLARE_DELEGATE_RetVal_TwoParams(FFrameNumber, OnGetNearestKeyDelegate, FFrameTime, bool)
 	DECLARE_DELEGATE_RetVal_ThreeParams(TSharedRef<SWidget>, OnGenerateWidgetForColumnDelegate, const TSharedRef<SActImageTreeViewTableRow>&, const FName&, const TSharedRef<SActActionSequenceTreeViewRow>&);
 	DECLARE_DELEGATE_RetVal_ThreeParams(bool, OnSnapPositionDelegate, float& /*InOutTimeToSnap*/, float /*InSnapMargin*/, TArrayView<const FName> /*InSkippedSnapTypes*/)
-	DECLARE_DELEGATE_RetVal_FourParams(FReply, OnNotifyNodeDragStartedDelegate, TSharedRef<SActNotifyPoolNotifyNodeWidget>, const FPointerEvent&, const FVector2D&, const bool)
+	// DECLARE_DELEGATE_RetVal_FourParams(FReply, OnNotifyNodeDragStartedDelegate, TSharedRef<SActNotifyPoolNotifyNodeWidget>, const FPointerEvent&, const FVector2D&, const bool)
 
 	/** Called back when a details panel is created */
 	DECLARE_DELEGATE_OneParam(OnDetailsCreatedDelegate, const TSharedRef<class IDetailsView>&);
@@ -45,7 +45,7 @@ namespace NovaDelegate
 	// DECLARE_DELEGATE_TwoParams(OnGetAddMenuContentDelegate, FMenuBuilder& /*MenuBuilder*/, TSharedRef<FActEventTimeline>);
 	DECLARE_DELEGATE_TwoParams(OnSetMarkedFrameDelegate, int32, FFrameNumber)
 	DECLARE_DELEGATE_TwoParams(OnPanTrackRequestDelegate, int32, FVector2D)
-	DECLARE_DELEGATE_FourParams(OnNotifyStateHandleBeingDraggedDelegate, TSharedPtr<SActNotifyPoolNotifyNodeWidget> /*NotifyNode*/, const FPointerEvent& /*PointerEvent*/, ENovaNotifyStateHandleHit /*Handle*/, float /*Time*/)
+	// DECLARE_DELEGATE_FourParams(OnNotifyStateHandleBeingDraggedDelegate, TSharedPtr<SActNotifyPoolNotifyNodeWidget> /*NotifyNode*/, const FPointerEvent& /*PointerEvent*/, ENovaNotifyStateHandleHit /*Handle*/, float /*Time*/)
 
 	DECLARE_MULTICAST_DELEGATE_OneParam(OnAssetPropertiesModifiedMulticastDelegate, UObject*);
 }

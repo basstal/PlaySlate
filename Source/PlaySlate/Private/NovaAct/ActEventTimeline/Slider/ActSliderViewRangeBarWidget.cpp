@@ -109,7 +109,7 @@ FReply SActSliderViewRangeBarWidget::OnMouseMove(const FGeometry& MyGeometry, co
 		{
 			ActEventTimelineArgs->SetViewRangeClamped(MouseDownViewRange.GetLowerBoundValue() + DragDelta,
 			                                          MouseDownViewRange.GetUpperBoundValue() + DragDelta);
-			NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
+			// NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
 		}
 		else if (bLeftHandleDragged || bRightHandleDragged)
 		{
@@ -128,7 +128,7 @@ FReply SActSliderViewRangeBarWidget::OnMouseMove(const FGeometry& MyGeometry, co
 				return FReply::Handled();
 			}
 			ActEventTimelineArgs->SetViewRangeClamped(NewIn, NewOut);
-			NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
+			// NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
 		}
 
 		return FReply::Handled();

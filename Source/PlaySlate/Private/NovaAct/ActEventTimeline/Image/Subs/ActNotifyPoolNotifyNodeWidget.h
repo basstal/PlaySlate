@@ -13,8 +13,8 @@ class SActNotifyPoolNotifyNodeWidget : public SLeafWidget
 public:
 	SLATE_BEGIN_ARGS(SActNotifyPoolNotifyNodeWidget) { }
 		SLATE_ARGUMENT(FAnimNotifyEvent*, AnimNotifyEvent)
-		SLATE_EVENT(OnNotifyNodeDragStartedDelegate, OnNodeDragStarted)
-		SLATE_EVENT(OnNotifyStateHandleBeingDraggedDelegate, OnNotifyStateHandleBeingDragged)
+		// SLATE_EVENT(OnNotifyNodeDragStartedDelegate, OnNodeDragStarted)
+		// SLATE_EVENT(OnNotifyStateHandleBeingDraggedDelegate, OnNotifyStateHandleBeingDragged)
 		SLATE_EVENT(FSimpleDelegate, OnUpdatePanel)
 		SLATE_EVENT(OnPanTrackRequestDelegate, PanTrackRequest)
 		SLATE_EVENT(FSimpleDelegate, OnSelectionChanged)
@@ -41,10 +41,14 @@ public:
 
 	/** 获得描述文本 */
 	FText GetNotifyText() const;
-	/** 获得颜色 */
-	FLinearColor GetNotifyColor() const;
-	/** 更新大小和位置信息 */
-	void UpdateSizeAndPosition(const FGeometry& AllottedGeometry);
+	// /** 获得颜色 */
+	// FLinearColor GetNotifyColor() const;
+	/**
+	 * 更新大小和位置信息
+	 *
+	 * @param AllottedGeometrySizeX Lane X 大小
+	 */
+	void UpdateSizeAndPosition(float AllottedGeometrySizeX);
 	/** 绘制拖拽按钮 */
 	void DrawScrubHandle(float ScrubHandleCentre,
 	                     FSlateWindowElementList& OutDrawElements,
@@ -66,16 +70,15 @@ public:
 	FVector2D GetWidgetPosition() const;
 	/** TODO: */
 	float HandleOverflowPan(const FVector2D& ScreenCursorPos, float TrackScreenSpaceXPosition, float TrackScreenSpaceMin, float TrackScreenSpaceMax);
-	/** TODO: */
-	FReply OnNotifyNodeDragStarted(const FPointerEvent& MouseEvent, const FVector2D& InScreenNodePosition, bool bDragOnMarker);
 
 	/** TODO: */
 	FVector2D GetNotifyPositionOffset() const;
 	FVector2D GetNotifyPosition() const;
 	FVector2D GetWidgetSize() const;
+	/** @return 是否在被选中状态 */
+	bool IsSelected() const;
 protected:
-	/** Controller 弱引用 */
-	TWeakPtr<SActNotifyPoolLaneWidget> ActNotifiesPanelLaneWidget;
+	// Animation Notify 相关数据结构
 	FAnimNotifyEvent* AnimNotifyEvent;
 
 	/** 当前拖拽的状态 */
@@ -84,13 +87,11 @@ protected:
 	/** 是否往右 */
 	bool bDrawTooltipToRight;
 
-	/** 是否选中状态 */
-	bool bSelected;
 
 	/** Delegate that is called when the user initiates dragging */
 	// ActActionSequence::OnNotifyNodeDragStartedDelegate OnNodeDragStarted;
 	/** Delegate that is called when a notify state handle is being dragged */
-	OnNotifyStateHandleBeingDraggedDelegate OnNotifyStateHandleBeingDragged;
+	// OnNotifyStateHandleBeingDraggedDelegate OnNotifyStateHandleBeingDragged;
 	/** Delegate to redraw the notify panel */
 	FSimpleDelegate OnUpdatePanel;
 	/** Delegate to pan the track, needed if the markers are dragged out of the track */
@@ -99,12 +100,11 @@ protected:
 	FSimpleDelegate OnSelectionChanged;
 	/** Delegate used to snap when dragging */
 	OnSnapPositionDelegate OnSnapPosition;
-	/** 缓存的已分配 Widget 大小 */
-	FVector2D CachedAllottedGeometrySize;
+	// /** 缓存的 Lane 已分配 Widget 大小 */
+	// FVector2D CachedLaneWidgetAllottedGeometrySize;
 	/** TODO: */
 	float NotifyTimePositionX;
-	/** TODO: */
-	float NotifyDurationSizeX;
+
 	/** TODO: */
 	FVector2D TextSize;
 	/** TODO: */
@@ -117,20 +117,28 @@ protected:
 	float NotifyScrubHandleCentre;
 	/** Last position the user clicked in the widget */
 	FVector2D LastMouseDownPosition;
-	/** Cached owning track geometry */
-	FGeometry CachedTrackGeometry;
-	/** 屏幕位置 */
-	FVector2D ScreenPosition;
-	/** Store the position of a currently dragged node for display across tracks */
-	float CurrentDragXPosition;
-	float LastSnappedTime;
+	// /** Cached owning track geometry */
+	// FGeometry CachedLaneGeometry;
+	
 	/** AnimNotifyEvent 决定的 NotifyNode 缓存名称 */
 	FName CachedNotifyName;
+	// Notify 颜色
 	FLinearColor NotifyEditorColor;
-
+	// Index for undo transactions for dragging, as a check to make sure it's active
+	int32 DragMarkerTransactionIdx;
 public:
+	/** 对 Parent Widget 弱引用 */
+	TWeakPtr<SActNotifyPoolLaneWidget> WeakActNotifyPoolLaneWidget;
 	/** 是否正在拖拽 */
 	bool bBeingDragged;
+
+	/** Tick AllottedGeometry.AbsolutePosition */
+	FVector2D ScreenPosition;
+	/** Notify 持续时间 换算成屏幕像素距离 */
+	float DurationSizeX;
+
+	/** DragDrop Snap 使用的 Time */
+	float LastSnappedTime;
 
 	// TSharedRef<SActImageTrackLaneWidget> GetActActionTrackAreaSlot() const
 	// {

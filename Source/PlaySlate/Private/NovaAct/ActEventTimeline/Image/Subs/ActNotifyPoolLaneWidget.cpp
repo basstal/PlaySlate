@@ -63,24 +63,24 @@ int32 SActNotifyPoolLaneWidget::OnPaint(const FPaintArgs& Args,
                                         bool bParentEnabled) const
 {
 	int32 CustomLayerId = LayerId + 1;
-	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
 	auto AnimSequenceDB = GetDataBinding(UAnimSequenceBase**, "ActAnimation/AnimSequence");
-	if (!DB || !AnimSequenceDB)
+	if (!AnimSequenceDB)
 	{
 		return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, CustomLayerId, InWidgetStyle, bParentEnabled);
 	}
 
 	bool bAnyDraggedNodes = false;
-	for (int32 Index = 0; Index < NotifyWidgets.Num(); ++Index)
+	float AllottedGeometrySizeX = AllottedGeometry.Size.X;
+	for (int32 Index = 0; Index < NotifyNodes.Num(); ++Index)
 	{
-		TSharedPtr<SActNotifyPoolNotifyNodeWidget> NotifyWidget = NotifyWidgets[Index];
+		TSharedPtr<SActNotifyPoolNotifyNodeWidget> NotifyWidget = NotifyNodes[Index];
 		if (NotifyWidget->bBeingDragged)
 		{
 			bAnyDraggedNodes = true;
 		}
 		else
 		{
-			NotifyWidget->UpdateSizeAndPosition(AllottedGeometry);
+			NotifyWidget->UpdateSizeAndPosition(AllottedGeometrySizeX);
 		}
 	}
 	UAnimSequenceBase* AnimSequence = *(AnimSequenceDB->GetData());
@@ -128,10 +128,26 @@ int32 SActNotifyPoolLaneWidget::OnPaint(const FPaintArgs& Args,
 	return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, CustomLayerId, InWidgetStyle, bParentEnabled);
 }
 
+void SActNotifyPoolLaneWidget::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
+{
+	auto DB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
+	if (!DB)
+	{
+		return;
+	}
+	TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = DB->GetData();
+	CachedScaleInfo = MakeShareable(new FTrackScaleInfo(ActEventTimelineArgs->ViewRange->GetLowerBoundValue(),
+	                                                    ActEventTimelineArgs->ViewRange->GetUpperBoundValue(),
+	                                                    0,
+	                                                    0,
+	                                                    AllottedGeometry.Size));
+	CachedAllottedGeometrySizeScaled = AllottedGeometry.Size * AllottedGeometry.Scale;
+}
+
 void SActNotifyPoolLaneWidget::Update()
 {
 	// NotifyPairs.Empty();
-	NotifyWidgets.Empty();
+	NotifyNodes.Empty();
 
 	TrackBorder->SetContent(
 		SAssignNew(NodeSlots, SOverlay)
@@ -238,7 +254,7 @@ void SActNotifyPoolLaneWidget::Update()
 				AnimNotifyNode.ToSharedRef()
 			];
 
-			NotifyWidgets.Add(AnimNotifyNode);
+			NotifyNodes.Add(AnimNotifyNode);
 			// NotifyPairs.Add(NotifyPair);
 		}
 	}
@@ -248,7 +264,7 @@ void SActNotifyPoolLaneWidget::Update()
 	// 	TSharedPtr<SAnimNotifyNode> AnimSyncMarkerNode = nullptr;
 	// 	TSharedPtr<SAnimTimingNode> EndTimingNode = nullptr;
 	//
-	// 	const int32 NodeIndex = NotifyWidgets.Num();
+	// 	const int32 NodeIndex = NotifyNodes.Num();
 	// 	SAssignNew(AnimSyncMarkerNode, SAnimNotifyNode)
 	// 		.Sequence(Sequence)
 	// 		.AnimSyncMarker(SyncMarker)
@@ -267,16 +283,16 @@ void SActNotifyPoolLaneWidget::Update()
 	// 		AnimSyncMarkerNode->AsShared()
 	// 	];
 	//
-	// 	NotifyWidgets.Add(AnimSyncMarkerNode);
+	// 	NotifyNodes.Add(AnimSyncMarkerNode);
 	// }
 }
 
 // Returns the padding needed to render the notify in the correct track position
 FMargin SActNotifyPoolLaneWidget::GetNotifyTrackPadding(int32 NotifyIndex) const
 {
-	float LeftMargin = NotifyWidgets[NotifyIndex]->GetWidgetPosition().X;
-	float RightMargin = CachedGeometry.GetLocalSize().X - NotifyWidgets[NotifyIndex]->GetWidgetPosition().X -
-		NotifyWidgets[NotifyIndex]->GetWidgetSize().X;
+	float LeftMargin = NotifyNodes[NotifyIndex]->GetWidgetPosition().X;
+	float RightMargin = GetCachedGeometry().GetLocalSize().X - NotifyNodes[NotifyIndex]->GetWidgetPosition().X -
+		NotifyNodes[NotifyIndex]->GetWidgetSize().X;
 	return FMargin(LeftMargin, 0, RightMargin, 0);
 }
 
@@ -308,4 +324,31 @@ FLinearColor SActNotifyPoolLaneWidget::GetEditorColor()
 bool SActNotifyPoolLaneWidget::IsBranchingPoint()
 {
 	return true;
+}
+
+// void SActNotifyPoolLaneWidget::DeselectAllNotifyNodes(bool bUpdateSelectionSet)
+// {
+// 	for (TSharedPtr<SActNotifyPoolNotifyNodeWidget> Node : NotifyNodes)
+// 	{
+// 		Node->bSelected = false;
+// 	}
+// 	// SelectedNodeIndices.Empty();
+//
+// 	// if(bUpdateSelectionSet)
+// 	// {
+// 	// 	SendSelectionChanged();
+// 	// }
+// }
+
+
+void SActNotifyPoolLaneWidget::DisconnectSelectedNodesForDrag(TArray<TSharedPtr<SActNotifyPoolNotifyNodeWidget>>& DragNodes)
+{
+	for (auto& NotifyNode : NotifyNodes)
+	{
+		if (NotifyNode->IsSelected())
+		{
+			NodeSlots->RemoveSlot(NotifyNode->AsShared());
+			DragNodes.Add(NotifyNode);
+		}
+	}
 }

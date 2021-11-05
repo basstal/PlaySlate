@@ -19,6 +19,8 @@
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
+using namespace NovaConst;
+
 SActEventTimelineWidget::~SActEventTimelineWidget()
 {
 	UE_LOG(LogNovaAct, Log, TEXT("SActEventTimelineWidget::~SActEventTimelineWidget"));
@@ -103,7 +105,7 @@ void SActEventTimelineWidget::Construct(const FArguments& InArgs)
 
 					// ** 第1列，第0行
 					+ SGridPanel::Slot(1, 0)
-					  .Padding(NovaConst::ResizeBarPadding)
+					  .Padding(ResizeBarPadding)
 					  .RowSpan(2)
 					[
 						SNew(SBorder)
@@ -115,16 +117,16 @@ void SActEventTimelineWidget::Construct(const FArguments& InArgs)
 
 					// ** 第1列，第1行，Overlay that draws the tick lines
 					+ SGridPanel::Slot(1, 1, SGridPanel::Layer(10))
-					.Padding(NovaConst::ResizeBarPadding)
+					.Padding(ResizeBarPadding)
 					[
-						SNew(SActImageScrubPosition)
+						SNew(SActImageThickLine)
 					]
 
 					// ** 第1列，第1行，Overlay that draws the scrub position
 					+ SGridPanel::Slot(1, 1, SGridPanel::Layer(20))
-					.Padding(NovaConst::ResizeBarPadding)
+					.Padding(ResizeBarPadding)
 					[
-						SNew(SActImageThickLine)
+						SNew(SActImageScrubPosition)
 					]
 				]
 

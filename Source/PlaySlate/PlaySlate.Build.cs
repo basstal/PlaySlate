@@ -32,7 +32,8 @@ public class PlaySlate : ModuleRules
 			"AssetTools",
 			"ContentBrowser",
 			"AdvancedPreviewScene",
-			"AnimGraph"
+			"AnimGraph",
+			"StatusBar"
 		});
 	}
 }

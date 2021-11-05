@@ -254,7 +254,7 @@ protected:
 	// /** TODO:临时存这里 */
 	// FActActionHitBoxData* CachedHitBox;
 	/** TrackAreaSlot 对应到 Geometry 信息 */
-	TMap<TSharedRef<SActImageTrackLaneWidget>, FActActionCachedGeometry> CachedTrackGeometry;
+	// TMap<TSharedRef<SActImageTrackLaneWidget>, FActActionCachedGeometry> CachedTrackGeometry;
 	// /** 代表一行Track区域 */
 	// TSharedPtr<SActTrackPanel> ActTrackPanel;
 	/** The height of the track */

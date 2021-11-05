@@ -1,17 +1,14 @@
 ﻿#pragma once
+#include "Common/NovaStruct.h"
 
 class SActNotifyPoolNotifyNodeWidget;
 struct FTrackScaleInfo;
+class SActPoolWidgetNotifyWidget;
+
+using namespace NovaStruct;
 
 class FActTrackAreaSlotDragDrop : public FDragDropOperation
 {
-	// /** FActTrackAreaSlotDragDrop 使用 */
-	// struct FNovaTrackClampInfo
-	// {
-	// 	int32 TrackPos;
-	// 	int32 TrackSnapTestPos;
-	// 	TSharedPtr<SActNotifyPoolNotifyNodeWidget> Notify;
-	// };
 public:
 	FActTrackAreaSlotDragDrop(float& InCurrentDragXPosition);
 
@@ -20,30 +17,59 @@ public:
 	//~Begin FDragDropOperation interface
 	virtual void OnDrop(bool bDropWasHandled, const FPointerEvent& MouseEvent) override;
 	virtual void OnDragged(const FDragDropEvent& DragDropEvent) override;
+	virtual TSharedPtr<SWidget> GetDefaultDecorator() const override;
 	//~End FDragDropOperation interface
 
-	// FNovaTrackClampInfo& GetTrackClampInfo(const FVector2D NodePos);
+	/**
+	 * 构造
+	 */
+	static TSharedRef<FActTrackAreaSlotDragDrop> New(
+		TSharedPtr<SActPoolWidgetNotifyWidget> PoolNotifyWidget,
+		TArray<TSharedPtr<SActNotifyPoolNotifyNodeWidget>> NotifyNodes,
+		TSharedPtr<SWidget> Decorator,
+		const FVector2D& CursorPosition,
+		const FVector2D& SelectionScreenPosition,
+		const FVector2D& SelectionSize,
+		float& CurrentDragXPosition);
 
-	static TSharedRef<FActTrackAreaSlotDragDrop> New(TSharedRef<SActNotifyPoolNotifyNodeWidget> NotifyNode,
-	                                                 TSharedPtr<SWidget> Decorator,
-	                                                 const FVector2D& CursorPosition,
-	                                                 const FVector2D& SelectionScreenPosition,
-	                                                 const FVector2D& SelectionSize,
-	                                                 float& CurrentDragXPosition);
-	/** TODO: */
-	float GetSnapPosition(const FTrackScaleInfo& InScaleInfo, float WidgetSpaceNotifyPosition, bool& bOutSnapped, float PlayLength);
+	/**
+	 *
+	 * @param InClampInfo
+	 * @param WidgetSpaceNotifyPosition
+	 * @param bOutSnapped
+	 */
+	float GetSnapPosition(const TSharedRef<FActDragDropLaneClampInfo>& InClampInfo,
+	                      float WidgetSpaceNotifyPosition,
+	                      float PlayLength,
+	                      bool& bOutSnapped);
+	/**
+	 * 获得与指定位置最近能够 Snap 的 Lane ClampInfo
+	 *
+	 * @param NodePos 指定位置
+	 */
+	TSharedPtr<FActDragDropLaneClampInfo> GetLaneClampInfo(FVector2D NodePos);
 
 protected:
-	float CurrentDragXPosition;                           // Store the position of a currently dragged node for display across tracks
-	float SnapTime;                                       // The time that the snapped node was snapped to
-	float SelectionTimeLength;                            // Length of time that the selection covers
-	FVector2D NodeGroupPosition;                          // Position of the beginning of the selection
-	FVector2D NodeGroupSize;                              // Size of the entire selection
-	FVector2D DragOffset;                                 // Offset from the mouse to place the decorator
-	TSharedPtr<SWidget> Decorator;                        // The widget to display when dragging
-	TSharedPtr<SActNotifyPoolNotifyNodeWidget> SelectedNode;// The node that are in the current selection
-	int32 TrackSpan;                                      // Number of tracks that the selection spans
-	float NodeTimeOffset;                                 // Time offset from the beginning of the selection to the nodes.
-	float NodeTime;                                       // Time to drop each selected node at
-	float NodeXOffset;                                    // Offsets in X from the widget position to the scrub handle for each node.
+	// Store the position of a currently dragged node for display across tracks
+	float& CurrentDragXPosition;
+	// Position of the beginning of the selection
+	FVector2D NodeGroupPosition;
+	// Size of the entire selection
+	FVector2D NodeGroupSize;
+	// Offset from the mouse to place the decorator
+	FVector2D DragOffset;
+	// The widget to display when dragging
+	TSharedPtr<SWidget> Decorator;
+	// The node that are in the current selection
+	TArray<TSharedPtr<SActNotifyPoolNotifyNodeWidget>> SelectedNodes;
+	// Number of tracks that the selection spans
+	int32 TrackSpan;
+	// Time offset from the beginning of the selection to the nodes.
+	TArray<float> NodesTimeOffset;
+	// Offsets in X from the widget position to the scrub handle for each node.
+	TArray<float> NodesXOffset;
+	// Clamping information for all of the available tracks
+	TArray<TSharedPtr<FActDragDropLaneClampInfo>> ClampInfos;
+	// 所有选中节点中位于最前面的，即 AnimNotifyEvent 触发 Time 最小的
+	TSharedPtr<SActNotifyPoolNotifyNodeWidget> BeginSelectedNode;
 };

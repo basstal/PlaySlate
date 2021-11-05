@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "SCurveEditor.h"
 
 class SActNotifyPoolNotifyNodeWidget;
 
@@ -80,6 +81,7 @@ public:
 	                      int32 LayerId,
 	                      const FWidgetStyle& InWidgetStyle,
 	                      bool bParentEnabled) const override;
+	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 	//~End SCompoundWidget interface
 
 	void Update();
@@ -89,6 +91,18 @@ public:
 	FName GetName();
 	FLinearColor GetEditorColor();
 	bool IsBranchingPoint();
+	// /**
+	//  * Deselects all currently selected notify nodes
+	//  * @param bUpdateSelectionSet Whether we should report a selection change to the panel TODO:remove?
+	//  */
+	// void DeselectAllNotifyNodes(bool bUpdateSelectionSet);
+
+	/**
+	 * 从 NodeSlots 中删除已选中的 NotifyNode，并且将它们添加到 DragNodes中
+	 * @param DragNodes 被删除的 NotifyNode
+	 */
+	void DisconnectSelectedNodesForDrag(TArray<TSharedPtr<SActNotifyPoolNotifyNodeWidget>>& DragNodes);
+
 
 protected:
 	TSharedPtr<SBorder> TrackBorder;
@@ -96,10 +110,19 @@ protected:
 	/** Cache the SOverlay used to store all this tracks nodes */
 	TSharedPtr<SOverlay> NodeSlots;
 
-	int32 TrackIndex;
 
 	/** Cached for drag drop handling code */
-	FGeometry CachedGeometry;
+	// FGeometry CachedGeometry;
 
-	TArray<TSharedPtr<SActNotifyPoolNotifyNodeWidget>> NotifyWidgets;
+public:
+	int32 TrackIndex;
+	// 缓存的 TrackScale 结构
+	TSharedPtr<FTrackScaleInfo> CachedScaleInfo;
+
+	// 缓存的 带缩放的 多边形大小
+	FVector2D CachedAllottedGeometrySizeScaled;
+	// /** Nodes that are currently selected */
+	// TArray<int32> SelectedNodeIndices;
+	// 在这个 Lane 上的所有 NotifyNode
+	TArray<TSharedPtr<SActNotifyPoolNotifyNodeWidget>> NotifyNodes;
 };

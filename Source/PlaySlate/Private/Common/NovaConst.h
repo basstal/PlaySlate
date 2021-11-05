@@ -21,8 +21,13 @@ namespace NovaConst
 	const FName ActViewportTab2Id = FName();
 	const FName ActViewportTab3Id = FName();
 	const FName ActViewportTab4Id = FName();
+	
+	const FName AnimationEditorStatusBarName = FName(TEXT("AssetEditor.AnimationEditor.MainMenu"));
+
 
 	const FName ActAssetDetailsTabId(TEXT("ActAssetDetails"));
+	// Notify State 最短持续时间， 单位秒
+	const float MinimumStateDuration = (1.0f / 30.0f);
 	/** Notify State 最短持续时间，单位帧 */
 	const int32 ActMinimumNotifyStateFrame = 1;
 	/** Notify 高度偏移 */

@@ -1,16 +1,31 @@
 ﻿#include "ActPoolWidgetNotifyWidget.h"
 
+#include "StatusBarSubsystem.h"
 #include "NovaAct/ActEventTimeline/Image/Subs/ActNotifyPoolEditorLaneWidget.h"
 #include "NovaAct/ActEventTimeline/Image/Subs/NovaActUICommandInfo.h"
 #include "Animation/EditorNotifyObject.h"
+#include "Common/NovaConst.h"
 #include "Common/NovaDataBinding.h"
 #include "NovaAct/NovaActEditor.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTrackCarWidget.h"
 #include "NovaAct/ActEventTimeline/Image/ImageTrackTypes/ActImageTrackBase.h"
+#include "NovaAct/ActEventTimeline/Image/ImageTrackTypes/ActImageTrackNotify.h"
+#include "NovaAct/ActEventTimeline/Image/Subs/ActNotifyPoolNotifyNodeWidget.h"
+#include "NovaAct/ActEventTimeline/Operation/ActTrackAreaSlotDragDrop.h"
 
+#define LOCTEXT_NAMESPACE "NovaAct"
+
+using namespace NovaConst;
+
+SActPoolWidgetNotifyWidget::~SActPoolWidgetNotifyWidget()
+{
+	NovaDB::Delete("ActPoolNotify");
+}
 
 void SActPoolWidgetNotifyWidget::Construct(const FArguments& InArgs, const TSharedRef<FActImageTrackNotify>& InActImageTrackNotify)
 {
+	TSharedPtr<SActPoolWidgetNotifyWidget> Pool = SharedThis(this);
+	NovaDB::CreateSP("ActPoolNotify", Pool);
 	// SAnimTrackPanel::Construct(SAnimTrackPanel::FArguments()
 	//                            .WidgetWidth(InArgs._WidgetWidth)
 	//                            .ViewInputMin(InArgs._ViewInputMin)
@@ -115,7 +130,7 @@ void SActPoolWidgetNotifyWidget::OnDeletePressed()
 void SActPoolWidgetNotifyWidget::DeleteSelectedNodeObjects()
 {
 	// TArray<INodeObjectInterface*> SelectedNodes;
-	// for (TSharedPtr<SAnimNotifyTrack> Track : NotifyTracks)
+	// for (TSharedPtr<SAnimNotifyTrack> Track : NotifyLanes)
 	// {
 	// 	Track->AppendSelectionToArray(SelectedNodes);
 	// }
@@ -169,12 +184,12 @@ void SActPoolWidgetNotifyWidget::RefreshNotifyTracks()
 
 		// Clear node tool tips to stop slate referencing them and possibly
 		// causing a crash if the notify has gone away
-		// for (TSharedPtr<SActNotifyPoolLaneWidget> Track : NotifyTracks)
+		// for (TSharedPtr<SActNotifyPoolLaneWidget> Track : NotifyLanes)
 		// {
 		// 	// Track->ClearNodeTooltips();
 		// }
 
-		NotifyTracks.Empty();
+		NotifyLanes.Empty();
 		NotifyEditorTracks.Empty();
 
 		for (int32 TrackIndex = 0; TrackIndex < AnimSequenceBase->AnimNotifyTracks.Num(); TrackIndex++)
@@ -215,7 +230,7 @@ void SActPoolWidgetNotifyWidget::RefreshNotifyTracks()
 				// .OnInvokeTab(OnInvokeTab)
 			];
 
-			NotifyTracks.Add(EditorLaneWidget->GetNotifyTrack());
+			NotifyLanes.Add(EditorLaneWidget->GetNotifyTrack());
 			NotifyEditorTracks.Add(EditorLaneWidget);
 		}
 	}
@@ -227,38 +242,38 @@ void SActPoolWidgetNotifyWidget::RefreshNotifyTracks()
 
 void SActPoolWidgetNotifyWidget::OnTrackSelectionChanged()
 {
-	if (!bIsSelecting)
-	{
-		TGuardValue<bool> GuardValue(bIsSelecting, true);
-
-		// Need to collect selection info from all tracks
-		TArray<UObject*> NotifyObjects;
-
-		for (auto& TrackCarWidget : ActImageTrackCarWidgets)
-		{
-			// TSharedPtr<SAnimNotifyTrack> Track = NotifyAnimTracks[TrackIdx];
-			const TArray<int32>& TrackIndices = TrackCarWidget->GetSelectedNotifyIndices();
-			for (int32 Idx : TrackIndices)
-			{
-				TSharedRef<FActImageTrackCarNotifyNode> NotifyNodeInterface = TrackCarWidget->GetActImageTrackCarNotifyNode();
-				if (NotifyNodeInterface->NotifyEvent)
-				{
-					auto DB = GetDataBinding(UAnimSequence**, "ActAnimation/AnimSequence");
-					UAnimSequence* AnimSequence = *(DB->GetData());
-					FString ObjName = MakeUniqueObjectName(GetTransientPackage(), UEditorNotifyObject::StaticClass()).ToString();
-					UEditorNotifyObject* NewNotifyObject = NewObject<UEditorNotifyObject>(GetTransientPackage(),
-					                                                                      FName(*ObjName),
-					                                                                      RF_Public | RF_Standalone | RF_Transient);
-					// ** nullptr TODO:
-					NewNotifyObject->InitFromAnim(AnimSequence, nullptr);
-					NewNotifyObject->InitialiseNotify(*AnimSequence->AnimNotifyTracks[Idx].Notifies[Idx]);
-					NotifyObjects.AddUnique(NewNotifyObject);
-				}
-			}
-		}
-
-		// OnSelectionChanged.ExecuteIfBound(NotifyObjects);
-	}
+	// if (!bIsSelecting)
+	// {
+	// 	TGuardValue<bool> GuardValue(bIsSelecting, true);
+	//
+	// 	// Need to collect selection info from all tracks
+	// 	TArray<UObject*> NotifyObjects;
+	//
+	// 	for (auto& TrackCarWidget : ActImageTrackCarWidgets)
+	// 	{
+	// 		// TSharedPtr<SAnimNotifyTrack> Track = NotifyAnimTracks[TrackIdx];
+	// 		const TArray<int32>& TrackIndices = TrackCarWidget->GetSelectedNotifyIndices();
+	// 		for (int32 Idx : TrackIndices)
+	// 		{
+	// 			TSharedRef<FActImageTrackCarNotifyNode> NotifyNodeInterface = TrackCarWidget->GetActImageTrackCarNotifyNode();
+	// 			if (NotifyNodeInterface->NotifyEvent)
+	// 			{
+	// 				auto DB = GetDataBinding(UAnimSequence**, "ActAnimation/AnimSequence");
+	// 				UAnimSequence* AnimSequence = *(DB->GetData());
+	// 				FString ObjName = MakeUniqueObjectName(GetTransientPackage(), UEditorNotifyObject::StaticClass()).ToString();
+	// 				UEditorNotifyObject* NewNotifyObject = NewObject<UEditorNotifyObject>(GetTransientPackage(),
+	// 				                                                                      FName(*ObjName),
+	// 				                                                                      RF_Public | RF_Standalone | RF_Transient);
+	// 				// ** nullptr TODO:
+	// 				NewNotifyObject->InitFromAnim(AnimSequence, nullptr);
+	// 				NewNotifyObject->InitialiseNotify(*AnimSequence->AnimNotifyTracks[Idx].Notifies[Idx]);
+	// 				NotifyObjects.AddUnique(NewNotifyObject);
+	// 			}
+	// 		}
+	// 	}
+	//
+	// 	// OnSelectionChanged.ExecuteIfBound(NotifyObjects);
+	// }
 }
 
 void SActPoolWidgetNotifyWidget::OnLaneContentRefresh(TSharedPtr<IActImageTrackBase> InActImageTrack)
@@ -287,3 +302,116 @@ void SActPoolWidgetNotifyWidget::OnLaneContentRefresh(TSharedPtr<IActImageTrackB
 		// OnNotifiesChanged.ExecuteIfBound();
 	}
 }
+
+
+FReply SActPoolWidgetNotifyWidget::OnNotifyNodeDragStarted(const TSharedRef<SActNotifyPoolLaneWidget>& InLane,
+                                                           const TSharedRef<SActNotifyPoolNotifyNodeWidget>& InNotifyNode,
+                                                           const FPointerEvent& InMouseEvent,
+                                                           const bool bDragOnMarker)
+{
+	SelectNotifyNode(InNotifyNode, InMouseEvent.IsShiftDown(), false);
+
+	// If we're dragging one of the direction markers we don't need to call any further as we don't want the drag drop op
+	if (!bDragOnMarker)
+	{
+		TSharedRef<SOverlay> NodeDragDecoratorOverlay = SNew(SOverlay);
+		TSharedRef<SBorder> NodeDragDecorator = SNew(SBorder)
+			.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
+			[
+				NodeDragDecoratorOverlay
+			];
+
+		TArray<TSharedPtr<SActNotifyPoolNotifyNodeWidget>> NotifyNodes;
+		for (TSharedPtr<SActNotifyPoolLaneWidget> Lane : NotifyLanes)
+		{
+			Lane->DisconnectSelectedNodesForDrag(NotifyNodes);
+		}
+		FBox2D OverlayBounds;
+		for (const TSharedPtr<SActNotifyPoolNotifyNodeWidget>& NotifyNode : NotifyNodes)
+		{
+			OverlayBounds += FBox2D(NotifyNode->ScreenPosition, NotifyNode->ScreenPosition + FVector2D(NotifyNode->DurationSizeX, 0.0f));
+		}
+		FVector2D OverlayOrigin = OverlayBounds.Min;
+		FVector2D OverlayExtents = OverlayBounds.GetSize();
+		for (const TSharedPtr<SActNotifyPoolNotifyNodeWidget>& NotifyNode : NotifyNodes)
+		{
+			FVector2D OffsetFromMin(NotifyNode->ScreenPosition - OverlayOrigin);
+			NodeDragDecoratorOverlay->AddSlot()
+			                        .Padding(FMargin(OffsetFromMin.X, OffsetFromMin.Y, 0.0f, 0.0f))
+			[
+				NotifyNode->AsShared()
+			];
+		}
+
+		// ** TODO: replace with StaticFunction :: OnViewRangePan
+		// FPanTrackRequest PanRequestDelegate = FPanTrackRequest::CreateSP(this, &SAnimNotifyPanel::PanInputViewRange);
+		// ** TODO: replace with "ActImageTrack/Refresh" DataBinding Trigger
+		// FOnUpdatePanel UpdateDelegate = FOnUpdatePanel::CreateSP(this, &SAnimNotifyPanel::Update);
+		return FReply::Handled().BeginDragDrop(FActTrackAreaSlotDragDrop::New(SharedThis(this),
+		                                                                      NotifyNodes,
+		                                                                      NodeDragDecorator,
+		                                                                      InMouseEvent.GetScreenSpacePosition(),
+		                                                                      OverlayOrigin,
+		                                                                      OverlayExtents,
+		                                                                      CurrentDragXPosition));
+	}
+	else
+	{
+		// Capture the mouse in the node
+		return FReply::Handled().CaptureMouse(InNotifyNode).UseHighPrecisionMouseMovement(InNotifyNode);
+	}
+}
+
+
+void SActPoolWidgetNotifyWidget::SelectNotifyNode(const TSharedRef<SActNotifyPoolNotifyNodeWidget>& NotifyNode,
+                                                  bool Append,
+                                                  bool bUpdateSelection)
+{
+	// Deselect all other notifies if necessary.
+	if (!Append)
+	{
+		DeselectAllNotifies();
+	}
+	if (!SelectedNotifyNodes.Contains(NotifyNode))
+	{
+		SelectedNotifyNodes.Add(NotifyNode);
+	}
+	// NotifyNode->bSelected = true;
+	// if (bUpdateSelection)
+	// {
+	// 	SendSelectionChanged();
+	// }
+}
+
+
+void SActPoolWidgetNotifyWidget::DeselectAllNotifies()
+{
+	if (!bIsSelecting)
+	{
+		TGuardValue<bool> GuardValue(bIsSelecting, true);
+
+		SelectedNotifyNodes.Empty();
+		// for (TSharedPtr<SActNotifyPoolLaneWidget> Lane : NotifyLanes)
+		// {
+		// 	Lane->DeselectAllNotifyNodes(false);
+		// }
+
+		// TArray<UObject*> NotifyObjects;
+		// OnSelectionChanged.ExecuteIfBound(NotifyObjects);
+	}
+}
+
+void SActPoolWidgetNotifyWidget::OnNotifyNodesBeingDraggedStatusBarMessage()
+{
+	if (!StatusBarMessageHandle.IsValid())
+	{
+		if (UStatusBarSubsystem* StatusBarSubsystem = GEditor->GetEditorSubsystem<UStatusBarSubsystem>())
+		{
+			StatusBarMessageHandle = StatusBarSubsystem->PushStatusBarMessage(AnimationEditorStatusBarName,
+			                                                                  LOCTEXT("AutoscrubNotify",
+			                                                                          "Hold SHIFT while dragging a notify to auto scrub the timeline."));
+		}
+	}
+}
+
+#undef LOCTEXT_NAMESPACE

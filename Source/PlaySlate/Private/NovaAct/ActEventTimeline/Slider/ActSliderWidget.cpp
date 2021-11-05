@@ -232,7 +232,7 @@ FReply SActSliderWidget::OnMouseButtonUp(const FGeometry& MyGeometry, const FPoi
 					ActEventTimelineArgs->SetViewRangeClamped(ViewRangePopped.GetLowerBoundValue(),
 					                                          ViewRangePopped.GetUpperBoundValue());
 				}
-				NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
+				// NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
 			}
 		}
 		else
@@ -275,7 +275,7 @@ FReply SActSliderWidget::OnMouseMove(const FGeometry& MyGeometry, const FPointer
 			double NewViewOutputMin = ActEventTimelineArgs->ViewRange->GetLowerBoundValue() - InputDelta.X;
 			double NewViewOutputMax = ActEventTimelineArgs->ViewRange->GetUpperBoundValue() - InputDelta.X;
 			ActEventTimelineArgs->SetViewRangeClamped(NewViewOutputMin, NewViewOutputMax);
-			NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
+			// NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
 		}
 	}
 	else if (bHandleLeftMouseButton)
@@ -456,7 +456,7 @@ bool SActSliderWidget::ZoomByDelta(float InDelta, float ZoomBias) const
 	if (NewViewOutputMin < NewViewOutputMax)
 	{
 		ActEventTimelineArgs->SetViewRangeClamped(NewViewOutputMin, NewViewOutputMax);
-		NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
+		// NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
 		return true;
 	}
 
@@ -474,7 +474,7 @@ void SActSliderWidget::PanByDelta(float InDelta) const
 	const double NewViewOutputMin = CurrentMin + InDelta;
 	const double NewViewOutputMax = CurrentMax + InDelta;
 	ActEventTimelineArgs->SetViewRangeClamped(NewViewOutputMin, NewViewOutputMax);
-	NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
+	// NovaDB::Trigger("ActEventTimelineArgs/ViewRange");
 }
 
 void SActSliderWidget::DrawTicks(FSlateWindowElementList& OutDrawElements,

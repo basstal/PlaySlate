@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Common/NovaDelegate.h"
+#include "NovaAct/ActEventTimeline/Image/Subs/ActNotifyPoolLaneWidget.h"
 
 
 struct FFrameNumberInterface;
@@ -640,5 +641,12 @@ namespace NovaStruct
 		static FText MakeTooltipFromTime(const UAnimSequenceBase* InSequence, float InSeconds, float InDuration);
 
 		static void RemoveInvalidNotifies(UAnimSequenceBase* SeqBase);
+	};
+
+	struct FActDragDropLaneClampInfo
+	{
+		int32 LanePos;
+		int32 LaneSnapTestPos;
+		TSharedPtr<SActNotifyPoolLaneWidget> Lane;
 	};
 }
