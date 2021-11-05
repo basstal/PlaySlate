@@ -5,15 +5,15 @@
 void SActNotifyPoolEditorLaneWidget::Construct(const FArguments& InArgs)
 {
 	// Sequence = InArgs._Sequence;
-	TrackIndex = InArgs._TrackIndex;
+	LaneIndex = InArgs._LaneIndex;
 
 	auto DB = GetDataBinding(UAnimSequenceBase**, "ActAnimation/AnimSequence");
 	UAnimSequenceBase* AnimSequenceBase = *(DB->GetData());
 	
-	FAnimNotifyTrack& Track = AnimSequenceBase->AnimNotifyTracks[TrackIndex];
+	FAnimNotifyTrack& Track = AnimSequenceBase->AnimNotifyTracks[LaneIndex];
 	// @Todo anim: we need to fix this to allow track color to be customizable. 
 	// for now name, and track color are given
-	Track.TrackColor = ((TrackIndex & 1) != 0) ? FLinearColor(0.9f, 0.9f, 0.9f, 0.9f) : FLinearColor(0.5f, 0.5f, 0.5f);
+	Track.TrackColor = ((LaneIndex & 1) != 0) ? FLinearColor(0.9f, 0.9f, 0.9f, 0.9f) : FLinearColor(0.5f, 0.5f, 0.5f);
 
 	// TSharedRef<SAnimNotifyPanel> PanelRef = InArgs._AnimNotifyPanel.ToSharedRef();
 	// AnimPanelPtr = InArgs._AnimNotifyPanel;
@@ -27,7 +27,7 @@ void SActNotifyPoolEditorLaneWidget::Construct(const FArguments& InArgs)
 		[
 			// Notification editor panel
 			SAssignNew(NotifyTrack, SActNotifyPoolLaneWidget)
-			.TrackIndex(TrackIndex)
+			.LaneIndex(LaneIndex)
 			// .Sequence(Sequence)
 			// .AnimNotifies(Track.Notifies)
 			// .AnimSyncMarkers(Track.SyncMarkers)
@@ -60,9 +60,4 @@ void SActNotifyPoolEditorLaneWidget::Construct(const FArguments& InArgs)
 			// .CommandList(PanelRef->GetCommandList())
 		]
 	];
-}
-
-TSharedRef<SActNotifyPoolLaneWidget> SActNotifyPoolEditorLaneWidget::GetNotifyTrack() const
-{
-	return NotifyTrack.ToSharedRef();
 }

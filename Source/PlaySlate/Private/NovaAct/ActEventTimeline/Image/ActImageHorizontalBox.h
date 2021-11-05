@@ -8,7 +8,6 @@ class SActActionSequenceTreeViewRow;
 class SActActionOutlinerTreeNode;
 class SActImageTreeView;
 class SActImagePoolAreaPanel;
-class SActImageTrackLaneWidget;
 class SActImageTrackCarWidget;
 class SActTrackPanel;
 

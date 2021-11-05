@@ -2,7 +2,6 @@
 
 #include "PlaySlate.h"
 #include "NovaAct/ActEventTimeline/Image/ActImageTreeViewTableRow.h"
-#include "NovaAct/ActEventTimeline/Image/ActImageTrackLaneWidget.h"
 
 
 SActImagePoolAreaPanel::SActImagePoolAreaPanel()

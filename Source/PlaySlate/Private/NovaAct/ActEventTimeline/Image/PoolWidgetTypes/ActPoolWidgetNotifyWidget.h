@@ -84,11 +84,11 @@ public:
 	                               const bool bDragOnMarker);
 
 	/**
-	 * 从指定的 Lane 中设置选中指定的 NotifyNode
-	 * @param NotifyNode
+	 * 从指定的 Lane 中设置选中指定的 InNotifyNode
+	 * @param InNotifyNode
 	 * @param Append 是否为添加状态，否则会先取消所有已选中的 NotifyNode
 	 */
-	void SelectNotifyNode(const TSharedRef<SActNotifyPoolNotifyNodeWidget>& NotifyNode,
+	void SelectNotifyNode(const TSharedRef<SActNotifyPoolNotifyNodeWidget>& InNotifyNode,
 	                      bool Append);
 	/**
 	 * 取消所有 Lane 的所有 NotifyNode 的选中状态
@@ -104,6 +104,23 @@ public:
 	 */
 	void OnNotifyStateBeingDraggedStatusBarMessage();
 
+	/**
+	 * 开关 指定节点的选中状态
+	 * @param InNotifyNode
+	 */
+	void ToggleNotifyNodeSelectStatus(const TSharedRef<SActNotifyPoolNotifyNodeWidget>& InNotifyNode);
+
+	/**
+	 * 判断指定节点是否被选中
+	 * @param InNotifyNode
+	 * @return 
+	 */
+	bool IsNotifyNodeSelected(const TSharedRef<SActNotifyPoolNotifyNodeWidget const>& InNotifyNode) const;
+	/**
+	 * 是否仅单个节点被选中
+	 * @return 
+	 */
+	bool IsSingleNotifyNodeSelected();
 protected:
 	TSharedPtr<FActImageTrackNotify> ActImageTrackNotify;
 
@@ -122,11 +139,11 @@ protected:
 
 	/** Handle to status bar message */
 	FStatusBarMessageHandle StatusBarMessageHandle;
+	// 所有被选中的节点
+	TSet<TSharedRef<SWidget const>> SelectedNotifyNodes;
 public:
 	/** Cached list of anim tracks for notify node drag drop */
 	TArray<TSharedPtr<SActNotifyPoolLaneWidget>> NotifyLanes;
-
-	TSet<TSharedRef<SWidget const>> SelectedNotifyNodes;
 	/** Store the position of a currently dragged node for display across tracks */
 	float CurrentDragXPosition;
 };

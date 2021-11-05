@@ -1,11 +1,9 @@
 ﻿#pragma once
 
-#include "ActImageTrackLaneWidget.h"
 #include "Common/NovaStruct.h"
 #include "Common/NovaStaticFunction.h"
 
 class IActImageTrackBase;
-class SActImageTrackLaneWidget;
 class SActImagePoolWidget;
 class FActActionSequenceSectionBase;
 class SActActionSequenceTreeViewRow;
@@ -144,12 +142,7 @@ public:
 	void Refresh();
 	/** 计算当前Track的纵向间距 */
 	float ComputeTrackPosition();
-
-	/** @return 获得当前对应的 ActImageTrack */
-	TSharedRef<IActImageTrackBase> GetActImageTrack() const;
-
 protected:
-
 	/** The legacy notify panel */
 	TSharedPtr<SActImagePoolWidget> ActImageTrackPanel;
 	/**

@@ -33,7 +33,9 @@ public class PlaySlate : ModuleRules
 			"ContentBrowser",
 			"AdvancedPreviewScene",
 			"AnimGraph",
-			"StatusBar"
+			"StatusBar",
+			"SkeletonEditor"
+			
 		});
 	}
 }

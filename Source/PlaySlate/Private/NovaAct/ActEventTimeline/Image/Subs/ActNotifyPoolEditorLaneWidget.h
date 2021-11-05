@@ -5,7 +5,7 @@ class SActNotifyPoolEditorLaneWidget : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SActNotifyPoolEditorLaneWidget)
-			: _TrackIndex(INDEX_NONE) {}
+			: _LaneIndex(INDEX_NONE) {}
 
 		// 		, _AnimNotifyPanel()
 		// 		, _Sequence()
@@ -19,7 +19,7 @@ public:
 		// 		, _OnCopyNodes()
 		// 		, _OnSetInputViewRange()
 		// {}
-		SLATE_ARGUMENT(int32, TrackIndex)
+		SLATE_ARGUMENT(int32, LaneIndex)
 		// SLATE_ARGUMENT( TSharedPtr<SAnimNotifyPanel>, AnimNotifyPanel)
 		// SLATE_ARGUMENT( class UAnimSequenceBase*, Sequence )
 		// SLATE_ARGUMENT( float, WidgetWidth )
@@ -50,15 +50,13 @@ public:
 
 	void Construct(const FArguments& InArgs);
 
-	TSharedRef<SActNotifyPoolLaneWidget> GetNotifyTrack() const;
-
 protected:
 	/** Index of Track in Sequence **/
-	int32 TrackIndex;
+	int32 LaneIndex;
 
 	/** Anim Sequence **/
 	// UAnimSequenceBase* Sequence;
-
+public:
 	/** Pointer to actual anim notify track */
 	TSharedPtr<SActNotifyPoolLaneWidget> NotifyTrack;
 

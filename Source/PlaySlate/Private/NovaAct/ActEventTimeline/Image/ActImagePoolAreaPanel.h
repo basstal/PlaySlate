@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include "ActImageTrackLaneWidget.h"
 #include "ActImagePoolWidget.h"
 
 class IActImageTrackBase;

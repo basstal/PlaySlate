@@ -731,7 +731,7 @@ bool SActNotifyPoolNotifyNodeWidget::IsSelected() const
 	auto DB = GetDataBindingSP(SActPoolWidgetNotifyWidget, "ActPoolNotify");
 	if (DB)
 	{
-		return DB->GetData()->SelectedNotifyNodes.Contains(AsShared());
+		return DB->GetData()->IsNotifyNodeSelected(SharedThis(this));
 	}
 	return false;
 }

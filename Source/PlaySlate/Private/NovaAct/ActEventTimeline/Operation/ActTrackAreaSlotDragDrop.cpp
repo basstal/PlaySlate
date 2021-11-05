@@ -42,7 +42,7 @@ void FActTrackAreaSlotDragDrop::OnDrop(bool bDropWasHandled, const FPointerEvent
 			float SnapTime = Node->LastSnappedTime;
 			float Time = SnapTime != -1.0f ? SnapTime : LaneWidget->CachedScaleInfo->LocalXToInput(LocalX);
 			FAnimNotifyEvent* AnimNotifyEvent = Node->AnimNotifyEvent;
-			int32 TrackIndex = LaneWidget->TrackIndex;
+			int32 TrackIndex = LaneWidget->LaneIndex;
 			float EventDuration = AnimNotifyEvent->GetDuration();
 			AnimNotifyEvent->Link(AnimSequence, Time, AnimNotifyEvent->GetSlotIndex());
 			AnimNotifyEvent->RefreshTriggerOffset(AnimSequence->CalculateOffsetForNotify(AnimNotifyEvent->GetTime()));
@@ -79,7 +79,7 @@ void FActTrackAreaSlotDragDrop::OnDragged(const FDragDropEvent& DragDropEvent)
 	NodeGroupPosition = DragDropEvent.GetScreenSpacePosition() + DragOffset;
 
 	TSharedPtr<FActDragDropLaneClampInfo> SelectionPositionClampInfo = GetLaneClampInfo(DragDropEvent.GetScreenSpacePosition());
-	if ((SelectionPositionClampInfo->Lane->TrackIndex + TrackSpan) >= ClampInfos.Num())
+	if ((SelectionPositionClampInfo->Lane->LaneIndex + TrackSpan) >= ClampInfos.Num())
 	{
 		// Our selection has moved off the bottom of the notify panel, adjust the clamping information to keep it on the panel
 		SelectionPositionClampInfo = ClampInfos[ClampInfos.Num() - TrackSpan - 1];

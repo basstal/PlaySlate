@@ -7,7 +7,6 @@
 #include "Common/NovaConst.h"
 #include "Common/NovaDataBinding.h"
 #include "NovaAct/NovaActEditor.h"
-#include "NovaAct/ActEventTimeline/Image/ActImageTrackCarWidget.h"
 #include "NovaAct/ActEventTimeline/Image/ImageTrackTypes/ActImageTrackBase.h"
 #include "NovaAct/ActEventTimeline/Image/ImageTrackTypes/ActImageTrackNotify.h"
 #include "NovaAct/ActEventTimeline/Image/Subs/ActNotifyPoolNotifyNodeWidget.h"
@@ -194,10 +193,10 @@ void SActPoolWidgetNotifyWidget::RefreshNotifyTracks()
 
 		for (int32 TrackIndex = 0; TrackIndex < AnimSequenceBase->AnimNotifyTracks.Num(); TrackIndex++)
 		{
-			// FAnimNotifyTrack& Track = AnimSequenceBase->AnimNotifyTracks[TrackIndex];
+			// FAnimNotifyTrack& Track = AnimSequenceBase->AnimNotifyTracks[LaneIndex];
 			TSharedRef<SActNotifyPoolEditorLaneWidget> EditorLaneWidget =
 				SNew(SActNotifyPoolEditorLaneWidget)
-				.TrackIndex(TrackIndex);
+				.LaneIndex(TrackIndex);
 			NotifySlots->AddSlot()
 			           .AutoHeight()
 			           .VAlign(VAlign_Center)
@@ -230,7 +229,7 @@ void SActPoolWidgetNotifyWidget::RefreshNotifyTracks()
 				// .OnInvokeTab(OnInvokeTab)
 			];
 
-			NotifyLanes.Add(EditorLaneWidget->GetNotifyTrack());
+			NotifyLanes.Add(EditorLaneWidget->NotifyTrack);
 			NotifyEditorTracks.Add(EditorLaneWidget);
 		}
 	}
@@ -358,7 +357,7 @@ FReply SActPoolWidgetNotifyWidget::OnNotifyNodeDragStarted(const TSharedRef<SAct
 }
 
 
-void SActPoolWidgetNotifyWidget::SelectNotifyNode(const TSharedRef<SActNotifyPoolNotifyNodeWidget>& NotifyNode,
+void SActPoolWidgetNotifyWidget::SelectNotifyNode(const TSharedRef<SActNotifyPoolNotifyNodeWidget>& InNotifyNode,
                                                   bool Append)
 {
 	// Deselect all other notifies if necessary.
@@ -366,9 +365,9 @@ void SActPoolWidgetNotifyWidget::SelectNotifyNode(const TSharedRef<SActNotifyPoo
 	{
 		DeselectAllNotifies();
 	}
-	if (!SelectedNotifyNodes.Contains(NotifyNode))
+	if (!SelectedNotifyNodes.Contains(InNotifyNode))
 	{
-		SelectedNotifyNodes.Add(NotifyNode);
+		SelectedNotifyNodes.Add(InNotifyNode);
 	}
 }
 
@@ -414,6 +413,29 @@ void SActPoolWidgetNotifyWidget::OnNotifyStateBeingDraggedStatusBarMessage()
 			                                                                          "Hold SHIFT while dragging a notify state Begin or End handle to auto scrub the timeline."));
 		}
 	}
+}
+
+void SActPoolWidgetNotifyWidget::ToggleNotifyNodeSelectStatus(const TSharedRef<SActNotifyPoolNotifyNodeWidget>& InNotifyNode)
+{
+	bool bSelected = SelectedNotifyNodes.Contains(InNotifyNode);
+	if (bSelected)
+	{
+		SelectedNotifyNodes.Remove(InNotifyNode);
+	}
+	else
+	{
+		SelectedNotifyNodes.Add(InNotifyNode);
+	}
+}
+
+bool SActPoolWidgetNotifyWidget::IsNotifyNodeSelected(const TSharedRef<SActNotifyPoolNotifyNodeWidget const>& InNotifyNode) const
+{
+	return SelectedNotifyNodes.Contains(InNotifyNode);
+}
+
+bool SActPoolWidgetNotifyWidget::IsSingleNotifyNodeSelected()
+{
+	return SelectedNotifyNodes.Num() == 1;
 }
 
 #undef LOCTEXT_NAMESPACE

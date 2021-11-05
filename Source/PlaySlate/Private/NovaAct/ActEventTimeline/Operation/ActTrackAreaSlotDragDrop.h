@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Common/NovaStruct.h"
 
+struct FActDragDropLaneClampInfo;
 class SActNotifyPoolNotifyNodeWidget;
 struct FTrackScaleInfo;
 class SActPoolWidgetNotifyWidget;

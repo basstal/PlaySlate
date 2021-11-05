@@ -1,8 +1,6 @@
 ﻿#pragma once
 
 #include "Common/NovaDelegate.h"
-#include "NovaAct/ActEventTimeline/Image/Subs/ActNotifyPoolLaneWidget.h"
-
 
 struct FFrameNumberInterface;
 
@@ -646,10 +644,11 @@ namespace NovaStruct
 		static void RemoveInvalidNotifies(UAnimSequenceBase* SeqBase);
 	};
 
-	struct FActDragDropLaneClampInfo
+	
+
+	struct FActCreateNewNotify
 	{
-		int32 LanePos;
-		int32 LaneSnapTestPos;
-		TSharedPtr<SActNotifyPoolLaneWidget> Lane;
+		FString NewNotifyName;
+		UClass* NotifyClass;
 	};
 }

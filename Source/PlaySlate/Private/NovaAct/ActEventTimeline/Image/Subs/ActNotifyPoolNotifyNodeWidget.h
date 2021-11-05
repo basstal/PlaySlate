@@ -2,7 +2,6 @@
 #include "Common/NovaEnum.h"
 #include "Common/NovaDelegate.h"
 
-class SActImageTrackLaneWidget;
 class SActNotifyPoolLaneWidget;
 
 using namespace NovaDelegate;
@@ -75,12 +74,10 @@ public:
 	/** TODO: */
 	FVector2D GetNotifyPositionOffset() const;
 	FVector2D GetNotifyPosition() const;
-	FVector2D GetWidgetSize() const;
 	/** @return 是否在被选中状态 */
 	bool IsSelected() const;
 protected:
-	// Animation Notify 相关数据结构
-	FAnimNotifyEvent* AnimNotifyEvent;
+	
 
 	/** 当前拖拽的状态 */
 	ENovaNotifyStateHandleHit CurrentDragHandle;
@@ -143,6 +140,8 @@ public:
 	FVector2D WidgetSize;
 	/** Last position the user clicked in the widget */
 	FVector2D LastMouseDownPosition;
+	// Animation Notify 相关数据结构
+	FAnimNotifyEvent* AnimNotifyEvent;
 public:
 	const FVector2D AlignmentMarkerSize = FVector2D(10.f, 20.f);
 	const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle("Regular", 10);

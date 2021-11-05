@@ -10,7 +10,6 @@ class SActImageTrackCarWidget;
 class SActImagePoolAreaPanel;
 class SActImageTreeViewTableRow;
 class SActImageHorizontalBox;
-class SActImageTrackLaneWidget;
 class SActImagePoolWidget;
 
 class SActImageTreeView : public STreeView<TSharedRef<SActImageTreeViewTableRow>>
