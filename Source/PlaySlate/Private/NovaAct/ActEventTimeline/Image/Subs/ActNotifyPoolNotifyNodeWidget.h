@@ -36,6 +36,7 @@ public:
 	virtual FReply OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FVector2D ComputeDesiredSize(float) const override;
+	virtual void OnFocusLost(const FFocusEvent& InFocusEvent) override;
 	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 	//~End SWidget interface
 
@@ -109,17 +110,15 @@ protected:
 	FVector2D TextSize;
 	/** TODO: */
 	FVector2D BranchingPointIconSize;
-	/** TODO: */
-	FVector2D WidgetSize;
+
 	/** TODO: */
 	float WidgetX;
 	/** TODO: */
 	float NotifyScrubHandleCentre;
-	/** Last position the user clicked in the widget */
-	FVector2D LastMouseDownPosition;
+
 	// /** Cached owning track geometry */
 	// FGeometry CachedLaneGeometry;
-	
+
 	/** AnimNotifyEvent 决定的 NotifyNode 缓存名称 */
 	FName CachedNotifyName;
 	// Notify 颜色
@@ -140,11 +139,10 @@ public:
 	/** DragDrop Snap 使用的 Time */
 	float LastSnappedTime;
 
-	// TSharedRef<SActImageTrackLaneWidget> GetActActionTrackAreaSlot() const
-	// {
-	// 	return ActNotifiesPanelLaneWidget.Pin().ToSharedRef();
-	// }
-
+	/** 当前节点的大小 */
+	FVector2D WidgetSize;
+	/** Last position the user clicked in the widget */
+	FVector2D LastMouseDownPosition;
 public:
 	const FVector2D AlignmentMarkerSize = FVector2D(10.f, 20.f);
 	const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle("Regular", 10);

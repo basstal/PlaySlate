@@ -22,6 +22,7 @@ FActImageTrackNotify::FActImageTrackNotify()
 	ActImageTrackArgs = MakeShareable(new FActImageTrackArgs());
 	{
 		ActImageTrackArgs->TrackType = EActImageTrackType::Notify;
+		ActImageTrackArgs->bSupportFiltering = true;
 	}
 }
 
@@ -54,7 +55,6 @@ TSharedRef<SWidget> FActImageTrackNotify::GenerateContentWidgetForLaneWidget(con
 {
 	return SNew(SActPoolWidgetNotifyWidget, SharedThis(this));
 }
-
 
 void FActImageTrackNotify::OnTreeViewContentRefresh(TSharedPtr<IActImageTrackBase> InActImageTrack)
 {

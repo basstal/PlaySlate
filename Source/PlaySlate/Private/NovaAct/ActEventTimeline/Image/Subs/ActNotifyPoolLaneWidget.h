@@ -82,6 +82,7 @@ public:
 	                      const FWidgetStyle& InWidgetStyle,
 	                      bool bParentEnabled) const override;
 	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
+	virtual FReply OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	//~End SCompoundWidget interface
 
 	void Update();
@@ -103,6 +104,13 @@ public:
 	 */
 	void DisconnectSelectedNodesForDrag(TArray<TSharedPtr<SActNotifyPoolNotifyNodeWidget>>& DragNodes);
 
+	/**
+	 * 获得与当前 CursorPosition 相交的 NotifyNode
+	 *
+	 * @param CursorPosition 传入的指针位置
+	 * @return 
+	 */
+	TSharedPtr<SActNotifyPoolNotifyNodeWidget> GetHitNotifyNode(const FVector2D& CursorPosition);
 
 protected:
 	TSharedPtr<SBorder> TrackBorder;

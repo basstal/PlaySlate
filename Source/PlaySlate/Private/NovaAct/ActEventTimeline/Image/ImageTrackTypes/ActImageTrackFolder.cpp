@@ -21,6 +21,7 @@ FActImageTrackFolder::FActImageTrackFolder()
 		ActImageTrackArgs->bIsHeaderTableRow = false;
 		ActImageTrackArgs->TrackType = EActImageTrackType::Folder;
 		ActImageTrackArgs->Height = NotifyHeight;
+		ActImageTrackArgs->bSupportFiltering = false;
 	}
 }
 
@@ -75,6 +76,5 @@ TSharedRef<SWidget> FActImageTrackFolder::GenerateContentWidgetForLaneWidget(con
 {
 	return SNew(SActPoolWidgetFolderWidget, SharedThis(this));
 }
-
 
 #undef LOCTEXT_NAMESPACE

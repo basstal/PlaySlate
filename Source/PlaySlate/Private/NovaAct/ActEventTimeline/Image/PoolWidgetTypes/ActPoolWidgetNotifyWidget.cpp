@@ -304,12 +304,11 @@ void SActPoolWidgetNotifyWidget::OnLaneContentRefresh(TSharedPtr<IActImageTrackB
 }
 
 
-FReply SActPoolWidgetNotifyWidget::OnNotifyNodeDragStarted(const TSharedRef<SActNotifyPoolLaneWidget>& InLane,
-                                                           const TSharedRef<SActNotifyPoolNotifyNodeWidget>& InNotifyNode,
+FReply SActPoolWidgetNotifyWidget::OnNotifyNodeDragStarted(const TSharedRef<SActNotifyPoolNotifyNodeWidget>& InNotifyNode,
                                                            const FPointerEvent& InMouseEvent,
                                                            const bool bDragOnMarker)
 {
-	SelectNotifyNode(InNotifyNode, InMouseEvent.IsShiftDown(), false);
+	SelectNotifyNode(InNotifyNode, InMouseEvent.IsShiftDown());
 
 	// If we're dragging one of the direction markers we don't need to call any further as we don't want the drag drop op
 	if (!bDragOnMarker)
@@ -326,7 +325,7 @@ FReply SActPoolWidgetNotifyWidget::OnNotifyNodeDragStarted(const TSharedRef<SAct
 		{
 			Lane->DisconnectSelectedNodesForDrag(NotifyNodes);
 		}
-		FBox2D OverlayBounds;
+		FBox2D OverlayBounds = FBox2D(ForceInitToZero);
 		for (const TSharedPtr<SActNotifyPoolNotifyNodeWidget>& NotifyNode : NotifyNodes)
 		{
 			OverlayBounds += FBox2D(NotifyNode->ScreenPosition, NotifyNode->ScreenPosition + FVector2D(NotifyNode->DurationSizeX, 0.0f));
@@ -339,14 +338,10 @@ FReply SActPoolWidgetNotifyWidget::OnNotifyNodeDragStarted(const TSharedRef<SAct
 			NodeDragDecoratorOverlay->AddSlot()
 			                        .Padding(FMargin(OffsetFromMin.X, OffsetFromMin.Y, 0.0f, 0.0f))
 			[
-				NotifyNode->AsShared()
+				NotifyNode.ToSharedRef()
 			];
 		}
 
-		// ** TODO: replace with StaticFunction :: OnViewRangePan
-		// FPanTrackRequest PanRequestDelegate = FPanTrackRequest::CreateSP(this, &SAnimNotifyPanel::PanInputViewRange);
-		// ** TODO: replace with "ActImageTrack/Refresh" DataBinding Trigger
-		// FOnUpdatePanel UpdateDelegate = FOnUpdatePanel::CreateSP(this, &SAnimNotifyPanel::Update);
 		return FReply::Handled().BeginDragDrop(FActTrackAreaSlotDragDrop::New(SharedThis(this),
 		                                                                      NotifyNodes,
 		                                                                      NodeDragDecorator,
@@ -364,8 +359,7 @@ FReply SActPoolWidgetNotifyWidget::OnNotifyNodeDragStarted(const TSharedRef<SAct
 
 
 void SActPoolWidgetNotifyWidget::SelectNotifyNode(const TSharedRef<SActNotifyPoolNotifyNodeWidget>& NotifyNode,
-                                                  bool Append,
-                                                  bool bUpdateSelection)
+                                                  bool Append)
 {
 	// Deselect all other notifies if necessary.
 	if (!Append)
@@ -376,11 +370,6 @@ void SActPoolWidgetNotifyWidget::SelectNotifyNode(const TSharedRef<SActNotifyPoo
 	{
 		SelectedNotifyNodes.Add(NotifyNode);
 	}
-	// NotifyNode->bSelected = true;
-	// if (bUpdateSelection)
-	// {
-	// 	SendSelectionChanged();
-	// }
 }
 
 
@@ -410,6 +399,19 @@ void SActPoolWidgetNotifyWidget::OnNotifyNodesBeingDraggedStatusBarMessage()
 			StatusBarMessageHandle = StatusBarSubsystem->PushStatusBarMessage(AnimationEditorStatusBarName,
 			                                                                  LOCTEXT("AutoscrubNotify",
 			                                                                          "Hold SHIFT while dragging a notify to auto scrub the timeline."));
+		}
+	}
+}
+
+void SActPoolWidgetNotifyWidget::OnNotifyStateBeingDraggedStatusBarMessage()
+{
+	if (!StatusBarMessageHandle.IsValid())
+	{
+		if (UStatusBarSubsystem* StatusBarSubsystem = GEditor->GetEditorSubsystem<UStatusBarSubsystem>())
+		{
+			StatusBarMessageHandle = StatusBarSubsystem->PushStatusBarMessage(AnimationEditorStatusBarName,
+			                                                                  LOCTEXT("AutoscrubNotifyStateHandle",
+			                                                                          "Hold SHIFT while dragging a notify state Begin or End handle to auto scrub the timeline."));
 		}
 	}
 }

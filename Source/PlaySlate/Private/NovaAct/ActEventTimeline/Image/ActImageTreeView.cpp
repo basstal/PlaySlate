@@ -6,23 +6,18 @@
 #include "NovaAct/ActEventTimeline/Image/ActImagePoolAreaPanel.h"
 
 #include "Common/NovaDataBinding.h"
+#include "ImageTrackTypes/ActImageTrackBase.h"
 #include "Misc/TextFilterExpressionEvaluator.h"
-#include "NovaAct/Assets/ActAnimation.h"
-
 
 SActImageTreeView::~SActImageTreeView()
 {
 	NovaDB::Delete("ActImageTrack/Refresh");
-	auto DB = GetDataBindingUObject(UActAnimation, "ActAnimation");
-	if (DB)
-	{
-		DB->UnBind(OnHitBoxesChangedHandle);
-	}
 }
 
 void SActImageTreeView::Construct(const FArguments& InArgs, const TSharedRef<SActImagePoolAreaPanel>& InActImageTrackAreaPanel)
 {
 	NovaDB::CreateSP<IActImageTrackBase>("ActImageTrack/Refresh", nullptr);
+	// ** TODO:应该把这个放到外面去
 	ActImageAreaPanel = InActImageTrackAreaPanel;
 
 	TextFilter = MakeShareable(new FTextFilterExpressionEvaluator(ETextFilterExpressionEvaluatorMode::BasicString));
@@ -34,7 +29,7 @@ void SActImageTreeView::Construct(const FArguments& InArgs, const TSharedRef<SAc
 	FArguments TreeViewArgs;
 	{
 		TreeViewArgs._TreeItemsSource = InArgs._TreeItemsSource;
-		TreeViewArgs._SelectionMode = ESelectionMode::Single;
+		TreeViewArgs._SelectionMode = ESelectionMode::None;
 		TreeViewArgs._HeaderRow = HeaderRow;
 		TreeViewArgs._HighlightParentNodesForSelection = true;
 		TreeViewArgs._AllowInvisibleItemSelection = true;
@@ -46,7 +41,6 @@ void SActImageTreeView::Construct(const FArguments& InArgs, const TSharedRef<SAc
 	}
 	STreeView::Construct(TreeViewArgs);
 
-	DataBindingUObjectBindRaw(UActAnimation, "ActAnimation", this, &SActImageTreeView::OnHitBoxesChanged, OnHitBoxesChangedHandle);
 	if (!NovaDB::Get("TreeViewFilterText"))
 	{
 		NovaDB::Create("TreeViewFilterText", FText::GetEmpty());
@@ -57,18 +51,27 @@ void SActImageTreeView::Construct(const FArguments& InArgs, const TSharedRef<SAc
 void SActImageTreeView::OnGetChildren(TSharedRef<SActImageTreeViewTableRow> InParent,
                                       TArray<TSharedRef<SActImageTreeViewTableRow>>& OutChildren) const
 {
-	for (const auto& Node : InParent->GetChildNodes())
+	if (!TextFilter->GetFilterText().IsEmpty())
 	{
-		if (!Node->IsHidden())
+		for (const TSharedRef<SActImageTreeViewTableRow>& Child : InParent->GetChildNodes())
 		{
-			OutChildren.Add(Node);
+			TSharedPtr<FActImageTrackArgs> ActImageTrackArgs = Child->ActImageTrack->ActImageTrackArgs;
+			if (!ActImageTrackArgs->bSupportFiltering ||
+				TextFilter->TestTextFilter(FBasicStringFilterExpressionContext(ActImageTrackArgs->DisplayName.ToString())))
+			{
+				OutChildren.Add(Child);
+			}
 		}
+	}
+	else
+	{
+		OutChildren.Append(InParent->GetChildNodes());
 	}
 }
 
 void SActImageTreeView::OnExpansionChanged(TSharedRef<SActImageTreeViewTableRow> InDisplayNode, bool bIsExpanded)
 {
-	// UE_LOG(LogNovaAct, Log, TEXT("InDisplayNode->GetPathName : %s, bIsExpanded : %d"), *InDisplayNode->GetPathName(), bIsExpanded);
+	UE_LOG(LogNovaAct, Log, TEXT("InDisplayNode->GetPathName : %s, bIsExpanded : %d"), *InDisplayNode->GetPathName(), bIsExpanded);
 	typedef TMap<TSharedPtr<IActImageTrackBase>, TWeakPtr<SActImagePoolWidget>> PoolWidgetMap;
 	auto DB = GetDataBindingSP(PoolWidgetMap, "ImageTrack2LaneWidget");
 	if (!DB)
@@ -80,7 +83,7 @@ void SActImageTreeView::OnExpansionChanged(TSharedRef<SActImageTreeViewTableRow>
 	{
 		for (const TSharedRef<SActImageTreeViewTableRow>& ChildNode : InDisplayNode->GetChildNodes())
 		{
-			TSharedRef<IActImageTrackBase> ActImageTrack = ChildNode->GetActImageTrack();
+			TSharedPtr<IActImageTrackBase> ActImageTrack = ChildNode->ActImageTrack;
 			TWeakPtr<SActImagePoolWidget>* WeakTrackPanelPtr = ImageTrack2LaneWidget->Find(ActImageTrack);
 			if (WeakTrackPanelPtr && WeakTrackPanelPtr->IsValid())
 			{
@@ -89,48 +92,6 @@ void SActImageTreeView::OnExpansionChanged(TSharedRef<SActImageTreeViewTableRow>
 		}
 	}
 }
-
-
-void SActImageTreeView::Refresh()
-{
-	// DisplayedRootNodes.Reset();
-	// for (auto& Item : ChildNodes)
-	// {
-	// 	if (Item->IsVisible())
-	// 	{
-	// 		DisplayedRootNodes.Add(Item);
-	// 	}
-	// }
-	// SetTreeItemsSource(&DisplayedRootNodes);
-}
-
-
-void SActImageTreeView::OnHitBoxesChanged(UActAnimation* InActAnimation)
-{
-	//
-	// int32 HitBoxTreeViewNodeCount = HitBoxesFolder->GetChildNodes().Num();
-	// if (HitBoxTreeViewNodeCount < InHitBoxData.Num())
-	// {
-	// 	FName HitBoxName("HitBox");
-	// 	for (int32 count = HitBoxTreeViewNodeCount; count < InHitBoxData.Num(); ++count)
-	// 	{
-	// 		// DisplayedRootNodes.Add(NewTreeViewNode);
-	// 	}
-	// }
-	// int32 Index = 0;
-	// for (FActActionHitBoxData& InHitBox : InHitBoxData)
-	// {
-	// 	HitBoxesFolder->GetChildByIndex(Index++)->SetContentAsHitBox(InHitBox);
-	// }
-	// int32 ChildCount = HitBoxesFolder->GetChildNodes().Num();
-	// while (Index < ChildCount)
-	// {
-	// 	HitBoxesFolder->GetChildByIndex(Index++)->RemoveFromParent();
-	// }
-	// SetTreeItemsSource(&DisplayedRootNodes);
-	// RequestListRefresh();
-}
-
 
 TSharedRef<ITableRow> SActImageTreeView::OnTreeViewGenerateRow(TSharedRef<SActImageTreeViewTableRow> InActImageTreeViewTableRow,
                                                                const TSharedRef<STableViewBase>& OwnerTable)
@@ -142,20 +103,15 @@ TSharedRef<ITableRow> SActImageTreeView::OnTreeViewGenerateRow(TSharedRef<SActIm
 		UE_LOG(LogNovaAct, Error, TEXT("DataBindingSP for type TMap<TSharedPtr<IActImageTrackBase>, TWeakPtr<SActImagePoolWidget>> don't exist"));
 		return InActImageTreeViewTableRow;
 	}
-	TSharedPtr<PoolWidgetMap> ImageTrack2LaneWidget = DB->GetData();
-	if (!ImageTrack2LaneWidget)
-	{
-		UE_LOG(LogNovaAct, Error, TEXT("ImageTrack2LaneWidget is nullptr"));
-		return InActImageTreeViewTableRow;
-	}
 	// Ensure the track area is kept up to date with the virtualized scroll of the tree view
-	TSharedRef<IActImageTrackBase> ActImageTrack = InActImageTreeViewTableRow->GetActImageTrack();
+	TSharedPtr<IActImageTrackBase> ActImageTrack = InActImageTreeViewTableRow->ActImageTrack;
+	TSharedPtr<PoolWidgetMap> ImageTrack2LaneWidget = DB->GetData();
 	TSharedPtr<SActImagePoolWidget> LaneWidget = ImageTrack2LaneWidget->FindRef(ActImageTrack).Pin();
 
-	if (!LaneWidget)
+	if (!LaneWidget && ActImageTrack)
 	{
 		// Add a track slot for the row
-		LaneWidget = ActImageAreaPanel->MakeLaneWidgetForTrack(ActImageTrack);
+		LaneWidget = ActImageAreaPanel->MakeLaneWidgetForTrack(ActImageTrack.ToSharedRef());
 		ImageTrack2LaneWidget->Add(ActImageTrack, LaneWidget);
 	}
 
@@ -171,4 +127,13 @@ void SActImageTreeView::OnFilterChanged(FText InFilterText)
 	}
 	TextFilter->SetFilterText(InFilterText);
 	RequestTreeRefresh();
+}
+
+void SActImageTreeView::ExpandAllItems()
+{
+	// expand all
+	for (const TSharedRef<SActImageTreeViewTableRow>& TableRow : *TreeItemsSource)
+	{
+		SetItemExpansion(TableRow, true);
+	}
 }

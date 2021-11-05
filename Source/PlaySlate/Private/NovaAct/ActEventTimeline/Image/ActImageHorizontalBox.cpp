@@ -52,7 +52,7 @@ void SActImageHorizontalBox::Construct(const FArguments& InArgs)
 	                                                      ActImageTrackNotify);
 	Notifies->SetParent(NotifyFolder);
 	ImageTrack2TableRow->Add(ActImageTrackNotify, Notifies);
-
+	ActImageTreeView->ExpandAllItems();
 
 	PinnedActImageTrackAreaPanel = SNew(SActImagePoolAreaPanel);
 	PinnedActImageTreeView = SNew(SActImageTreeView, PinnedActImageTrackAreaPanel.ToSharedRef())

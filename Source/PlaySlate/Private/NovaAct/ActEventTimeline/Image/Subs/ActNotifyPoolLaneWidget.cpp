@@ -4,6 +4,7 @@
 #include "SCurveEditor.h"
 #include "Common/NovaDataBinding.h"
 #include "Common/NovaStruct.h"
+#include "NovaAct/ActEventTimeline/Image/PoolWidgetTypes/ActPoolWidgetNotifyWidget.h"
 
 using namespace NovaStruct;
 
@@ -103,10 +104,11 @@ int32 SActNotifyPoolLaneWidget::OnPaint(const FPaintArgs& Args,
 
 	++CustomLayerId;
 
-	auto CurrentDraggedNodePosDB = GetDataBinding(float, "PoolWidgetNotifyWidget/CurrentDraggedNodePos");
-	if (bAnyDraggedNodes && !CurrentDraggedNodePosDB)
+	auto PoolNotifyDB = GetDataBindingSP(SActPoolWidgetNotifyWidget, "ActPoolNotify");
+	if (bAnyDraggedNodes && PoolNotifyDB)
 	{
-		float Value = CurrentDraggedNodePosDB->GetData();
+		TSharedPtr<SActPoolWidgetNotifyWidget> ActPoolWidgetNotifyWidget = PoolNotifyDB->GetData();
+		float Value = ActPoolWidgetNotifyWidget->CurrentDragXPosition;
 		if (Value >= 0.0f)
 		{
 			float XPos = Value;
@@ -142,6 +144,32 @@ void SActNotifyPoolLaneWidget::Tick(const FGeometry& AllottedGeometry, const dou
 	                                                    0,
 	                                                    AllottedGeometry.Size));
 	CachedAllottedGeometrySizeScaled = AllottedGeometry.Size * AllottedGeometry.Scale;
+}
+
+FReply SActNotifyPoolLaneWidget::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	FVector2D CursorPos = MouseEvent.GetScreenSpacePosition();
+	CursorPos = MyGeometry.AbsoluteToLocal(CursorPos);
+	TSharedPtr<SActNotifyPoolNotifyNodeWidget> HitNotifyNode = GetHitNotifyNode(CursorPos);
+
+	if (HitNotifyNode)
+	{
+		if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+		{
+			// Hit a node, record the mouse position for use later so we can know when / where a
+			// drag happened on the node handles if necessary.
+			HitNotifyNode->LastMouseDownPosition = CursorPos;
+
+			return FReply::Handled().DetectDrag(HitNotifyNode.ToSharedRef(), EKeys::LeftMouseButton);
+		}
+		else if (MouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
+		{
+			// Hit a node, return handled so we can pop a context menu on mouse up
+			return FReply::Handled();
+		}
+	}
+
+	return FReply::Unhandled();
 }
 
 void SActNotifyPoolLaneWidget::Update()
@@ -292,7 +320,7 @@ FMargin SActNotifyPoolLaneWidget::GetNotifyTrackPadding(int32 NotifyIndex) const
 {
 	float LeftMargin = NotifyNodes[NotifyIndex]->GetWidgetPosition().X;
 	float RightMargin = GetCachedGeometry().GetLocalSize().X - NotifyNodes[NotifyIndex]->GetWidgetPosition().X -
-		NotifyNodes[NotifyIndex]->GetWidgetSize().X;
+		NotifyNodes[NotifyIndex]->WidgetSize.X;
 	return FMargin(LeftMargin, 0, RightMargin, 0);
 }
 
@@ -343,12 +371,29 @@ bool SActNotifyPoolLaneWidget::IsBranchingPoint()
 
 void SActNotifyPoolLaneWidget::DisconnectSelectedNodesForDrag(TArray<TSharedPtr<SActNotifyPoolNotifyNodeWidget>>& DragNodes)
 {
-	for (auto& NotifyNode : NotifyNodes)
+	for (TSharedPtr<SActNotifyPoolNotifyNodeWidget> NotifyNode : NotifyNodes)
 	{
 		if (NotifyNode->IsSelected())
 		{
-			NodeSlots->RemoveSlot(NotifyNode->AsShared());
+			NodeSlots->RemoveSlot(NotifyNode.ToSharedRef());
 			DragNodes.Add(NotifyNode);
 		}
 	}
+}
+
+TSharedPtr<SActNotifyPoolNotifyNodeWidget> SActNotifyPoolLaneWidget::GetHitNotifyNode(const FVector2D& CursorPosition)
+{
+	//Run through from 'top most' Notify to bottom
+	for (int32 Index = NotifyNodes.Num() - 1; Index >= 0; --Index)
+	{
+		TSharedPtr<SActNotifyPoolNotifyNodeWidget> NotifyNode = NotifyNodes[Index];
+		FVector2D Position = NotifyNode->GetWidgetPosition();
+		FVector2D Size = NotifyNode->WidgetSize;
+		if (CursorPosition >= Position && CursorPosition <= (Position + Size))
+		{
+			return NotifyNode;
+		}
+	}
+
+	return nullptr;
 }

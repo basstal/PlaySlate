@@ -21,7 +21,16 @@ public:
 	//~End FDragDropOperation interface
 
 	/**
-	 * 构造
+	 * 构造一个 DragDrop 的上下文类型
+	 * 
+	 * @param PoolNotifyWidget
+	 * @param NotifyNodes
+	 * @param Decorator
+	 * @param CursorPosition
+	 * @param SelectionScreenPosition
+	 * @param SelectionSize
+	 * @param CurrentDragXPosition
+	 * @return 
 	 */
 	static TSharedRef<FActTrackAreaSlotDragDrop> New(
 		TSharedPtr<SActPoolWidgetNotifyWidget> PoolNotifyWidget,
@@ -33,6 +42,7 @@ public:
 		float& CurrentDragXPosition);
 
 	/**
+	 * 获得 Snap 功能的具体位置
 	 *
 	 * @param InClampInfo
 	 * @param WidgetSpaceNotifyPosition

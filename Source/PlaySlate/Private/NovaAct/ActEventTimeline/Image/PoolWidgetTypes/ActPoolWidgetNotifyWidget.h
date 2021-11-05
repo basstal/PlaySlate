@@ -75,13 +75,11 @@ public:
 	void OnLaneContentRefresh(TSharedPtr<IActImageTrackBase> InActImageTrack);
 	/**
 	 * Handler that is called when the user starts dragging a node
-	 * @param InLane
 	 * @param InNotifyNode
 	 * @param InMouseEvent
 	 * @param bDragOnMarker
 	 */
-	FReply OnNotifyNodeDragStarted(const TSharedRef<SActNotifyPoolLaneWidget>& InLane,
-	                               const TSharedRef<SActNotifyPoolNotifyNodeWidget>& InNotifyNode,
+	FReply OnNotifyNodeDragStarted(const TSharedRef<SActNotifyPoolNotifyNodeWidget>& InNotifyNode,
 	                               const FPointerEvent& InMouseEvent,
 	                               const bool bDragOnMarker);
 
@@ -91,21 +89,24 @@ public:
 	 * @param Append 是否为添加状态，否则会先取消所有已选中的 NotifyNode
 	 */
 	void SelectNotifyNode(const TSharedRef<SActNotifyPoolNotifyNodeWidget>& NotifyNode,
-	                      bool Append,
-	                      bool bUpdateSelection);
+	                      bool Append);
 	/**
 	 * 取消所有 Lane 的所有 NotifyNode 的选中状态
 	 */
 	void DeselectAllNotifies();
 
 	/**
+	 * 显示提示
 	 */
 	void OnNotifyNodesBeingDraggedStatusBarMessage();
-	
+	/**
+	 * 显示提示
+	 */
+	void OnNotifyStateBeingDraggedStatusBarMessage();
+
 protected:
 	TSharedPtr<FActImageTrackNotify> ActImageTrackNotify;
 
-	
 
 	/** Cached list of Notify editor tracks */
 	TArray<TSharedPtr<SActNotifyPoolEditorLaneWidget>> NotifyEditorTracks;
@@ -118,13 +119,14 @@ protected:
 	/** Recursion guard for selection */
 	bool bIsSelecting;
 	bool bIsUpdating;
-	/** Store the position of a currently dragged node for display across tracks */
-	float CurrentDragXPosition;
+
 	/** Handle to status bar message */
 	FStatusBarMessageHandle StatusBarMessageHandle;
 public:
 	/** Cached list of anim tracks for notify node drag drop */
 	TArray<TSharedPtr<SActNotifyPoolLaneWidget>> NotifyLanes;
-	
+
 	TSet<TSharedRef<SWidget const>> SelectedNotifyNodes;
+	/** Store the position of a currently dragged node for display across tracks */
+	float CurrentDragXPosition;
 };

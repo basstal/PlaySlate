@@ -17,8 +17,7 @@
 using namespace NovaConst;
 
 SActImageTreeViewTableRow::SActImageTreeViewTableRow()
-	: TableRowType(EActImageTrackType::None),
-	  ActActionTrackAreaArgs(),
+	:ActActionTrackAreaArgs(),
 	  // CachedHitBox(nullptr),
 	  Height(0),
 	  PendingRenameTrackIndex(0) { }
@@ -311,17 +310,6 @@ float SActImageTreeViewTableRow::ComputeTrackPosition()
 	//        CachedGeometryOutlinerTreeNode.AbsolutePosition.Y,
 	//        CachedGeometryTrackArea.AbsolutePosition.Y);
 	return CachedGeometryOutlinerTreeNode.AbsolutePosition.Y - CachedGeometryTrackArea.AbsolutePosition.Y;
-}
-
-
-EActImageTrackType SActImageTreeViewTableRow::GetTableRowType() const
-{
-	return TableRowType;
-}
-
-TSharedRef<IActImageTrackBase> SActImageTreeViewTableRow::GetActImageTrack() const
-{
-	return ActImageTrack.ToSharedRef();
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -55,6 +55,7 @@ void SActNotifyPoolNotifyNodeWidget::Construct(const FArguments& InArgs,
 	// Font = FCoreStyle::GetDefaultFontStyle("Regular", 10);
 	bBeingDragged = false;
 	CurrentDragHandle = ENovaNotifyStateHandleHit::None;
+	DragMarkerTransactionIdx = INDEX_NONE;
 	bDrawTooltipToRight = true;
 	// bSelected = false;
 
@@ -278,8 +279,7 @@ FReply SActNotifyPoolNotifyNodeWidget::OnDragDetected(const FGeometry& MyGeometr
 		}
 	}
 
-	return PoolNotifyDB->GetData()->OnNotifyNodeDragStarted(WeakActNotifyPoolLaneWidget.Pin().ToSharedRef(),
-	                                                        SharedThis(this),
+	return PoolNotifyDB->GetData()->OnNotifyNodeDragStarted(SharedThis(this),
 	                                                        MouseEvent,
 	                                                        bDragOnMarker);
 }
@@ -334,124 +334,152 @@ FReply SActNotifyPoolNotifyNodeWidget::OnMouseMove(const FGeometry& MyGeometry, 
 	float TrackScreenSpaceOrigin = CachedLaneGeometry.LocalToAbsolute(FVector2D(ScaleInfo.InputToLocalX(0.0f), 0.0f)).X;
 	float PlayLength = (*AnimSequenceDB->GetData())->GetPlayLength();
 	float TrackScreenSpaceLimit = CachedLaneGeometry.LocalToAbsolute(FVector2D(ScaleInfo.InputToLocalX(PlayLength), 0.0f)).X;
+	auto GetScrubHandleSnapPosition = [ScaleInfo](float& NotifyInputX)
+	{
+		const float MaxSnapDist = 5.0f;
 
-	float TickResolutionInterval = (float)ActEventTimelineArgs->TickResolution.AsInterval();
+		if (!FSlateApplication::Get().GetModifierKeys().IsControlDown())
+		{
+			if (NovaStaticFunction::OnSnapTime(NotifyInputX, MaxSnapDist / ScaleInfo.PixelsPerInput, TArrayView<const FName>()))
+			{
+				return NotifyInputX;
+			}
+		}
+		return -1.0f;
+	};
 	if (CurrentDragHandle == ENovaNotifyStateHandleHit::Start)
 	{
 		// Check track bounds
 		float OldDisplayTime = AnimNotifyEvent->GetTime();
-		float OldDuration = AnimNotifyEvent->GetDuration();
 		if (MouseEvent.GetScreenSpacePosition().X >= TrackScreenSpaceXPosition &&
 			MouseEvent.GetScreenSpacePosition().X <= TrackScreenSpaceXPosition + CachedAllottedGeometrySizeScaled.X)
 		{
 			float NewDisplayTime = ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X);
-			float NewDuration = OldDisplayTime - NewDisplayTime;
+			float NewDuration = AnimNotifyEvent->GetDuration() + OldDisplayTime - NewDisplayTime;
 			// Check to make sure the duration is not less than the minimum allowed
 			if (NewDuration < MinimumStateDuration)
 			{
 				NewDisplayTime -= MinimumStateDuration - NewDuration;
 			}
 			AnimNotifyEvent->SetTime(FMath::Max(0.0f, NewDisplayTime));
-			AnimNotifyEvent->SetDuration(OldDuration + OldDisplayTime - AnimNotifyEvent->GetTime());
+			AnimNotifyEvent->SetDuration(AnimNotifyEvent->GetDuration() + OldDisplayTime - AnimNotifyEvent->GetTime());
 		}
-		else if (OldDuration > MinimumStateDuration)
+		else if (AnimNotifyEvent->GetDuration() > MinimumStateDuration)
 		{
 			HandleOverflowPan(MouseEvent.GetScreenSpacePosition(),
 			                  TrackScreenSpaceXPosition,
 			                  TrackScreenSpaceOrigin,
 			                  TrackScreenSpaceLimit);
 			// Update scale info to the new view inputs after panning
-			// ScaleInfo.ViewMinInput = ViewMinInput;
-			// ScaleInfo.ViewMaxInput = ViewMaxInput;
-			//
-			// float NewDisplayTime = FMath::Max(0.0f, ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X));
-			// ActActionSequenceTreeViewNode->SetHitBoxBegin((int32)(NewDisplayTime / TickResolutionInterval));
-			// float NewDurationTime = DurationTime + OldDisplayTime - NewDisplayTime;
-			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int32)(NewDurationTime / TickResolutionInterval));
+			ScaleInfo.ViewMinInput = ActEventTimelineArgs->ViewRange->GetLowerBoundValue();
+			ScaleInfo.ViewMaxInput = ActEventTimelineArgs->ViewRange->GetUpperBoundValue();
+
+			float NewDisplayTime = FMath::Max(0.0f,
+			                                  ScaleInfo.LocalXToInput(
+				                                  (MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X));
+			AnimNotifyEvent->SetTime(FMath::Max(0.0f, NewDisplayTime));
+			AnimNotifyEvent->SetDuration(AnimNotifyEvent->GetDuration() + OldDisplayTime - AnimNotifyEvent->GetTime());
 
 			// Adjust in case we went under the minimum
-			// if ((int32)(NewDurationTime / TickResolutionInterval) < MinimumStateDuration)
-			// {
-			// 	float EndTimeBefore = NodeObjectInterface->GetTime() + NodeObjectInterface->GetDuration();
-			// 	NodeObjectInterface->SetTime(NodeObjectInterface->GetTime() + NodeObjectInterface->GetDuration() - MinimumStateDuration);
-			// 	NodeObjectInterface->SetDuration(MinimumStateDuration);
-			// 	float EndTimeAfter = NodeObjectInterface->GetTime() + NodeObjectInterface->GetDuration();
-			// }
+			if (AnimNotifyEvent->GetDuration() < MinimumStateDuration)
+			{
+				AnimNotifyEvent->SetTime(AnimNotifyEvent->GetTime() + AnimNotifyEvent->GetDuration() - MinimumStateDuration);
+				AnimNotifyEvent->SetDuration(MinimumStateDuration);
+			}
 		}
 
-		// // Now we know where the marker should be, look for possible snaps on montage marker bars
-		// if (FAnimNotifyEvent* AnimNotifyEvent = NodeObjectInterface->GetNotifyEvent())
-		// {
-		// 	float InputStartTime = AnimNotifyEvent->GetTime();
-		// 	float MarkerSnap = GetScrubHandleSnapPosition(InputStartTime, ENovaNotifyStateHandleHit::Start);
-		// 	if (MarkerSnap != -1.0f)
-		// 	{
-		// 		// We're near to a snap bar
-		// 		EAnimEventTriggerOffsets::Type Offset = (MarkerSnap < InputStartTime) ? EAnimEventTriggerOffsets::OffsetAfter : EAnimEventTriggerOffsets::OffsetBefore;
-		// 		AnimNotifyEvent->TriggerTimeOffset = GetTriggerTimeOffsetForType(Offset);
-		//
-		// 		// Adjust our start marker
-		// 		OldDisplayTime = AnimNotifyEvent->GetTime();
-		// 		AnimNotifyEvent->SetTime(MarkerSnap);
-		// 		AnimNotifyEvent->SetDuration(AnimNotifyEvent->GetDuration() + OldDisplayTime - AnimNotifyEvent->GetTime());
-		// 	}
-		// 	else
-		// 	{
-		// 		AnimNotifyEvent->TriggerTimeOffset = GetTriggerTimeOffsetForType(EAnimEventTriggerOffsets::NoOffset);
-		// 	}
-		// }
-		// OnNotifyStateHandleBeingDragged.ExecuteIfBound(SharedThis(this), MouseEvent, CurrentDragHandle, TrackAreaArgs.BeginTime);
-		// OnNotifyStateHandleBeingDragged.ExecuteIfBound(SharedThis(this), MouseEvent, CurrentDragHandle, 0);
+		// Now we know where the marker should be, look for possible snaps on montage marker bars
+		if (AnimNotifyEvent)
+		{
+			float InputStartTime = AnimNotifyEvent->GetTime();
+			float MarkerSnap = GetScrubHandleSnapPosition(InputStartTime);
+			if (MarkerSnap != -1.0f)
+			{
+				// We're near to a snap bar
+				EAnimEventTriggerOffsets::Type Offset = (MarkerSnap < InputStartTime) ?
+					                                        EAnimEventTriggerOffsets::OffsetAfter :
+					                                        EAnimEventTriggerOffsets::OffsetBefore;
+				AnimNotifyEvent->TriggerTimeOffset = GetTriggerTimeOffsetForType(Offset);
+
+				// Adjust our start marker
+				OldDisplayTime = AnimNotifyEvent->GetTime();
+				AnimNotifyEvent->SetTime(MarkerSnap);
+				AnimNotifyEvent->SetDuration(AnimNotifyEvent->GetDuration() + OldDisplayTime - AnimNotifyEvent->GetTime());
+			}
+			else
+			{
+				AnimNotifyEvent->TriggerTimeOffset = GetTriggerTimeOffsetForType(EAnimEventTriggerOffsets::NoOffset);
+			}
+		}
 	}
 	else
 	{
-		// float BeginTime = TrackAreaArgs.BeginTime;
-		// float DurationTime = TrackAreaArgs.Duration;
-		float BeginTime = 0;
-		float DurationTime = 0;
 		if (MouseEvent.GetScreenSpacePosition().X >= TrackScreenSpaceXPosition && MouseEvent.GetScreenSpacePosition().X <= TrackScreenSpaceXPosition +
 			CachedAllottedGeometrySizeScaled.X)
 		{
-			// float NewDurationTime = ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X) - BeginTime;
-			// NewDurationTime = FMath::Max(NewDurationTime, (float)(MinimumStateDuration * TickResolutionInterval));
-			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int32)(NewDurationTime / TickResolutionInterval));
+			float NewDuration = ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X) -
+				AnimNotifyEvent->GetTime();
+
+			AnimNotifyEvent->SetDuration(FMath::Max(NewDuration, MinimumStateDuration));
 		}
-		else if ((int32)(DurationTime / TickResolutionInterval) > MinimumStateDuration)
+		else if (AnimNotifyEvent->GetDuration() > MinimumStateDuration)
 		{
-			// float Overflow = HandleOverflowPan(MouseEvent.GetScreenSpacePosition(), TrackScreenSpaceXPosition, TrackScreenSpaceOrigin, TrackScreenSpaceLimit);
+			HandleOverflowPan(MouseEvent.GetScreenSpacePosition(),
+			                  TrackScreenSpaceXPosition,
+			                  TrackScreenSpaceOrigin,
+			                  TrackScreenSpaceLimit);
+
 			// Update scale info to the new view inputs after panning
-			// ScaleInfo.ViewMinInput = ViewMinInput;
-			// ScaleInfo.ViewMaxInput = ViewMaxInput;
+			ScaleInfo.ViewMinInput = ActEventTimelineArgs->ViewRange->GetLowerBoundValue();
+			ScaleInfo.ViewMaxInput = ActEventTimelineArgs->ViewRange->GetUpperBoundValue();
 
-			// float NewDurationTime = ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X) - BeginTime;
-			// NewDurationTime = FMath::Max(NewDurationTime, (float)(MinimumStateDuration * TickResolutionInterval));
-			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int32)(NewDurationTime / TickResolutionInterval));
+			float NewDuration = ScaleInfo.LocalXToInput((MouseEvent.GetScreenSpacePosition() - MyGeometry.AbsolutePosition + XPositionInTrack).X) -
+				AnimNotifyEvent->GetTime();
+			AnimNotifyEvent->SetDuration(FMath::Max(NewDuration, MinimumStateDuration));
 		}
-		if (BeginTime + DurationTime > PlayLength)
+
+		if (AnimNotifyEvent->GetTime() + AnimNotifyEvent->GetDuration() > PlayLength)
 		{
-			// ActActionSequenceTreeViewNode->SetHitBoxDuration((int32)((PlayLength - BeginTime) / TickResolutionInterval));
+			AnimNotifyEvent->SetDuration(PlayLength - AnimNotifyEvent->GetTime());
 		}
 
-		// // Now we know where the scrub handle should be, look for possible snaps on montage marker bars
-		// if (FAnimNotifyEvent* AnimNotifyEvent = NodeObjectInterface->GetNotifyEvent())
-		// {
-		// 	float InputEndTime = AnimNotifyEvent->GetTime() + AnimNotifyEvent->GetDuration();
-		// 	float MarkerSnap = GetScrubHandleSnapPosition(InputEndTime, ENovaNotifyStateHandleHit::End);
-		// 	if (MarkerSnap != -1.0f)
-		// 	{
-		// 		// We're near to a snap bar
-		// 		EAnimEventTriggerOffsets::Type Offset = (MarkerSnap < InputEndTime) ? EAnimEventTriggerOffsets::OffsetAfter : EAnimEventTriggerOffsets::OffsetBefore;
-		// 		AnimNotifyEvent->EndTriggerTimeOffset = GetTriggerTimeOffsetForType(Offset);
-		//
-		// 		// Adjust our end marker
-		// 		AnimNotifyEvent->SetDuration(MarkerSnap - AnimNotifyEvent->GetTime());
-		// 	}
-		// 	else
-		// 	{
-		// 		AnimNotifyEvent->EndTriggerTimeOffset = GetTriggerTimeOffsetForType(EAnimEventTriggerOffsets::NoOffset);
-		// 	}
-		// }
-		// OnNotifyStateHandleBeingDragged.ExecuteIfBound(SharedThis(this), MouseEvent, CurrentDragHandle, BeginTime + DurationTime);
+		// Now we know where the scrub handle should be, look for possible snaps on montage marker bars
+		if (AnimNotifyEvent)
+		{
+			float InputEndTime = AnimNotifyEvent->GetTime() + AnimNotifyEvent->GetDuration();
+			float MarkerSnap = GetScrubHandleSnapPosition(InputEndTime);
+			if (MarkerSnap != -1.0f)
+			{
+				// We're near to a snap bar
+				EAnimEventTriggerOffsets::Type Offset = (MarkerSnap < InputEndTime) ?
+					                                        EAnimEventTriggerOffsets::OffsetAfter :
+					                                        EAnimEventTriggerOffsets::OffsetBefore;
+				AnimNotifyEvent->EndTriggerTimeOffset = GetTriggerTimeOffsetForType(Offset);
+
+				// Adjust our end marker
+				AnimNotifyEvent->SetDuration(MarkerSnap - AnimNotifyEvent->GetTime());
+			}
+			else
+			{
+				AnimNotifyEvent->EndTriggerTimeOffset = GetTriggerTimeOffsetForType(EAnimEventTriggerOffsets::NoOffset);
+			}
+		}
+	}
+	if (MouseEvent.IsShiftDown())
+	{
+		float Time = AnimNotifyEvent->GetTime();
+		if (CurrentDragHandle == ENovaNotifyStateHandleHit::End)
+		{
+			Time += AnimNotifyEvent->GetDuration();
+		}
+		FFrameTime FrameTime = FFrameTime::FromDecimal(Time * (double)ActEventTimelineArgs->TickResolution.AsDecimal());
+		*ActEventTimelineArgs->CurrentTime = FrameTime;
+		NovaDB::Trigger("ActEventTimelineArgs/CurrentTime");
+	}
+	auto PoolNotifyDB = GetDataBindingSP(SActPoolWidgetNotifyWidget, "ActPoolNotify");
+	if (PoolNotifyDB)
+	{
+		PoolNotifyDB->GetData()->OnNotifyStateBeingDraggedStatusBarMessage();
 	}
 
 	return FReply::Handled();
@@ -470,12 +498,17 @@ FReply SActNotifyPoolNotifyNodeWidget::OnMouseButtonUp(const FGeometry& MyGeomet
 		OnSelectionChanged.ExecuteIfBound();
 
 		// End drag transaction before handing mouse back
-		// check(DragMarkerTransactionIdx != INDEX_NONE);
-		// GEditor->EndTransaction();
-		// DragMarkerTransactionIdx = INDEX_NONE;
+		check(DragMarkerTransactionIdx != INDEX_NONE);
+		GEditor->EndTransaction();
+		DragMarkerTransactionIdx = INDEX_NONE;
 
-		// Sequence->PostEditChange();
-		// Sequence->MarkPackageDirty();
+		auto DB = GetDataBinding(UAnimSequence**, "ActAnimation/AnimSequence");
+		if (DB)
+		{
+			UAnimSequence* AnimSequence = *DB->GetData();
+			AnimSequence->PostEditChange();
+			AnimSequence->MarkPackageDirty();
+		}
 
 		OnUpdatePanel.ExecuteIfBound();
 
@@ -489,6 +522,19 @@ FReply SActNotifyPoolNotifyNodeWidget::OnMouseButtonUp(const FGeometry& MyGeomet
 FVector2D SActNotifyPoolNotifyNodeWidget::ComputeDesiredSize(float) const
 {
 	return WidgetSize;
+}
+
+void SActNotifyPoolNotifyNodeWidget::OnFocusLost(const FFocusEvent& InFocusEvent)
+{
+	if (CurrentDragHandle != ENovaNotifyStateHandleHit::None)
+	{
+		// Lost focus while dragging a state node, clear the drag and end the current transaction
+		CurrentDragHandle = ENovaNotifyStateHandleHit::None;
+
+		check(DragMarkerTransactionIdx != INDEX_NONE);
+		GEditor->EndTransaction();
+		DragMarkerTransactionIdx = INDEX_NONE;
+	}
 }
 
 void SActNotifyPoolNotifyNodeWidget::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
@@ -678,11 +724,6 @@ FVector2D SActNotifyPoolNotifyNodeWidget::GetNotifyPositionOffset() const
 FVector2D SActNotifyPoolNotifyNodeWidget::GetNotifyPosition() const
 {
 	return FVector2D(NotifyTimePositionX, NotifyHeightOffset);
-}
-
-FVector2D SActNotifyPoolNotifyNodeWidget::GetWidgetSize() const
-{
-	return WidgetSize;
 }
 
 bool SActNotifyPoolNotifyNodeWidget::IsSelected() const

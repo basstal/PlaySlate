@@ -1,8 +1,9 @@
 ﻿#include "ActImagePoolWidget.h"
 
 #include "ActImageTreeViewTableRow.h"
-#include "NovaAct/ActEventTimeline/Image/PoolWidgetTypes/ActPoolWidgetNotifyWidget.h"
-#include "NovaAct/ActEventTimeline/Image/PoolWidgetTypes/ActPoolWidgetFolderWidget.h"
+#include "ImageTrackTypes/ActImageTrackBase.h"
+// #include "NovaAct/ActEventTimeline/Image/PoolWidgetTypes/ActPoolWidgetNotifyWidget.h"
+// #include "NovaAct/ActEventTimeline/Image/PoolWidgetTypes/ActPoolWidgetFolderWidget.h"
 #include "Widgets/SWeakWidget.h"
 
 SActImagePoolWidget::Slot::Slot(const TSharedRef<SActImagePoolWidget>& InSlotContent)
@@ -32,23 +33,6 @@ void SActImagePoolWidget::Construct(const FArguments& InArgs, const TSharedRef<I
 		InActImageTack->GenerateContentWidgetForLaneWidget(SharedThis(this))
 	];
 }
-
-// void SActImagePoolWidget::Update()
-// {
-// 	// ** TODO:改成数据绑定就不需要类型转换了
-// 	EActImageTrackType Type = ActImageTreeViewTableRow->GetTableRowType();
-// 	switch (Type)
-// 	{
-// 	case EActImageTrackType::None: break;
-// 	case EActImageTrackType::Folder: break;
-// 	case EActImageTrackType::Notify:
-// 		{
-// 			StaticCastSharedPtr<SActPoolWidgetNotifyWidget>(ChildPanel)->Update();
-// 			break;
-// 		}
-// 	default: ;
-// 	}
-// }
 
 float SActImagePoolWidget::GetPhysicalPosition() const
 {

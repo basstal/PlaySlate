@@ -37,16 +37,6 @@ public:
 	 */
 	void OnExpansionChanged(TSharedRef<SActImageTreeViewTableRow> InDisplayNode, bool bIsExpanded);
 	/**
-	 * Refresh this tree as a result of the underlying tree data changing
-	 */
-	void Refresh();
-	/**
-	 * OnHitBoxesChanged多播事件回调，控制当前Viewport中的攻击盒
-	 *
-	 * @param InActAnimation
-	 */
-	void OnHitBoxesChanged(UActAnimation* InActAnimation);
-	/**
 	 * 依据特定的数据生成一行 TableRow，供TreeView回调使用，同时在TrackAreaPanel也生成一个对应的TrackLaneWidget 
 	 * @param InActImageTreeViewTableRow
 	 * @param OwnerTable
@@ -59,15 +49,13 @@ public:
 	 * @param InFilterText 传入的过滤文本
 	 */
 	void OnFilterChanged(FText InFilterText);
+	/**
+	 * 展开所有节点
+	 */
+	void ExpandAllItems();
 protected:
 	TSharedPtr<SActImagePoolAreaPanel> ActImageAreaPanel;
-	
-	/** List of children belonging to this node */
-	TArray<TSharedRef<SActImageTreeViewTableRow>> ChildNodes;
-	
-	// TMap<TSharedPtr<SActImagePoolWidget>, TWeakPtr<SActImageTreeViewTableRow>> TrackPanel2TreeViewTableRow;
-
-	FDelegateHandle OnHitBoxesChangedHandle;
+	// DataBinding Handle
 	FDelegateHandle OnFilterChangedHandle;
 	/** Compiled filter search terms. */
 	TSharedPtr<FTextFilterExpressionEvaluator> TextFilter;

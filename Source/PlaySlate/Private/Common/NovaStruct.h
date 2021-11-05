@@ -145,6 +145,9 @@ namespace NovaStruct
 		bool bIsExpanded : 1;
 		/** Whether this is a header track */
 		bool bIsHeaderTableRow : 1;
+		// 支持显示过滤
+		bool bSupportFiltering : 1;
+		// 边距 间隔
 		FActImageTrackPadding Padding;
 	};
 

@@ -249,12 +249,14 @@ TSharedRef<FActTrackAreaSlotDragDrop> FActTrackAreaSlotDragDrop::New(
 	float& CurrentDragXPosition)
 {
 	TSharedRef<FActTrackAreaSlotDragDrop> Operation = MakeShareable(new FActTrackAreaSlotDragDrop(CurrentDragXPosition));
-	Operation->NodeGroupPosition = SelectionScreenPosition;
-	Operation->NodeGroupSize = SelectionSize;
-	Operation->DragOffset = SelectionScreenPosition - CursorPosition;
-	Operation->Decorator = Decorator;
-	Operation->SelectedNodes = NotifyNodes;
-	Operation->TrackSpan = NotifyNodes.Last()->AnimNotifyEvent->TrackIndex - NotifyNodes[0]->AnimNotifyEvent->TrackIndex;
+	{
+		Operation->NodeGroupPosition = SelectionScreenPosition;
+		Operation->NodeGroupSize = SelectionSize;
+		Operation->DragOffset = SelectionScreenPosition - CursorPosition;
+		Operation->Decorator = Decorator;
+		Operation->SelectedNodes = NotifyNodes;
+		Operation->TrackSpan = NotifyNodes.Last()->AnimNotifyEvent->TrackIndex - NotifyNodes[0]->AnimNotifyEvent->TrackIndex;
+	}
 
 	// Calculate offsets for the selected nodes
 	float BeginTime = MAX_flt;
@@ -278,22 +280,21 @@ TSharedRef<FActTrackAreaSlotDragDrop> FActTrackAreaSlotDragDrop::New(
 		Operation->NodesTimeOffset.Add(NotifyTime - BeginTime);
 		Operation->NodesXOffset.Add(NotifyNode->GetNotifyPositionOffset().X);
 	}
-
-	Operation->Construct();
-
-	for (TSharedPtr<SActNotifyPoolLaneWidget>& Lane : PoolNotifyWidget->NotifyLanes)
+	for (TSharedPtr<SActNotifyPoolLaneWidget> Lane : PoolNotifyWidget->NotifyLanes)
 	{
-		FActDragDropLaneClampInfo Info;
+		TSharedPtr<FActDragDropLaneClampInfo> Info = MakeShareable(new FActDragDropLaneClampInfo);
 		{
-			Info.Lane = Lane;
+			Info->Lane = Lane;
 			const FGeometry& CachedGeometry = Lane->GetCachedGeometry();
-			Info.LanePos = CachedGeometry.AbsolutePosition.Y;
-			Info.LaneSnapTestPos = Info.LanePos + (CachedGeometry.Size.Y / 2);
+			Info->LanePos = CachedGeometry.AbsolutePosition.Y;
+			Info->LaneSnapTestPos = Info->LanePos + (CachedGeometry.Size.Y / 2);
 		};
-		Operation->ClampInfos.Add(MakeShareable(&Info));
+		Operation->ClampInfos.Add(Info);
 	}
 
+	Operation->Construct();
 	Operation->CursorDecoratorWindow->SetOpacity(0.5f);
+
 	return Operation;
 }
 
