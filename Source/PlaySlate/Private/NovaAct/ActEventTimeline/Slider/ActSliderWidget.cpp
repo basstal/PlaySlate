@@ -104,9 +104,9 @@ int32 SActSliderWidget::OnPaint(const FPaintArgs& Args,
 	ScrubColor.A *= 0.75f;
 	ScrubColor.B *= 0.1f;
 	ScrubColor.G *= 0.2f;
-	const FSlateBrush* Brush = ScrubberMetrics.Style == EActSliderScrubberStyle::Vanilla
-		                           ? FEditorStyle::GetBrush(TEXT("Sequencer.Timeline.VanillaScrubHandleDown"))
-		                           : FEditorStyle::GetBrush(TEXT("Sequencer.Timeline.FrameBlockScrubHandleDown"));
+	const FSlateBrush* Brush = ScrubberMetrics.Style == EActSliderScrubberStyle::Vanilla ?
+		                           FEditorStyle::GetBrush(TEXT("Sequencer.Timeline.VanillaScrubHandleDown")) :
+		                           FEditorStyle::GetBrush(TEXT("Sequencer.Timeline.FrameBlockScrubHandleDown"));
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		LayerId + 2,
@@ -237,6 +237,8 @@ FReply SActSliderWidget::OnMouseButtonUp(const FGeometry& MyGeometry, const FPoi
 		}
 		else
 		{
+			auto DB = GetDataBinding(ENovaTransportControls, "TransportControlsState");
+			DB->SetData(ENovaTransportControls::Pause);
 			OnEndScrubberMovement();
 			CommitScrubPosition(MouseTime, /*bIsScrubbing=*/false);
 		}
@@ -491,10 +493,8 @@ void SActSliderWidget::DrawTicks(FSlateWindowElementList& OutDrawElements,
 
 	double MajorGridStep = 0.0;
 	int32 MinorDivisions = 0;
-	if (!NovaStaticFunction::GetGridMetrics(InArgs.ActEventTimelineArgs->NumericTypeInterface,
+	if (!NovaStaticFunction::GetGridMetrics(InArgs.ActEventTimelineArgs.ToSharedRef(),
 	                                        InArgs.AllottedGeometry.Size.X,
-	                                        RangeToScreen.ViewStart,
-	                                        RangeToScreen.ViewEnd,
 	                                        MajorGridStep,
 	                                        MinorDivisions))
 	{
@@ -534,10 +534,10 @@ void SActSliderWidget::DrawTicks(FSlateWindowElementList& OutDrawElements,
 
 		if (!InArgs.bOnlyDrawMajorTicks && !FMath::IsNearlyEqual(MajorLinePx, FlooredScrubPx, 3.f))
 		{
-			FString FrameString = InArgs.ActEventTimelineArgs->NumericTypeInterface
-				                      ? InArgs.ActEventTimelineArgs->NumericTypeInterface->ToString(
-					                      (CurrentMajorLine * TickResolution).RoundToFrame().Value)
-				                      : FString();
+			FString FrameString = InArgs.ActEventTimelineArgs->NumericTypeInterface ?
+				                      InArgs.ActEventTimelineArgs->NumericTypeInterface->ToString(
+					                      (CurrentMajorLine * TickResolution).RoundToFrame().Value) :
+				                      FString();
 
 			// Space the text between the tick mark but slightly above
 			FVector2D TextOffset(MajorLinePx + 5.f, FMath::Abs(InArgs.AllottedGeometry.Size.Y - (InArgs.MajorTickHeight + 3.f)));

@@ -73,7 +73,7 @@ public:
 	// EPlaybackMode::Type GetPlaybackMode() const;
 
 	/** @return 当前动画播放的时间位置，单位秒 */
-	float GetCurrentPosition() const;
+	// float GetCurrentPosition() const;
 
 	/** @return 获得AnimInstance */
 	UAnimSingleNodeInstance* GetAnimSingleNodeInstance() const;

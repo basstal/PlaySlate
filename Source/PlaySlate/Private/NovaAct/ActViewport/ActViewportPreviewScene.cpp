@@ -32,11 +32,23 @@ FActViewportPreviewScene::FActViewportPreviewScene(const ConstructionValues& CVS
 		ActEventTimelineArgsDB = NovaDB::CreateSP("ActEventTimelineArgs", ActEventTimelineArgs);
 	}
 	NovaDB::CreateSP("ActEventTimelineArgs/CurrentTime", ActEventTimelineArgsDB->GetData()->CurrentTime);
-	DataBindingSPBindRaw(FFrameTime, "ActEventTimelineArgs/CurrentTime", this, &FActViewportPreviewScene::OnCurrentTimeChanged, OnCurrentTimeChangedHandle);
+	DataBindingSPBindRaw(FFrameTime,
+	                     "ActEventTimelineArgs/CurrentTime",
+	                     this,
+	                     &FActViewportPreviewScene::OnCurrentTimeChanged,
+	                     OnCurrentTimeChangedHandle);
 
 	// auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
-	DataBindingBindRaw(UAnimBlueprint**, "ActAnimation/AnimBlueprint", this, &FActViewportPreviewScene::OnAnimBlueprintChanged, OnAnimBlueprintChangedHandle);
-	DataBindingBindRaw(UAnimSequence**, "ActAnimation/AnimSequence", this, &FActViewportPreviewScene::OnAnimSequenceChanged, OnAnimSequenceChangedHandle);
+	DataBindingBindRaw(UAnimBlueprint**,
+	                   "ActAnimation/AnimBlueprint",
+	                   this,
+	                   &FActViewportPreviewScene::OnAnimBlueprintChanged,
+	                   OnAnimBlueprintChangedHandle);
+	DataBindingBindRaw(UAnimSequence**,
+	                   "ActAnimation/AnimSequence",
+	                   this,
+	                   &FActViewportPreviewScene::OnAnimSequenceChanged,
+	                   OnAnimSequenceChangedHandle);
 
 	FDelegateHandle _;
 	DataBindingBindRaw(ENovaTransportControls, "TransportControlsState", this, &FActViewportPreviewScene::OnTransportControlsStateChanged, _);
@@ -266,31 +278,15 @@ void FActViewportPreviewScene::PlayStep(bool bForward) const
 	}
 }
 
-// EPlaybackMode::Type FActViewportPreviewScene::GetPlaybackMode() const
+//
+// float FActViewportPreviewScene::GetCurrentPosition() const
 // {
 // 	if (const UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
 // 	{
-// 		if (PreviewInstance->IsPlaying())
-// 		{
-// 			return PreviewInstance->IsReverse() ? EPlaybackMode::PlayingReverse : EPlaybackMode::PlayingForward;
-// 		}
-// 		return EPlaybackMode::Stopped;
+// 		return PreviewInstance->GetCurrentTime();
 // 	}
-// 	else if (ActActionSkeletalMesh)
-// 	{
-// 		return (ActActionSkeletalMesh->GlobalAnimRateScale > 0.0f) ? EPlaybackMode::PlayingForward : EPlaybackMode::Stopped;
-// 	}
-// 	return EPlaybackMode::Stopped;
+// 	return 0.0f;
 // }
-
-float FActViewportPreviewScene::GetCurrentPosition() const
-{
-	if (const UAnimSingleNodeInstance* PreviewInstance = GetAnimSingleNodeInstance())
-	{
-		return PreviewInstance->GetCurrentTime();
-	}
-	return 0.0f;
-}
 
 UAnimSingleNodeInstance* FActViewportPreviewScene::GetAnimSingleNodeInstance() const
 {
@@ -310,8 +306,9 @@ void FActViewportPreviewScene::TickCurrentTimeChanged()
 		{
 			LastCurrentTime = CurrentTime;
 			auto ActEventTimelineArgsDB = GetDataBindingSP(FActEventTimelineArgs, "ActEventTimelineArgs");
-			TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();
-			ActEventTimelineArgs->CurrentTime->FrameNumber = ActEventTimelineArgs->TickResolution.AsFrameNumber(CurrentTime);
+			TSharedPtr<FActEventTimelineArgs> ActEventTimelineArgs = ActEventTimelineArgsDB->GetData();;
+			const double TimeAsFrame = double(CurrentTime) * ActEventTimelineArgs->TickResolution.AsDecimal();
+			ActEventTimelineArgs->CurrentTime->FrameNumber = FMath::RoundToInt(TimeAsFrame);
 			ActEventTimelineArgsDB->SetData(ActEventTimelineArgs);
 		}
 	}
@@ -337,7 +334,9 @@ void FActViewportPreviewScene::OnAnimBlueprintChanged(UAnimBlueprint** InAnimBlu
 	UAnimBlueprint* AnimBlueprint = *InAnimBlueprint;
 	if (!AnimBlueprint || !AnimBlueprint->TargetSkeleton)
 	{
-		UE_LOG(LogNovaAct, Log, TEXT("FNovaActEditor::OnAnimBlueprintChanged with nullptr AnimBlueprint or AnimBlueprint->TargetSkeleton is nullptr"));
+		UE_LOG(LogNovaAct,
+		       Log,
+		       TEXT("FNovaActEditor::OnAnimBlueprintChanged with nullptr AnimBlueprint or AnimBlueprint->TargetSkeleton is nullptr"));
 		return;
 	}
 	SpawnActorInViewport(ASkeletalMeshActor::StaticClass(), AnimBlueprint);

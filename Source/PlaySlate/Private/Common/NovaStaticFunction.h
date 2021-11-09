@@ -6,7 +6,7 @@
 #include "SCurveEditor.h"
 #include "Common/NovaStruct.h"
 #include "Fonts/FontMeasure.h"
-#include "NovaAct/ActEventTimeline/Operation/ActNotifyStateClassFilter.h"
+// #include "NovaAct/ActEventTimeline/Operation/ActNotifyStateClassFilter.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 
@@ -99,7 +99,8 @@ public:
 		{
 			Metrics.Style = EActSliderScrubberStyle::Vanilla;
 
-			float ScrubPixel = RangeToScreen.InputToLocalX(ScrubTime.AsSeconds());
+			// ** 定位到帧
+			float ScrubPixel = RangeToScreen.InputToLocalX(ScrubTime.Time.FloorToFrame().Value * ScrubTime.Rate.AsInterval());
 			Metrics.HandleRangePx = TRange<float>(ScrubPixel - MinScrubSize * .5f, ScrubPixel + MinScrubSize * .5f);
 		}
 		else
@@ -110,10 +111,8 @@ public:
 		return Metrics;
 	}
 
-	static bool GetGridMetrics(TSharedPtr<FFrameNumberInterface> NumericTypeInterface,
+	static bool GetGridMetrics(const TSharedRef<FActEventTimelineArgs>& InActEventTimelineArgs,
 	                           const float PhysicalWidth,
-	                           const double InViewStart,
-	                           const double InViewEnd,
 	                           double& OutMajorInterval,
 	                           int32& OutMinorDivisions)
 	{
@@ -121,7 +120,9 @@ public:
 		TSharedRef<FSlateFontMeasure> FontMeasureService = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
 
 		// ** Use the end of the view as the longest number
-		FFrameRate FocusedDisplayRate = FFrameRate();
+		FFrameRate FocusedDisplayRate = InActEventTimelineArgs->TickResolution;
+		TSharedPtr<FFrameNumberInterface> NumericTypeInterface = InActEventTimelineArgs->NumericTypeInterface;
+		double InViewEnd = InActEventTimelineArgs->ViewRange->GetUpperBoundValue();
 		FString TickString = NumericTypeInterface ? NumericTypeInterface->ToString((InViewEnd * FocusedDisplayRate).FrameNumber.Value) : FString();
 		FVector2D MaxTextSize = FontMeasureService->Measure(TickString, SmallLayoutFont);
 
@@ -130,8 +131,9 @@ public:
 
 		if (PhysicalWidth > 0)
 		{
-			return FocusedDisplayRate.ComputeGridSpacing(
-				PhysicalWidth / (InViewEnd - InViewStart),
+			return ComputeGridSpacing(
+				FocusedDisplayRate,
+				PhysicalWidth / (InActEventTimelineArgs->ViewRange.Get()->Size<double>()),
 				OutMajorInterval,
 				OutMinorDivisions,
 				MinTickPx,
@@ -139,6 +141,95 @@ public:
 		}
 
 		return false;
+	}
+
+	// FFrameRate::ComputeGridSpacing doesnt deal well with prime numbers, so we have a custom impl here
+	static bool ComputeGridSpacing(const FFrameRate& InFrameRate,
+	                               float PixelsPerSecond,
+	                               double& OutMajorInterval,
+	                               int32& OutMinorDivisions,
+	                               float MinTickPx,
+	                               float DesiredMajorTickPx)
+	{
+		// First try built-in spacing
+		bool bResult = InFrameRate.ComputeGridSpacing(PixelsPerSecond, OutMajorInterval, OutMinorDivisions, MinTickPx, DesiredMajorTickPx);
+		if (!bResult || OutMajorInterval == 1.0)
+		{
+			if (PixelsPerSecond <= 0.f)
+			{
+				return false;
+			}
+
+			const int32 RoundedFPS = FMath::RoundToInt(InFrameRate.AsDecimal());
+
+			if (RoundedFPS > 0)
+			{
+				// Showing frames
+				TArray<int32, TInlineAllocator<10>> CommonBases;
+
+				// Divide the rounded frame rate by 2s, 3s or 5s recursively
+				{
+					const int32 Denominators[] = {2, 3, 5};
+
+					int32 LowestBase = RoundedFPS;
+					for (;;)
+					{
+						CommonBases.Add(LowestBase);
+
+						if (LowestBase % 2 == 0) { LowestBase = LowestBase / 2; }
+						else if (LowestBase % 3 == 0) { LowestBase = LowestBase / 3; }
+						else if (LowestBase % 5 == 0) { LowestBase = LowestBase / 5; }
+						else
+						{
+							int32 LowestResult = LowestBase;
+							for (int32 Denominator : Denominators)
+							{
+								int32 Result = LowestBase / Denominator;
+								if (Result > 0 && Result < LowestResult)
+								{
+									LowestResult = Result;
+								}
+							}
+
+							if (LowestResult < LowestBase)
+							{
+								LowestBase = LowestResult;
+							}
+							else
+							{
+								break;
+							}
+						}
+					}
+				}
+
+				Algo::Reverse(CommonBases);
+
+				const int32 Scale = FMath::CeilToInt(DesiredMajorTickPx / PixelsPerSecond * InFrameRate.AsDecimal());
+				const int32 BaseIndex = FMath::Min(Algo::LowerBound(CommonBases, Scale), CommonBases.Num() - 1);
+				const int32 Base = CommonBases[BaseIndex];
+
+				int32 MajorIntervalFrames = FMath::CeilToInt(Scale / float(Base)) * Base;
+				OutMajorInterval = MajorIntervalFrames * InFrameRate.AsInterval();
+
+				// Find the lowest number of divisions we can show that's larger than the minimum tick size
+				OutMinorDivisions = 0;
+				for (int32 DivIndex = 0; DivIndex < BaseIndex; ++DivIndex)
+				{
+					if (Base % CommonBases[DivIndex] == 0)
+					{
+						int32 MinorDivisions = MajorIntervalFrames / CommonBases[DivIndex];
+						if (OutMajorInterval / MinorDivisions * PixelsPerSecond >= MinTickPx)
+						{
+							OutMinorDivisions = MinorDivisions;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		return OutMajorInterval != 0;
 	}
 
 	static TSharedRef<SWidget> MakeTrackButton(FText HoverText, FOnGetContent MenuContent, const TAttribute<bool>& HoverState)
