@@ -189,7 +189,7 @@ Splitter = SNew(SSplitter) = InArgs;
 
 ![010](Images/010.png)
 
-参数的精髓是什么？看了大段大段的 Slate 后终于明白 Slate 的思考和背后对参数的认识：每一个 Widget 组件，不管其实现如何贴近对应功能模块，贴近父 Widget 的实现，但是，**参数**必须是独立的，这样保证了当你单独在用任何一个 Slate Widget 时，都明白要传入什么参数（但是不明白参数从哪来往哪去），万一哪天有人突然想直接用这个 Widget 呢？嘿嘿，Widget 的参数就是降低耦合性的核心!父层级的 Widget 有什么？直接忽略，每一个 Widget 都重新开始定义自己的存在、定义自己的参数列表！
+参数的精髓是什么？看了大段大段的 Slate 后终于明白 Slate 的思考和背后对参数的认识：每一个 Widget 组件，不管其实现如何贴近对应功能模块，贴近父 Widget 的实现，但是，**参数**必须是独立的，这样保证了当你单独在用任何一个 Slate Widget 时，都明白要传入什么参数（但是不明白参数从哪来往哪去），万一哪天有人突然想直接用这个 Widget 呢？嘿嘿，Widget 的参数就是降低耦合性的核心!父层级的 Widget 有什么用？直接忽略，不要影响子 Widget。这个每一个 Widget 都重新开始定义自己的存在、定义自己的参数列表，都是独立可复用的个体！
 ```C++
 SAnimTrackPanel::Construct(const FArguments& InArgs)
 ...
