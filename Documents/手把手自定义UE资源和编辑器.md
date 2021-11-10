@@ -86,8 +86,11 @@ InitAssetEditor(EToolkitMode::Standalone, // Mode
 8. 有了这个编辑器 Window 之后，还需要一些子 Tab 来承载整个编辑器的界面，如下图所示，实际上如果编辑器打开没有 Tab 的话就会变成右边这样。
 
 有 Tab
+
 ![003](Images/003.png)
+
 没有 Tab，仅光秃秃的编辑器 Window
+
 ![004](Images/004.png)
 
 9. 最初我直接使用了 FAssetEditorToolkit 的 RegisterTabSpawners 来添加 Tab ，这个函数参数 InTabManager 会把 FTabManager 传入给你方便去注册自定义的 FOnSpawnTab 回调方法。但是这样注册的 Tab 在实际使用时却遇到了关闭 Tab 后无法再重新打开，并且关闭后 Window 菜单栏还是会显示那个 Tab 处在打开状态，在研究了一阵没有结果后，转到了同 FAnimationEditorMode 一致的注册 Tab 的方法。即自定义一堆类似 Tab 工厂的类型，再使用一个 FWorkflowAllowedTabSet 将这些工厂类都实例化并注册进去，这样这些 Tab 就可以正常的打开和关闭了。自定义一个AppMode 派生自 FApplicationMode ，并实现虚方法 RegisterTabFactories ，这个方法的实现比较单一，大致就是将实例化好的 Tab 工厂 Push 到对应的 FWorkflowCentricApplication 中去。以便 Editor 能够识别和管理这些 Tab。同时在构造函数中填充 FWorkflowAllowedTabSet 结构，以及 TabLayout 信息。
@@ -171,18 +174,21 @@ typedef SSplitter::FArguments FArguments;
 
 Construct(const FArguments& InArgs)
 ...
-// ** 因为在 SNew 中的参数将作为 Construct 的第二个参数开始传入，那么要外部传入 Construct 的第一个参数就得另辟蹊径，于是就诞生了这个奇怪的连续赋值，实际上 SNew(SSplitter) = InArgs 是给构造函数传入第一个参数！！
+// ** 因为在 SNew 中的参数将作为 Construct 的第二个参数开始传入，那么要外部传入 Construct 的第一个参数就得另辟蹊径
+// ** 于是就诞生了这个奇怪的连续赋值，实际上 SNew(SSplitter) = InArgs 是给构造函数传入第一个参数！！
 Splitter = SNew(SSplitter) = InArgs;
 ...
 ```
 
 ![005](Images/005.png)
+
 出现这种写法感觉就像是某天某个 UE 的程序觉得：诶，这个UI组件，必须有SOverlay的功能，除此之外它又长得跟组件SSplitter一模一样，但是不能同时继承自两个UI组件吧，那得想办法把另一个给组合进来，噢，但是得把参数配置成SSplitter的参数！这真是个奇行种，一只披着羊皮的狼要生下一头羊@#!@#$，还得给它造点语法规则才行。
 
 这里除了奇怪的连续赋值以外，还打破了定义 SWidget 的常规宏 SLATE_BEGIN_ARGS() { } ... SLATE_END_ARGS()，采用巧夺名义的方式，直接把别人定义好的 FArguments 视为自己的 FArguments。可谓十分的精妙，十分的打脸。不禁想到那句：规则都是用来打破的，此谓其一。
 
 
 ![010](Images/010.png)
+
 参数的精髓是什么？看了大段大段的 Slate 后终于明白 Slate 的思考和背后对参数的认识：每一个 Widget 组件，不管其实现如何贴近对应功能模块，贴近父 Widget 的实现，但是，**参数**必须是独立的，这样保证了当你单独在用任何一个 Slate Widget 时，都明白要传入什么参数（但是不明白参数从哪来往哪去），万一哪天有人突然想直接用这个 Widget 呢？嘿嘿，Widget 的参数就是降低耦合性的核心!父层级的 Widget 有什么？直接忽略，每一个 Widget 都重新开始定义自己的存在、定义自己的参数列表！
 ```C++
 SAnimTrackPanel::Construct(const FArguments& InArgs)
@@ -216,4 +222,4 @@ ViewInputMin = InArgs._ViewInputMin;
 ViewInputMax = InArgs._ViewInputMax;
 ...
 ```
-这种层层递归式的参数传递，为反反复复查找一个回调或者参数到底来自哪里，埋下了伏笔。相信当最终发现除了 SAnimNotifyTrack 外，没有其他代码使用 SAnimNotifyNode 时，这段代码读起来是多么的令人惊讶。从好的方面来说，这段代码为以后可能的复用 Widget 打了个底子，从坏的方面来说，去看看这个逻辑这个参数从哪里来，需要上下查找2~4处不同的位置，还得硬记它们的前后关系，这对阅读和理解代码是雪上加霜的。恰恰有趣的是，前者于我们无益，因为大概率你无法复用这个 Widget 去完成一个自定义界面，你真正需要的是模仿这个 Widget 的样式去实现自己的功能，需要的是理解；而后者于我们有害，读了半天撒泡尿回来发现得重读，或者找来找去 Alt + <-（回到之前光标标记处） / Alt + ->（进到下一个光标标记处） / F12（查看定义\实现） / Alt + F7（查找引用） 按得头都晕了，代码也是晕的。每个读代码的人都能体会这种郁闷。（未完待续）
+这种层层递归式的参数传递，为反反复复查找一个回调或者参数到底来自哪里，埋下了伏笔。相信当最终发现除了 SAnimNotifyTrack 外，没有其他代码使用 SAnimNotifyNode 时，这段代码读起来是多么的令人惊讶。从好的方面来说，这段代码为以后可能的复用 Widget 打了个底子，从坏的方面来说，去看看这个逻辑这个参数从哪里来，需要上下查找2~4处不同的位置，还得硬记它们的前后关系，这对阅读和理解代码是雪上加霜的。恰恰有趣的是，前者于我们无益，因为大概率你无法复用这个 Widget 去完成一个自定义界面，你真正需要的是模仿这个 Widget 的样式去实现自己的功能，需要的是理解；而后者于我们有害，读了半天撒泡尿回来发现得重读，或者找来找去 Alt + <-（回到之前光标标记处） / Alt + ->（进到下一个光标标记处） / F12（查看定义\实现） / Alt + F7（查找引用） 按得头都晕了，代码也是晕的。每个读代码的人都能体会这种郁闷，此谓其二。（未完待续）
