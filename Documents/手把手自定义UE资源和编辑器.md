@@ -3,13 +3,13 @@
 
 1. 首先必须明确，自定义资源类型必须派生自 UObject ，仅 C++ struct 或 class 无法被视为UE认可的资源类型。例如这里自定义了一个资源类型叫 UActAnimation 。现在这个自定义的资源类型还只能够被代码使用，或作为蓝图的基类编辑，还无法使用自定义的编辑器。接下来需要将其注册到 ContentBrowser->Add 菜单中，使其可以自由创建和自定义编辑器。
 
-![001](images/001.png)
+![001](Images/001.png)
 
 2. 创建自定义资源类型的包装，派生自 FAssetTypeActions_Base ，这个包装包含了创建这个资源的一些行为和信息。也可以根据 UE 已实现的资源类型去继承，例如蓝图可以继承 FAssetTypeActions_Blueprint ，贴图可以继承 FAssetTypeActions_Texture ，在 UE 工程中搜索 ": public FAssetTypeActions_Base" ，即可找到所有该类的派生类型，后面也会不断使用这种方式来找到一个基类的派生类。
 
     这个包装需实现虚函数 OpenAssetEditor （打开自定义资源编辑器的回调）、 GetName （本地化资源名称）、 GetTypeColor （ ContentBrowser 中资源的显示颜色）、 GetSupportedClass （资源类型支持的具体 UClass 派生类型）、 GetCategories （ Add 菜单中所处的分类）等，具体虚函数作用可以查看 FAssetTypeActions_Base 基类中的注释。
 
-![002](images/002.png)
+![002](Images/002.png)
 
 3. 在一个合适的地方，例如 Module 的 StartupModule 函数中，注册该包装类，同时记得要在另一个合适的地方，例如 ShutdownModule 中，反注册该包装类，这就需要在注册之后把实例缓存下来。具体代码这里不过多展开。
 
@@ -86,9 +86,9 @@ InitAssetEditor(EToolkitMode::Standalone, // Mode
 8. 有了这个编辑器 Window 之后，还需要一些子 Tab 来承载整个编辑器的界面，如下图所示，实际上如果编辑器打开没有 Tab 的话就会变成右边这样。
 
 有 Tab
-![003](images/003.png)
+![003](Images/003.png)
 没有 Tab，仅光秃秃的编辑器 Window
-![004](images/004.png)
+![004](Images/004.png)
 
 9. 最初我直接使用了 FAssetEditorToolkit 的 RegisterTabSpawners 来添加 Tab ，这个函数参数 InTabManager 会把 FTabManager 传入给你方便去注册自定义的 FOnSpawnTab 回调方法。但是这样注册的 Tab 在实际使用时却遇到了关闭 Tab 后无法再重新打开，并且关闭后 Window 菜单栏还是会显示那个 Tab 处在打开状态，在研究了一阵没有结果后，转到了同 FAnimationEditorMode 一致的注册 Tab 的方法。即自定义一堆类似 Tab 工厂的类型，再使用一个 FWorkflowAllowedTabSet 将这些工厂类都实例化并注册进去，这样这些 Tab 就可以正常的打开和关闭了。自定义一个AppMode 派生自 FApplicationMode ，并实现虚方法 RegisterTabFactories ，这个方法的实现比较单一，大致就是将实例化好的 Tab 工厂 Push 到对应的 FWorkflowCentricApplication 中去。以便 Editor 能够识别和管理这些 Tab。同时在构造函数中填充 FWorkflowAllowedTabSet 结构，以及 TabLayout 信息。
 
@@ -176,13 +176,13 @@ Splitter = SNew(SSplitter) = InArgs;
 ...
 ```
 
-![005](images/005.png)
+![005](Images/005.png)
 出现这种写法感觉就像是某天某个 UE 的程序觉得：诶，这个UI组件，必须有SOverlay的功能，除此之外它又长得跟组件SSplitter一模一样，但是不能同时继承自两个UI组件吧，那得想办法把另一个给组合进来，噢，但是得把参数配置成SSplitter的参数！这真是个奇行种，一只披着羊皮的狼要生下一头羊@#!@#$，还得给它造点语法规则才行。
 
 这里除了奇怪的连续赋值以外，还打破了定义 SWidget 的常规宏 SLATE_BEGIN_ARGS() { } ... SLATE_END_ARGS()，采用巧夺名义的方式，直接把别人定义好的 FArguments 视为自己的 FArguments。可谓十分的精妙，十分的打脸。不禁想到那句：规则都是用来打破的，此谓其一。
 
 
-![010](images/010.png)
+![010](Images/010.png)
 参数的精髓是什么？看了大段大段的 Slate 后终于明白 Slate 的思考和背后对参数的认识：每一个 Widget 组件，不管其实现如何贴近对应功能模块，贴近父 Widget 的实现，但是，**参数**必须是独立的，这样保证了当你单独在用任何一个 Slate Widget 时，都明白要传入什么参数（但是不明白参数从哪来往哪去），万一哪天有人突然想直接用这个 Widget 呢？嘿嘿，Widget 的参数就是降低耦合性的核心!父层级的 Widget 有什么？直接忽略，每一个 Widget 都重新开始定义自己的存在、定义自己的参数列表！
 ```C++
 SAnimTrackPanel::Construct(const FArguments& InArgs)
