@@ -6,9 +6,7 @@ class FActActionSequenceSectionBase;
 class SActActionSequenceSection : public SCompoundWidget
 {
 public:
-SLATE_BEGIN_ARGS(SActActionSequenceSection)
-		{
-		}
+	SLATE_BEGIN_ARGS(SActActionSequenceSection) { }
 
 	SLATE_END_ARGS()
 

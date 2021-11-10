@@ -2,8 +2,6 @@
 
 #include "ActImageTreeViewTableRow.h"
 #include "ImageTrackTypes/ActImageTrackBase.h"
-// #include "NovaAct/ActEventTimeline/Image/PoolWidgetTypes/ActPoolWidgetNotifyWidget.h"
-// #include "NovaAct/ActEventTimeline/Image/PoolWidgetTypes/ActPoolWidgetFolderWidget.h"
 #include "Widgets/SWeakWidget.h"
 
 SActImagePoolWidget::Slot::Slot(const TSharedRef<SActImagePoolWidget>& InSlotContent)

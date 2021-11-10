@@ -8,7 +8,7 @@ class UActActionBlueprintGraphSchema : public UEdGraphSchema_K2
 {
 	GENERATED_BODY()
 public:
-	//~Begin UEdGraphSchema interface
+	//~Begin UEdGraphSchema_K2 interface
 	virtual bool ShouldAlwaysPurgeOnModification() const override;
-	//~End UEdGraphSchema interface
+	//~End UEdGraphSchema_K2 interface
 };

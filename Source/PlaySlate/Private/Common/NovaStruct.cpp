@@ -7,7 +7,6 @@
 
 namespace NovaStruct
 {
-	//~Begin FActEventTimelineArgs
 	FActEventTimelineArgs::FActEventTimelineArgs()
 		: ViewRange(new TRange<double>(0.0f, 1.0f)),
 		  ClampRange(TRange<double>(0.0f, 1.0f)),
@@ -33,9 +32,6 @@ namespace NovaStruct
 		ViewRange->SetUpperBoundValue(NewRangeMax);
 	}
 
-	//~End FActEventTimelineArgs
-
-	//~Begin FActSliderScrubRangeToScreen
 	FActSliderScrubRangeToScreen::FActSliderScrubRangeToScreen(const TRange<double>& InViewInput, const FVector2D& InWidgetSize)
 	{
 		const double ViewInputRange = InViewInput.Size<double>();
@@ -53,8 +49,6 @@ namespace NovaStruct
 	{
 		return (InputTime - ViewStart) * PixelsPerInput;
 	}
-
-	//~End FActSliderScrubRangeToScreen
 
 	TRange<FFrameTime> FActActionEvaluationRange::CalculateEvaluationRange(FFrameTime CurrentTime,
 	                                                                       FFrameTime PreviousTime,
@@ -164,11 +158,6 @@ namespace NovaStruct
 		if (InputRate.IsValid() && InputRate != InInputRate)
 		{
 			FFrameTime NewPosition = ConvertFrameTime(CurrentPosition, InputRate, InInputRate);
-			// if (NewEvaluationType == EMovieSceneEvaluationType::FrameLocked)
-			// {
-			// 	NewPosition = NewPosition.FloorToFrame();
-			// }
-
 			Reset(NewPosition);
 		}
 
@@ -190,12 +179,6 @@ namespace NovaStruct
 
 		PreviousPlayEvalPosition.Reset();
 
-		// Floor to the current frame number if running frame-locked
-		// if (EvaluationType == EMovieSceneEvaluationType::FrameLocked)
-		// {
-		// 	InputPosition = InputPosition.FloorToFrame();
-		// }
-
 		// Assign the cached input values
 		CurrentPosition = NewPosition;
 
@@ -209,12 +192,6 @@ namespace NovaStruct
 	FActActionEvaluationRange FActActionPlaybackPosition::PlayTo(FFrameTime NewPosition)
 	{
 		CheckInvariants();
-
-		// Floor to the current frame number if running frame-locked
-		// if (EvaluationType == EMovieSceneEvaluationType::FrameLocked)
-		// {
-		// 	InputPosition = InputPosition.FloorToFrame();
-		// }
 
 		// Convert to output time-base
 		FFrameTime InputEvalPositionFrom = PreviousPlayEvalPosition.Get(CurrentPosition);

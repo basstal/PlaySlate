@@ -72,11 +72,6 @@ FLinearColor FActActionBlueprintEditor::GetWorldCentricTabColorScale() const
 	return FColor::White;
 }
 
-// void FActActionBlueprintEditor::CreateEditorModeManager()
-// {
-// 	EditorModeManager = MakeShareable(new FActActionEditorModeManager());
-// }
-
 UBlueprint* FActActionBlueprintEditor::GetBlueprintObj() const
 {
 	const TArray<UObject*>& Objects = GetEditingObjects();

@@ -28,51 +28,13 @@ public:
 		TSharedPtr<SActImagePoolWidget> SlotContent;
 	};
 	SLATE_BEGIN_ARGS(SActImagePoolWidget) {}
-		// : _ViewInputMin()
-		// , _ViewInputMax()
-		// , _InputMin()
-		// , _InputMax()
-		// , _OnSetInputViewRange()
-
-		//
-		// SLATE_ARGUMENT( float, WidgetWidth )
-		// SLATE_ATTRIBUTE( float, ViewInputMin )
-		// SLATE_ATTRIBUTE( float, ViewInputMax )
-		// SLATE_ATTRIBUTE( float, InputMin )
-		// SLATE_ATTRIBUTE( float, InputMax )
-		// SLATE_EVENT( FOnSetInputViewRange, OnSetInputViewRange )
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs, const TSharedRef<IActImageTrackBase>& InActImageTack);
-	//
-	// void PanInputViewRange(int32 ScreenDelta, FVector2D ScreenViewSize);
-	//
-	// virtual float GetSequenceLength() const { return 0.0f; }
-
-	// void Update();
 
 	/** Get the desired physical vertical position of this track */
 	float GetPhysicalPosition() const;
 protected:
 	/** Track 相关数据结构 */
 	TSharedPtr<IActImageTrackBase> ActImageTrack;
-	// EActImageTrackType TableRowType;
-	// // Calls out to notify of a range change, can be overridden by derived classes to respond
-	// // but they must call this version too after processing range changes
-	// virtual void InputViewRangeChanged(float ViewMin, float ViewMax);
-	//
-	// /** Create a 2 column widget */
-	// TSharedRef<class S2ColumnWidget> Create2ColumnWidget(TSharedRef<SVerticalBox> Parent);
-
-	// TAttribute<float> ViewInputMin;
-	// TAttribute<float> ViewInputMax;
-	// TAttribute<float> InputMin;
-	// TAttribute<float> InputMax;
-	// FOnSetInputViewRange OnSetInputViewRange;
-	//
-	// /** Controls the width of the tracks column */
-	// float WidgetWidth;
-
-	// TSharedPtr<SWidget> ChildPanel;
-	// TSharedPtr<SActImageTreeViewTableRow> ActImageTreeViewTableRow;
 };

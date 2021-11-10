@@ -154,26 +154,10 @@ namespace NovaStruct
 		int32 BeginTime;// ** 开始时间
 		float Duration; // ** 时间长度
 
-		// float GetBeginTime() const
-		// {
-		// 	return Begin.Get() * TickResolution.Get().AsInterval();
-		// }
-		//
 		float GetEndTime() const
 		{
 			return BeginTime + Duration;
 		}
-
-		//
-		// float GetDurationTime() const
-		// {
-		// 	return (End.Get() - Begin.Get()) * TickResolution.Get().AsInterval();
-		// }
-		//
-		// float GetPlayLength() const
-		// {
-		// 	return ViewInputMax.Get() - ViewInputMin.Get();
-		// }
 	};
 
 
@@ -290,39 +274,6 @@ namespace NovaStruct
 
 		TArray<FActActionAnimatedPropertyKey, TInlineAllocator<4>> AnimatedTypes;
 	};
-
-	// /**
-	// * Sequence view parameters.
-	// */
-	// struct FActActionSequenceViewParams
-	// {
-	// 	// OnGetAddMenuContentDelegate OnGetAddMenuContent;
-	//
-	// 	OnBuildCustomContextMenuForGuidDelegate OnBuildCustomContextMenuForGuid;
-	//
-	// 	/** Called when this sequencer has received user focus */
-	// 	FSimpleDelegate OnReceivedFocus;
-	//
-	// 	/** A menu extender for the add menu */
-	// 	TSharedPtr<FExtender> AddMenuExtender;
-	//
-	// 	/** A toolbar extender for the main toolbar */
-	// 	TSharedPtr<FExtender> ToolbarExtender;
-	//
-	// 	/** Unique name for the sequencer. */
-	// 	FString UniqueName;
-	//
-	// 	/** Whether the sequencer is read-only */
-	// 	bool bReadOnly;
-	//
-	// 	/** Style of scrubber to use */
-	// 	EActSliderScrubberStyle ScrubberStyle;
-	//
-	// 	FActActionSequenceViewParams(FString InName = FString())
-	// 		: UniqueName(MoveTemp(InName)),
-	// 		  bReadOnly(false),
-	// 		  ScrubberStyle(EActSliderScrubberStyle::Vanilla) { }
-	// };
 
 	/** Structure used to define a column in the tree view */
 	struct FActActionSequenceTreeViewColumn
@@ -644,7 +595,6 @@ namespace NovaStruct
 		static void RemoveInvalidNotifies(UAnimSequenceBase* SeqBase);
 	};
 
-	
 
 	struct FActCreateNewNotify
 	{

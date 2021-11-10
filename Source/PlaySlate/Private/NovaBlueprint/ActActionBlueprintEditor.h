@@ -22,23 +22,13 @@ public:
 	*/
 	void EnsureActActionBlueprintIsUpToDate(UBlueprint* Blueprint);
 public:
-	//~Begin IToolkit Interface
+	//~Begin FBlueprintEditor Interface
 	virtual FName GetToolkitFName() const override;
 	virtual FText GetBaseToolkitName() const override;
 	virtual FText GetToolkitName() const override;
 	virtual FText GetToolkitToolTipText() const override;
 	virtual FString GetWorldCentricTabPrefix() const override;
 	virtual FLinearColor GetWorldCentricTabColorScale() const override;
-	//~End IToolkit Interface
-
-	// //~Begin FAssetEditorToolkit interface
-	// /**
-	//  * 使用自定义的FEditorModeTools，使多个Editor能配套使用
-	//  */
-	// virtual void CreateEditorModeManager() override;
-	// //~End FAssetEditorToolkit interface
-
-	//~Begin FBaseToolkit interface
 	virtual UBlueprint* GetBlueprintObj() const override;
-	//~End FBaseToolkit interface
+	//~End FBlueprintEditor Interface
 };

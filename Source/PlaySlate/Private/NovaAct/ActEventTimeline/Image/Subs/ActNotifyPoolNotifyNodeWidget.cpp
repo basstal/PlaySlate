@@ -11,9 +11,6 @@
 #include "Common/NovaStruct.h"
 #include "Fonts/FontMeasure.h"
 #include "NovaAct/ActEventTimeline/Image/PoolWidgetTypes/ActPoolWidgetNotifyWidget.h"
-// #include "NovaAct/ActEventTimeline/Operation/ActTrackAreaSlotDragDrop.h"
-
-// #include "NovaAct/ActEventTimeline/Image/ActImageTrackLaneWidget.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 using namespace NovaStruct;
@@ -52,16 +49,10 @@ void SActNotifyPoolNotifyNodeWidget::Construct(const FArguments& InArgs,
 	NotifyEditorColor.A = 0.67f;
 
 	WeakActNotifyPoolLaneWidget = InActNotifiesPanelLaneWidget;
-	// Font = FCoreStyle::GetDefaultFontStyle("Regular", 10);
 	bBeingDragged = false;
 	CurrentDragHandle = ENovaNotifyStateHandleHit::None;
 	DragMarkerTransactionIdx = INDEX_NONE;
 	bDrawTooltipToRight = true;
-	// bSelected = false;
-
-
-	// OnNodeDragStarted = InArgs._OnNodeDragStarted;
-	// OnNotifyStateHandleBeingDragged = InArgs._OnNotifyStateHandleBeingDragged;
 	PanTrackRequest = InArgs._PanTrackRequest;
 	OnSelectionChanged = InArgs._OnSelectionChanged;
 	OnUpdatePanel = InArgs._OnUpdatePanel;

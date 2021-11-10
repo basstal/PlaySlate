@@ -7,7 +7,6 @@
 
 void SActViewport::Construct(const FArguments& InArgs)
 {
-	// ActViewportPreviewScene = InActViewportPreviewScene;
 	auto DB = GetDataBindingSP(FActViewportPreviewScene, "ActViewportPreviewScene");
 	DB->GetData()->ActViewport = SharedThis(this);
 
@@ -57,12 +56,9 @@ TSharedRef<FEditorViewportClient> SActViewport::MakeEditorViewportClient()
 	return MakeShareable(new FActViewportClient(
 		DB->GetData().ToSharedRef(),
 		SharedThis(this)));
-	// return ActViewportPreviewScene.Pin()->MakeViewportClient().ToSharedRef();
 }
 
 void SActViewport::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
 {
-	// UE_LOG(LogNovaAct, Log, TEXT("SActViewport::Tick : %f"), InDeltaTime);
-
 	SEditorViewport::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
 }

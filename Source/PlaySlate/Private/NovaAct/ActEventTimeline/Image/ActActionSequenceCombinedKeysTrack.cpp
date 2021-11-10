@@ -10,10 +10,14 @@ void SActActionSequenceCombinedKeysTrack::Construct(const FArguments& InArgs, TS
 	TickResolution = InArgs._TickResolution;
 }
 
-int32 SActActionSequenceCombinedKeysTrack::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+int32 SActActionSequenceCombinedKeysTrack::OnPaint(const FPaintArgs& Args,
+                                                   const FGeometry& AllottedGeometry,
+                                                   const FSlateRect& MyCullingRect,
+                                                   FSlateWindowElementList& OutDrawElements,
+                                                   int32 LayerId,
+                                                   const FWidgetStyle& InWidgetStyle,
+                                                   bool bParentEnabled) const
 {
-	// if (RootNode->GetSequenceController().GetSequencerSettings()->GetShowCombinedKeyframes())
-	// {
 	const FVector2D KeyMarkSize = FVector2D(3.f, 21.f);
 	for (float KeyPosition : KeyDrawPositions)
 	{
@@ -33,9 +37,6 @@ int32 SActActionSequenceCombinedKeysTrack::OnPaint(const FPaintArgs& Args, const
 		);
 	}
 	return LayerId + 1;
-	// }
-
-	// return LayerId;
 }
 
 FVector2D SActActionSequenceCombinedKeysTrack::ComputeDesiredSize(float) const

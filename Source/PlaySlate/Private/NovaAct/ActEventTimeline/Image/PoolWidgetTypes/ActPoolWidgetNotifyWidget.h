@@ -13,36 +13,6 @@ class SActPoolWidgetNotifyWidget : public SCompoundWidget, public FEditorUndoCli
 {
 public:
 	SLATE_BEGIN_ARGS(SActPoolWidgetNotifyWidget) {}
-		// 	: _Sequence()
-		// 	, _CurrentPosition()
-		// 	, _ViewInputMin()
-		// 	, _ViewInputMax()
-		// 	, _InputMin()
-		// 	, _InputMax()
-		// 	, _OnSetInputViewRange()
-		// 	, _OnSelectionChanged()
-		// 	, _OnGetScrubValue()
-		// 	, _OnRequestRefreshOffsets()
-		// {}
-
-		// SLATE_ARGUMENT( class UAnimSequenceBase*, Sequence)
-		// SLATE_ARGUMENT( float, WidgetWidth )
-		// SLATE_ATTRIBUTE( float, CurrentPosition )
-		// SLATE_ATTRIBUTE( float, ViewInputMin )
-		// SLATE_ATTRIBUTE( float, ViewInputMax )
-		// SLATE_ATTRIBUTE( float, InputMin )
-		// SLATE_ATTRIBUTE( float, InputMax )
-		// SLATE_EVENT( FOnSetInputViewRange, OnSetInputViewRange )
-		// SLATE_EVENT( FOnSelectionChanged, OnSelectionChanged )
-		// SLATE_EVENT( FOnGetScrubValue, OnGetScrubValue )
-		// SLATE_EVENT( FRefreshOffsetsRequest, OnRequestRefreshOffsets )
-		// SLATE_EVENT( FOnGetTimingNodeVisibility, OnGetTimingNodeVisibility )
-		// SLATE_EVENT( FOnInvokeTab, OnInvokeTab )
-		// SLATE_EVENT( FSimpleDelegate, OnNotifiesChanged )
-		// SLATE_EVENT( FOnSnapPosition, OnSnapPosition )
-		// SLATE_EVENT( FOnNotifyStateHandleBeingDragged, OnNotifyStateHandleBeingDragged)
-		// SLATE_EVENT( FOnNotifyNodesBeingDragged, OnNotifyNodesBeingDragged)
-
 	SLATE_END_ARGS()
 
 	virtual ~SActPoolWidgetNotifyWidget() override;

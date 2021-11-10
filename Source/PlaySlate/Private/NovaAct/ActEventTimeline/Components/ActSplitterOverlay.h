@@ -8,18 +8,15 @@ public:
 
 	void Construct(const FArguments& InArgs);
 
-	//~Begin SPanel interface
+	//~Begin SOverlay interface
 	virtual void OnArrangeChildren(const FGeometry& AllottedGeometry, FArrangedChildren& ArrangedChildren) const override;
-	//~End SPanel interface
-
-	//~Begin SWidget interface
 	virtual FCursorReply OnCursorQuery(const FGeometry& MyGeometry, const FPointerEvent& CursorEvent) const override;
 	virtual FReply OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual void OnMouseCaptureLost(const FCaptureLostEvent& CaptureLostEvent) override;
 	virtual FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual void OnMouseLeave(const FPointerEvent& MouseEvent) override;
-	//~End SWidget interface
+	//~End SOverlay interface
 protected:
 	/** 用来确定被分割区块的Widget */
 	TSharedPtr<SSplitter> Splitter;

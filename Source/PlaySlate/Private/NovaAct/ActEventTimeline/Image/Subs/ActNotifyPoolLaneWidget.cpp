@@ -5,7 +5,6 @@
 #include "BlueprintActionDatabase.h"
 #include "IEditableSkeleton.h"
 #include "ISkeletonEditorModule.h"
-// #include "NovaActUICommandInfo.h"
 #include "SCurveEditor.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "Common/NovaConst.h"
@@ -25,37 +24,6 @@ void SActNotifyPoolLaneWidget::Construct(const FArguments& InArgs)
 {
 	SetClipping(EWidgetClipping::ClipToBounds);
 	LaneIndex = InArgs._LaneIndex;
-
-	// WeakCommandList = InArgs._CommandList;
-	// AnimSequence = InArgs._Sequence;
-	// ViewInputMin = InArgs._ViewInputMin;
-	// ViewInputMax = InArgs._ViewInputMax;
-	// OnSelectionChanged = InArgs._OnSelectionChanged;
-	// AnimNotifies = InArgs._AnimNotifies;
-	// AnimSyncMarkers = InArgs._AnimSyncMarkers;
-	// OnUpdatePanel = InArgs._OnUpdatePanel;
-	// OnGetNotifyBlueprintData = InArgs._OnGetNotifyBlueprintData;
-	// OnGetNotifyStateBlueprintData = InArgs._OnGetNotifyStateBlueprintData;
-	// OnGetNotifyNativeClasses = InArgs._OnGetNotifyNativeClasses;
-	// OnGetNotifyStateNativeClasses = InArgs._OnGetNotifyStateNativeClasses;
-	// OnGetScrubValue = InArgs._OnGetScrubValue;
-	// OnGetDraggedNodePos = InArgs._OnGetDraggedNodePos;
-	// OnNodeDragStarted = InArgs._OnNodeDragStarted;
-	// OnNotifyStateHandleBeingDragged = InArgs._OnNotifyStateHandleBeingDragged;
-	// TrackColor = InArgs._TrackColor;
-	// OnSnapPosition = InArgs._OnSnapPosition;
-	// OnRequestTrackPan = InArgs._OnRequestTrackPan;
-	// OnRequestRefreshOffsets = InArgs._OnRequestOffsetRefresh;
-	// OnDeleteNotify = InArgs._OnDeleteNotify;
-	// OnGetIsAnimNotifySelectionValidForReplacement = InArgs._OnGetIsAnimNotifySelectionValidForReplacement;
-	// OnReplaceSelectedWithNotify = InArgs._OnReplaceSelectedWithNotify;
-	// OnReplaceSelectedWithBlueprintNotify = InArgs._OnReplaceSelectedWithBlueprintNotify;
-	// OnDeselectAllNotifies = InArgs._OnDeselectAllNotifies;
-	// OnCopyNodes = InArgs._OnCopyNodes;
-	// OnPasteNodes = InArgs._OnPasteNodes;
-	// OnSetInputViewRange = InArgs._OnSetInputViewRange;
-	// OnGetTimingNodeVisibility = InArgs._OnGetTimingNodeVisibility;
-	// OnInvokeTab = InArgs._OnInvokeTab;
 
 	ChildSlot
 	[
@@ -244,7 +212,6 @@ FVector2D SActNotifyPoolLaneWidget::ComputeDesiredSize(float LayoutScaleMultipli
 
 void SActNotifyPoolLaneWidget::Update()
 {
-	// NotifyPairs.Empty();
 	NotifyNodes.Empty();
 
 	TrackBorder->SetContent(
@@ -257,92 +224,14 @@ void SActNotifyPoolLaneWidget::Update()
 	TArray<FAnimNotifyEvent*>& Notifies = AnimNotifyTrack.Notifies;
 	if (Notifies.Num() > 0)
 	{
-		// TArray<TSharedPtr<FTimingRelevantElementBase>> TimingElements;
-		// SAnimTimingPanel::GetTimingRelevantElements(AnimSequence, TimingElements);
 		for (int32 NotifyIndex = 0; NotifyIndex < Notifies.Num(); ++NotifyIndex)
 		{
-			// TSharedPtr<FTimingRelevantElementBase> Element;
 			FAnimNotifyEvent* AnimNotifyEvent = Notifies[NotifyIndex];
 
-			// for (int32 Idx = 0; Idx < TimingElements.Num(); ++Idx)
-			// {
-			// 	Element = TimingElements[Idx];
-			//
-			// 	if (Element->GetType() == ETimingElementType::NotifyStateBegin
-			// 		|| Element->GetType() == ETimingElementType::BranchPointNotify
-			// 		|| Element->GetType() == ETimingElementType::QueuedNotify)
-			// 	{
-			// 		// Only the notify type will return the type flags above
-			// 		FTimingRelevantElement_Notify* NotifyElement = static_cast<FTimingRelevantElement_Notify*>(Element.Get());
-			// 		if (Event == &AnimSequence->Notify[NotifyElement->NotifyIndex])
-			// 		{
-			// 			break;
-			// 		}
-			// 	}
-			// }
-
 			TSharedPtr<SActNotifyPoolNotifyNodeWidget> AnimNotifyNode = nullptr;
-			// TSharedPtr<SAnimNotifyPair> NotifyPair = nullptr;
-			// TSharedPtr<SAnimTimingNode> TimingNode = nullptr;
-			// TSharedPtr<SAnimTimingNode> EndTimingNode = nullptr;
-
-			// // Create visibility attribute to control timing node visibility for notifies
-			// TAttribute<EVisibility> TimingNodeVisibility = TAttribute<EVisibility>::Create(TAttribute<EVisibility>::FGetter::CreateLambda(
-			// 	[this]()
-			// 	{
-			// 		if (OnGetTimingNodeVisibility.IsBound())
-			// 		{
-			// 			return OnGetTimingNodeVisibility.Execute(ETimingElementType::QueuedNotify);
-			// 		}
-			// 		return EVisibility(EVisibility::Hidden);
-			// 	}));
-			//
-			// SAssignNew(TimingNode, SAnimTimingNode)
-			// 	.InElement(Element)
-			// 	.bUseTooltip(true)
-			// 	.Visibility(TimingNodeVisibility);
-
-			// if (Event->NotifyStateClass)
-			// {
-			// 	TSharedPtr<FTimingRelevantElementBase>* FoundStateEndElement = TimingElements.FindByPredicate([Event](TSharedPtr<FTimingRelevantElementBase>& ElementToTest)
-			// 	{
-			// 		if (ElementToTest.IsValid() && ElementToTest->GetType() == ETimingElementType::NotifyStateEnd)
-			// 		{
-			// 			FTimingRelevantElement_NotifyStateEnd* StateElement = static_cast<FTimingRelevantElement_NotifyStateEnd*>(ElementToTest.Get());
-			// 			return &(StateElement->AnimSequence->Notify[StateElement->NotifyIndex]) == Event;
-			// 		}
-			// 		return false;
-			// 	});
-			//
-			// 	if (FoundStateEndElement)
-			// 	{
-			// 		// Create an end timing node if we have a state
-			// 		SAssignNew(EndTimingNode, SAnimTimingNode)
-			// 			.InElement(*FoundStateEndElement)
-			// 			.bUseTooltip(true)
-			// 			.Visibility(TimingNodeVisibility);
-			// 	}
-			// }
 
 			AnimNotifyNode = SNew(SActNotifyPoolNotifyNodeWidget, SharedThis(this))
 				.AnimNotifyEvent(AnimNotifyEvent);
-			// .AnimSequence(AnimSequence)
-			// .OnNodeDragStarted(this, &SAnimNotifyTrack::OnNotifyNodeDragStarted, NotifyIndex)
-			// .OnNotifyStateHandleBeingDragged(OnNotifyStateHandleBeingDragged)
-			// .OnUpdatePanel(OnUpdatePanel)
-			// .PanTrackRequest(OnRequestTrackPan)
-			// .ViewInputMin(ViewInputMin)
-			// .ViewInputMax(ViewInputMax)
-			// .OnSnapPosition(OnSnapPosition)
-			// .OnSelectionChanged(OnSelectionChanged)
-			// .StateEndTimingNode(EndTimingNode);
-
-			// SAssignNew(NotifyPair, SAnimNotifyPair)
-			// 	.LeftContent()
-			// 	[
-			// 		TimingNode.ToSharedRef()
-			// 	]
-			// 	.Node(AnimNotifyNode);
 
 			NodeSlots->AddSlot()
 			         .Padding(TAttribute<FMargin>::Create(TAttribute<FMargin>::FGetter::CreateSP(this,
@@ -353,36 +242,8 @@ void SActNotifyPoolLaneWidget::Update()
 			];
 
 			NotifyNodes.Add(AnimNotifyNode);
-			// NotifyPairs.Add(NotifyPair);
 		}
 	}
-
-	// for (FAnimSyncMarker* SyncMarker : AnimSyncMarkers)
-	// {
-	// 	TSharedPtr<SAnimNotifyNode> AnimSyncMarkerNode = nullptr;
-	// 	TSharedPtr<SAnimTimingNode> EndTimingNode = nullptr;
-	//
-	// 	const int32 NodeIndex = NotifyNodes.Num();
-	// 	SAssignNew(AnimSyncMarkerNode, SAnimNotifyNode)
-	// 		.AnimSequence(AnimSequence)
-	// 		.AnimSyncMarker(SyncMarker)
-	// 		.OnNodeDragStarted(this, &SAnimNotifyTrack::OnNotifyNodeDragStarted, NodeIndex)
-	// 		.OnUpdatePanel(OnUpdatePanel)
-	// 		.PanTrackRequest(OnRequestTrackPan)
-	// 		.ViewInputMin(ViewInputMin)
-	// 		.ViewInputMax(ViewInputMax)
-	// 		.OnSnapPosition(OnSnapPosition)
-	// 		.OnSelectionChanged(OnSelectionChanged)
-	// 		.StateEndTimingNode(EndTimingNode);
-	//
-	// 	NodeSlots->AddSlot()
-	// 	         .Padding(TAttribute<FMargin>::Create(TAttribute<FMargin>::FGetter::CreateSP(this, &SAnimNotifyTrack::GetSyncMarkerTrackPadding, NodeIndex)))
-	// 	[
-	// 		AnimSyncMarkerNode->AsShared()
-	// 	];
-	//
-	// 	NotifyNodes.Add(AnimSyncMarkerNode);
-	// }
 }
 
 // Returns the padding needed to render the notify in the correct track position
@@ -456,7 +317,6 @@ TSharedPtr<SWidget> SActNotifyPoolLaneWidget::SummonContextMenu(const FPointerEv
 	FUIAction NewAction;
 
 	FAnimNotifyEvent* NotifyEvent = NotifyNode ? NotifyNode->AnimNotifyEvent : nullptr;
-	// int32 NotifyIndex = NotifyEvent ? NotifyNodes.IndexOfByKey(NotifyNode) : INDEX_NONE;
 
 	UAnimSequence* AnimSequence = *AnimSequenceDB->GetData();
 	MenuBuilder.BeginSection("AnimNotify", LOCTEXT("NotifyHeading", "Notify"));
@@ -582,10 +442,6 @@ TSharedPtr<SWidget> SActNotifyPoolLaneWidget::SummonContextMenu(const FPointerEv
 							NewDuration = FMath::Min(NewDuration, MaxDuration);
 							NotifyEvent->SetDuration(NewDuration);
 
-							// // If we have a delegate bound to refresh the offsets, call it.
-							// // This is used by the montage editor to keep the offsets up to date.
-							// OnRequestRefreshOffsets.ExecuteIfBound();
-
 							FSlateApplication::Get().DismissAllMenus();
 						}
 					};
@@ -658,160 +514,12 @@ TSharedPtr<SWidget> SActNotifyPoolLaneWidget::SummonContextMenu(const FPointerEv
 				NSLOCTEXT("NewNotifySubMenu", "NewNotifySubMenuAddNotifyState", "Add Notify State..."),
 				NSLOCTEXT("NewNotifySubMenu", "NewNotifySubMenuAddNotifyStateToolTip", "Add AnimNotifyState"),
 				FNewMenuDelegate::CreateRaw(this, &SActNotifyPoolLaneWidget::FillNewNotifyStateMenu, false));
-
-			// TODO:?
-			// if (AnimSequence->IsA(UAnimSequence::StaticClass()))
-			// {
-			// 	// MenuBuilder.AddSubMenu(
-			// 	// 	NSLOCTEXT("NewSyncMarkerSubMenu", "NewSyncMarkerSubMenuAddNotifyState", "Add Sync Marker..."),
-			// 	// 	NSLOCTEXT("NewSyncMarkerSubMenu", "NewSyncMarkerSubMenuAddNotifyStateToolTip", "Create a new animation sync marker"),
-			// 	// 	FNewMenuDelegate::CreateRaw(this, &SAnimNotifyTrack::FillNewSyncMarkerMenu));
-			// }
-			//
-			// MenuBuilder.AddMenuEntry(
-			// 	NSLOCTEXT("NewNotifySubMenu", "ManageNotifies", "Manage Notifies..."),
-			// 	NSLOCTEXT("NewNotifySubMenu", "ManageNotifiesToolTip", "Opens the Manage Notifies window"),
-			// 	FSlateIcon(),
-			// 	FUIAction(FExecuteAction::CreateSP(this, &SAnimNotifyTrack::OnManageNotifies)));
 		}
 	}
 	MenuBuilder.EndSection();
 	//AnimNotify
 
 	NewAction.CanExecuteAction = 0;
-
-	// MenuBuilder.BeginSection("AnimEdit", LOCTEXT("NotifyEditHeading", "Edit"));
-	// {
-	// 	if (NotifyNode)
-	// 	{
-	// 		// copy notify menu item
-	// 		MenuBuilder.AddMenuEntry(FNovaActNotifiesPanelCommands::Get().CopyNotifies);
-	//
-	// 		// allow it to delete
-	// 		MenuBuilder.AddMenuEntry(FNovaActNotifiesPanelCommands::Get().DeleteNotify);
-	//
-	// 		if (NotifyEvent)
-	// 		{
-	// 			// For the "Replace With..." menu, make sure the current AnimNotify selection is valid for replacement
-	// 			if (OnGetIsAnimNotifySelectionValidForReplacement.IsBound() && OnGetIsAnimNotifySelectionValidForReplacement.Execute())
-	// 			{
-	// 				// If this is an AnimNotifyState (has duration) allow it to be replaced with other AnimNotifyStates
-	// 				if (NotifyEvent->NotifyStateClass)
-	// 				{
-	// 					MenuBuilder.AddSubMenu(
-	// 						NSLOCTEXT("NewNotifySubMenu", "NewNotifySubMenuReplaceWithNotifyState", "Replace with Notify State..."),
-	// 						NSLOCTEXT("NewNotifySubMenu", "NewNotifySubMenuReplaceWithNotifyStateToolTip", "Replace with AnimNotifyState"),
-	// 						FNewMenuDelegate::CreateRaw(this, &SActNotifyPoolLaneWidget::FillNewNotifyStateMenu, true));
-	// 				}
-	// 					// If this is a regular AnimNotify (no duration) allow it to be replaced with other AnimNotifies
-	// 				else
-	// 				{
-	// 					MenuBuilder.AddSubMenu(
-	// 						NSLOCTEXT("NewNotifySubMenu", "NewNotifySubMenuReplaceWithNotify", "Replace with Notify..."),
-	// 						NSLOCTEXT("NewNotifySubMenu", "NewNotifySubMenuReplaceWithNotifyToolTip", "Replace with AnimNotifyEvent"),
-	// 						FNewMenuDelegate::CreateRaw(this, &SActNotifyPoolLaneWidget::FillNewNotifyMenu, true));
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// 	else
-	// 	{
-	// 		FString PropertyString;
-	// 		const TCHAR* Buffer;
-	// 		float OriginalTime;
-	// 		float OriginalLength;
-	// 		int32 TrackSpan;
-	//
-	// 		//Check whether can we show menu item to paste anim notify event
-	// 		if (ReadNotifyPasteHeader(PropertyString, Buffer, OriginalTime, OriginalLength, TrackSpan))
-	// 		{
-	// 			// paste notify menu item
-	// 			if (IsSingleNodeInClipboard())
-	// 			{
-	// 				MenuBuilder.AddMenuEntry(FNovaActNotifiesPanelCommands::Get().PasteNotifies);
-	// 			}
-	// 			else
-	// 			{
-	// 				NewAction.ExecuteAction.BindRaw(
-	// 					this,
-	// 					&SActNotifyPoolLaneWidget::OnPasteNotifyClicked,
-	// 					ENotifyPasteMode::MousePosition,
-	// 					ENotifyPasteMultipleMode::Relative);
-	//
-	// 				MenuBuilder.AddMenuEntry(
-	// 					LOCTEXT("PasteMultRel", "Paste Multiple Relative"),
-	// 					LOCTEXT("PasteMultRelToolTip",
-	// 					        "Paste multiple notifies beginning at the mouse cursor, maintaining the same relative spacing as the source."),
-	// 					FSlateIcon(),
-	// 					NewAction);
-	//
-	// 				MenuBuilder.AddMenuEntry(FNovaActNotifiesPanelCommands::Get().PasteNotifies,
-	// 				                         NAME_None,
-	// 				                         LOCTEXT("PasteMultAbs", "Paste Multiple Absolute"),
-	// 				                         LOCTEXT("PasteMultAbsToolTip",
-	// 				                                 "Paste multiple notifies beginning at the mouse cursor, maintaining absolute spacing."));
-	// 			}
-	//
-	// 			if (OriginalTime < AnimSequence->GetPlayLength())
-	// 			{
-	// 				NewAction.ExecuteAction.BindRaw(
-	// 					this,
-	// 					&SActNotifyPoolLaneWidget::OnPasteNotifyClicked,
-	// 					ENotifyPasteMode::OriginalTime,
-	// 					ENotifyPasteMultipleMode::Absolute);
-	//
-	// 				FText DisplayText = FText::Format(LOCTEXT("PasteAtOriginalTime", "Paste at original time ({0})"), FText::AsNumber(OriginalTime));
-	// 				MenuBuilder.AddMenuEntry(DisplayText,
-	// 				                         LOCTEXT("PasteAtOriginalTimeToolTip",
-	// 				                                 "Paste animation notify event at the time it was set to when it was copied"),
-	// 				                         FSlateIcon(),
-	// 				                         NewAction);
-	// 			}
-	// 		}
-	// 	}
-	// }
-	// MenuBuilder.EndSection();//AnimEdit
-	//
-	// if (NotifyEvent)
-	// {
-	// 	UObject* NotifyObject = NotifyEvent->Notify;
-	// 	NotifyObject = NotifyObject ? NotifyObject : ToRawPtr(NotifyEvent->NotifyStateClass);
-	//
-	// 	MenuBuilder.BeginSection("ViewSource", LOCTEXT("NotifyViewHeading", "View"));
-	//
-	// 	if (NotifyObject)
-	// 	{
-	// 		if (Cast<UBlueprintGeneratedClass>(NotifyObject->GetClass()))
-	// 		{
-	// 			if (UBlueprint* Blueprint = Cast<UBlueprint>(NotifyObject->GetClass()->ClassGeneratedBy))
-	// 			{
-	// 				NewAction.ExecuteAction.BindRaw(
-	// 					this,
-	// 					&SActNotifyPoolLaneWidget::OnOpenNotifySource,
-	// 					Blueprint);
-	// 				MenuBuilder.AddMenuEntry(
-	// 					LOCTEXT("OpenNotifyBlueprint", "Open Notify Blueprint"),
-	// 					LOCTEXT("OpenNotifyBlueprintTooltip", "Opens the source blueprint for this notify"),
-	// 					FSlateIcon(),
-	// 					NewAction);
-	// 			}
-	// 		}
-	// 	}
-	// 	else
-	// 	{
-	// 		// skeleton notify
-	// 		NewAction.ExecuteAction.BindRaw(
-	// 			this,
-	// 			&SActNotifyPoolLaneWidget::OnFilterSkeletonNotify,
-	// 			NotifyEvent->NotifyName);
-	// 		MenuBuilder.AddMenuEntry(LOCTEXT("FindNotifyReferences", "Find References"),
-	// 		                         LOCTEXT("FindNotifyReferencesTooltip", "Find all references to this skeleton notify in the asset browser"),
-	// 		                         FSlateIcon(),
-	// 		                         NewAction);
-	// 	}
-	//
-	// 	MenuBuilder.EndSection();//ViewSource
-	// }
 
 	FWidgetPath WidgetPath = MouseEvent.GetEventPath() != nullptr ? *MouseEvent.GetEventPath() : FWidgetPath();
 
@@ -874,24 +582,6 @@ void SActNotifyPoolLaneWidget::FillNewNotifyMenu(FMenuBuilder& MenuBuilder, bool
 						SNew(SBox)
 						.MinDesiredWidth(300.0f)
 						.MaxDesiredHeight(400.0f),
-						// TODO:
-						// [
-						// 	SNew(SSkeletonAnimNotifies, EditableSkeleton)
-						// 	.IsPicker(true)
-						// 	.OnItemSelected_Lambda([this, bIsReplaceWithMenu](const FName& InNotifyName)
-						// 	{
-						// 		FSlateApplication::Get().DismissAllMenus();
-						// 	
-						// 		if (!bIsReplaceWithMenu)
-						// 		{
-						// 			CreateNewNotifyAtCursor(InNotifyName.ToString(), nullptr);
-						// 		}
-						// 		else
-						// 		{
-						// 			ReplaceSelectedWithNotify(InNotifyName.ToString(), nullptr);
-						// 		}
-						// 	})
-						// ],
 						FText(),
 						true,
 						false

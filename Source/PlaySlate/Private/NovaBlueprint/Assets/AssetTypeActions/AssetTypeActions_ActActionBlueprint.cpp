@@ -3,7 +3,7 @@
 #include "PlaySlate.h"
 #include "NovaBlueprint/Assets/ActActionBlueprint.h"
 #include "NovaBlueprint/ActActionBlueprintEditor.h"
-#include "NovaBlueprint/Controllers/AssetTypeActions/ActActionBlueprintFactory.h"
+#include "NovaBlueprint/Assets/AssetTypeActions/ActActionBlueprintFactory.h"
 
 #include "BlueprintEditorSettings.h"
 #include "Kismet2/BlueprintEditorUtils.h"
@@ -40,8 +40,9 @@ void FAssetTypeActions_ActActionBlueprint::OpenAssetEditor(const TArray<UObject*
 			bool bLetOpen = true;
 			if (!ActActionBlueprint->ParentClass)
 			{
-				bLetOpen = EAppReturnType::Yes == FMessageDialog::Open(EAppMsgType::YesNo, LOCTEXT("FailedToLoadActActionBlueprintWithContinue",
-				                                                                                   "Act Action Blueprint could not be loaded because it derives from an invalid class. Check to make sure the parent class for this blueprint hasn't been removed! Do you want to continue(it can crash the editor)?"));
+				bLetOpen = EAppReturnType::Yes == FMessageDialog::Open(EAppMsgType::YesNo,
+				                                                       LOCTEXT("FailedToLoadActActionBlueprintWithContinue",
+				                                                               "Act Action Blueprint could not be loaded because it derives from an invalid class. Check to make sure the parent class for this blueprint hasn't been removed! Do you want to continue(it can crash the editor)?"));
 			}
 			if (bLetOpen)
 			{
@@ -55,7 +56,9 @@ void FAssetTypeActions_ActActionBlueprint::OpenAssetEditor(const TArray<UObject*
 		}
 		else
 		{
-			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("FailedToLoadActActionBlueprint", "Act Action Blueprint could not be loaded because it derives from an invalid class. Check to make sure the parent class for this blueprint hasn't been removed!"));
+			FMessageDialog::Open(EAppMsgType::Ok,
+			                     LOCTEXT("FailedToLoadActActionBlueprint",
+			                             "Act Action Blueprint could not be loaded because it derives from an invalid class. Check to make sure the parent class for this blueprint hasn't been removed!"));
 		}
 	}
 }

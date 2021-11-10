@@ -17,7 +17,7 @@
 using namespace NovaConst;
 
 SActImageTreeViewTableRow::SActImageTreeViewTableRow()
-	:ActActionTrackAreaArgs(),
+	: ActActionTrackAreaArgs(),
 	  // CachedHitBox(nullptr),
 	  Height(0),
 	  PendingRenameTrackIndex(0) { }
@@ -29,11 +29,7 @@ void SActImageTreeViewTableRow::Construct(const FArguments& InArgs,
 	ActImageTrack = InActImageTrack;
 	FArguments MultiColumnTableRowArgs;
 	{
-		// MultiColumnTableRowArgs._OnDragDetected.BindRaw(this, &SActActionSequenceTreeViewRow::OnDragDetected);
-		// MultiColumnTableRowArgs._OnCanAcceptDrop.BindRaw(this, &SActActionSequenceTreeViewRow::OnCanAcceptDrop);
-		// MultiColumnTableRowArgs._OnAcceptDrop.BindRaw(this, &SActActionSequenceTreeViewRow::OnAcceptDrop);
 		MultiColumnTableRowArgs._ShowSelection = true;
-		// MultiColumnTableRowArgs._Padding.BindRaw(this, &SActActionSequenceTreeViewRow::GetRowPadding);
 	}
 
 	SMultiColumnTableRow::Construct(InArgs, OwnerTableView);
@@ -57,19 +53,7 @@ void SActImageTreeViewTableRow::HandleNotifyChanged()
 	auto ActAnimationDB = GetDataBindingUObject(UActAnimation, "ActAnimation");
 
 	SetHeight((float)ActAnimationDB->GetData()->AnimSequence->AnimNotifyTracks.Num() * NovaConst::NotifyHeight);
-	// RefreshNotifiesPanelTableRow();
 }
-
-
-//
-// TSharedRef<SActTrackPanel> SActImageTreeViewTableRow::MakeWidgetForTrackArea()
-// {
-// 	// GetActTrackPanel();
-//
-// 	// ActTrackPanel->Update();
-//
-// 	return ActTrackPanel.ToSharedRef();
-// }
 
 bool SActImageTreeViewTableRow::IsTreeViewRoot() const
 {
@@ -122,11 +106,6 @@ bool SActImageTreeViewTableRow::IsVisible() const
 {
 	return true;
 }
-
-// EActImageTrackType SActImageTreeViewTableRow::GetType() const
-// {
-// 	return TableRowType;
-// }
 
 void SActImageTreeViewTableRow::RemoveFromParent()
 {
@@ -209,14 +188,7 @@ bool SActImageTreeViewTableRow::ValidateDisplayName(const FText& NewDisplayName,
 	return true;
 }
 
-void SActImageTreeViewTableRow::SetDisplayName(const FText& NewDisplayName)
-{
-	// FText OutErrorMessage;
-	// if (ValidateDisplayName(NewDisplayName, OutErrorMessage))
-	// {
-	// 	NodeName = FName(NewDisplayName.ToString());
-	// }
-}
+void SActImageTreeViewTableRow::SetDisplayName(const FText& NewDisplayName) {}
 
 const FSlateBrush* SActImageTreeViewTableRow::GetIconBrush() const
 {
@@ -252,49 +224,6 @@ void SActImageTreeViewTableRow::Refresh()
 	}
 	TreeView->SetTreeItemsSource(&DisplayedRootNodes);
 }
-
-// TSharedRef<SActImageTreeViewTableRow> SActImageTreeViewTableRow::FindOrCreateFolder(const FName& InName)
-// {
-// 	TSharedRef<SActImageTreeViewTableRow>* FindNode = ChildNodes.FindByPredicate([InName](auto ChildNode)
-// 	{
-// 		return ChildNode->NodeName == InName;
-// 	});
-// 	if (!FindNode)
-// 	{
-// 		// ** TODO:
-// 		// TSharedRef<SActImageTreeViewTableRow> Folder = MakeShareable(new SActImageTreeViewTableRow(InName, EActImageTrackType::Folder));
-// 		// Folder->SetParent(SharedThis(this), 0);
-// 		// return Folder;
-// 	}
-// 	return *FindNode;
-// }
-
-// void SActImageTreeViewTableRow::SetContentAsHitBox(FActActionHitBoxData& InHitBox)
-// {
-// 	// ** TODO:临时先把对象存这里
-// 	CachedHitBox = &InHitBox;
-// 	// ActActionTrackAreaArgs.Begin.Bind(TAttribute<int32>::FGetter::CreateLambda([this]()
-// 	// {
-// 	// 	return CachedHitBox->Begin;
-// 	// }));
-// 	// ActActionTrackAreaArgs.End.Bind(TAttribute<int32>::FGetter::CreateLambda([this]()
-// 	// {
-// 	// 	return CachedHitBox->End;
-// 	// }));
-// }
-
-//
-// void SActImageTreeViewTableRow::SetVisible(EVisibility InVisibility)
-// {
-// 	if (OutlinerContent.IsValid())
-// 	{
-// 		OutlinerContent->SetVisibility(InVisibility);
-// 	}
-// 	if (TrackArea.IsValid())
-// 	{
-// 		TrackArea->SetVisibility(InVisibility);
-// 	}
-// }
 
 float SActImageTreeViewTableRow::ComputeTrackPosition()
 {

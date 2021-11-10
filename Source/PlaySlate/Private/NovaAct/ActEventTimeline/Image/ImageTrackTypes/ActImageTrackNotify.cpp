@@ -4,7 +4,6 @@
 #include "Common/NovaConst.h"
 #include "NovaAct/NovaActEditor.h"
 #include "NovaAct/ActEventTimeline/Image/Subs/NovaActUICommandInfo.h"
-// #include "NovaAct/Assets/ActAnimation.h"
 #include "Widgets/Text/SInlineEditableTextBlock.h"
 
 #include "PlaySlate.h"

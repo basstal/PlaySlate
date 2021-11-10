@@ -9,11 +9,6 @@ class SActPoolWidgetFolderWidget : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SActPoolWidgetFolderWidget) {}
-
-		// SLATE_DEFAULT_SLOT(FArguments, Content)
-		//
-		// SLATE_ATTRIBUTE(FAnimatedRange, ViewRange)
-
 	SLATE_END_ARGS()
 
 	SActPoolWidgetFolderWidget();

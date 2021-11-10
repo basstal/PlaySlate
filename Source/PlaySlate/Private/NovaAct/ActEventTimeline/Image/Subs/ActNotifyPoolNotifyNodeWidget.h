@@ -12,8 +12,6 @@ class SActNotifyPoolNotifyNodeWidget : public SLeafWidget
 public:
 	SLATE_BEGIN_ARGS(SActNotifyPoolNotifyNodeWidget) { }
 		SLATE_ARGUMENT(FAnimNotifyEvent*, AnimNotifyEvent)
-		// SLATE_EVENT(OnNotifyNodeDragStartedDelegate, OnNodeDragStarted)
-		// SLATE_EVENT(OnNotifyStateHandleBeingDraggedDelegate, OnNotifyStateHandleBeingDragged)
 		SLATE_EVENT(FSimpleDelegate, OnUpdatePanel)
 		SLATE_EVENT(OnPanTrackRequestDelegate, PanTrackRequest)
 		SLATE_EVENT(FSimpleDelegate, OnSelectionChanged)
@@ -41,8 +39,6 @@ public:
 
 	/** 获得描述文本 */
 	FText GetNotifyText() const;
-	// /** 获得颜色 */
-	// FLinearColor GetNotifyColor() const;
 	/**
 	 * 更新大小和位置信息
 	 *
@@ -77,19 +73,12 @@ public:
 	/** @return 是否在被选中状态 */
 	bool IsSelected() const;
 protected:
-	
-
 	/** 当前拖拽的状态 */
 	ENovaNotifyStateHandleHit CurrentDragHandle;
 
 	/** 是否往右 */
 	bool bDrawTooltipToRight;
 
-
-	/** Delegate that is called when the user initiates dragging */
-	// ActActionSequence::OnNotifyNodeDragStartedDelegate OnNodeDragStarted;
-	/** Delegate that is called when a notify state handle is being dragged */
-	// OnNotifyStateHandleBeingDraggedDelegate OnNotifyStateHandleBeingDragged;
 	/** Delegate to redraw the notify panel */
 	FSimpleDelegate OnUpdatePanel;
 	/** Delegate to pan the track, needed if the markers are dragged out of the track */
@@ -98,8 +87,6 @@ protected:
 	FSimpleDelegate OnSelectionChanged;
 	/** Delegate used to snap when dragging */
 	OnSnapPositionDelegate OnSnapPosition;
-	// /** 缓存的 Lane 已分配 Widget 大小 */
-	// FVector2D CachedLaneWidgetAllottedGeometrySize;
 	/** TODO: */
 	float NotifyTimePositionX;
 
@@ -112,9 +99,6 @@ protected:
 	float WidgetX;
 	/** TODO: */
 	float NotifyScrubHandleCentre;
-
-	// /** Cached owning track geometry */
-	// FGeometry CachedLaneGeometry;
 
 	/** AnimNotifyEvent 决定的 NotifyNode 缓存名称 */
 	FName CachedNotifyName;

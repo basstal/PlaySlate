@@ -6,7 +6,6 @@
 #include "SCurveEditor.h"
 #include "Common/NovaStruct.h"
 #include "Fonts/FontMeasure.h"
-// #include "NovaAct/ActEventTimeline/Operation/ActNotifyStateClassFilter.h"
 
 #define LOCTEXT_NAMESPACE "NovaAct"
 

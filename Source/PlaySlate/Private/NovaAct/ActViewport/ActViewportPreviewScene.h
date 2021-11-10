@@ -69,12 +69,6 @@ public:
 	 */
 	void PlayStep(bool bForward) const;
 
-	/** @retrun 获得当前播放状态 */
-	// EPlaybackMode::Type GetPlaybackMode() const;
-
-	/** @return 当前动画播放的时间位置，单位秒 */
-	// float GetCurrentPosition() const;
-
 	/** @return 获得AnimInstance */
 	UAnimSingleNodeInstance* GetAnimSingleNodeInstance() const;
 
@@ -96,8 +90,6 @@ public:
 	/** Viewport Widget */
 	TSharedPtr<SActViewport> ActViewport;
 protected:
-	// /** 对Editor的引用，调用编辑器资源和相关工具方法 */
-	// TWeakPtr<FNovaActEditor> ActActionSequenceEditor;
 	/** The one and only actor we have */
 	AActor* ActActionActor;
 	/** The main preview skeletal mesh component */

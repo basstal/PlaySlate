@@ -1,7 +1,7 @@
 ﻿#include "ActActionBlueprintCreateDialog.h"
 
 #include "NovaBlueprint/Assets/ActActionLogic.h"
-#include "NovaBlueprint/Controllers/AssetTypeActions/ActActionBlueprintFactory.h"
+#include "NovaBlueprint/Assets/AssetTypeActions/ActActionBlueprintFactory.h"
 
 #include "ClassViewerModule.h"
 #include "Editor.h"

@@ -26,6 +26,8 @@ public:
 
 protected:
 	TSharedPtr<FActAssetDetailsNotifyHook> NotifyHook;
-	TSharedPtr<class IDetailsView> PropertyView;// Property viewing widget
-	TWeakObjectPtr<UObject> LastObservedObject; // Cached object view
+	// Property viewing widget
+	TSharedPtr<class IDetailsView> PropertyView;
+	// Cached object view
+	TWeakObjectPtr<UObject> LastObservedObject;
 };
