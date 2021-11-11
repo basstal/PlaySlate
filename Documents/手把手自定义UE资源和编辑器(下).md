@@ -80,7 +80,7 @@ SAssignNew(GridPanel, SGridPanel)
 
 上面列举了 SNew 和 SAssignNew 的基本用法，以及一些奇怪的 Slate 语法规则，在 UE 文档中看到 Slate 的作者们信誓旦旦的说``Slate's composition framework makes it simple to re-arrange UI elements quickly for prototyping and iteration.``，感觉应该是跟纯 C++ 代码去撸来比较的。实际上拆开这些宏来看，这跟纯 C++ 也没啥大区别，就是定义了些代码格式化工具无法识别的符号，代替了手写一大堆要靠自动补全才敲得出来的代码。总结一句话，也没好到哪里去。借助之前知乎看的原话：``UE4的UI解决方案一直都是Slate表示的，只是上层封了层UMG之后感觉UE4的团队就很少有精力扩展Slate的东西了。许多UI层的组件需求和效果需求反应都很迟钝。``而且关键的关键！这个方式做游戏UI是要做死的，每改一个布局一个属性都需要重新编译一次代码，就算有HotReload，迭代起来也比那些脚本语言支持的UI框架不知道要慢到哪去了。或许这也是为啥 Slate 没有后续扩展的原因。
 
-1.  Construct 函数通过构造宏来调用，除了第一个参数必须满足既定规则以外，其他参数倒是可以随便传，终归来也没太搞懂用 FArguments 传参的好处在哪，或许是写法上的统一和解决构造时需要修改基类参数的问题吧。不论如何，写在 Construct 的参数列表后面，和预先定义在 Widget SLATE_BEGIN_ARGS ... SLATE_END_ARGS 之间，效果是差不多的。这两种方式都没有把你定义的参数替你保存在构造的 Widget 中，还是需要你在 Widget 中再定义一个对应的字段去保存这个参数(当然有些参数只在构造时使用就另说了/dodge)。这里只顺带提一下如何在 SLATE_BEGIN_ARGS ... SLATE_END_ARGS 之间定义参数，因为非强制的情况下个人不用这种方式。这些宏也都在 DeclarativeSyntaxSupport.h 文件中定义。
+17.  Construct 函数通过构造宏来调用，除了第一个参数必须满足既定规则以外，其他参数倒是可以随便传，终归来也没太搞懂用 FArguments 传参的好处在哪，或许是写法上的统一和解决构造时需要修改基类参数的问题吧。不论如何，写在 Construct 的参数列表后面，和预先定义在 Widget SLATE_BEGIN_ARGS ... SLATE_END_ARGS 之间，效果是差不多的。这两种方式都没有把你定义的参数替你保存在构造的 Widget 中，还是需要你在 Widget 中再定义一个对应的字段去保存这个参数(当然有些参数只在构造时使用就另说了/dodge)。这里只顺带提一下如何在 SLATE_BEGIN_ARGS ... SLATE_END_ARGS 之间定义参数，因为非强制的情况下个人不用这种方式。这些宏也都在 DeclarativeSyntaxSupport.h 文件中定义。
 
 ```C++
 SLATE_BEGIN_ARGS(SBorder) { }
