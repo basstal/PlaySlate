@@ -1,4 +1,4 @@
-# 手把手自定义UE资源和编辑器
+# 手把手自定义UE资源和编辑器(下)
 
 14. 承接上文，讲完 Slate 的槽点以后，简单介绍一下 Slate 的一些基础知识：
 
@@ -8,7 +8,7 @@
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
 | SWidget            | 所有 Slate Widget 的基类，UE 不建议直接派生自这个类型，建议如果没有子节点可以继承自 SLeafWidget，有子节点则继承自 SPanel                                                                                                                         | SCompoundWidget 、 SPanel 、 SLeafWidget 、 SNullWidgetContent 、 SWeakWidget |
 | SCompoundWidget    | 大部分只有一个子节点的 Widget 都派生自这个类型，比较常用的有 SBorder(带有 BorderImage 属性的单子节点 Widget) 、 SDetailView(UObject反射属性查看使用的 Widget) 、 SMessageLog(消息提示)                                                           | SBorder 、 SDetailView 、 SMessageLog 、 SSequencerTrackLane 等               |
-| SPanel             | SPanel 中有个关键函数 OnArrangeChildren 其参数 AllottedGeometry (代表 SPanel 的 Geometry 信息) 、ArrangedChildren (SPanel 的 Child Widget 都需要通过 AddWidget 添加到这个结构中)， SPanel 的子类通过重载这个函数，使其具有不同的分配子节点方式。 | SListPanel 、 SBox 、 SGridPanel 、 SScrollPanel 、 SAnimTrackArea            |
+| SPanel             | SPanel 中有个关键函数 OnArrangeChildren 其参数 AllottedGeometry (代表 SPanel 的 Geometry 信息) 、ArrangedChildren (SPanel 的 Child Widget 都需要通过 AddWidget 添加到这个结构中)， SPanel 的子类通过重载这个函数，使其具有不同的分配子节点方式。 | SListPanel 、 SBox 、 SGridPanel 、 SScrollPanel 、 SOverlay                  |
 | SLeafWidget        | 该 Widget 不能添加子节点，比较简单只做最终一个区域的绘制用                                                                                                                                                                                       | SSlider 、 SSpacer 、 SImage 、 SAnimNotifyNode                               |
 | SNullWidgetContent | 没有任何大小的空Widget，也不能够添加子节点，一般使用 SNullWidget::NullWidget 获取，并作为参数给需要 SWidget 的函数占位用                                                                                                                         |                                                                               |
 | SWeakWidget        | 一般来说父节点对子节点的引用都是强引用，保证子节点不会被GC，若子节点是 SWeakWidget ，则子节点生命周期不受父节点影响，官方的例子是 Hover 一个 Widget 显示 tooltip 时，弹出的 Window 对于这个被 Hover 的 Widget 而言必须是 SWeakWidget             |                                                                               |
@@ -96,7 +96,22 @@ SLATE_BEGIN_ARGS(SBorder) { }
 SLATE_END_ARGS()
 ```
 
-18. 有了构造和参数，剩下的就只剩怎么绘制的问题了。绘制的代码基本也是抄一抄，要不然没有设计的情况下也不知道这个 Widget 要长什么样比较合适(或者也可以拍脑袋自己设计/dodge)。说到抄代码，不得不介绍一个利器，这是我认为 UE 的 Slate 做得最好的地方，就是下图所示的工具 Widget Reflector。
+18. 有了构造和参数，剩下的就只剩怎么绘制的问题了。绘制的代码基本也是抄一抄，要不然没有设计的情况下也不知道这个 Widget 要长什么样比较合适(或者也可以拍脑袋自己设计/dodge)。说到学(抄)代码，不得不介绍一个利器，这是个人认为 UE 的 Slate 做得最好的地方，就是下图所示的工具 Widget Reflector。
 
 ![014](images/014.png)
 
+用法也很简单，一种是使用 Pick 功能正向查找想要学习的 Widget，另一种是反向查找，点击树状结构中的节点，通过查看对应框中(绿色/白色)区域来确定是不是要的那个区域。这里只演示正向查找。
+
+![015](images/015.gif)
+
+当确定当前区域是想要学习的区域后，并且编辑器也正确的链接到 IDE 后，就可以按如下方式快速定位 Widget 的代码了。
+
+![016](images/016.gif)
+
+19.  恭喜你！已经大致入门了自定义 UE 资源和 Slate 界面，接下来就是 UMG 的学习或者深入到 SlateCore 中看下更底层的设计。UMG 的话 puerts 的作者提出用 react 绑定 UMG 对象的想法还挺不错的，大致上就是让 UMG UI 套用成熟的 react 写法，实际核心还是需要靠映射的 UMG UI 组件来完成，感觉至少比坑爹的写 C++ Slate 要好。缺点就是如果美术要进这套工作流，缺少图形化界面来辅助，不可能让美术去写 react 代码。
+
+## 参考文献
+
+- [1] [Slate UI Framework](https://docs.unrealengine.com/4.27/en-US/ProgrammingAndScripting/Slate/)
+- [2] [UE4中UI解决方案Slate](https://zhuanlan.zhihu.com/p/24726208)
+- [3] [UE4下玩转react](https://zhuanlan.zhihu.com/p/240617365)
