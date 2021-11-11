@@ -53,5 +53,4 @@ Session.vim
 # Ignore specific plugin
 Plugins/Developer/RiderLink/**/*
 
-!/Documents/**/*
 /**/__*/*

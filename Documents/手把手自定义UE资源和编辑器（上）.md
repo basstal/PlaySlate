@@ -1,5 +1,10 @@
 # 手把手自定义UE资源和编辑器
 
+## 提示
+
+由于Markdown原生不支持设置图片尺寸，建议浏览器安装插件[imagus](https://chrome.google.com/webstore/detail/imagus/immpkjjlgappgfkkfieppnmlhakdmaab)来解决图片查看问题！
+
+## 正文
 
 1. 首先必须明确，自定义资源类型必须派生自 UObject ，仅 C++ struct 或 class 无法被视为UE认可的资源类型。例如这里自定义了一个资源类型叫 UActAnimation 。现在这个自定义的资源类型还只能够被代码使用，或作为蓝图的基类编辑，还无法使用自定义的编辑器。接下来需要将其注册到 ContentBrowser->Add 菜单中，使其可以自由创建和自定义编辑器。
 
@@ -7,7 +12,7 @@
 
 2. 创建自定义资源类型的包装，派生自 FAssetTypeActions_Base ，这个包装包含了创建这个资源的一些行为和信息。也可以根据 UE 已实现的资源类型去继承，例如蓝图可以继承 FAssetTypeActions_Blueprint ，贴图可以继承 FAssetTypeActions_Texture ，在 UE 工程中搜索 ": public FAssetTypeActions_Base" ，即可找到所有该类的派生类型，后面也会不断使用这种方式来找到一个基类的派生类。
 
-    这个包装需实现虚函数 OpenAssetEditor （打开自定义资源编辑器的回调）、 GetName （本地化资源名称）、 GetTypeColor （ ContentBrowser 中资源的显示颜色）、 GetSupportedClass （资源类型支持的具体 UClass 派生类型）、 GetCategories （ Add 菜单中所处的分类）等，具体虚函数作用可以查看 FAssetTypeActions_Base 基类中的注释。
+    这个包装需实现虚函数 OpenAssetEditor (打开自定义资源编辑器的回调)、 GetName (本地化资源名称)、 GetTypeColor ( ContentBrowser 中资源的显示颜色)、 GetSupportedClass (资源类型支持的具体 UClass 派生类型)、 GetCategories ( Add 菜单中所处的分类)等，具体虚函数作用可以查看 FAssetTypeActions_Base 基类中的注释。
 
 ![002](Images/002.png)
 
@@ -28,7 +33,7 @@ AssetTools.UnregisterAssetTypeActions(RegisteredAssetType);
 ...
 ```
 
-4. 因为 UE 的资源类型都是通过 UFactory 工厂创建出来的，除了上面的资源类型包装外，还需要资源类型对应的工厂，具体代码可以参考[UAssetToolsImpl::CreateAsset]。所以还需要一个派生自 UFactory 的自定义类型，并在构造函数中设置这个工厂支持的 Class 类型，实现 FactoryCreateNew 虚方法， FactoryCreateNew 中传入了 NewObject 所必须的一些参数，包括 Outer （这里一般是 UPackage ，即这个 uasset 所在的资源包）、 InName （资源名称）、 Flags （资源标签），返回已创建好的自定义资源实例，以供编辑器传入和编辑。
+4. 因为 UE 的资源类型都是通过 UFactory 工厂创建出来的，除了上面的资源类型包装外，还需要资源类型对应的工厂，具体代码可以参考[UAssetToolsImpl::CreateAsset]。所以还需要一个派生自 UFactory 的自定义类型，并在构造函数中设置这个工厂支持的 Class 类型，实现 FactoryCreateNew 虚方法， FactoryCreateNew 中传入了 NewObject 所必须的一些参数，包括 Outer (这里一般是 UPackage ，即这个 uasset 所在的资源包)、 InName (资源名称)、 Flags (资源标签)，返回已创建好的自定义资源实例，以供编辑器传入和编辑。
 
 ```C++
 UActAnimationFactory()
@@ -43,7 +48,7 @@ FactoryCreateNew(...)
 return NewObject<UActAnimation>(InParent, InName, Flags);
 ```
 
-5. 回到[3.]中创建的自定义资源类型包装，其中实现了 OpenAssetEditor 方法，其参数 InObjects （编辑器待编辑的资源实例列表，这里是可以多开或一开多来编辑的）、 EditWithinLevelEditor （是否在 LevelEditor 中对应编辑，一般独立的编辑器像 Persona 这里都是 nullptr ），可以在此处对传入的资源使用对应的编辑器来打开。于是就可以开始自定义一个编辑器以及其 UI 了。例如这里使用 FNovaActEditor 编辑器来打开这个资源实例， CreateEditorWindow 是自定义的方法，但是自定义编辑器依然有规则需要遵守。
+5. 回到[3.]中创建的自定义资源类型包装，其中实现了 OpenAssetEditor 方法，其参数 InObjects (编辑器待编辑的资源实例列表，这里是可以多开或一开多来编辑的)、 EditWithinLevelEditor (是否在 LevelEditor 中对应编辑，一般独立的编辑器像 Persona 这里都是 nullptr )，可以在此处对传入的资源使用对应的编辑器来打开。于是就可以开始自定义一个编辑器以及其 UI 了。例如这里使用 FNovaActEditor 编辑器来打开这个资源实例， CreateEditorWindow 是自定义的方法，但是自定义编辑器依然有规则需要遵守。
 
 ```C++
 OpenAssetEditor(...)
@@ -63,13 +68,13 @@ for (auto ActAnimation : InObjects)
 
 | 名称                        | 作用                                                                                                                                                          | 相关派生类                                                                                           |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| IAssetEditorInstance        | 资源编辑器的实例接口，只要被纳入监听的编辑器（已打开、已关闭等事件）都会实现这个接口，这里不关心编辑器的实现，应该只是用来给某个 Manager 做统一管理的。       | FAssetEditorToolkit 、 UAssetEditor 、 SMiniCurveEditor                                              |
+| IAssetEditorInstance        | 资源编辑器的实例接口，只要被纳入监听的编辑器(已打开、已关闭等事件)都会实现这个接口，这里不关心编辑器的实现，应该只是用来给某个 Manager 做统一管理的。         | FAssetEditorToolkit 、 UAssetEditor 、 SMiniCurveEditor                                              |
 | IToolkit 、 FBaseToolkit    | Toolkit 的接口，Toolkit 的概念即一系列资源编辑器和相关资源的集合，例如 Persona 就是一个 Toolkit ， FBaseToolkit 是 IToolkit 的抽象实现基本可以视为一体的。    | FAssetEditorToolkit 、 FModeToolkit                                                                  |
 | FAssetEditorToolkit         | 大体上单独资源的编辑器都可以从这个基类继承出去，这里包含的 InitAssetEditor 方法，可以对待编辑的资源以及当前的编辑模式、当前的 Layout 等一些UI属性做统一处理。 | 派生类太多，仅列举一些： FPropertyEditorToolkit 、 FSimpleAssetEditor 、 FWorkflowCentricApplication |
 | FModeToolkit                | 自定义程度更高的 Toolkit ，只提供了简单的 Panel ，没有指定当前编辑资源，适合需要更多自定义的场景，例如使用其他场景资源或编辑器内部构造资源等。                | 仅列举一些： FTileMapEdModeToolkit 、 FMeshPaintModeToolkit                                          |
 | FWorkflowCentricApplication | 集成度更高的 Toolkit 类型，目标可能是取代某个DDC工具，内部工作流是闭环的不依赖其他外部工具。                                                                  | 仅列举一些： IBehaviorTreeEditor 、 IBlueprintEditor                                                 |
 
-7. 这里选择了派生自 FWorkflowCentricApplication ，但是实际上一些简单的编辑器也可以派生自 FAssetEditorToolkit 就够了。在[5.]中提到的 CreateEditorWindow 方法中，必须调用基类的 InitAssetEditor 函数，其中参数 Mode (Standalone/WorldCentric ，独立 or LevelEditor 附着)、 InitToolkitHost （ OpenAssetEditor 参数传入的 IToolkitHost ）、 AppIdentifier （应用名称）、 StandaloneDefaultLayout （默认的 Layout ）、 bCreateDefaultStandaloneMenu （拥有默认独立菜单）、 bCreateDefaultToolbar （拥有默认工具栏）、 ObjectToEdit （待编辑的资源实例）。这里重要的就是传入 ObjectToEdit ，这样编辑器能够通过 GetEditingObject 获得当前正在编辑的资源实例。这大部分情况都是基类内部在使用的，而我所选择的实现是将数据实例等都放到 DataBinding 中通过 Key-String 的方式来获取。
+7. 这里选择了派生自 FWorkflowCentricApplication ，但是实际上一些简单的编辑器也可以派生自 FAssetEditorToolkit 就够了。在[5.]中提到的 CreateEditorWindow 方法中，必须调用基类的 InitAssetEditor 函数，其中参数 Mode (Standalone/WorldCentric ，独立 or LevelEditor 附着)、 InitToolkitHost ( OpenAssetEditor 参数传入的 IToolkitHost )、 AppIdentifier (应用名称)、 StandaloneDefaultLayout (默认的 Layout )、 bCreateDefaultStandaloneMenu (拥有默认独立菜单)、 bCreateDefaultToolbar (拥有默认工具栏)、 ObjectToEdit (待编辑的资源实例)。这里重要的就是传入 ObjectToEdit ，这样编辑器能够通过 GetEditingObject 获得当前正在编辑的资源实例。这大部分情况都是基类内部在使用的，而我所选择的实现是将数据实例等都放到 DataBinding 中通过 Key-String 的方式来获取。
 
 ```C++
 CreateEditorWindow(...)
@@ -188,10 +193,9 @@ Splitter = SNew(SSplitter) = InArgs;
 
 这里除了奇怪的连续赋值以外，还打破了定义 SWidget 的常规宏 SLATE_BEGIN_ARGS() { } ... SLATE_END_ARGS()，采用巧夺名义的方式，直接把别人定义好的 FArguments 视为自己的 FArguments。可谓十分的精妙，十分的打脸。不禁想到那句：规则都是用来打破的，此谓其一。
 
-
 ![010](Images/010.png)
 
-参数的精髓是什么？看了大段大段的 Slate 后终于明白 Slate 的思考和背后对参数的认识：每一个 Widget 组件，不管其实现如何贴近对应功能模块，贴近父 Widget 的实现，但是，**参数**必须是独立的，这样保证了当你单独在用任何一个 Slate Widget 时，都明白要传入什么参数（但是不明白参数从哪来往哪去），万一哪天有人突然想直接用这个 Widget 呢？嘿嘿，Widget 的参数就是降低耦合性的核心!父层级的 Widget 有什么用？直接忽略，不要影响子 Widget。这个每一个 Widget 都重新开始定义自己的存在、定义自己的参数列表，都是独立可复用的个体！
+参数的精髓是什么？看了大段大段的 Slate 后终于明白 Slate 的思考和背后对参数的认识：每一个 Widget 组件，不管其实现如何贴近对应功能模块，贴近父 Widget 的实现，但是，**参数**必须是独立的，这样保证了当你单独在用任何一个 Slate Widget 时，都明白要传入什么参数(但是不明白参数从哪来往哪去)，万一哪天有人突然想直接用这个 Widget 呢？嘿嘿，Widget 的参数就是降低耦合性的核心!父层级的 Widget 有什么用？直接忽略，不要影响子 Widget。这个每一个 Widget 都重新开始定义自己的存在、定义自己的参数列表，都是独立可复用的个体！
 ```C++
 SAnimTrackPanel::Construct(const FArguments& InArgs)
 ...
@@ -224,4 +228,4 @@ ViewInputMin = InArgs._ViewInputMin;
 ViewInputMax = InArgs._ViewInputMax;
 ...
 ```
-这种层层递归式的参数传递，为反反复复查找一个回调或者参数到底来自哪里，埋下了伏笔。相信当最终发现除了 SAnimNotifyTrack 外，没有其他代码使用 SAnimNotifyNode 时，这段代码读起来是多么的令人惊讶。从好的方面来说，这段代码为以后可能的复用 Widget 打了个底子，从坏的方面来说，去看看这个逻辑这个参数从哪里来，需要上下查找2~4处不同的位置，还得硬记它们的前后关系，这对阅读和理解代码是雪上加霜的。恰恰有趣的是，前者于我们无益，因为大概率你无法复用这个 Widget 去完成一个自定义界面，你真正需要的是模仿这个 Widget 的样式去实现自己的功能，需要的是理解；而后者于我们有害，读了半天撒泡尿回来发现得重读，或者找来找去 Alt + <-（回到之前光标标记处） / Alt + ->（进到下一个光标标记处） / F12（查看定义\实现） / Alt + F7（查找引用） 按得头都晕了，代码也是晕的。每个读代码的人都能体会这种郁闷，此谓其二。（未完待续）
+这种层层递归式的参数传递，为反反复复查找一个回调或者参数到底来自哪里，埋下了伏笔。相信当最终发现除了 SAnimNotifyTrack 外，没有其他代码使用 SAnimNotifyNode 时，这段代码读起来是多么的令人惊讶。从好的方面来说，这段代码为以后可能的复用 Widget 打了个底子，从坏的方面来说，去看看这个逻辑这个参数从哪里来，需要上下查找2~4处不同的位置，还得硬记它们的前后关系，这对阅读和理解代码是雪上加霜的。恰恰有趣的是，前者于我们无益，因为大概率你无法复用这个 Widget 去完成一个自定义界面，你真正需要的是模仿这个 Widget 的样式去实现自己的功能，需要的是理解；而后者于我们有害，读了半天撒泡尿回来发现得重读，或者找来找去 Alt + <-(回到之前光标标记处) / Alt + ->(进到下一个光标标记处) / F12(查看定义\实现) / Alt + F7(查找引用) 按得头都晕了，代码也是晕的。每个读代码的人都能体会这种郁闷，此谓其二。(未完待续)
