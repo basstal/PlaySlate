@@ -1,4 +1,4 @@
-# ActActionToolkit
+# PlaySlate
 
 This project reimplement a simple animation timeline with customized widget for learning usage
 
